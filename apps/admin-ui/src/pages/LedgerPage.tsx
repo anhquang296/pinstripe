@@ -1,20 +1,25 @@
 import LedgerAccountItem from '@components/LedgerAccountItem';
 import LedgerTransactionItem from '@components/LedgerTransactionItem';
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
+import ReverseTransactionForm from '@components/ReverseTransactionForm';
+import type { ReverseTransactionFormData } from '@forms/reverse-transaction-form';
+import {
+  reverseTransactionFormDataToPayload,
+  reverseTransactionFormDefaultValues,
+  reverseTransactionFormResolver,
+} from '@forms/reverse-transaction-form';
 import {
   useLedgerAccountsQuery,
   useLedgerTransactionsQuery,
   useReverseLedgerTransactionMutation,
 } from '@reactquery/ledger';
 import { useCallback, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 const ACCOUNT_LIMIT = 20;
 const TRANSACTION_LIMIT = 20;
 
 export default function LedgerPage() {
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
-  const [reason, setReason] = useState('');
   const { data: ledgerAccounts, error: accountsError } = useLedgerAccountsQuery(
     { limit: ACCOUNT_LIMIT },
     { hasPlaceholder: true },
@@ -25,6 +30,10 @@ export default function LedgerPage() {
   );
   const { mutateAsync: reverseLedgerTransaction, isPending: isReversing } =
     useReverseLedgerTransactionMutation();
+  const form = useForm<ReverseTransactionFormData>({
+    resolver: reverseTransactionFormResolver,
+    defaultValues: reverseTransactionFormDefaultValues,
+  });
 
   const handleOnTransactionSelect = useCallback((transactionId: string) => {
     setSelectedTransactionId((current) => {
@@ -32,23 +41,19 @@ export default function LedgerPage() {
     });
   }, []);
 
-  const handleOnReasonChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setReason(event.target.value);
-  }, []);
-
-  const handleOnReverseConfirm = useCallback(async () => {
-    if (!selectedTransactionId || reason.trim().length === 0) {
+  const handleOnSave = form.handleSubmit(async (formData) => {
+    if (!selectedTransactionId) {
       return;
     }
 
     await reverseLedgerTransaction({
       id: selectedTransactionId,
-      payload: { reason: reason.trim() },
+      payload: reverseTransactionFormDataToPayload(formData),
     });
 
     setSelectedTransactionId(null);
-    setReason('');
-  }, [reason, reverseLedgerTransaction, selectedTransactionId]);
+    form.reset(reverseTransactionFormDefaultValues);
+  });
 
   return (
     <div className="flex flex-col gap-8">
@@ -91,17 +96,12 @@ export default function LedgerPage() {
         </h2>
 
         {selectedTransactionId ? (
-          <div className="flex flex-wrap items-end gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <TextField
-              label={`Lý do đảo ${selectedTransactionId}`}
-              placeholder="Phát hành nhầm kỳ"
-              value={reason}
-              onChange={handleOnReasonChange}
-            />
-            <Button onClick={handleOnReverseConfirm} disabled={isReversing}>
-              Xác nhận đảo
-            </Button>
-          </div>
+          <ReverseTransactionForm
+            form={form}
+            transactionId={selectedTransactionId}
+            isSaving={isReversing}
+            onSave={handleOnSave}
+          />
         ) : null}
 
         <ul className="overflow-hidden rounded-xl border border-slate-200 bg-white">

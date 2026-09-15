@@ -1,14 +1,12 @@
+import CustomerForm from '@components/CustomerForm';
 import CustomerItem from '@components/CustomerItem';
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
-import type { CreateCustomerFormValues } from '@forms/create-customer-form';
+import type { CustomerFormData } from '@forms/customer-form';
 import {
-  createCustomerFormDefaultValues,
-  createCustomerFormSchema,
-} from '@forms/create-customer-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+  customerFormDataToPayload,
+  customerFormDefaultValues,
+  customerFormResolver,
+} from '@forms/customer-form';
 import { useCreateCustomerMutation, useCustomersQuery } from '@reactquery/customers';
-import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
@@ -19,45 +17,22 @@ export default function CustomersPage() {
     isPending,
     error,
   } = useCustomersQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const { mutateAsync: createCustomer } = useCreateCustomerMutation();
-  const form = useForm<CreateCustomerFormValues>({
-    resolver: zodResolver(createCustomerFormSchema),
-    defaultValues: createCustomerFormDefaultValues,
+  const { mutateAsync: createCustomer, isPending: isSaving } = useCreateCustomerMutation();
+  const form = useForm<CustomerFormData>({
+    resolver: customerFormResolver,
+    defaultValues: customerFormDefaultValues,
   });
 
-  const handleOnSubmit = useCallback(
-    async (values: CreateCustomerFormValues) => {
-      await createCustomer(values);
-
-      form.reset(createCustomerFormDefaultValues);
-    },
-    [createCustomer, form],
-  );
+  const handleOnSave = form.handleSubmit(async (formData) => {
+    await createCustomer(customerFormDataToPayload(formData));
+    form.reset(customerFormDefaultValues);
+  });
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
 
-      <form
-        className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
-        onSubmit={form.handleSubmit(handleOnSubmit)}
-      >
-        <TextField
-          label="Email"
-          placeholder="ke.toan@congty.vn"
-          error={form.formState.errors.email?.message}
-          {...form.register('email')}
-        />
-        <TextField
-          label="Tên"
-          placeholder="Công ty ABC"
-          error={form.formState.errors.name?.message}
-          {...form.register('name')}
-        />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          Tạo customer
-        </Button>
-      </form>
+      <CustomerForm form={form} isSaving={isSaving} onSave={handleOnSave} />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-sm">

@@ -81,7 +81,3 @@ export function loadEnv(source: NodeJS.ProcessEnv): Env {
 
   return candidate as Env;
 }
-
-export function isSmtpConfigured(env: Env): boolean {
-  return env.SMTP_HOST !== undefined && env.SMTP_PORT !== undefined;
-}

@@ -1,14 +1,12 @@
+import ProductForm from '@components/ProductForm';
 import ProductItem from '@components/ProductItem';
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
-import type { CreateProductFormValues } from '@forms/create-product-form';
+import type { ProductFormData } from '@forms/product-form';
 import {
-  createProductFormDefaultValues,
-  createProductFormSchema,
-} from '@forms/create-product-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+  productFormDataToPayload,
+  productFormDefaultValues,
+  productFormResolver,
+} from '@forms/product-form';
 import { useCreateProductMutation, useProductsQuery } from '@reactquery/products';
-import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
@@ -19,49 +17,22 @@ export default function ProductsPage() {
     isPending,
     error,
   } = useProductsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const { mutateAsync: createProduct } = useCreateProductMutation();
-  const form = useForm<CreateProductFormValues>({
-    resolver: zodResolver(createProductFormSchema),
-    defaultValues: createProductFormDefaultValues,
+  const { mutateAsync: createProduct, isPending: isSaving } = useCreateProductMutation();
+  const form = useForm<ProductFormData>({
+    resolver: productFormResolver,
+    defaultValues: productFormDefaultValues,
   });
 
-  const handleOnSubmit = useCallback(
-    async (values: CreateProductFormValues) => {
-      await createProduct({
-        name: values.name,
-        description: values.description || undefined,
-        unitLabel: values.unitLabel || undefined,
-      });
-
-      form.reset(createProductFormDefaultValues);
-    },
-    [createProduct, form],
-  );
+  const handleOnSave = form.handleSubmit(async (formData) => {
+    await createProduct(productFormDataToPayload(formData));
+    form.reset(productFormDefaultValues);
+  });
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">Products</h1>
 
-      <form
-        className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
-        onSubmit={form.handleSubmit(handleOnSubmit)}
-      >
-        <TextField
-          label="Tên"
-          placeholder="Pinstripe Pro"
-          error={form.formState.errors.name?.message}
-          {...form.register('name')}
-        />
-        <TextField
-          label="Mô tả"
-          placeholder="Gói dành cho doanh nghiệp"
-          {...form.register('description')}
-        />
-        <TextField label="Đơn vị" placeholder="seat" {...form.register('unitLabel')} />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          Tạo product
-        </Button>
-      </form>
+      <ProductForm form={form} isSaving={isSaving} onSave={handleOnSave} />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-sm">

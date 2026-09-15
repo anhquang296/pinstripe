@@ -1,13 +1,11 @@
+import SubscriptionForm from '@components/SubscriptionForm';
 import SubscriptionItem from '@components/SubscriptionItem';
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
-import type { CreateSubscriptionFormValues } from '@forms/create-subscription-form';
+import type { SubscriptionFormData } from '@forms/subscription-form';
 import {
-  createSubscriptionFormDefaultValues,
-  createSubscriptionFormSchema,
-} from '@forms/create-subscription-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+  subscriptionFormDataToPayload,
+  subscriptionFormDefaultValues,
+  subscriptionFormResolver,
+} from '@forms/subscription-form';
 import { useCustomersQuery } from '@reactquery/customers';
 import { useEntitlementsQuery } from '@reactquery/entitlements';
 import { usePricesQuery } from '@reactquery/prices';
@@ -33,20 +31,20 @@ export default function SubscriptionsPage() {
     { limit: PAGE_LIMIT },
     { hasPlaceholder: true },
   );
-  const { mutateAsync: createSubscription } = useCreateSubscriptionMutation();
+  const { mutateAsync: createSubscription, isPending: isSaving } = useCreateSubscriptionMutation();
   const { mutate: cancelSubscription } = useCancelSubscriptionMutation();
 
-  const form = useForm<CreateSubscriptionFormValues>({
-    resolver: zodResolver(createSubscriptionFormSchema),
-    defaultValues: createSubscriptionFormDefaultValues,
+  const form = useForm<SubscriptionFormData>({
+    resolver: subscriptionFormResolver,
+    defaultValues: subscriptionFormDefaultValues,
   });
 
   const customerOptions = useMemo(() => {
-    const customerOptionSource = customers?.data ?? [];
+    const customerRows = customers?.data ?? [];
 
     return [
       { value: '', label: '— chọn khách hàng —' },
-      ...customerOptionSource.map((customer) => {
+      ...customerRows.map((customer) => {
         return {
           value: customer.id,
           label: `${customer.name || customer.email || customer.id} (${customer.currency.toUpperCase()})`,
@@ -56,13 +54,13 @@ export default function SubscriptionsPage() {
   }, [customers]);
 
   const priceOptions = useMemo(() => {
-    const priceOptionSource = (prices?.data ?? []).filter((price) => {
+    const recurringPrices = (prices?.data ?? []).filter((price) => {
       return price.type === 'recurring';
     });
 
     return [
       { value: '', label: '— chọn bảng giá —' },
-      ...priceOptionSource.map((price) => {
+      ...recurringPrices.map((price) => {
         return {
           value: price.id,
           label: `${price.lookupKey ?? price.id} · ${price.billingScheme} · ${price.currency.toUpperCase()}`,
@@ -71,18 +69,10 @@ export default function SubscriptionsPage() {
     ];
   }, [prices]);
 
-  const handleOnSubmit = useCallback(
-    async (values: CreateSubscriptionFormValues) => {
-      await createSubscription({
-        customerId: values.customerId,
-        items: [{ priceId: values.priceId }],
-        trialPeriodDays: values.trialPeriodDays > 0 ? values.trialPeriodDays : undefined,
-      });
-
-      form.reset(createSubscriptionFormDefaultValues);
-    },
-    [createSubscription, form],
-  );
+  const handleOnSave = form.handleSubmit(async (formData) => {
+    await createSubscription(subscriptionFormDataToPayload(formData));
+    form.reset(subscriptionFormDefaultValues);
+  });
 
   const handleOnCancel = useCallback(
     (subscriptionId: string, cancelAtPeriodEnd: boolean) => {
@@ -100,33 +90,13 @@ export default function SubscriptionsPage() {
         </p>
       </div>
 
-      <form
-        className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
-        onSubmit={form.handleSubmit(handleOnSubmit)}
-      >
-        <SelectField
-          label="Khách hàng"
-          options={customerOptions}
-          error={form.formState.errors.customerId?.message}
-          {...form.register('customerId')}
-        />
-        <SelectField
-          label="Bảng giá"
-          options={priceOptions}
-          error={form.formState.errors.priceId?.message}
-          {...form.register('priceId')}
-        />
-        <TextField
-          label="Trial (ngày)"
-          type="number"
-          min={0}
-          className="w-28"
-          {...form.register('trialPeriodDays', { valueAsNumber: true })}
-        />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          Tạo subscription
-        </Button>
-      </form>
+      <SubscriptionForm
+        form={form}
+        customerOptions={customerOptions}
+        priceOptions={priceOptions}
+        isSaving={isSaving}
+        onSave={handleOnSave}
+      />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-sm">

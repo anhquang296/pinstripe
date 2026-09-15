@@ -1,39 +1,38 @@
+import TestClockForm from '@components/TestClockForm';
 import TestClockItem from '@components/TestClockItem';
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
+import type { TestClockFormData } from '@forms/test-clock-form';
+import {
+  testClockFormDataToPayload,
+  testClockFormDefaultValues,
+  testClockFormResolver,
+} from '@forms/test-clock-form';
 import {
   useAdvanceTestClockMutation,
   useCreateTestClockMutation,
   useTestClocksQuery,
 } from '@reactquery/test-clocks';
 import { useCallback, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
 
 export default function TestClocksPage() {
-  const [name, setName] = useState('');
   const [advanceTargets, setAdvanceTargets] = useState<Record<string, string>>({});
   const { data: testClocks, error } = useTestClocksQuery(
     { limit: PAGE_LIMIT },
     { hasPlaceholder: true },
   );
-  const { mutateAsync: createTestClock, isPending: isCreating } = useCreateTestClockMutation();
+  const { mutateAsync: createTestClock, isPending: isSaving } = useCreateTestClockMutation();
+  const form = useForm<TestClockFormData>({
+    resolver: testClockFormResolver,
+    defaultValues: testClockFormDefaultValues,
+  });
   const { mutate: advanceTestClock } = useAdvanceTestClockMutation();
 
-  const handleOnNameChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
-  }, []);
-
-  const handleOnCreateClick = useCallback(async () => {
-    const trimmedName = name.trim();
-
-    if (trimmedName.length === 0) {
-      return;
-    }
-
-    await createTestClock({ name: trimmedName, frozenTime: new Date().toISOString() });
-    setName('');
-  }, [createTestClock, name]);
+  const handleOnSave = form.handleSubmit(async (formData) => {
+    await createTestClock(testClockFormDataToPayload(formData));
+    form.reset(testClockFormDefaultValues);
+  });
 
   const handleOnTargetChange = useCallback((testClockId: string, target: string) => {
     setAdvanceTargets((currentTargets) => {
@@ -66,17 +65,7 @@ export default function TestClocksPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
-        <TextField
-          label="Tên đồng hồ"
-          placeholder="Demo kế toán"
-          value={name}
-          onChange={handleOnNameChange}
-        />
-        <Button onClick={handleOnCreateClick} disabled={isCreating}>
-          Tạo test clock
-        </Button>
-      </div>
+      <TestClockForm form={form} isSaving={isSaving} onSave={handleOnSave} />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-sm">
