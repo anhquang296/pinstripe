@@ -1,5 +1,4 @@
 <!-- agentkit:start v0.2.0 -->
-
 ## Coding conventions
 
 Repo-wide conventions live in `.claude/rules/agentkit/` and are loaded alongside this file. The core rules are

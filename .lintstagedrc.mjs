@@ -9,7 +9,7 @@ const PACKAGE_ROOTS = [
   'apps/portal-ui',
 ];
 
-const GENERATED_PATHS = ['.claude/rules/agentkit/', '.agentkit/'];
+const GENERATED_PATHS = ['.claude/rules/agentkit/', '.agentkit/', 'CLAUDE.md', 'AGENTS.md'];
 
 function toRepoRelative(file) {
   return path.relative(process.cwd(), file);
