@@ -1,3 +1,4 @@
+export * from '@utils/billing-period';
 export * from '@utils/clock';
 export * from '@utils/currency';
 export * from '@utils/id-factory';

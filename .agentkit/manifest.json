@@ -1,7 +1,7 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.2",
   "files": {
-    ".claude/rules/agentkit/00-index.md": "e27bd5c63f93a5f230889405516051a3e6e14b905d1b3d0646b838c015ef5669",
+    ".claude/rules/agentkit/00-index.md": "83d138cfdb6cc38290f17714e7a53c5946981c425049f52f2b45739ce5ee900d",
     ".claude/rules/agentkit/core/brace-style-convention.md": "e8bb89525a51935a53b7fbe665dc9f2f3b02b6fc0db6f61e1ae609e4efb352ca",
     ".claude/rules/agentkit/core/comment-convention.md": "1ad73771d6d2d1ad6a6c04433e2857e331591b74e059c39201ab9cc8e2496e08",
     ".claude/rules/agentkit/core/constant-convention.md": "b32e93f8080370f48ee513a81d67b5be197439db85a1d4853b610d406e2ff237",
@@ -11,6 +11,7 @@
     ".claude/rules/agentkit/core/minimal-surface-convention.md": "4db008e7ef13a734e94d17bd5e06e20d7a4970af57dc01a4a4f3fc1c452e041d",
     ".claude/rules/agentkit/core/naming-convention.md": "ca7372c2a0914a37f99df4f5f0ea9a422e6cc6334a46c60982532aeebb9be48f",
     ".claude/rules/agentkit/core/nested-access-convention.md": "d17734c53ec2667749f109bf67f43cf43c08cb89edf935fffdfcf092be06cf56",
+    ".claude/rules/agentkit/core/nullability-convention.md": "e77652b6528d2b96b7ea0aecef08efc61b99e2efaf75b7e3bebceff092ba1512",
     ".claude/rules/agentkit/core/rule-maintenance.md": "755bab6ac760f9929255e45adf139b3aecdf2a25907a1b20582f403ea19634a0",
     ".claude/rules/agentkit/core/statement-convention.md": "5688e3740d12e06f6127970546329a01500147bdcfe4e5883c84d63054be206b",
     ".claude/rules/agentkit/core/testing.md": "23c40a0dc089c450199455e33a7c7d9628b9e0f874a68d0ba7db9b44e7a18f98",

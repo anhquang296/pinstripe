@@ -46,6 +46,9 @@ pnpm db:generate
 | Customers | `POST/GET /v1/customers`, `GET/POST/DELETE /v1/customers/:customerId` |
 | Products | `POST/GET /v1/products`, `GET/POST /v1/products/:productId` |
 | Prices | `POST/GET /v1/prices`, `GET/POST /v1/prices/:priceId` |
+| Subscriptions | `POST/GET /v1/subscriptions`, `GET/POST/DELETE /v1/subscriptions/:subscriptionId` |
+| Entitlements | `GET /v1/entitlements` |
+| Test clocks | `POST/GET /v1/test_helpers/test_clocks`, `POST /v1/test_helpers/test_clocks/:id/advance` |
 | Ledger (admin) | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
 
 Mọi `POST` nhận header `Idempotency-Key`. List dùng cursor `startingAfter` / `endingBefore`.

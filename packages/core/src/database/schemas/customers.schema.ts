@@ -14,6 +14,7 @@ export const customers = pgTable(
     taxId: text('tax_id'),
     address: jsonb('address').$type<NonNullable<CustomerContract['address']>>(),
     currency: text('currency').$type<Currency>().notNull(),
+    testClockId: text('test_clock_id'),
     balance: bigint('balance', { mode: 'number' }).notNull().default(0),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

@@ -43,6 +43,13 @@
       "when": 1789490335623,
       "tag": "0005_not_null_text_and_price_shape",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789490584820,
+      "tag": "0006_subscriptions_entitlements",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,8 @@ export enum AggregateTypeEnum {
   PRODUCT = 'product',
   PRICE = 'price',
   LEDGER_TRANSACTION = 'ledger_transaction',
+  SUBSCRIPTION = 'subscription',
+  TEST_CLOCK = 'test_clock',
 }
 export type AggregateType = `${AggregateTypeEnum}`;
 
@@ -16,5 +18,11 @@ export enum DomainEventTypeEnum {
   PRICE_UPDATED = 'price.updated',
   LEDGER_TRANSACTION_POSTED = 'ledger.transaction.posted',
   LEDGER_TRANSACTION_REVERSED = 'ledger.transaction.reversed',
+  SUBSCRIPTION_CREATED = 'subscription.created',
+  SUBSCRIPTION_UPDATED = 'subscription.updated',
+  SUBSCRIPTION_TRIAL_ENDED = 'subscription.trial_ended',
+  SUBSCRIPTION_RENEWED = 'subscription.renewed',
+  SUBSCRIPTION_CANCELED = 'subscription.canceled',
+  TEST_CLOCK_ADVANCED = 'test_clock.advanced',
 }
 export type DomainEventType = `${DomainEventTypeEnum}`;

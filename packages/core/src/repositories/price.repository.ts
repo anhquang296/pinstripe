@@ -1,10 +1,11 @@
-import { and, desc, eq, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewPriceEntity, PriceEntity } from '@database/schemas';
 import { prices } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
 
 export interface FindPricesFilters {
+  idIn?: readonly string[];
   productIdEq?: string;
   lookupKeyEq?: string;
   activeEq?: boolean;
@@ -27,6 +28,7 @@ export class PriceRepository {
 
   async findPrices(filters: FindPricesFilters, limit: number): Promise<PriceEntity[]> {
     const where = and(
+      filters.idIn ? inArray(prices.id, [...filters.idIn]) : undefined,
       filters.productIdEq ? eq(prices.productId, filters.productIdEq) : undefined,
       filters.lookupKeyEq ? eq(prices.lookupKey, filters.lookupKeyEq) : undefined,
       filters.activeEq === undefined ? undefined : eq(prices.active, filters.activeEq),
