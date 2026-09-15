@@ -1,0 +1,19 @@
+import { QueueNameEnum } from '@queues/queue-name';
+
+export const DOMAIN_EVENT_QUEUE = QueueNameEnum.DOMAIN_EVENT;
+export const DOMAIN_EVENT_DISPATCH_JOB = 'DomainEventDispatch';
+
+export interface DomainEventDispatchJob {
+  eventId: string;
+  eventType: string;
+  aggregateType: string;
+  aggregateId: string;
+  payload: Record<string, unknown>;
+  occurredAt: string;
+}
+
+export function buildDomainEventDispatchJob(
+  event: Omit<DomainEventDispatchJob, 'occurredAt'> & { occurredAt: Date },
+): DomainEventDispatchJob {
+  return { ...event, occurredAt: event.occurredAt.toISOString() };
+}

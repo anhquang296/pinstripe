@@ -1,0 +1,44 @@
+{
+  "extends": "@pinstripe/config/tsconfig/node.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "paths": {
+      "@config/*": [
+        "src/config/*"
+      ],
+      "@database/*": [
+        "src/database/*"
+      ],
+      "@errors/*": [
+        "src/errors/*"
+      ],
+      "@plugins/*": [
+        "src/plugins/*"
+      ],
+      "@queues/*": [
+        "src/queues/*"
+      ],
+      "@repositories/*": [
+        "src/repositories/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@type/*": [
+        "src/types/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "tsup.config.ts",
+    "drizzle.config.ts",
+    "vitest.config.ts",
+    "vitest.integration.config.ts"
+  ]
+}

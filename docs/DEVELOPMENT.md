@@ -1,0 +1,51 @@
+# Development
+
+## Yêu cầu
+
+Node 22+, pnpm 10+, Docker.
+
+## Khởi động
+
+```bash
+pnpm install
+pnpm docker:up
+pnpm db:migrate
+pnpm dev
+```
+
+| Service | Cổng | Ghi chú |
+|---|---|---|
+| api | 3000 | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*` |
+| worker outbox | 3001 | relay outbox → domain event queue |
+| worker domain-event | 3002 | consume domain event |
+| admin-ui | 5173 | Vite, proxy `/api` sang api kèm admin key |
+| portal-ui | 3100 | Next.js |
+| postgres | 55432 | user/pass/db: `pinstripe` |
+| redis | 56379 | |
+| mailpit | 58025 | UI xem email dev |
+
+## Lệnh hay dùng
+
+```bash
+pnpm test
+```
+
+```bash
+pnpm --filter @pinstripe/core test:integration
+```
+
+```bash
+pnpm db:generate
+```
+
+## Gọi thử API
+
+```bash
+curl -s -H "Authorization: Bearer $SECRET_API_KEY" localhost:3000/v1/ping
+```
+
+## Lưu ý
+
+- `packages/core` được build (`exports` trỏ `dist`). Sửa core xong phải rebuild — `pnpm dev` và
+  `turbo` tự lo thứ tự, nhưng chạy một package lẻ thì không.
+- Migration là journal: không xoá file đã generate, luôn tạo migration mới.

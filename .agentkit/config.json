@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anhquang296/agentkit/master/schema/config.schema.json",
+  "version": "0.1.0",
+  "profiles": [
+    "bullmq",
+    "drizzle",
+    "fastify",
+    "lodash",
+    "monorepo-turborepo",
+    "node-backend",
+    "react"
+  ],
+  "vars": {
+    "packageManager": "pnpm"
+  },
+  "agentsMd": {
+    "nested": []
+  },
+  "overrides": {
+    "eject": []
+  }
+}
