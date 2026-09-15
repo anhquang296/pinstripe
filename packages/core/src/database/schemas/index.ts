@@ -7,6 +7,7 @@ export * from '@database/schemas/ledger-transactions.schema';
 export * from '@database/schemas/meter-events.schema';
 export * from '@database/schemas/meters.schema';
 export * from '@database/schemas/outbox-events.schema';
+export * from '@database/schemas/payments.schema';
 export * from '@database/schemas/prices.schema';
 export * from '@database/schemas/products.schema';
 export * from '@database/schemas/subscriptions.schema';

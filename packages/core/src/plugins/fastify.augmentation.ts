@@ -1,3 +1,4 @@
+import type { MockPspClient } from '@clients/mock-psp.client';
 import type { Env } from '@config/env.schema';
 import type { DatabaseClient } from '@database/database.client';
 import type { ListenAddress, WorkflowSchedules } from '@plugins/config.plugin';
@@ -12,8 +13,10 @@ import type { LedgerTransactionRepository } from '@repositories/ledger-transacti
 import type { MeterRepository } from '@repositories/meter.repository';
 import type { MeterEventRepository } from '@repositories/meter-event.repository';
 import type { OutboxEventRepository } from '@repositories/outbox-event.repository';
+import type { PaymentIntentRepository } from '@repositories/payment-intent.repository';
 import type { PriceRepository } from '@repositories/price.repository';
 import type { ProductRepository } from '@repositories/product.repository';
+import type { RefundRepository } from '@repositories/refund.repository';
 import type { SubscriptionRepository } from '@repositories/subscription.repository';
 import type { TestClockRepository } from '@repositories/test-clock.repository';
 import type { BillingRunService } from '@services/billing-run.service';
@@ -26,9 +29,11 @@ import type { LedgerService } from '@services/ledger.service';
 import type { MeterService } from '@services/meter.service';
 import type { MeterEventService } from '@services/meter-event.service';
 import type { OutboxService } from '@services/outbox.service';
+import type { PaymentService } from '@services/payment.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
 import type { RatingService } from '@services/rating.service';
+import type { RefundService } from '@services/refund.service';
 import type { SubscriptionService } from '@services/subscription.service';
 import type { TestClockService } from '@services/test-clock.service';
 import type { Clock } from '@utils/clock';
@@ -62,6 +67,8 @@ declare module 'fastify' {
     outboxEventRepository: OutboxEventRepository;
     invoiceRepository: InvoiceRepository;
     creditNoteRepository: CreditNoteRepository;
+    paymentIntentRepository: PaymentIntentRepository;
+    refundRepository: RefundRepository;
     customerService: CustomerService;
     idempotencyService: IdempotencyService;
     entitlementService: EntitlementService;
@@ -77,6 +84,9 @@ declare module 'fastify' {
     invoiceService: InvoiceService;
     creditNoteService: CreditNoteService;
     billingRunService: BillingRunService;
+    paymentService: PaymentService;
+    refundService: RefundService;
+    psp: MockPspClient;
   }
 }
 

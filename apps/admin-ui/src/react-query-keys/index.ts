@@ -4,6 +4,7 @@ import { entitlementQueries } from '@react-query-keys/entitlement.keys';
 import { invoiceQueries } from '@react-query-keys/invoice.keys';
 import { ledgerQueries } from '@react-query-keys/ledger.keys';
 import { meterQueries } from '@react-query-keys/meter.keys';
+import { paymentQueries } from '@react-query-keys/payment.keys';
 import { priceQueries } from '@react-query-keys/price.keys';
 import { productQueries } from '@react-query-keys/product.keys';
 import { subscriptionQueries } from '@react-query-keys/subscription.keys';
@@ -19,4 +20,5 @@ export const queries = mergeQueryKeys(
   entitlementQueries,
   meterQueries,
   invoiceQueries,
+  paymentQueries,
 );

@@ -85,6 +85,20 @@
       "when": 1789497841026,
       "tag": "0011_invoice_immutability",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789499537929,
+      "tag": "0012_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789499545150,
+      "tag": "0013_payment_append_only",
+      "breakpoints": true
     }
   ]
 }

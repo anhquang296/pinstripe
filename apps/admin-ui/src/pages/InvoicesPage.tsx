@@ -8,9 +8,9 @@ import {
   useCreditNotesQuery,
   useFinalizeInvoiceMutation,
   useInvoicesQuery,
-  usePayInvoiceMutation,
   useVoidInvoiceMutation,
 } from '@reactquery/invoices';
+import { useChargeInvoiceMutation } from '@reactquery/payments';
 import { useSubscriptionsQuery } from '@reactquery/subscriptions';
 import { map, toUpper } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
@@ -18,6 +18,8 @@ import { useCallback, useMemo, useState } from 'react';
 const PAGE_LIMIT = 20;
 const OPTION_LIMIT = 100;
 const DEFAULT_CREDIT_AMOUNT = '100000';
+const APPROVED_PAYMENT_METHOD = 'pm_card_ok';
+const DECLINED_PAYMENT_METHOD = 'pm_card_declined';
 
 export default function InvoicesPage() {
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState('');
@@ -34,7 +36,7 @@ export default function InvoicesPage() {
   const { data: subscriptions } = useSubscriptionsQuery({ limit: OPTION_LIMIT });
   const { mutate: createInvoice, isPending: isCreating } = useCreateInvoiceMutation();
   const { mutate: finalizeInvoice, isPending: isFinalizing } = useFinalizeInvoiceMutation();
-  const { mutate: payInvoice, isPending: isPaying } = usePayInvoiceMutation();
+  const { mutate: chargeInvoice, isPending: isCharging } = useChargeInvoiceMutation();
   const { mutate: voidInvoice, isPending: isVoiding } = useVoidInvoiceMutation();
   const { mutate: createCreditNote, isPending: isCrediting } = useCreateCreditNoteMutation();
 
@@ -68,11 +70,18 @@ export default function InvoicesPage() {
     [finalizeInvoice],
   );
 
-  const handleOnPay = useCallback(
+  const handleOnCharge = useCallback(
     (invoiceId: string) => {
-      payInvoice({ id: invoiceId, payload: {} });
+      chargeInvoice({ invoiceId, paymentMethod: APPROVED_PAYMENT_METHOD });
     },
-    [payInvoice],
+    [chargeInvoice],
+  );
+
+  const handleOnDecline = useCallback(
+    (invoiceId: string) => {
+      chargeInvoice({ invoiceId, paymentMethod: DECLINED_PAYMENT_METHOD });
+    },
+    [chargeInvoice],
   );
 
   const handleOnVoid = useCallback(
@@ -93,7 +102,7 @@ export default function InvoicesPage() {
     [createCreditNote, creditAmount],
   );
 
-  const isBusy = isFinalizing || isPaying || isVoiding || isCrediting;
+  const isBusy = isFinalizing || isCharging || isVoiding || isCrediting;
 
   return (
     <div className="flex flex-col gap-8">
@@ -125,7 +134,7 @@ export default function InvoicesPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full min-w-[56rem] text-left text-sm">
+        <table className="w-full min-w-[64rem] text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3">Số</th>
@@ -134,6 +143,7 @@ export default function InvoicesPage() {
               <th className="px-4 py-3 text-right">Tổng</th>
               <th className="px-4 py-3 text-right">Đã trả</th>
               <th className="px-4 py-3 text-right">Đã credit</th>
+              <th className="px-4 py-3 text-right">Đã hoàn</th>
               <th className="px-4 py-3 text-right">Còn lại</th>
               <th className="px-4 py-3">Thao tác</th>
             </tr>
@@ -146,7 +156,8 @@ export default function InvoicesPage() {
                   invoice={invoice}
                   isBusy={isBusy}
                   onFinalize={handleOnFinalize}
-                  onPay={handleOnPay}
+                  onCharge={handleOnCharge}
+                  onDecline={handleOnDecline}
                   onVoid={handleOnVoid}
                   onCredit={handleOnCredit}
                 />

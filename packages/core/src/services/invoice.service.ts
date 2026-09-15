@@ -288,6 +288,7 @@ export class InvoiceService {
     const invoiceIds = _.map(page, 'id');
     const lineItemsByInvoiceId = await this.resolveLineItems(invoiceIds);
     const creditedByInvoiceId = await this.resolveCreditedAmounts(invoiceIds);
+    const refundedByInvoiceId = await this.resolveRefundedAmounts(invoiceIds);
 
     return {
       object: 'list',
@@ -298,6 +299,7 @@ export class InvoiceService {
           invoice,
           lineItemsByInvoiceId[invoice.id] ?? [],
           creditedByInvoiceId[invoice.id] ?? 0,
+          refundedByInvoiceId[invoice.id] ?? 0,
         );
       }),
     };
@@ -464,11 +466,13 @@ export class InvoiceService {
   private async buildInvoice(invoice: Invoice): Promise<InvoiceResponse> {
     const lineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([invoice.id]);
     const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
+    const refundedByInvoiceId = await this.resolveRefundedAmounts([invoice.id]);
 
     return InvoiceService.buildInvoiceWithLineItems(
       invoice,
       lineItems,
       creditedByInvoiceId[invoice.id] ?? 0,
+      refundedByInvoiceId[invoice.id] ?? 0,
     );
   }
 
@@ -478,6 +482,14 @@ export class InvoiceService {
     const rows = await this.fastify.creditNoteRepository.aggregateCreditedAmounts(invoiceIds);
 
     return _.mapValues(_.keyBy(rows, 'invoiceId'), 'creditedAmount');
+  }
+
+  private async resolveRefundedAmounts(
+    invoiceIds: readonly string[],
+  ): Promise<Record<string, number>> {
+    const rows = await this.fastify.refundRepository.aggregateRefundedAmounts(invoiceIds);
+
+    return _.mapValues(_.keyBy(rows, 'invoiceId'), 'refundedAmount');
   }
 
   private static formatNumber(prefix: string, value: number): string {
@@ -496,6 +508,7 @@ export class InvoiceService {
     invoice: Invoice,
     lineItems: readonly InvoiceLineItem[],
     amountCredited: number,
+    amountRefunded: number,
   ): InvoiceResponse {
     return {
       object: 'invoice',
@@ -511,6 +524,7 @@ export class InvoiceService {
       total: invoice.total,
       amountPaid: invoice.amountPaid,
       amountCredited,
+      amountRefunded,
       amountRemaining: invoice.total - invoice.amountPaid - amountCredited,
       lineItems: _.map(lineItems, (lineItem) => {
         return {

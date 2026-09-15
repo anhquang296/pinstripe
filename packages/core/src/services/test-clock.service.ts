@@ -20,6 +20,7 @@ export class TestClockService {
 
   async createTestClock(payload: CreateTestClockPayload): Promise<TestClockResponse> {
     const now = this.fastify.clock.now();
+
     const createdTestClock = await this.fastify.testClockRepository.createTestClock({
       id: generateId(ObjectPrefixEnum.TEST_CLOCK),
       name: payload.name,

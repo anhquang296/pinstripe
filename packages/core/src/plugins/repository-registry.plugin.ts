@@ -8,8 +8,10 @@ import { LedgerTransactionRepository } from '@repositories/ledger-transaction.re
 import { MeterRepository } from '@repositories/meter.repository';
 import { MeterEventRepository } from '@repositories/meter-event.repository';
 import { OutboxEventRepository } from '@repositories/outbox-event.repository';
+import { PaymentIntentRepository } from '@repositories/payment-intent.repository';
 import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
+import { RefundRepository } from '@repositories/refund.repository';
 import { SubscriptionRepository } from '@repositories/subscription.repository';
 import { TestClockRepository } from '@repositories/test-clock.repository';
 import fp from 'fastify-plugin';
@@ -32,4 +34,6 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('testClockRepository', new TestClockRepository(fastify.database));
   fastify.decorate('invoiceRepository', new InvoiceRepository(fastify.database));
   fastify.decorate('creditNoteRepository', new CreditNoteRepository(fastify.database));
+  fastify.decorate('paymentIntentRepository', new PaymentIntentRepository(fastify.database));
+  fastify.decorate('refundRepository', new RefundRepository(fastify.database));
 });

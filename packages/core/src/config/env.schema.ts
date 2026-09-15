@@ -59,6 +59,7 @@ export const envSchema = Type.Object({
   BILLING_RUN_INTERVAL_MS: Default(Type.Integer({ minimum: 1000 }), 60_000),
   BILLING_RUN_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
   BILLING_RUN_JITTER_MS: Default(Type.Integer({ minimum: 0 }), 5_000),
+  PSP_REFERENCE_PREFIX: Default(Type.String({ minLength: 1 }), 'mockpsp'),
 });
 
 export type Env = Static<typeof envSchema>;

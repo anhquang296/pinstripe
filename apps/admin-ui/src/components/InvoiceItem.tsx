@@ -8,7 +8,8 @@ interface InvoiceItemProps {
   invoice: InvoiceResponse;
   isBusy: boolean;
   onFinalize: (invoiceId: string) => void;
-  onPay: (invoiceId: string) => void;
+  onCharge: (invoiceId: string) => void;
+  onDecline: (invoiceId: string) => void;
   onVoid: (invoiceId: string) => void;
   onCredit: (invoiceId: string) => void;
 }
@@ -25,7 +26,8 @@ export default function InvoiceItem({
   invoice,
   isBusy,
   onFinalize,
-  onPay,
+  onCharge,
+  onDecline,
   onVoid,
   onCredit,
 }: InvoiceItemProps) {
@@ -33,9 +35,13 @@ export default function InvoiceItem({
     onFinalize(invoice.id);
   }, [invoice.id, onFinalize]);
 
-  const handleOnPay = useCallback(() => {
-    onPay(invoice.id);
-  }, [invoice.id, onPay]);
+  const handleOnCharge = useCallback(() => {
+    onCharge(invoice.id);
+  }, [invoice.id, onCharge]);
+
+  const handleOnDecline = useCallback(() => {
+    onDecline(invoice.id);
+  }, [invoice.id, onDecline]);
 
   const handleOnVoid = useCallback(() => {
     onVoid(invoice.id);
@@ -68,6 +74,9 @@ export default function InvoiceItem({
       <td className="px-4 py-3 text-right tabular-nums text-slate-500">
         {invoice.amountCredited.toLocaleString('vi-VN')}
       </td>
+      <td className="px-4 py-3 text-right tabular-nums text-slate-500">
+        {invoice.amountRefunded.toLocaleString('vi-VN')}
+      </td>
       <td className="px-4 py-3 text-right font-medium tabular-nums">
         {invoice.amountRemaining.toLocaleString('vi-VN')}
       </td>
@@ -79,8 +88,13 @@ export default function InvoiceItem({
             </Button>
           ) : null}
           {isOpen ? (
-            <Button variant="ghost" onClick={handleOnPay} disabled={isBusy}>
-              Thanh toán
+            <Button variant="ghost" onClick={handleOnCharge} disabled={isBusy}>
+              Thu tiền
+            </Button>
+          ) : null}
+          {isOpen ? (
+            <Button variant="ghost" onClick={handleOnDecline} disabled={isBusy}>
+              Thẻ bị từ chối
             </Button>
           ) : null}
           {isOpen ? (

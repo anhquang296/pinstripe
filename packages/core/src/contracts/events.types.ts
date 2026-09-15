@@ -16,6 +16,8 @@ export enum AggregateTypeEnum {
   METER = 'meter',
   INVOICE = 'invoice',
   CREDIT_NOTE = 'credit_note',
+  PAYMENT_INTENT = 'payment_intent',
+  REFUND = 'refund',
 }
 export type AggregateType = `${AggregateTypeEnum}`;
 
@@ -42,5 +44,8 @@ export enum DomainEventTypeEnum {
   INVOICE_VOIDED = 'invoice.voided',
   INVOICE_MARKED_UNCOLLECTIBLE = 'invoice.marked_uncollectible',
   CREDIT_NOTE_CREATED = 'credit_note.created',
+  PAYMENT_INTENT_SUCCEEDED = 'payment_intent.succeeded',
+  PAYMENT_INTENT_FAILED = 'payment_intent.failed',
+  REFUND_CREATED = 'refund.created',
 }
 export type DomainEventType = `${DomainEventTypeEnum}`;

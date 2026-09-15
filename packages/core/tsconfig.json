@@ -4,6 +4,7 @@
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
+      "@clients/*": ["src/clients/*"],
       "@config/*": ["src/config/*"],
       "@constants/*": ["src/constants/*"],
       "@contracts/*": ["src/contracts/*"],

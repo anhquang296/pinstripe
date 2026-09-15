@@ -53,6 +53,8 @@ pnpm db:generate
 | Rating         | `GET /v1/invoices/upcoming?subscriptionId=…`                                                                                            |
 | Invoices       | `POST/GET /v1/invoices`, `GET /v1/invoices/:invoiceId`, `POST /v1/invoices/:invoiceId/{finalize,pay,void}`                              |
 | Credit notes   | `POST/GET /v1/credit_notes`, `GET /v1/credit_notes/:creditNoteId`                                                                       |
+| Payments       | `POST/GET /v1/payment_intents`, `GET /v1/payment_intents/:id`, `POST /v1/payment_intents/:id/{confirm,cancel}`                          |
+| Refunds        | `POST/GET /v1/refunds`, `GET /v1/refunds/:refundId`                                                                                     |
 | Test clocks    | `POST/GET /v1/test_helpers/test_clocks`, `POST /v1/test_helpers/test_clocks/:id/advance`                                                |
 | Ledger (admin) | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
 

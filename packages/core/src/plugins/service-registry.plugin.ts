@@ -8,9 +8,11 @@ import { LedgerService } from '@services/ledger.service';
 import { MeterService } from '@services/meter.service';
 import { MeterEventService } from '@services/meter-event.service';
 import { OutboxService } from '@services/outbox.service';
+import { PaymentService } from '@services/payment.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
 import { RatingService } from '@services/rating.service';
+import { RefundService } from '@services/refund.service';
 import { SubscriptionService } from '@services/subscription.service';
 import { TestClockService } from '@services/test-clock.service';
 import fp from 'fastify-plugin';
@@ -30,6 +32,8 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('ratingService', new RatingService(fastify));
   fastify.decorate('invoiceService', new InvoiceService(fastify));
   fastify.decorate('creditNoteService', new CreditNoteService(fastify));
+  fastify.decorate('paymentService', new PaymentService(fastify));
+  fastify.decorate('refundService', new RefundService(fastify));
   fastify.decorate(
     'billingRunService',
     new BillingRunService(fastify, { batchSize: fastify.workflowSchedules.billingRunBatchSize }),

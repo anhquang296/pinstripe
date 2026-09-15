@@ -46,6 +46,7 @@ export const invoiceSchema = Type.Object({
   total: Type.Integer(),
   amountPaid: Type.Integer(),
   amountCredited: Type.Integer(),
+  amountRefunded: Type.Integer(),
   amountRemaining: Type.Integer(),
   lineItems: Type.Array(
     Type.Object({
