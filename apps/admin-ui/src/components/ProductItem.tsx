@@ -9,7 +9,7 @@ export default function ProductItem({ product }: ProductItemProps) {
     <tr className="border-t border-slate-100">
       <td className="px-4 py-3 font-mono text-xs text-slate-500">{product.id}</td>
       <td className="px-4 py-3">{product.name}</td>
-      <td className="px-4 py-3 text-slate-600">{product.description ?? '—'}</td>
+      <td className="px-4 py-3 text-slate-600">{product.description || '—'}</td>
       <td className="px-4 py-3">
         <span
           className={

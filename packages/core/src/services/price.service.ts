@@ -44,7 +44,7 @@ export class PriceService {
           version,
           effectiveAt: payload.effectiveAt ? new Date(payload.effectiveAt) : now,
           active: true,
-          nickname: payload.nickname ?? null,
+          nickname: payload.nickname ?? '',
           currency: payload.currency,
           type: payload.recurring ? PriceTypeEnum.RECURRING : PriceTypeEnum.ONE_TIME,
           billingScheme,

@@ -36,6 +36,13 @@
       "when": 1789489265078,
       "tag": "0004_equal_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789490335623,
+      "tag": "0005_not_null_text_and_price_shape",
+      "breakpoints": true
     }
   ]
 }

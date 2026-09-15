@@ -43,9 +43,9 @@ export class CustomerService {
           {
             id,
             email: payload.email ?? null,
-            name: payload.name ?? null,
-            description: payload.description ?? null,
-            phone: payload.phone ?? null,
+            name: payload.name ?? '',
+            description: payload.description ?? '',
+            phone: payload.phone ?? '',
             taxId: payload.taxId ?? null,
             address: payload.address ?? null,
             currency: payload.currency,

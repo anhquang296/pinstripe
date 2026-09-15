@@ -56,7 +56,7 @@ export const priceSchema = Type.Object({
   version: Type.Integer(),
   effectiveAt: Type.String(),
   active: Type.Boolean(),
-  nickname: Type.Union([Type.String(), Type.Null()]),
+  nickname: Type.String(),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   type: Type.Unsafe<PriceType>(Type.Enum(PriceTypeEnum)),
   billingScheme: Type.Unsafe<BillingScheme>(Type.Enum(BillingSchemeEnum)),

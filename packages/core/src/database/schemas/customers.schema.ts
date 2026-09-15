@@ -8,9 +8,9 @@ export const customers = pgTable(
   {
     id: text('id').primaryKey(),
     email: text('email'),
-    name: text('name'),
-    description: text('description'),
-    phone: text('phone'),
+    name: text('name').notNull().default(''),
+    description: text('description').notNull().default(''),
+    phone: text('phone').notNull().default(''),
     taxId: text('tax_id'),
     address: jsonb('address').$type<NonNullable<CustomerContract['address']>>(),
     currency: text('currency').$type<Currency>().notNull(),

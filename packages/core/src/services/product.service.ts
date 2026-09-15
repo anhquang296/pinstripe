@@ -25,9 +25,9 @@ export class ProductService {
         {
           id,
           name: payload.name,
-          description: payload.description ?? null,
+          description: payload.description ?? '',
           active: payload.active ?? true,
-          unitLabel: payload.unitLabel ?? null,
+          unitLabel: payload.unitLabel ?? '',
           metadata: payload.metadata ?? {},
           createdAt: now,
           updatedAt: now,

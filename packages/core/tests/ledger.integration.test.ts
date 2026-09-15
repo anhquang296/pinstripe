@@ -72,7 +72,11 @@ describe('LedgerService.postTransaction', () => {
   it('rejects a second transaction posted under the same external id', async () => {
     const externalId = `invoice:${generateId(ObjectPrefixEnum.INVOICE)}:finalize`;
     const entries = [
-      { accountCode: LedgerAccountCodeEnum.CASH, direction: PostingDirectionEnum.DEBIT, amount: 500 },
+      {
+        accountCode: LedgerAccountCodeEnum.CASH,
+        direction: PostingDirectionEnum.DEBIT,
+        amount: 500,
+      },
       {
         accountCode: LedgerAccountCodeEnum.REVENUE,
         direction: PostingDirectionEnum.CREDIT,

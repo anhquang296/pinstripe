@@ -7,9 +7,9 @@ export const customerSchema = Type.Object({
   object: Type.Literal('customer'),
   id: Type.String(),
   email: Type.Union([Type.String(), Type.Null()]),
-  name: Type.Union([Type.String(), Type.Null()]),
-  description: Type.Union([Type.String(), Type.Null()]),
-  phone: Type.Union([Type.String(), Type.Null()]),
+  name: Type.String(),
+  description: Type.String(),
+  phone: Type.String(),
   taxId: Type.Union([Type.String(), Type.Null()]),
   address: Type.Union([
     Type.Object({

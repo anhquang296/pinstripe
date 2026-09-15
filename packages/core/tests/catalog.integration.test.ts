@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { BillingSchemeEnum, RecurringIntervalEnum, TiersModeEnum } from '@contracts/prices.types';
 import type { Product } from '@contracts/products.types';
+import { sql } from 'drizzle-orm';
 import { BadRequestError, NotFoundError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
@@ -18,7 +19,9 @@ afterAll(async () => {
 });
 
 async function createProduct(): Promise<Product> {
-  return fastify.productService.createProduct({ name: `Plan ${generateId(ObjectPrefixEnum.PRODUCT)}` });
+  return fastify.productService.createProduct({
+    name: `Plan ${generateId(ObjectPrefixEnum.PRODUCT)}`,
+  });
 }
 
 describe('PriceService.createPrice', () => {
@@ -141,5 +144,31 @@ describe('PriceService.resolvePrice', () => {
     const act = fastify.priceService.resolvePrice(lookupKey, new Date('2026-01-01T00:00:00.000Z'));
 
     await expect(act).rejects.toThrowError(NotFoundError);
+  });
+});
+
+describe('prices table constraints', () => {
+  it('refuses a per unit price with no unit amount, even written straight to the database', async () => {
+    const product = await createProduct();
+    const priceId = generateId(ObjectPrefixEnum.PRICE);
+
+    const act = fastify.database.master.execute(sql`
+      insert into prices (id, product_id, version, effective_at, currency, type, billing_scheme, tax_behavior, created_at, updated_at)
+      values (${priceId}, ${product.id}, 1, now(), 'vnd', 'one_time', 'per_unit', 'unspecified', now(), now())
+    `);
+
+    await expect(act).rejects.toThrowError(/prices_per_unit_shape/);
+  });
+
+  it('refuses a recurring price with no interval', async () => {
+    const product = await createProduct();
+    const priceId = generateId(ObjectPrefixEnum.PRICE);
+
+    const act = fastify.database.master.execute(sql`
+      insert into prices (id, product_id, version, effective_at, currency, type, billing_scheme, unit_amount, tax_behavior, created_at, updated_at)
+      values (${priceId}, ${product.id}, 1, now(), 'vnd', 'recurring', 'per_unit', 1000, 'unspecified', now(), now())
+    `);
+
+    await expect(act).rejects.toThrowError(/prices_recurring_shape/);
   });
 });
