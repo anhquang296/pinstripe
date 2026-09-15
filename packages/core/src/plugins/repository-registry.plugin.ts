@@ -1,6 +1,8 @@
+import { CreditNoteRepository } from '@repositories/credit-note.repository';
 import { CustomerRepository } from '@repositories/customer.repository';
 import { EntitlementRepository } from '@repositories/entitlement.repository';
 import { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
+import { InvoiceRepository } from '@repositories/invoice.repository';
 import { LedgerAccountRepository } from '@repositories/ledger-account.repository';
 import { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
 import { MeterRepository } from '@repositories/meter.repository';
@@ -28,4 +30,6 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('entitlementRepository', new EntitlementRepository(fastify.database));
   fastify.decorate('subscriptionRepository', new SubscriptionRepository(fastify.database));
   fastify.decorate('testClockRepository', new TestClockRepository(fastify.database));
+  fastify.decorate('invoiceRepository', new InvoiceRepository(fastify.database));
+  fastify.decorate('creditNoteRepository', new CreditNoteRepository(fastify.database));
 });

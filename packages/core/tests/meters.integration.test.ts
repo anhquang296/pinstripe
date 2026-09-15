@@ -1,3 +1,5 @@
+import { setTimeout } from 'node:timers/promises';
+
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import type { MeterResponse } from '@contracts/meters.types';
 import { MeterAggregationEnum } from '@contracts/meters.types';
@@ -10,6 +12,8 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+
+const WATERMARK_SEPARATION_MS = 5;
 
 function daysAgo(days: number): string {
   return new Date(Date.now() - days * MILLISECONDS_PER_DAY).toISOString();
@@ -172,10 +176,10 @@ describe('MeterEventService.getMeterEventSummary', () => {
     const meter = await buildMeter(MeterAggregationEnum.SUM);
     const customerId = await buildCustomer();
 
-    await ingestEvent(meter, customerId, 40, INSIDE_WINDOW);
+    const onTimeEvent = await ingestEvent(meter, customerId, 40, INSIDE_WINDOW);
+    const closedAt = onTimeEvent.receivedAt;
 
-    const closedAt = new Date().toISOString();
-
+    await setTimeout(WATERMARK_SEPARATION_MS);
     await ingestEvent(meter, customerId, 60, daysAgo(5));
 
     const closedPeriod = await fastify.meterEventService.getMeterEventSummary(meter.id, {

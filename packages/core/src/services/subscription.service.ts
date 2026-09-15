@@ -120,7 +120,7 @@ export class SubscriptionService {
   async findSubscriptions(
     query: GetSubscriptionsQuery,
   ): Promise<ListResponse<SubscriptionResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         customerId: query.customerId,

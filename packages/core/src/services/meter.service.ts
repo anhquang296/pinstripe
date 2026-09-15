@@ -65,7 +65,7 @@ export class MeterService {
   }
 
   async findMeters(query: GetMetersQuery): Promise<ListResponse<MeterResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const meterRows = await this.fastify.meterRepository.findMeters(
       {
         status: query.status,

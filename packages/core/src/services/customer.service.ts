@@ -152,7 +152,7 @@ export class CustomerService {
   }
 
   async findCustomers(query: GetCustomersQuery): Promise<ListResponse<CustomerResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.customerRepository.findCustomers(

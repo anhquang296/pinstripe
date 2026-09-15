@@ -97,7 +97,7 @@ export class EntitlementService {
   }
 
   async findEntitlements(query: GetEntitlementsQuery): Promise<ListResponse<EntitlementResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const entitlementRows = await this.fastify.entitlementRepository.findEntitlements(
       { customerId: query.customerId, productId: query.productId },
       limit + 1,

@@ -124,7 +124,7 @@ export class LedgerService {
   async findTransactions(
     query: GetLedgerTransactionsQuery,
   ): Promise<ListResponse<LedgerTransactionResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountId = await this.resolveAccountFilter(query);
     const transactionRows = await this.fastify.ledgerTransactionRepository.findLedgerTransactions(
       {
@@ -167,7 +167,7 @@ export class LedgerService {
   }
 
   async findAccounts(query: GetLedgerAccountsQuery): Promise<ListResponse<LedgerAccountResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountRows = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
       { code: query.code, customerId: query.customerId },
       limit + 1,

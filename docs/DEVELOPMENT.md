@@ -51,6 +51,8 @@ pnpm db:generate
 | Meters         | `POST/GET /v1/billing/meters`, `GET/POST /v1/billing/meters/:meterId`, `GET /v1/billing/meters/:meterId/event_summaries`                |
 | Meter events   | `POST /v1/billing/meter_events`, `POST /v1/billing/meter_event_batches`                                                                 |
 | Rating         | `GET /v1/invoices/upcoming?subscriptionId=…`                                                                                            |
+| Invoices       | `POST/GET /v1/invoices`, `GET /v1/invoices/:invoiceId`, `POST /v1/invoices/:invoiceId/{finalize,pay,void}`                              |
+| Credit notes   | `POST/GET /v1/credit_notes`, `GET /v1/credit_notes/:creditNoteId`                                                                       |
 | Test clocks    | `POST/GET /v1/test_helpers/test_clocks`, `POST /v1/test_helpers/test_clocks/:id/advance`                                                |
 | Ledger (admin) | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
 

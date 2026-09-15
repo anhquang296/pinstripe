@@ -101,7 +101,7 @@ export class ProductService {
   }
 
   async findProducts(query: GetProductsQuery): Promise<ListResponse<ProductResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.productRepository.findProducts(

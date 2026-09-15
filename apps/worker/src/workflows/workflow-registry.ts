@@ -1,6 +1,7 @@
 import type { WorkflowName } from '@pinstripe/core/queues';
 import { WorkflowNameEnum } from '@pinstripe/core/queues';
 import { UnknownWorkflowError } from '@type/errors';
+import { BillingWorkflow } from '@workflows/billing.workflow';
 import { DomainEventWorkflow } from '@workflows/domain-event.workflow';
 import { LedgerWorkflow } from '@workflows/ledger.workflow';
 import { OutboxWorkflow } from '@workflows/outbox.workflow';
@@ -39,3 +40,4 @@ export const workflowRegistry = new WorkflowRegistry();
 workflowRegistry.add(WorkflowNameEnum.OUTBOX, OutboxWorkflow);
 workflowRegistry.add(WorkflowNameEnum.DOMAIN_EVENT, DomainEventWorkflow);
 workflowRegistry.add(WorkflowNameEnum.LEDGER, LedgerWorkflow);
+workflowRegistry.add(WorkflowNameEnum.BILLING, BillingWorkflow);

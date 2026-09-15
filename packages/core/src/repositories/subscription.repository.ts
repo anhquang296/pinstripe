@@ -17,6 +17,9 @@ export interface SubscriptionFilters {
   statusNe?: SubscriptionStatus;
   testClockId?: string;
   currentPeriodEndTo?: Date;
+  statuses?: readonly SubscriptionStatus[];
+  shardCount?: number;
+  shardIndex?: number;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
@@ -49,6 +52,10 @@ export class SubscriptionRepository {
       filters.testClockId ? eq(subscriptions.testClockId, filters.testClockId) : undefined,
       filters.currentPeriodEndTo
         ? lte(subscriptions.currentPeriodEnd, filters.currentPeriodEndTo)
+        : undefined,
+      filters.statuses ? inArray(subscriptions.status, [...filters.statuses]) : undefined,
+      filters.shardCount && filters.shardIndex !== undefined
+        ? sql`abs(hashtext(${subscriptions.id})) % ${filters.shardCount} = ${filters.shardIndex}`
         : undefined,
       filters.beforeAt
         ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`

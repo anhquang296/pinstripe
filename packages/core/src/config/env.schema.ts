@@ -56,6 +56,9 @@ export const envSchema = Type.Object({
   IDEMPOTENCY_RETENTION_HOURS: Default(Type.Integer({ minimum: 1 }), 24),
   METER_DEDUP_WINDOW_DAYS: Default(Type.Integer({ minimum: 1 }), 35),
   BILLING_RUN_SHARD_COUNT: Default(Type.Integer({ minimum: 1 }), 16),
+  BILLING_RUN_INTERVAL_MS: Default(Type.Integer({ minimum: 1000 }), 60_000),
+  BILLING_RUN_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
+  BILLING_RUN_JITTER_MS: Default(Type.Integer({ minimum: 0 }), 5_000),
 });
 
 export type Env = Static<typeof envSchema>;

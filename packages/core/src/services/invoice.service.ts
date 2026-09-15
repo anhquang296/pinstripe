@@ -1,0 +1,537 @@
+import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
+import type {
+  CreateInvoicePayload,
+  GetInvoicesQuery,
+  InvoiceResponse,
+  InvoiceStatus,
+  PayInvoicePayload,
+  VoidInvoicePayload,
+} from '@contracts/invoices.types';
+import {
+  INVOICE_TRANSITIONS,
+  InvoiceStatusEnum,
+  NumberSequenceEnum,
+} from '@contracts/invoices.types';
+import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
+import type { ListResponse } from '@contracts/pagination.types';
+import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import type { DatabaseTransaction } from '@database/database.client';
+import type { Invoice, InvoiceLineItem, NewInvoiceLineItem, Subscription } from '@database/schemas';
+import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
+import { isUniqueViolation } from '@errors/database.error';
+import type { RowCursor } from '@repositories/cursor';
+import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
+
+const INVOICE_NUMBER_PREFIX = 'INV';
+const NUMBER_PAD_LENGTH = 6;
+
+export interface EnsuredInvoice {
+  invoice: Invoice;
+  isCreated: boolean;
+}
+
+export class InvoiceService {
+  constructor(private readonly fastify: FastifyInstance) {}
+
+  async createInvoice(payload: CreateInvoicePayload): Promise<InvoiceResponse> {
+    const subscription = await this.getSubscription(payload.subscriptionId);
+    const { invoice } = await this.ensureDraftInvoice(subscription, payload.metadata ?? {});
+
+    return this.buildInvoice(invoice);
+  }
+
+  async ensureDraftInvoice(
+    subscription: Subscription,
+    metadata: Record<string, string>,
+  ): Promise<EnsuredInvoice> {
+    const existingInvoice = await this.findPeriodInvoice(subscription);
+
+    if (existingInvoice) {
+      return { invoice: existingInvoice, isCreated: false };
+    }
+
+    const id = generateId(ObjectPrefixEnum.INVOICE);
+    const now = this.fastify.clock.now();
+
+    try {
+      return await this.fastify.database.master.transaction(async (tx) => {
+        const invoice = await this.fastify.invoiceRepository.createInvoice(
+          {
+            id,
+            number: null,
+            customerId: subscription.customerId,
+            subscriptionId: subscription.id,
+            status: InvoiceStatusEnum.DRAFT,
+            currency: subscription.currency,
+            periodStart: subscription.currentPeriodStart,
+            periodEnd: subscription.currentPeriodEnd,
+            subtotal: 0,
+            total: 0,
+            amountPaid: 0,
+            finalizedAt: null,
+            paidAt: null,
+            voidedAt: null,
+            metadata,
+            createdAt: now,
+            updatedAt: now,
+          },
+          tx,
+        );
+
+        if (!invoice) {
+          throw new NotFoundError(`Invoice ${id} could not be created`);
+        }
+
+        await this.recordInvoiceEvent(invoice, DomainEventTypeEnum.INVOICE_CREATED, tx);
+
+        return { invoice, isCreated: true };
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        const racedInvoice = await this.findPeriodInvoice(subscription);
+
+        if (racedInvoice) {
+          return { invoice: racedInvoice, isCreated: false };
+        }
+      }
+
+      throw error;
+    }
+  }
+
+  async finalizeInvoice(id: string): Promise<InvoiceResponse> {
+    const invoice = await this.getInvoiceEntity(id);
+
+    InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.OPEN);
+
+    if (!invoice.subscriptionId) {
+      throw new BadRequestError(`Invoice ${id} has no subscription to rate`);
+    }
+
+    const subscription = await this.getSubscription(invoice.subscriptionId);
+
+    if (subscription.currentPeriodStart.getTime() !== invoice.periodStart.getTime()) {
+      throw new ConflictError(
+        `Invoice ${id} covers a period the subscription has already left and can no longer be rated`,
+      );
+    }
+
+    const rated = await this.fastify.ratingService.rateUpcomingInvoice(invoice.subscriptionId);
+    const now = this.fastify.clock.now();
+    const lineItems = _.map(rated.lineItems, (lineItem): NewInvoiceLineItem => {
+      return {
+        id: generateId(ObjectPrefixEnum.INVOICE_LINE_ITEM),
+        invoiceId: invoice.id,
+        subscriptionItemId: lineItem.subscriptionItemId,
+        priceId: lineItem.priceId,
+        type: lineItem.type,
+        quantity: lineItem.quantity,
+        amount: lineItem.amount,
+        periodStart: new Date(lineItem.periodStart),
+        periodEnd: new Date(lineItem.periodEnd),
+        prorationFactor: lineItem.prorationFactor,
+        createdAt: now,
+      };
+    });
+
+    const finalizedInvoice = await this.fastify.database.master.transaction(async (tx) => {
+      const sequenceValue = await this.fastify.invoiceRepository.claimNextNumber(
+        NumberSequenceEnum.INVOICE,
+        tx,
+      );
+
+      if (sequenceValue === null) {
+        throw new NotFoundError('Invoice number sequence is not provisioned');
+      }
+
+      await this.fastify.invoiceRepository.createInvoiceLineItems(lineItems, tx);
+
+      const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
+        invoice.id,
+        {
+          number: InvoiceService.formatNumber(INVOICE_NUMBER_PREFIX, sequenceValue),
+          status: InvoiceStatusEnum.OPEN,
+          subtotal: rated.total,
+          total: rated.total,
+          finalizedAt: now,
+          updatedAt: now,
+        },
+        tx,
+      );
+
+      if (!updatedInvoice) {
+        throw new NotFoundError(`No such invoice: ${invoice.id}`);
+      }
+
+      await this.postReceivable(updatedInvoice, tx);
+      await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_FINALIZED, tx);
+
+      return updatedInvoice;
+    });
+
+    return this.buildInvoice(finalizedInvoice);
+  }
+
+  async payInvoice(id: string, payload: PayInvoicePayload): Promise<InvoiceResponse> {
+    const invoice = await this.getInvoiceEntity(id);
+
+    InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
+
+    const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
+    const amountCredited = creditedByInvoiceId[invoice.id] ?? 0;
+    const owed = invoice.total - invoice.amountPaid - amountCredited;
+    const amount = payload.amount ?? owed;
+
+    if (amount > owed) {
+      throw new BadRequestError(
+        `Payment of ${amount} exceeds the ${owed} still owed on invoice ${id}`,
+        { param: 'amount' },
+      );
+    }
+
+    const now = this.fastify.clock.now();
+    const amountPaid = invoice.amountPaid + amount;
+    const isSettled = amountPaid + amountCredited === invoice.total;
+
+    const paidInvoice = await this.fastify.database.master.transaction(async (tx) => {
+      const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
+        invoice.id,
+        {
+          amountPaid,
+          status: isSettled ? InvoiceStatusEnum.PAID : invoice.status,
+          paidAt: isSettled ? now : null,
+          updatedAt: now,
+        },
+        tx,
+      );
+
+      if (!updatedInvoice) {
+        throw new NotFoundError(`No such invoice: ${invoice.id}`);
+      }
+
+      await this.postCashReceipt(updatedInvoice, amount, tx);
+
+      if (isSettled) {
+        await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_PAID, tx);
+      }
+
+      return updatedInvoice;
+    });
+
+    return this.buildInvoice(paidInvoice);
+  }
+
+  async voidInvoice(id: string, payload: VoidInvoicePayload): Promise<InvoiceResponse> {
+    const invoice = await this.getInvoiceEntity(id);
+
+    InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.VOID);
+
+    if (invoice.amountPaid > 0) {
+      throw new ConflictError(
+        `Invoice ${id} has been paid and can only be corrected with a credit note`,
+      );
+    }
+
+    const now = this.fastify.clock.now();
+
+    const voidedInvoice = await this.fastify.database.master.transaction(async (tx) => {
+      const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
+        invoice.id,
+        {
+          status: InvoiceStatusEnum.VOID,
+          voidedAt: now,
+          metadata: { ...invoice.metadata, ...(payload.metadata ?? {}) },
+          updatedAt: now,
+        },
+        tx,
+      );
+
+      if (!updatedInvoice) {
+        throw new NotFoundError(`No such invoice: ${invoice.id}`);
+      }
+
+      if (invoice.status === InvoiceStatusEnum.OPEN) {
+        await this.reverseReceivable(updatedInvoice, tx);
+      }
+
+      await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_VOIDED, tx);
+
+      return updatedInvoice;
+    });
+
+    return this.buildInvoice(voidedInvoice);
+  }
+
+  async getInvoice(id: string): Promise<InvoiceResponse> {
+    const invoice = await this.getInvoiceEntity(id);
+
+    return this.buildInvoice(invoice);
+  }
+
+  async findInvoices(query: GetInvoicesQuery): Promise<ListResponse<InvoiceResponse>> {
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
+    const rows = await this.fastify.invoiceRepository.findInvoices(
+      {
+        customerId: query.customerId,
+        subscriptionId: query.subscriptionId,
+        status: query.status,
+        beforeAt,
+        afterAt,
+      },
+      limit + 1,
+    );
+    const page = _.take(rows, limit);
+    const invoiceIds = _.map(page, 'id');
+    const lineItemsByInvoiceId = await this.resolveLineItems(invoiceIds);
+    const creditedByInvoiceId = await this.resolveCreditedAmounts(invoiceIds);
+
+    return {
+      object: 'list',
+      url: '/v1/invoices',
+      hasMore: rows.length > limit,
+      data: _.map(page, (invoice) => {
+        return InvoiceService.buildInvoiceWithLineItems(
+          invoice,
+          lineItemsByInvoiceId[invoice.id] ?? [],
+          creditedByInvoiceId[invoice.id] ?? 0,
+        );
+      }),
+    };
+  }
+
+  private async findPeriodInvoice(subscription: Subscription): Promise<Invoice | null> {
+    const rows = await this.fastify.invoiceRepository.findInvoices(
+      { subscriptionId: subscription.id },
+      DEFAULT_PAGE_LIMIT,
+    );
+
+    return (
+      _.find(rows, (invoice) => {
+        return invoice.periodStart.getTime() === subscription.currentPeriodStart.getTime();
+      }) ?? null
+    );
+  }
+
+  private async postReceivable(invoice: Invoice, tx: DatabaseTransaction): Promise<void> {
+    if (invoice.total <= 0) {
+      return;
+    }
+
+    await this.fastify.ledgerService.postTransaction(
+      {
+        description: `Invoice ${invoice.number} issued`,
+        currency: invoice.currency,
+        externalId: `invoice:${invoice.id}`,
+        entries: [
+          {
+            accountCode: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
+            customerId: invoice.customerId,
+            direction: PostingDirectionEnum.DEBIT,
+            amount: invoice.total,
+          },
+          {
+            accountCode: LedgerAccountCodeEnum.REVENUE,
+            direction: PostingDirectionEnum.CREDIT,
+            amount: invoice.total,
+          },
+        ],
+      },
+      tx,
+    );
+  }
+
+  private async postCashReceipt(
+    invoice: Invoice,
+    amount: number,
+    tx: DatabaseTransaction,
+  ): Promise<void> {
+    await this.fastify.ledgerService.postTransaction(
+      {
+        description: `Invoice ${invoice.number} payment`,
+        currency: invoice.currency,
+        externalId: `invoice_payment:${invoice.id}:${invoice.amountPaid}`,
+        entries: [
+          {
+            accountCode: LedgerAccountCodeEnum.CASH,
+            direction: PostingDirectionEnum.DEBIT,
+            amount,
+          },
+          {
+            accountCode: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
+            customerId: invoice.customerId,
+            direction: PostingDirectionEnum.CREDIT,
+            amount,
+          },
+        ],
+      },
+      tx,
+    );
+  }
+
+  private async reverseReceivable(invoice: Invoice, tx: DatabaseTransaction): Promise<void> {
+    if (invoice.total <= 0) {
+      return;
+    }
+
+    await this.fastify.ledgerService.postTransaction(
+      {
+        description: `Invoice ${invoice.number} voided`,
+        currency: invoice.currency,
+        externalId: `invoice_void:${invoice.id}`,
+        entries: [
+          {
+            accountCode: LedgerAccountCodeEnum.REVENUE,
+            direction: PostingDirectionEnum.DEBIT,
+            amount: invoice.total,
+          },
+          {
+            accountCode: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
+            customerId: invoice.customerId,
+            direction: PostingDirectionEnum.CREDIT,
+            amount: invoice.total,
+          },
+        ],
+      },
+      tx,
+    );
+  }
+
+  private async recordInvoiceEvent(
+    invoice: Invoice,
+    eventType: DomainEventTypeEnum,
+    tx: DatabaseTransaction,
+  ): Promise<void> {
+    await this.fastify.outboxService.recordEvents(
+      [
+        {
+          aggregateType: AggregateTypeEnum.INVOICE,
+          aggregateId: invoice.id,
+          eventType,
+          payload: {
+            id: invoice.id,
+            number: invoice.number,
+            customerId: invoice.customerId,
+            total: invoice.total,
+          },
+        },
+      ],
+      tx,
+    );
+  }
+
+  private async getSubscription(id: string): Promise<Subscription> {
+    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
+
+    if (subscription) {
+      return subscription;
+    }
+
+    throw new NotFoundError(`No such subscription: ${id}`);
+  }
+
+  private async getInvoiceEntity(id: string): Promise<Invoice> {
+    const invoice = await this.fastify.invoiceRepository.findInvoice(id);
+
+    if (invoice) {
+      return invoice;
+    }
+
+    throw new NotFoundError(`No such invoice: ${id}`);
+  }
+
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
+    if (!id) {
+      return undefined;
+    }
+
+    const invoice = await this.getInvoiceEntity(id);
+
+    return { createdAt: invoice.createdAt, id: invoice.id };
+  }
+
+  private async resolveLineItems(
+    invoiceIds: readonly string[],
+  ): Promise<Record<string, InvoiceLineItem[]>> {
+    const rows = await this.fastify.invoiceRepository.findInvoiceLineItems(invoiceIds);
+
+    return _.groupBy(rows, 'invoiceId');
+  }
+
+  private async buildInvoice(invoice: Invoice): Promise<InvoiceResponse> {
+    const lineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([invoice.id]);
+    const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
+
+    return InvoiceService.buildInvoiceWithLineItems(
+      invoice,
+      lineItems,
+      creditedByInvoiceId[invoice.id] ?? 0,
+    );
+  }
+
+  private async resolveCreditedAmounts(
+    invoiceIds: readonly string[],
+  ): Promise<Record<string, number>> {
+    const rows = await this.fastify.creditNoteRepository.aggregateCreditedAmounts(invoiceIds);
+
+    return _.mapValues(_.keyBy(rows, 'invoiceId'), 'creditedAmount');
+  }
+
+  private static formatNumber(prefix: string, value: number): string {
+    return `${prefix}-${_.padStart(String(value), NUMBER_PAD_LENGTH, '0')}`;
+  }
+
+  private static assertTransition(from: InvoiceStatus, to: InvoiceStatus): void {
+    if (_.includes(INVOICE_TRANSITIONS[from], to)) {
+      return;
+    }
+
+    throw new ConflictError(`An invoice cannot move from ${from} to ${to}`);
+  }
+
+  private static buildInvoiceWithLineItems(
+    invoice: Invoice,
+    lineItems: readonly InvoiceLineItem[],
+    amountCredited: number,
+  ): InvoiceResponse {
+    return {
+      object: 'invoice',
+      id: invoice.id,
+      number: invoice.number,
+      customerId: invoice.customerId,
+      subscriptionId: invoice.subscriptionId,
+      status: invoice.status,
+      currency: invoice.currency,
+      periodStart: invoice.periodStart.toISOString(),
+      periodEnd: invoice.periodEnd.toISOString(),
+      subtotal: invoice.subtotal,
+      total: invoice.total,
+      amountPaid: invoice.amountPaid,
+      amountCredited,
+      amountRemaining: invoice.total - invoice.amountPaid - amountCredited,
+      lineItems: _.map(lineItems, (lineItem) => {
+        return {
+          object: 'line_item' as const,
+          id: lineItem.id,
+          subscriptionItemId: lineItem.subscriptionItemId,
+          priceId: lineItem.priceId,
+          type: lineItem.type,
+          quantity: lineItem.quantity,
+          amount: lineItem.amount,
+          periodStart: lineItem.periodStart.toISOString(),
+          periodEnd: lineItem.periodEnd.toISOString(),
+          prorationFactor: lineItem.prorationFactor,
+        };
+      }),
+      finalizedAt: invoice.finalizedAt ? invoice.finalizedAt.toISOString() : null,
+      paidAt: invoice.paidAt ? invoice.paidAt.toISOString() : null,
+      voidedAt: invoice.voidedAt ? invoice.voidedAt.toISOString() : null,
+      metadata: invoice.metadata,
+      createdAt: invoice.createdAt.toISOString(),
+      updatedAt: invoice.updatedAt.toISOString(),
+    };
+  }
+}

@@ -71,6 +71,20 @@
       "when": 1789496526824,
       "tag": "0009_price_meter_link",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789497830193,
+      "tag": "0010_invoices",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789497841026,
+      "tag": "0011_invoice_immutability",
+      "breakpoints": true
     }
   ]
 }

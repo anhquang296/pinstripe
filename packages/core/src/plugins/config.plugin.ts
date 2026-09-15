@@ -13,6 +13,10 @@ export interface WorkflowSchedules {
   outboxRelayBatchSize: number;
   ledgerIntegrityIntervalMs: number;
   ledgerIntegrityBatchSize: number;
+  billingRunIntervalMs: number;
+  billingRunBatchSize: number;
+  billingRunShardCount: number;
+  billingRunJitterMs: number;
 }
 
 export const configPlugin = fp(async (fastify) => {
@@ -28,5 +32,9 @@ export const configPlugin = fp(async (fastify) => {
     outboxRelayBatchSize: config.OUTBOX_RELAY_BATCH_SIZE,
     ledgerIntegrityIntervalMs: config.LEDGER_INTEGRITY_INTERVAL_MS,
     ledgerIntegrityBatchSize: config.LEDGER_INTEGRITY_BATCH_SIZE,
+    billingRunIntervalMs: config.BILLING_RUN_INTERVAL_MS,
+    billingRunBatchSize: config.BILLING_RUN_BATCH_SIZE,
+    billingRunShardCount: config.BILLING_RUN_SHARD_COUNT,
+    billingRunJitterMs: config.BILLING_RUN_JITTER_MS,
   });
 });

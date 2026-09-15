@@ -1,6 +1,7 @@
 export * from '@database/schemas/customers.schema';
 export * from '@database/schemas/entitlements.schema';
 export * from '@database/schemas/idempotency-keys.schema';
+export * from '@database/schemas/invoices.schema';
 export * from '@database/schemas/ledger-accounts.schema';
 export * from '@database/schemas/ledger-transactions.schema';
 export * from '@database/schemas/meter-events.schema';

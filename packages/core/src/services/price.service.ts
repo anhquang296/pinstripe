@@ -182,7 +182,7 @@ export class PriceService {
   }
 
   async findPrices(query: GetPricesQuery): Promise<ListResponse<PriceResponse>> {
-    const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
+    const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.priceRepository.findPrices(

@@ -2,9 +2,11 @@ import type { Env } from '@config/env.schema';
 import type { DatabaseClient } from '@database/database.client';
 import type { ListenAddress, WorkflowSchedules } from '@plugins/config.plugin';
 import type { QueueRegistry } from '@queues/queue-registry';
+import type { CreditNoteRepository } from '@repositories/credit-note.repository';
 import type { CustomerRepository } from '@repositories/customer.repository';
 import type { EntitlementRepository } from '@repositories/entitlement.repository';
 import type { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
+import type { InvoiceRepository } from '@repositories/invoice.repository';
 import type { LedgerAccountRepository } from '@repositories/ledger-account.repository';
 import type { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
 import type { MeterRepository } from '@repositories/meter.repository';
@@ -14,9 +16,12 @@ import type { PriceRepository } from '@repositories/price.repository';
 import type { ProductRepository } from '@repositories/product.repository';
 import type { SubscriptionRepository } from '@repositories/subscription.repository';
 import type { TestClockRepository } from '@repositories/test-clock.repository';
+import type { BillingRunService } from '@services/billing-run.service';
+import type { CreditNoteService } from '@services/credit-note.service';
 import type { CustomerService } from '@services/customer.service';
 import type { EntitlementService } from '@services/entitlement.service';
 import type { IdempotencyService } from '@services/idempotency.service';
+import type { InvoiceService } from '@services/invoice.service';
 import type { LedgerService } from '@services/ledger.service';
 import type { MeterService } from '@services/meter.service';
 import type { MeterEventService } from '@services/meter-event.service';
@@ -55,6 +60,8 @@ declare module 'fastify' {
     meterEventRepository: MeterEventRepository;
     meterRepository: MeterRepository;
     outboxEventRepository: OutboxEventRepository;
+    invoiceRepository: InvoiceRepository;
+    creditNoteRepository: CreditNoteRepository;
     customerService: CustomerService;
     idempotencyService: IdempotencyService;
     entitlementService: EntitlementService;
@@ -67,6 +74,9 @@ declare module 'fastify' {
     meterEventService: MeterEventService;
     meterService: MeterService;
     outboxService: OutboxService;
+    invoiceService: InvoiceService;
+    creditNoteService: CreditNoteService;
+    billingRunService: BillingRunService;
   }
 }
 
