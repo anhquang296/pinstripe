@@ -1,4 +1,4 @@
-<!-- agentkit:start v0.1.0 -->
+<!-- agentkit:start v0.1.1 -->
 ## Coding conventions
 
 Before writing or editing a file, open the rule whose globs match it and follow it. Do not infer a

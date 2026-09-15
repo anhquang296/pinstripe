@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/customers', label: 'Customers' },
   { to: '/products', label: 'Products' },
   { to: '/prices', label: 'Prices' },
+  { to: '/ledger', label: 'Ledger' },
 ];
 
 export default function AppLayout() {

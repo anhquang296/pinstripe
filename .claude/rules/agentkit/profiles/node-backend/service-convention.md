@@ -36,9 +36,9 @@ The reason is testability, not tidiness: a service method is callable from a uni
 ```ts
 // CORRECT — the handler is wiring
 fastify.get('/routines', { schema: { querystring: getRoutinesSchema } }, async (request, reply) => {
-  const routinesPage = await fastify.routinesService.findRoutines(request.query);
+  const routines = await fastify.routinesService.findRoutines(request.query);
 
-  return ApiResponse.paginated(reply, routinesPage);
+  return ApiResponse.paginated(reply, routines);
 });
 
 // WRONG — domain decisions in the handler

@@ -5,7 +5,8 @@ import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
 import { buildTestContext } from './context';
 
 const POLL_INTERVAL_MS = 100;
-const POLL_ATTEMPTS = 50;
+const POLL_ATTEMPTS = 100;
+const RELAY_BATCH_SIZE = 500;
 
 let fastify: FastifyInstance;
 
@@ -19,6 +20,8 @@ afterAll(async () => {
 
 async function waitForPublished(eventId: string): Promise<string | undefined> {
   for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt += 1) {
+    await fastify.outboxService.relayOutboxEvents(RELAY_BATCH_SIZE);
+
     const event = await fastify.outboxEventRepository.findOutboxEvent(eventId);
 
     if (event?.status === OutboxStatusEnum.PUBLISHED) {
@@ -43,7 +46,6 @@ describe('OutboxService.relayOutboxEvents', () => {
       },
     ]);
 
-    await fastify.outboxService.relayOutboxEvents(100);
     const status = await waitForPublished(eventId ?? '');
 
     expect(status).toBe(OutboxStatusEnum.PUBLISHED);

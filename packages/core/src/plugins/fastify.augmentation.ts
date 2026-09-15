@@ -6,11 +6,14 @@ import type { CustomerRepository } from '@repositories/customer.repository';
 import type { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
 import type { PriceRepository } from '@repositories/price.repository';
 import type { ProductRepository } from '@repositories/product.repository';
+import type { LedgerAccountRepository } from '@repositories/ledger-account.repository';
+import type { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
 import type { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import type { CustomerService } from '@services/customer.service';
 import type { IdempotencyService } from '@services/idempotency.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
+import type { LedgerService } from '@services/ledger.service';
 import type { OutboxService } from '@services/outbox.service';
 import type { Clock } from '@utils/clock';
 import type { RedisKeyFactory } from '@utils/redis-key-factory';
@@ -27,11 +30,14 @@ declare module 'fastify' {
     idempotencyKeyRepository: IdempotencyKeyRepository;
     priceRepository: PriceRepository;
     productRepository: ProductRepository;
+    ledgerAccountRepository: LedgerAccountRepository;
+    ledgerTransactionRepository: LedgerTransactionRepository;
     outboxEventRepository: OutboxEventRepository;
     customerService: CustomerService;
     idempotencyService: IdempotencyService;
     priceService: PriceService;
     productService: ProductService;
+    ledgerService: LedgerService;
     outboxService: OutboxService;
   }
 }

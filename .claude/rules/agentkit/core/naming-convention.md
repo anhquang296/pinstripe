@@ -95,13 +95,13 @@ A **list** read has no missing case, so the verb carries no such information the
 
 > **A local names what it holds, not the step that produced it.** A bare participle (`created`, `existing`, `found`) or a generic container word (`result`, `record`, `row`, `item`, `value`) names the operation that ran, so the reader has to go back to the call above to learn what is in the binding.
 
-| Prefer                                                                                                                                | Over                                                    |
-| --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `<entityNoun>` — the only binding of that entity in scope (`const routine = await findRoutine(id)`)                                   | `result`, `record`, `row`, `item`, `data`, `value`, `obj`, `node` |
-| `<qualifier><Entity>` — a second binding of the same entity (`createdRoutine`, `existingRoutine`)                                     | bare `created`, `existing`, `updated`, `found`          |
-| a qualifier that reuses the verb that produced it (`created…`, `updated…`, `deleted…`) or the state it is in (`existing…`, `incoming…`, `persisted…`) | `new…` / `old…`, `…2`, `tmp…`                           |
-| the entity noun as a callback parameter (`routines.map((routine) => { … })`)                                                          | `x`, `r`, `el`, `item`                                  |
-| `is<Adj>` when the value genuinely is a boolean (`isCreated`)                                                                         | a participle standing in for a boolean                  |
+| Prefer                                                                                                                                                | Over                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `<entityNoun>` — the only binding of that entity in scope (`const routine = await findRoutine(id)`)                                                   | `result`, `record`, `row`, `item`, `data`, `value`, `obj`, `node` |
+| `<qualifier><Entity>` — a second binding of the same entity (`createdRoutine`, `existingRoutine`)                                                     | bare `created`, `existing`, `updated`, `found`                    |
+| a qualifier that reuses the verb that produced it (`created…`, `updated…`, `deleted…`) or the state it is in (`existing…`, `incoming…`, `persisted…`) | `new…` / `old…`, `…2`, `tmp…`                                     |
+| the entity noun as a callback parameter (`routines.map((routine) => { … })`)                                                                          | `x`, `r`, `el`, `item`                                            |
+| `is<Adj>` when the value genuinely is a boolean (`isCreated`)                                                                                         | a participle standing in for a boolean                            |
 
 ```ts
 // CORRECT — each binding says what it holds at every use site
@@ -211,21 +211,21 @@ See [logging-convention.md](./logging-convention.md).
 
 ## Avoid → use instead
 
-| Avoid                                                                           | Use                                                                                                                                   |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `dto`, `body`, `input`, `data` (our own write DTOs)                             | `payload`                                                                                                                             |
-| `err`                                                                           | `error`                                                                                                                               |
-| `req` / `res`                                                                   | `request` / `response`                                                                                                                |
-| `cfg`, `ctx`, `btn`, `idx`, `msg`                                               | `config`, `context`, `button`, `index`, `message`                                                                                     |
+| Avoid                                                                                            | Use                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `dto`, `body`, `input`, `data` (our own write DTOs)                                              | `payload`                                                                                                                             |
+| `err`                                                                                            | `error`                                                                                                                               |
+| `req` / `res`                                                                                    | `request` / `response`                                                                                                                |
+| `cfg`, `ctx`, `btn`, `idx`, `msg`                                                                | `config`, `context`, `button`, `index`, `message`                                                                                     |
 | a local named after its step — `created`, `existing`, `found`, `result`, `record`, `row`, `item` | `<qualifier><Entity>` — `createdRoutine`, `existingRoutine` — [§ Locals](#locals)                                                     |
-| `…Manager`, `…Helper`, `…Util` classes                                          | a named service / client / repository                                                                                                 |
-| `Base…` classes, `I…` interfaces, `…Impl`, `…Class`                             | one concrete class per file                                                                                                           |
-| a module-level `new XRepository()` singleton                                    | construction at the app's composition root                                                                                            |
-| `…Async`, `…OrThrow`, `…OrNull`, `…By<Field>` suffixes                          | plain name; key in the parameter name; `\| null`                                                                                      |
-| `list*` (any layer)                                                             | `find<Entities>` (server), `get<Entities>` (client / schema)                                                                          |
-| `remove*` / `destroy*` for a persisted record; `delete*` for detaching a member | `delete<Entity>` (existence), `remove<X>` (membership), `destroy()` (lifecycle) — [§ Delete, remove, destroy](#delete-remove-destroy) |
-| a name describing the technique (`_agg`, `_tmp`, `theme-setup`)                 | the plain resource name                                                                                                               |
-| comments / JSDoc                                                                | a name that explains itself                                                                                                           |
+| `…Manager`, `…Helper`, `…Util` classes                                                           | a named service / client / repository                                                                                                 |
+| `Base…` classes, `I…` interfaces, `…Impl`, `…Class`                                              | one concrete class per file                                                                                                           |
+| a module-level `new XRepository()` singleton                                                     | construction at the app's composition root                                                                                            |
+| `…Async`, `…OrThrow`, `…OrNull`, `…By<Field>` suffixes                                           | plain name; key in the parameter name; `\| null`                                                                                      |
+| `list*` (any layer)                                                                              | `find<Entities>` (server), `get<Entities>` (client / schema)                                                                          |
+| `remove*` / `destroy*` for a persisted record; `delete*` for detaching a member                  | `delete<Entity>` (existence), `remove<X>` (membership), `destroy()` (lifecycle) — [§ Delete, remove, destroy](#delete-remove-destroy) |
+| a name describing the technique (`_agg`, `_tmp`, `theme-setup`)                                  | the plain resource name                                                                                                               |
+| comments / JSDoc                                                                                 | a name that explains itself                                                                                                           |
 
 ## NEVER Do
 

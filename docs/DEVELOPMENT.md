@@ -18,6 +18,7 @@ pnpm dev
 | api | 3000 | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*` |
 | worker outbox | 3001 | relay outbox → domain event queue |
 | worker domain-event | 3002 | consume domain event |
+| worker ledger | 3003 | quét sổ lệch mỗi 60s |
 | admin-ui | 5173 | Vite, proxy `/api` sang api kèm admin key |
 | portal-ui | 3100 | Next.js |
 | postgres | 55432 | user/pass/db: `pinstripe` |
@@ -45,6 +46,7 @@ pnpm db:generate
 | Customers | `POST/GET /v1/customers`, `GET/POST/DELETE /v1/customers/:customerId` |
 | Products | `POST/GET /v1/products`, `GET/POST /v1/products/:productId` |
 | Prices | `POST/GET /v1/prices`, `GET/POST /v1/prices/:priceId` |
+| Ledger (admin) | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
 
 Mọi `POST` nhận header `Idempotency-Key`. List dùng cursor `startingAfter` / `endingBefore`.
 

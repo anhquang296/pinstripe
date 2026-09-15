@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "files": {
     ".claude/rules/agentkit/00-index.md": "e27bd5c63f93a5f230889405516051a3e6e14b905d1b3d0646b838c015ef5669",
     ".claude/rules/agentkit/core/brace-style-convention.md": "e8bb89525a51935a53b7fbe665dc9f2f3b02b6fc0db6f61e1ae609e4efb352ca",
@@ -9,7 +9,7 @@
     ".claude/rules/agentkit/core/import-convention.md": "c7b062bca9ff7db6fe5eea4a871085c47d7e34186ba409381e8caf8e448d3eb3",
     ".claude/rules/agentkit/core/logging-convention.md": "3e0ee3c47b51fa39a899a59473107bd8e9546ad93c74f0f72de123d2b4a6cf5d",
     ".claude/rules/agentkit/core/minimal-surface-convention.md": "4db008e7ef13a734e94d17bd5e06e20d7a4970af57dc01a4a4f3fc1c452e041d",
-    ".claude/rules/agentkit/core/naming-convention.md": "2952f5aa890ef7f2a8c143ade749e2d81da480e6a2b0877367525e1e18d69cd8",
+    ".claude/rules/agentkit/core/naming-convention.md": "ca7372c2a0914a37f99df4f5f0ea9a422e6cc6334a46c60982532aeebb9be48f",
     ".claude/rules/agentkit/core/nested-access-convention.md": "d17734c53ec2667749f109bf67f43cf43c08cb89edf935fffdfcf092be06cf56",
     ".claude/rules/agentkit/core/rule-maintenance.md": "755bab6ac760f9929255e45adf139b3aecdf2a25907a1b20582f403ea19634a0",
     ".claude/rules/agentkit/core/statement-convention.md": "5688e3740d12e06f6127970546329a01500147bdcfe4e5883c84d63054be206b",
@@ -25,7 +25,7 @@
     ".claude/rules/agentkit/profiles/node-backend/repository-convention.md": "f80744a881d8ea22e14624130a8f765eae23e423fa92eb92813e3e0c4b1c1d73",
     ".claude/rules/agentkit/profiles/node-backend/schema-type-convention.md": "2c1ea4d033715aea7719ff29672ecb6982b1ef6ba007a78e908e7f316fbda078",
     ".claude/rules/agentkit/profiles/node-backend/sdk-client-convention.md": "da846641084f08b31c1ce7ad612f49aa56a789f55d00fa1317e4fca003027ac2",
-    ".claude/rules/agentkit/profiles/node-backend/service-convention.md": "9dae0dbc20ff8c91de0ec10d752cb8e1fd2bf542e05c15157f8b38a93b254cca",
+    ".claude/rules/agentkit/profiles/node-backend/service-convention.md": "1374c4f023d7c5ebd0ae836dbd48530c0649f65555223e5bff8c06ee38216b02",
     ".claude/rules/agentkit/profiles/react/api-client-convention.md": "a4f712d4417b5cc47091daa67f98071e75f79275fa745fabc91c8a091f8cb8ab",
     ".claude/rules/agentkit/profiles/react/component-convention.md": "7668c4e9b6db9b7db3c62020f7da52c950417972868da1da03f35017fdb37394",
     ".claude/rules/agentkit/profiles/react/form-convention.md": "cf749231921232689069f8e1254f02926f2f259a28e71489aa954bcd86aace1b",

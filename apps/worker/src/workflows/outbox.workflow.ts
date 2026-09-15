@@ -48,10 +48,12 @@ export class OutboxWorkflow implements Workflow {
   private async scheduleRelay(): Promise<void> {
     const { OUTBOX_RELAY_INTERVAL_MS, OUTBOX_RELAY_BATCH_SIZE } = this.fastify.config;
 
-    await this.fastify.queues.resolve(QueueNameEnum.OUTBOX).upsertJobScheduler(
-      RELAY_SCHEDULER_ID,
-      { every: OUTBOX_RELAY_INTERVAL_MS },
-      { name: OUTBOX_RELAY_JOB, data: buildOutboxRelayJob(OUTBOX_RELAY_BATCH_SIZE) },
-    );
+    await this.fastify.queues
+      .resolve(QueueNameEnum.OUTBOX)
+      .upsertJobScheduler(
+        RELAY_SCHEDULER_ID,
+        { every: OUTBOX_RELAY_INTERVAL_MS },
+        { name: OUTBOX_RELAY_JOB, data: buildOutboxRelayJob(OUTBOX_RELAY_BATCH_SIZE) },
+      );
   }
 }

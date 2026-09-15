@@ -49,6 +49,9 @@ export const envSchema = Type.Object({
   OUTBOX_RELAY_INTERVAL_MS: Default(Type.Integer({ minimum: 100 }), 5000),
   OUTBOX_RELAY_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
 
+  LEDGER_INTEGRITY_INTERVAL_MS: Default(Type.Integer({ minimum: 1000 }), 60_000),
+  LEDGER_INTEGRITY_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
+
   IDEMPOTENCY_RETENTION_HOURS: Default(Type.Integer({ minimum: 1 }), 24),
   METER_DEDUP_WINDOW_DAYS: Default(Type.Integer({ minimum: 1 }), 35),
   BILLING_RUN_SHARD_COUNT: Default(Type.Integer({ minimum: 1 }), 16),
