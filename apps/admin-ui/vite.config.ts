@@ -19,6 +19,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           headers: { authorization: `Bearer ${env.ADMIN_API_KEY ?? ''}` },
         },
+        '/v1': {
+          target: API_ORIGIN,
+          changeOrigin: true,
+          headers: { authorization: `Bearer ${env.SECRET_API_KEY ?? ''}` },
+        },
       },
     },
   };

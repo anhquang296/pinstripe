@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "dev": "concurrently -n outbox,events -c blue,magenta \"WORKFLOW_NAME=outbox tsx watch --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=domain-event WORKER_PORT=3002 tsx watch --env-file=../../.env src/worker.ts\"",
+    "dev": "concurrently -n outbox,events -c blue,magenta \"WORKFLOW_NAME=outbox tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=domain-event WORKER_PORT=3002 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\"",
     "start": "node dist/worker.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"

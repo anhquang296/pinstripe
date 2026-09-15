@@ -38,6 +38,16 @@ pnpm --filter @pinstripe/core test:integration
 pnpm db:generate
 ```
 
+## API hiện có
+
+| Resource | Endpoint |
+|---|---|
+| Customers | `POST/GET /v1/customers`, `GET/POST/DELETE /v1/customers/:customerId` |
+| Products | `POST/GET /v1/products`, `GET/POST /v1/products/:productId` |
+| Prices | `POST/GET /v1/prices`, `GET/POST /v1/prices/:priceId` |
+
+Mọi `POST` nhận header `Idempotency-Key`. List dùng cursor `startingAfter` / `endingBefore`.
+
 ## Gọi thử API
 
 ```bash

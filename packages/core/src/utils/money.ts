@@ -46,7 +46,9 @@ export class Money {
 
   static of(amount: number, currency: Currency): Money {
     if (!Number.isSafeInteger(amount)) {
-      throw new BadRequestError(`Money amount must be a safe integer in minor units, got ${amount}`);
+      throw new BadRequestError(
+        `Money amount must be a safe integer in minor units, got ${amount}`,
+      );
     }
 
     return new Money(amount, currency);

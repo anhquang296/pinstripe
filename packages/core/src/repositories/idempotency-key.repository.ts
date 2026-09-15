@@ -10,7 +10,11 @@ export class IdempotencyKeyRepository {
     this._db = db;
   }
 
-  async findIdempotencyKey(scope: string, key: string, route: string): Promise<IdempotencyKey | null> {
+  async findIdempotencyKey(
+    scope: string,
+    key: string,
+    route: string,
+  ): Promise<IdempotencyKey | null> {
     const [record] = await this._db.master
       .select()
       .from(idempotencyKeys)

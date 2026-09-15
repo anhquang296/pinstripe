@@ -18,7 +18,7 @@ export class OutboxService {
   async recordEvents(
     events: readonly RecordEventPayload[],
     executor?: DatabaseTransaction,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const occurredAt = this.fastify.clock.now();
     const rows: NewOutboxEvent[] = events.map((event) => ({
       id: generateId(ObjectPrefixEnum.EVENT),
@@ -30,6 +30,8 @@ export class OutboxService {
     }));
 
     await this.fastify.outboxEventRepository.createOutboxEvents(rows, executor);
+
+    return rows.map((row) => row.id);
   }
 
   async relayOutboxEvents(batchSize: number): Promise<number> {

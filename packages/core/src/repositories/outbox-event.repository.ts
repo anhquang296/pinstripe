@@ -1,6 +1,6 @@
 import { eq, inArray, sql } from 'drizzle-orm';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
-import type { NewOutboxEvent } from '@database/schemas';
+import type { NewOutboxEvent, OutboxEvent } from '@database/schemas';
 import { OutboxStatusEnum, outboxEvents } from '@database/schemas';
 
 interface ClaimedOutboxEventRow {
@@ -42,6 +42,16 @@ export class OutboxEventRepository {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
 
     await db.insert(outboxEvents).values([...payloads]);
+  }
+
+  async findOutboxEvent(id: string): Promise<OutboxEvent | null> {
+    const [event] = await this._db.master
+      .select()
+      .from(outboxEvents)
+      .where(eq(outboxEvents.id, id))
+      .limit(1);
+
+    return event ?? null;
   }
 
   async claimOutboxEvents(limit: number): Promise<ClaimedOutboxEvent[]> {

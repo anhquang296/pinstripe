@@ -10,12 +10,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
+    "@lukemorales/query-key-factory": "^1.3.4",
     "@tanstack/react-query": "^5.62.7",
     "clsx": "^2.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.88.0",
     "react-router-dom": "^7.1.1",
-    "tailwind-merge": "^2.6.0"
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^4.6.5",
+    "@pinstripe/core": "workspace:*"
   },
   "devDependencies": {
     "@pinstripe/config": "workspace:*",

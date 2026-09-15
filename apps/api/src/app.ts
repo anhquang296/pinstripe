@@ -10,6 +10,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   const fastify = Fastify({
     logger: { level: process.env.LOG_LEVEL ?? 'info' },
     genReqId: () => `req_${Math.random().toString(36).slice(2, 14)}`,
+    ajv: { customOptions: { removeAdditional: false } },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   await fastify.register(corePlugin);

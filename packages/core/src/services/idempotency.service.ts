@@ -109,6 +109,8 @@ export class IdempotencyService {
   }
 
   private static buildRequestHash(body: unknown): string {
-    return createHash('sha256').update(JSON.stringify(body ?? null)).digest('hex');
+    return createHash('sha256')
+      .update(JSON.stringify(body ?? null))
+      .digest('hex');
   }
 }

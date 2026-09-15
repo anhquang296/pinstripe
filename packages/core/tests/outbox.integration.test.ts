@@ -1,7 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+import { OutboxStatusEnum } from '@database/schemas';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
 import { buildTestContext } from './context';
+
+const POLL_INTERVAL_MS = 100;
+const POLL_ATTEMPTS = 50;
 
 let fastify: FastifyInstance;
 
@@ -13,10 +17,24 @@ afterAll(async () => {
   await fastify.close();
 });
 
+async function waitForPublished(eventId: string): Promise<string | undefined> {
+  for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt += 1) {
+    const event = await fastify.outboxEventRepository.findOutboxEvent(eventId);
+
+    if (event?.status === OutboxStatusEnum.PUBLISHED) {
+      return event.status;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+
+  return undefined;
+}
+
 describe('OutboxService.relayOutboxEvents', () => {
-  it('dispatches a recorded event once and marks it published', async () => {
+  it('publishes a recorded event and leaves nothing claimable behind', async () => {
     const aggregateId = generateId(ObjectPrefixEnum.CUSTOMER);
-    await fastify.outboxService.recordEvents([
+    const [eventId] = await fastify.outboxService.recordEvents([
       {
         aggregateType: 'customer',
         aggregateId,
@@ -25,10 +43,9 @@ describe('OutboxService.relayOutboxEvents', () => {
       },
     ]);
 
-    const relayed = await fastify.outboxService.relayOutboxEvents(100);
-    const relayedAgain = await fastify.outboxService.relayOutboxEvents(100);
+    await fastify.outboxService.relayOutboxEvents(100);
+    const status = await waitForPublished(eventId ?? '');
 
-    expect(relayed).toBeGreaterThanOrEqual(1);
-    expect(relayedAgain).toBe(0);
+    expect(status).toBe(OutboxStatusEnum.PUBLISHED);
   });
 });

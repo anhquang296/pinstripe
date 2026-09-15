@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -10,7 +10,7 @@ const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const IDEMPOTENCY_HEADER = 'idempotency-key';
 const DEFAULT_SCOPE = 'default';
 
-export async function idempotencyHook(fastify: FastifyInstance): Promise<void> {
+export const idempotencyHook = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request, reply) => {
     const key = request.headers[IDEMPOTENCY_HEADER];
 
@@ -56,4 +56,4 @@ export async function idempotencyHook(fastify: FastifyInstance): Promise<void> {
 
     return payload;
   });
-}
+});

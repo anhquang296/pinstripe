@@ -25,7 +25,10 @@ export function readBearerToken(request: FastifyRequest): string {
   return header.slice(BEARER_PREFIX.length).trim();
 }
 
-export async function verifyApiRequest(request: FastifyRequest, _reply: FastifyReply): Promise<void> {
+export async function verifyApiRequest(
+  request: FastifyRequest,
+  _reply: FastifyReply,
+): Promise<void> {
   const token = readBearerToken(request);
 
   if (!matchesSecret(token, request.server.apiKeys.secret)) {
