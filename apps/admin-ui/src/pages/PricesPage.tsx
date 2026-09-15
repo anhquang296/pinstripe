@@ -1,5 +1,6 @@
 import PriceItem from '@components/PriceItem';
 import { usePricesQuery } from '@reactquery/prices';
+import { map } from 'lodash-es';
 
 const PAGE_LIMIT = 50;
 
@@ -32,7 +33,7 @@ export default function PricesPage() {
             </tr>
           </thead>
           <tbody>
-            {prices?.data.map((price) => {
+            {map(prices?.data, (price) => {
               return <PriceItem key={price.id} price={price} />;
             })}
           </tbody>

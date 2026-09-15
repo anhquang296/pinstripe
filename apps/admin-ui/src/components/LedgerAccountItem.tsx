@@ -1,4 +1,5 @@
 import type { LedgerAccountResponse } from '@pinstripe/core/contracts';
+import { toUpper } from 'lodash-es';
 
 interface LedgerAccountItemProps {
   account: LedgerAccountResponse;
@@ -17,7 +18,7 @@ export default function LedgerAccountItem({ account }: LedgerAccountItemProps) {
         {account.credits.toLocaleString('vi-VN')}
       </td>
       <td className="px-4 py-3 text-right font-medium tabular-nums">
-        {account.balance.toLocaleString('vi-VN')} {account.currency.toUpperCase()}
+        {account.balance.toLocaleString('vi-VN')} {toUpper(account.currency)}
       </td>
     </tr>
   );

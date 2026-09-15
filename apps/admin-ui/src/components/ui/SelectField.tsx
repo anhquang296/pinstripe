@@ -1,4 +1,5 @@
 import { cn } from '@lib/cn';
+import { map } from 'lodash-es';
 import type { SelectHTMLAttributes } from 'react';
 
 interface SelectFieldOption {
@@ -29,7 +30,7 @@ export default function SelectField({
         )}
         {...rest}
       >
-        {options.map((option) => {
+        {map(options, (option) => {
           return (
             <option key={option.value} value={option.value}>
               {option.label}

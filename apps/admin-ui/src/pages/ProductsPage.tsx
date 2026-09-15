@@ -7,6 +7,7 @@ import {
   productFormResolver,
 } from '@forms/product-form';
 import { useCreateProductMutation, useProductsQuery } from '@reactquery/products';
+import { map } from 'lodash-es';
 import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
@@ -45,7 +46,7 @@ export default function ProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {products?.data.map((product) => {
+            {map(products?.data, (product) => {
               return <ProductItem key={product.id} product={product} />;
             })}
           </tbody>

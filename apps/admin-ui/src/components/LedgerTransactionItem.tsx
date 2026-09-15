@@ -1,5 +1,6 @@
 import Button from '@components/ui/Button';
 import type { LedgerTransactionResponse } from '@pinstripe/core/contracts';
+import { map, toUpper } from 'lodash-es';
 import { useCallback } from 'react';
 
 interface LedgerTransactionItemProps {
@@ -40,7 +41,7 @@ export default function LedgerTransactionItem({
 
       <table className="w-full text-left text-sm">
         <tbody>
-          {transaction.postings.map((posting) => {
+          {map(transaction.postings, (posting) => {
             return (
               <tr key={posting.id} className="text-slate-600">
                 <td className="py-1">{posting.accountCode}</td>
@@ -56,7 +57,7 @@ export default function LedgerTransactionItem({
                   </span>
                 </td>
                 <td className="py-1 text-right tabular-nums">
-                  {posting.amount.toLocaleString('vi-VN')} {posting.currency.toUpperCase()}
+                  {posting.amount.toLocaleString('vi-VN')} {toUpper(posting.currency)}
                 </td>
               </tr>
             );

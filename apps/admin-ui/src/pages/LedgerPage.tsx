@@ -12,6 +12,7 @@ import {
   useLedgerTransactionsQuery,
   useReverseLedgerTransactionMutation,
 } from '@reactquery/ledger';
+import { map } from 'lodash-es';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -81,7 +82,7 @@ export default function LedgerPage() {
               </tr>
             </thead>
             <tbody>
-              {ledgerAccounts?.data.map((account) => {
+              {map(ledgerAccounts?.data, (account) => {
                 return <LedgerAccountItem key={account.id} account={account} />;
               })}
             </tbody>
@@ -105,7 +106,7 @@ export default function LedgerPage() {
         ) : null}
 
         <ul className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          {ledgerTransactions?.data.map((transaction) => {
+          {map(ledgerTransactions?.data, (transaction) => {
             return (
               <LedgerTransactionItem
                 key={transaction.id}

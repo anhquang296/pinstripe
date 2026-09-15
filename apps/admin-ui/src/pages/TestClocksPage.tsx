@@ -11,6 +11,7 @@ import {
   useCreateTestClockMutation,
   useTestClocksQuery,
 } from '@reactquery/test-clocks';
+import { map } from 'lodash-es';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -78,7 +79,7 @@ export default function TestClocksPage() {
             </tr>
           </thead>
           <tbody>
-            {testClocks?.data.map((testClock) => {
+            {map(testClocks?.data, (testClock) => {
               return (
                 <TestClockItem
                   key={testClock.id}

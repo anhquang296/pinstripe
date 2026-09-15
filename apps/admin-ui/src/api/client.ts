@@ -1,3 +1,4 @@
+import { isNil } from 'lodash-es';
 export interface RequestConfig {
   url: string;
   method: string;
@@ -32,13 +33,9 @@ export class PinstripeApiError extends Error {
   }
 }
 
-function isAbsent(value: unknown): boolean {
-  return value === undefined || value === null;
-}
-
 function set(field: keyof RequestConfig, value: unknown): RequestConfigFn {
   return (config) => {
-    if (isAbsent(value)) {
+    if (isNil(value)) {
       return config;
     }
 
@@ -64,7 +61,7 @@ export function Payload(payload: object | undefined): RequestConfigFn {
 
 export function Headers(headers: Record<string, string> | undefined): RequestConfigFn {
   return (config) => {
-    if (isAbsent(headers)) {
+    if (isNil(headers)) {
       return config;
     }
 
@@ -80,7 +77,7 @@ function buildUrl(config: RequestConfig): string {
   const search = new URLSearchParams();
 
   for (const [key, value] of Object.entries(config.params)) {
-    if (value !== undefined && value !== null) {
+    if (!isNil(value)) {
       search.set(key, String(value));
     }
   }

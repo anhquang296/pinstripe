@@ -1,4 +1,5 @@
 import type { PriceResponse } from '@pinstripe/core/contracts';
+import { toUpper } from 'lodash-es';
 
 interface PriceItemProps {
   price: PriceResponse;
@@ -9,7 +10,7 @@ function formatAmount(price: PriceResponse): string {
     return `${price.tiers?.length ?? 0} tier (${price.tiersMode})`;
   }
 
-  return `${(price.unitAmount ?? 0).toLocaleString('vi-VN')} ${price.currency.toUpperCase()}`;
+  return `${(price.unitAmount ?? 0).toLocaleString('vi-VN')} ${toUpper(price.currency)}`;
 }
 
 export default function PriceItem({ price }: PriceItemProps) {

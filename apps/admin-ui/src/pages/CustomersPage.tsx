@@ -7,6 +7,7 @@ import {
   customerFormResolver,
 } from '@forms/customer-form';
 import { useCreateCustomerMutation, useCustomersQuery } from '@reactquery/customers';
+import { map } from 'lodash-es';
 import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
@@ -46,7 +47,7 @@ export default function CustomersPage() {
             </tr>
           </thead>
           <tbody>
-            {customers?.data.map((customer) => {
+            {map(customers?.data, (customer) => {
               return <CustomerItem key={customer.id} customer={customer} />;
             })}
           </tbody>

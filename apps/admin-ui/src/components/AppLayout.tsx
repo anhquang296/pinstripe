@@ -1,4 +1,5 @@
 import { cn } from '@lib/cn';
+import { map } from 'lodash-es';
 import { useCallback } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
@@ -26,7 +27,7 @@ export default function AppLayout() {
         <div className="mx-auto flex max-w-6xl items-center gap-8 px-6 py-4">
           <span className="text-lg font-semibold tracking-tight">Pinstripe</span>
           <nav className="flex gap-1">
-            {NAV_ITEMS.map((navItem) => {
+            {map(NAV_ITEMS, (navItem) => {
               return (
                 <NavLink key={navItem.to} to={navItem.to} className={handleOnNavLinkClassName}>
                   {navItem.label}

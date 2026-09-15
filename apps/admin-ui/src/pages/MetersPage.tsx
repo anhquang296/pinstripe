@@ -17,6 +17,7 @@ import {
   useMeterEventSummaryQuery,
   useMetersQuery,
 } from '@reactquery/meters';
+import { find, map } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -58,22 +59,18 @@ export default function MetersPage() {
   });
 
   const meterOptions = useMemo(() => {
-    const meterRows = meters?.data ?? [];
-
     return [
       { value: '', label: '— chọn meter —' },
-      ...meterRows.map((meter) => {
+      ...map(meters?.data, (meter) => {
         return { value: meter.id, label: `${meter.displayName} (${meter.eventName})` };
       }),
     ];
   }, [meters]);
 
   const customerOptions = useMemo(() => {
-    const customerRows = customers?.data ?? [];
-
     return [
       { value: '', label: '— chọn khách hàng —' },
-      ...customerRows.map((customer) => {
+      ...map(customers?.data, (customer) => {
         return { value: customer.id, label: customer.name || customer.email || customer.id };
       }),
     ];
@@ -98,9 +95,7 @@ export default function MetersPage() {
   }, []);
 
   const handleOnSendEvent = useCallback(async () => {
-    const meter = meters?.data.find((candidate) => {
-      return candidate.id === selectedMeterId;
-    });
+    const meter = find(meters?.data, { id: selectedMeterId });
 
     if (!meter || !selectedCustomerId) {
       return;
@@ -138,7 +133,7 @@ export default function MetersPage() {
             </tr>
           </thead>
           <tbody>
-            {meters?.data.map((meter) => {
+            {map(meters?.data, (meter) => {
               return <MeterItem key={meter.id} meter={meter} />;
             })}
           </tbody>

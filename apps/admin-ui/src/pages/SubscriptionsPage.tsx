@@ -14,6 +14,7 @@ import {
   useCreateSubscriptionMutation,
   useSubscriptionsQuery,
 } from '@reactquery/subscriptions';
+import { filter, map, toUpper } from 'lodash-es';
 import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -40,30 +41,26 @@ export default function SubscriptionsPage() {
   });
 
   const customerOptions = useMemo(() => {
-    const customerRows = customers?.data ?? [];
-
     return [
       { value: '', label: '— chọn khách hàng —' },
-      ...customerRows.map((customer) => {
+      ...map(customers?.data, (customer) => {
         return {
           value: customer.id,
-          label: `${customer.name || customer.email || customer.id} (${customer.currency.toUpperCase()})`,
+          label: `${customer.name || customer.email || customer.id} (${toUpper(customer.currency)})`,
         };
       }),
     ];
   }, [customers]);
 
   const priceOptions = useMemo(() => {
-    const recurringPrices = (prices?.data ?? []).filter((price) => {
-      return price.type === 'recurring';
-    });
+    const recurringPrices = filter(prices?.data, { type: 'recurring' });
 
     return [
       { value: '', label: '— chọn bảng giá —' },
-      ...recurringPrices.map((price) => {
+      ...map(recurringPrices, (price) => {
         return {
           value: price.id,
-          label: `${price.lookupKey ?? price.id} · ${price.billingScheme} · ${price.currency.toUpperCase()}`,
+          label: `${price.lookupKey ?? price.id} · ${price.billingScheme} · ${toUpper(price.currency)}`,
         };
       }),
     ];
@@ -111,7 +108,7 @@ export default function SubscriptionsPage() {
             </tr>
           </thead>
           <tbody>
-            {subscriptions?.data.map((subscription) => {
+            {map(subscriptions?.data, (subscription) => {
               return (
                 <SubscriptionItem
                   key={subscription.id}
@@ -140,7 +137,7 @@ export default function SubscriptionsPage() {
               </tr>
             </thead>
             <tbody>
-              {entitlements?.data.map((entitlement) => {
+              {map(entitlements?.data, (entitlement) => {
                 return (
                   <tr key={entitlement.id} className="border-t border-slate-100">
                     <td className="px-4 py-3 font-mono text-xs text-slate-500">
