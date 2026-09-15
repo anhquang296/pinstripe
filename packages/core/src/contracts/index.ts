@@ -3,6 +3,7 @@ export * from '@contracts/entitlements.types';
 export * from '@contracts/events.types';
 export * from '@contracts/idempotency.types';
 export * from '@contracts/ledger.types';
+export * from '@contracts/meters.types';
 export * from '@contracts/pagination.types';
 export * from '@contracts/prices.types';
 export * from '@contracts/products.types';

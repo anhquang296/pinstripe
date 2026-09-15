@@ -13,6 +13,7 @@ export enum AggregateTypeEnum {
   LEDGER_TRANSACTION = 'ledger_transaction',
   SUBSCRIPTION = 'subscription',
   TEST_CLOCK = 'test_clock',
+  METER = 'meter',
 }
 export type AggregateType = `${AggregateTypeEnum}`;
 
@@ -32,5 +33,6 @@ export enum DomainEventTypeEnum {
   SUBSCRIPTION_RENEWED = 'subscription.renewed',
   SUBSCRIPTION_CANCELED = 'subscription.canceled',
   TEST_CLOCK_ADVANCED = 'test_clock.advanced',
+  METER_CREATED = 'meter.created',
 }
 export type DomainEventType = `${DomainEventTypeEnum}`;

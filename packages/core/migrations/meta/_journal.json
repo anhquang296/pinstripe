@@ -50,6 +50,20 @@
       "when": 1789490584820,
       "tag": "0006_subscriptions_entitlements",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789495047280,
+      "tag": "0007_meters",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789495055189,
+      "tag": "0008_meter_events_append_only",
+      "breakpoints": true
     }
   ]
 }

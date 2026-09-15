@@ -3,6 +3,8 @@ import { EntitlementRepository } from '@repositories/entitlement.repository';
 import { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
 import { LedgerAccountRepository } from '@repositories/ledger-account.repository';
 import { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
+import { MeterRepository } from '@repositories/meter.repository';
+import { MeterEventRepository } from '@repositories/meter-event.repository';
 import { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
@@ -18,6 +20,8 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
     'ledgerTransactionRepository',
     new LedgerTransactionRepository(fastify.database),
   );
+  fastify.decorate('meterRepository', new MeterRepository(fastify.database));
+  fastify.decorate('meterEventRepository', new MeterEventRepository(fastify.database));
   fastify.decorate('outboxEventRepository', new OutboxEventRepository(fastify.database));
   fastify.decorate('priceRepository', new PriceRepository(fastify.database));
   fastify.decorate('productRepository', new ProductRepository(fastify.database));

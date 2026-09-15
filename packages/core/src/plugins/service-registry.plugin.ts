@@ -2,6 +2,8 @@ import { CustomerService } from '@services/customer.service';
 import { EntitlementService } from '@services/entitlement.service';
 import { IdempotencyService } from '@services/idempotency.service';
 import { LedgerService } from '@services/ledger.service';
+import { MeterService } from '@services/meter.service';
+import { MeterEventService } from '@services/meter-event.service';
 import { OutboxService } from '@services/outbox.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
@@ -22,4 +24,9 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('entitlementService', new EntitlementService(fastify));
   fastify.decorate('subscriptionService', new SubscriptionService(fastify));
   fastify.decorate('testClockService', new TestClockService(fastify));
+  fastify.decorate('meterService', new MeterService(fastify));
+  fastify.decorate(
+    'meterEventService',
+    new MeterEventService(fastify, { dedupWindowDays: fastify.config.METER_DEDUP_WINDOW_DAYS }),
+  );
 });

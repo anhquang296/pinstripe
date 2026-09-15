@@ -2,6 +2,8 @@ import { verifyApiRequest } from '@hooks/verify-api-request';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { customersRoutes } from '@routes/v1/customers/customers.routes';
 import { entitlementsRoutes } from '@routes/v1/entitlements/entitlements.routes';
+import { meterEventsRoutes } from '@routes/v1/meter-events/meter-events.routes';
+import { metersRoutes } from '@routes/v1/meters/meters.routes';
 import { pricesRoutes } from '@routes/v1/prices/prices.routes';
 import { productsRoutes } from '@routes/v1/products/products.routes';
 import { subscriptionsRoutes } from '@routes/v1/subscriptions/subscriptions.routes';
@@ -20,6 +22,8 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(pricesRoutes, { prefix: '/prices' });
   await fastify.register(subscriptionsRoutes, { prefix: '/subscriptions' });
   await fastify.register(entitlementsRoutes, { prefix: '/entitlements' });
+  await fastify.register(metersRoutes, { prefix: '/billing/meters' });
+  await fastify.register(meterEventsRoutes, { prefix: '/billing' });
   await fastify.register(testClocksRoutes, { prefix: '/test_helpers/test_clocks' });
 
   fastify.get(

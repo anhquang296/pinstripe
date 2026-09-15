@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/products', label: 'Products' },
   { to: '/prices', label: 'Prices' },
   { to: '/subscriptions', label: 'Subscriptions' },
+  { to: '/meters', label: 'Meters' },
   { to: '/ledger', label: 'Ledger' },
   { to: '/test-clocks', label: 'Test clocks' },
 ];

@@ -1,6 +1,7 @@
 import AppLayout from '@components/AppLayout';
 import CustomersPage from '@pages/CustomersPage';
 import LedgerPage from '@pages/LedgerPage';
+import MetersPage from '@pages/MetersPage';
 import PricesPage from '@pages/PricesPage';
 import ProductsPage from '@pages/ProductsPage';
 import SubscriptionsPage from '@pages/SubscriptionsPage';
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/prices" element={<PricesPage />} />
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
+        <Route path="/meters" element={<MetersPage />} />
         <Route path="/ledger" element={<LedgerPage />} />
         <Route path="/test-clocks" element={<TestClocksPage />} />
       </Route>

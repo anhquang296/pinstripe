@@ -7,6 +7,8 @@ import type { EntitlementRepository } from '@repositories/entitlement.repository
 import type { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
 import type { LedgerAccountRepository } from '@repositories/ledger-account.repository';
 import type { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
+import type { MeterRepository } from '@repositories/meter.repository';
+import type { MeterEventRepository } from '@repositories/meter-event.repository';
 import type { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import type { PriceRepository } from '@repositories/price.repository';
 import type { ProductRepository } from '@repositories/product.repository';
@@ -16,6 +18,8 @@ import type { CustomerService } from '@services/customer.service';
 import type { EntitlementService } from '@services/entitlement.service';
 import type { IdempotencyService } from '@services/idempotency.service';
 import type { LedgerService } from '@services/ledger.service';
+import type { MeterService } from '@services/meter.service';
+import type { MeterEventService } from '@services/meter-event.service';
 import type { OutboxService } from '@services/outbox.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
@@ -47,6 +51,8 @@ declare module 'fastify' {
     testClockRepository: TestClockRepository;
     ledgerAccountRepository: LedgerAccountRepository;
     ledgerTransactionRepository: LedgerTransactionRepository;
+    meterEventRepository: MeterEventRepository;
+    meterRepository: MeterRepository;
     outboxEventRepository: OutboxEventRepository;
     customerService: CustomerService;
     idempotencyService: IdempotencyService;
@@ -56,6 +62,8 @@ declare module 'fastify' {
     subscriptionService: SubscriptionService;
     testClockService: TestClockService;
     ledgerService: LedgerService;
+    meterEventService: MeterEventService;
+    meterService: MeterService;
     outboxService: OutboxService;
   }
 }
