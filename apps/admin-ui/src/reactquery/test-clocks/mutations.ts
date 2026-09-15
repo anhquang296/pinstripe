@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AdvanceTestClockPayload, CreateTestClockPayload } from '@pinstripe/core/contracts';
-import { advanceTestClock, createTestClock } from '@api/test-clocks/test-clocks.api';
+import { advanceTestClock, createTestClock } from '@api/test-clocks';
 import type { MutationProps } from '@lib/react-query.types';
 import { toast } from '@lib/toast';
+import type { AdvanceTestClockPayload, CreateTestClockPayload } from '@pinstripe/core/contracts';
 import { queries } from '@react-query-keys/index';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useCreateTestClockMutation({ shouldBeSuccessToast = true }: MutationProps = {}) {
   const queryClient = useQueryClient();

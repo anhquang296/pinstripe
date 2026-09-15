@@ -1,6 +1,6 @@
+import type { LedgerIntegrityCheckJob } from '@pinstripe/core/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
-import type { LedgerIntegrityCheckJob } from '@pinstripe/core/queues';
 
 export class LedgerIntegrityCheckProcessor {
   constructor(private readonly fastify: FastifyInstance) {}

@@ -1,7 +1,9 @@
-import { eq, inArray, sql } from 'drizzle-orm';
+import { OutboxStatusEnum } from '@contracts/events.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewOutboxEvent, OutboxEvent } from '@database/schemas';
-import { OutboxStatusEnum, outboxEvents } from '@database/schemas';
+import { outboxEvents } from '@database/schemas';
+import { eq, inArray, sql } from 'drizzle-orm';
+import _ from 'lodash';
 
 interface ClaimedOutboxEventRow {
   [column: string]: unknown;
@@ -75,15 +77,17 @@ export class OutboxEventRepository {
         occurred_at as "occurredAt"
     `);
 
-    return [...claimed].map((row) => ({
-      id: row.id,
-      aggregateType: row.aggregateType,
-      aggregateId: row.aggregateId,
-      eventType: row.eventType,
-      payload: row.payload,
-      attemptCount: row.attemptCount,
-      occurredAt: new Date(row.occurredAt),
-    }));
+    return _.map([...claimed], (row) => {
+      return {
+        id: row.id,
+        aggregateType: row.aggregateType,
+        aggregateId: row.aggregateId,
+        eventType: row.eventType,
+        payload: row.payload,
+        attemptCount: row.attemptCount,
+        occurredAt: new Date(row.occurredAt),
+      };
+    });
   }
 
   async publishOutboxEvents(ids: readonly string[], publishedAt: Date): Promise<void> {

@@ -1,12 +1,13 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
-import type { NewTestClockEntity, TestClockEntity } from '@database/schemas';
+import type { NewTestClock, TestClock } from '@database/schemas';
 import { testClocks } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
+import { desc, eq, sql } from 'drizzle-orm';
 
-export interface FindTestClocksFilters {
-  beforeCursor?: RowCursor;
-  afterCursor?: RowCursor;
+export interface TestClockFilters {
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
 }
 
 export class TestClockRepository {
@@ -16,7 +17,7 @@ export class TestClockRepository {
     this._db = db;
   }
 
-  async findTestClock(id: string): Promise<TestClockEntity | null> {
+  async findTestClock(id: string): Promise<TestClock | null> {
     const [clock] = await this._db.master
       .select()
       .from(testClocks)
@@ -26,11 +27,14 @@ export class TestClockRepository {
     return clock ?? null;
   }
 
-  async findTestClocks(filters: FindTestClocksFilters, limit: number): Promise<TestClockEntity[]> {
-    const where = filters.beforeCursor
-      ? sql`(${testClocks.createdAt}, ${testClocks.id}) < (${filters.beforeCursor.createdAt.toISOString()}::timestamptz, ${filters.beforeCursor.id})`
-      : filters.afterCursor
-        ? sql`(${testClocks.createdAt}, ${testClocks.id}) > (${filters.afterCursor.createdAt.toISOString()}::timestamptz, ${filters.afterCursor.id})`
+  async findTestClocks(
+    filters: TestClockFilters = {},
+    limit = DEFAULT_QUERY_LIMIT,
+  ): Promise<TestClock[]> {
+    const where = filters.beforeAt
+      ? sql`(${testClocks.createdAt}, ${testClocks.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+      : filters.afterAt
+        ? sql`(${testClocks.createdAt}, ${testClocks.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
         : undefined;
 
     return this._db.master
@@ -42,9 +46,9 @@ export class TestClockRepository {
   }
 
   async createTestClock(
-    payload: NewTestClockEntity,
+    payload: NewTestClock,
     executor?: DatabaseTransaction,
-  ): Promise<TestClockEntity | null> {
+  ): Promise<TestClock | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [clock] = await db.insert(testClocks).values(payload).returning();
 
@@ -53,9 +57,9 @@ export class TestClockRepository {
 
   async updateTestClock(
     id: string,
-    payload: Partial<NewTestClockEntity>,
+    payload: Partial<NewTestClock>,
     executor?: DatabaseTransaction,
-  ): Promise<TestClockEntity | null> {
+  ): Promise<TestClock | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [clock] = await db
       .update(testClocks)

@@ -1,6 +1,8 @@
 import { timingSafeEqual } from 'node:crypto';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+
 import { UnauthorizedError } from '@pinstripe/core/errors';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import _ from 'lodash';
 
 const BEARER_PREFIX = 'Bearer ';
 
@@ -18,7 +20,7 @@ export function matchesSecret(candidate: string, expected: string): boolean {
 export function readBearerToken(request: FastifyRequest): string {
   const header = request.headers.authorization;
 
-  if (!header || !header.startsWith(BEARER_PREFIX)) {
+  if (!header || !_.startsWith(header, BEARER_PREFIX)) {
     throw new UnauthorizedError('Missing bearer token in Authorization header');
   }
 

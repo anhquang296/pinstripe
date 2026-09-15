@@ -4,36 +4,17 @@
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@config/*": [
-        "src/config/*"
-      ],
-      "@database/*": [
-        "src/database/*"
-      ],
-      "@errors/*": [
-        "src/errors/*"
-      ],
-      "@plugins/*": [
-        "src/plugins/*"
-      ],
-      "@queues/*": [
-        "src/queues/*"
-      ],
-      "@repositories/*": [
-        "src/repositories/*"
-      ],
-      "@services/*": [
-        "src/services/*"
-      ],
-      "@type/*": [
-        "src/types/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@contracts/*": [
-        "src/contracts/*"
-      ]
+      "@config/*": ["src/config/*"],
+      "@constants/*": ["src/constants/*"],
+      "@contracts/*": ["src/contracts/*"],
+      "@database/*": ["src/database/*"],
+      "@errors/*": ["src/errors/*"],
+      "@plugins/*": ["src/plugins/*"],
+      "@queues/*": ["src/queues/*"],
+      "@repositories/*": ["src/repositories/*"],
+      "@services/*": ["src/services/*"],
+      "@type/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"]
     }
   },
   "include": [

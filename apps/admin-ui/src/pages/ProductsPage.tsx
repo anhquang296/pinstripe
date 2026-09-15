@@ -1,24 +1,25 @@
-import { useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Button from '@components/ui/Button';
 import ProductItem from '@components/ProductItem';
+import Button from '@components/ui/Button';
 import TextField from '@components/ui/TextField';
+import type { CreateProductFormValues } from '@forms/create-product-form';
 import {
   createProductFormDefaultValues,
   createProductFormSchema,
 } from '@forms/create-product-form';
-import type { CreateProductFormValues } from '@forms/create-product-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateProductMutation, useProductsQuery } from '@reactquery/products';
+import { useCallback } from 'react';
+import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
 
 export default function ProductsPage() {
-  const { data, isPending, error } = useProductsQuery(
-    { limit: PAGE_LIMIT },
-    { hasPlaceholder: true },
-  );
-  const createProductMutation = useCreateProductMutation();
+  const {
+    data: products,
+    isPending,
+    error,
+  } = useProductsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
+  const { mutateAsync: createProduct } = useCreateProductMutation();
   const form = useForm<CreateProductFormValues>({
     resolver: zodResolver(createProductFormSchema),
     defaultValues: createProductFormDefaultValues,
@@ -26,7 +27,7 @@ export default function ProductsPage() {
 
   const handleOnSubmit = useCallback(
     async (values: CreateProductFormValues) => {
-      await createProductMutation.mutateAsync({
+      await createProduct({
         name: values.name,
         description: values.description || undefined,
         unitLabel: values.unitLabel || undefined,
@@ -34,7 +35,7 @@ export default function ProductsPage() {
 
       form.reset(createProductFormDefaultValues);
     },
-    [createProductMutation, form],
+    [createProduct, form],
   );
 
   return (
@@ -73,9 +74,9 @@ export default function ProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.data.map((product) => (
-              <ProductItem key={product.id} product={product} />
-            ))}
+            {products?.data.map((product) => {
+              return <ProductItem key={product.id} product={product} />;
+            })}
           </tbody>
         </table>
         {isPending ? <p className="px-4 py-3 text-slate-500">Đang tải…</p> : null}

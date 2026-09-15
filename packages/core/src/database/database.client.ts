@@ -1,10 +1,10 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { sql } from 'drizzle-orm';
-import postgres from 'postgres';
-import type { Sql } from 'postgres';
 import * as schemas from '@database/schemas';
 import type { Logger } from '@type/logger';
+import { sql } from 'drizzle-orm';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import type { Sql } from 'postgres';
+import postgres from 'postgres';
 
 export interface DatabaseClientConfig {
   url: string;

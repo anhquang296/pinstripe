@@ -1,11 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.js"
-  - "**/*.jsx"
-  - "**/*.mjs"
-  - "**/*.cjs"
 description: >
   How a statement is written — one job per statement, happy path first in the affirmative.
 agentkit:

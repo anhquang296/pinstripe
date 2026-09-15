@@ -12,26 +12,28 @@ agentkit:
 These rules are the source of truth for how code here is written. Where a rule and the surrounding
 code disagree, the rule wins and the code is what needs fixing.
 
-Rules with globs load automatically when you touch a matching file — you do not need to open them
-preemptively. Read one deliberately when you are about to write code in its area and want the detail
-its row only summarizes.
+The rules marked `_always_` load every session and are in your context now. The rest load when you
+touch a matching file **with a file tool** — a file authored through a shell redirection or a heredoc
+loads none of them, and is never formatted. Read a scoped rule deliberately before writing in its
+area, or run `agentkit rules --for <path>` to list what covers a path.
 
 | rule | applies to | file |
 |---|---|---|
-| Every body is a braced block — control flow and arrow functions alike, however short. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/brace-style-convention.md` |
-| No comments in source — why the code has to say it instead, and the tooling directives that are the only exception. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/comment-convention.md` |
-| Where a constant lives — the narrowest scope covering its use sites, and when it moves to `constants/`. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/constant-convention.md` |
-| Closed string sets as `<Name>Enum` plus a derived template-literal union, never a bare literal union. | `**/*.ts`, `**/*.tsx` | `.claude/rules/agentkit/core/enum-convention.md` |
-| Which import path to write — alias by default, relative only within a folder's own subtree. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/import-convention.md` |
-| The shape of a log message — `<function>() <message>`, `[<Class>] <method>() <message>`, errors at error level with the cause under `error`. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/logging-convention.md` |
-| Do not build surface nobody reads — return the object you have, drop parameters no consumer touches. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/minimal-surface-convention.md` |
-| The vocabulary every other rule assumes — which word to pick when two would do. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/naming-convention.md` |
-| Read a deep path once into a named local — never an optional-chain ladder, and never the same path walked twice. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/nested-access-convention.md` |
-| Database schema design — a column is `NOT NULL` until absence is a real domain state, `''` / `0` / a sentinel date never stand in for unknown, and the type mirrors the column. | `**/*.sql`, `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/nullability-convention.md` |
-| How agent-facing docs are owned and changed — which files are generated, which are the project's own, and the house style every rule follows. | `.claude/rules/**`, `CLAUDE.md`, `AGENTS.md`, `**/AGENTS.md`, `.agentkit/**`, `.claude/skills/**` | `.claude/rules/agentkit/core/rule-maintenance.md` |
-| How a statement is written — one job per statement, happy path first in the affirmative. | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx`, `**/*.mjs`, `**/*.cjs` | `.claude/rules/agentkit/core/statement-convention.md` |
-| What to test and what to skip, and how a test file is shaped — AAA, flat structure, setup functions over beforeEach, names that state the scenario. | `**/*.test.ts`, `**/*.test.tsx`, `**/*.spec.ts`, `**/*.spec.tsx`, `**/tests/**`, `**/__tests__/**` | `.claude/rules/agentkit/core/testing.md` |
-| TypeScript settings and type discipline — strictness, no `any`, schema-derived types, error classes over generic Error. | `**/*.ts`, `**/*.tsx`, `**/tsconfig*.json` | `.claude/rules/agentkit/core/typescript.md` |
+| How an agent creates and changes files — the file tools write, the shell reads, and why a heredoc costs you the conventions and the formatter. | _always_ | `.claude/rules/agentkit/core/agent-tooling-convention.md` |
+| Every body is a braced block — control flow and arrow functions alike, however short. | _always_ | `.claude/rules/agentkit/core/brace-style-convention.md` |
+| No comments in source — why the code has to say it instead, and the tooling directives that are the only exception. | _always_ | `.claude/rules/agentkit/core/comment-convention.md` |
+| Where a constant lives — the narrowest scope covering its use sites, and when it moves to `constants/`. | _always_ | `.claude/rules/agentkit/core/constant-convention.md` |
+| Closed string sets as `<Name>Enum` plus a derived template-literal union, never a bare literal union. | _always_ | `.claude/rules/agentkit/core/enum-convention.md` |
+| Which import path to write — alias by default, relative only within a folder's own subtree. | _always_ | `.claude/rules/agentkit/core/import-convention.md` |
+| The shape of a log message — `<function>() <message>`, `[<Class>] <method>() <message>`, errors at error level with the cause under `error`. | _always_ | `.claude/rules/agentkit/core/logging-convention.md` |
+| Do not build surface nobody reads — return the object you have, drop parameters no consumer touches. | _always_ | `.claude/rules/agentkit/core/minimal-surface-convention.md` |
+| The vocabulary every other rule assumes — which word to pick when two would do. | _always_ | `.claude/rules/agentkit/core/naming-convention.md` |
+| Read a deep path once into a named local — never an optional-chain ladder, and never the same path walked twice. | _always_ | `.claude/rules/agentkit/core/nested-access-convention.md` |
+| Database schema design — a column is `NOT NULL` until absence is a real domain state, `''` / `0` / a sentinel date never stand in for unknown, and the type mirrors the column. | _always_ | `.claude/rules/agentkit/core/nullability-convention.md` |
+| How agent-facing docs are owned and changed — which files are generated, which are the project's own, and the house style every rule follows. | _always_ | `.claude/rules/agentkit/core/rule-maintenance.md` |
+| How a statement is written — one job per statement, happy path first in the affirmative. | _always_ | `.claude/rules/agentkit/core/statement-convention.md` |
+| What to test and what to skip, and how a test file is shaped — AAA, flat structure, setup functions over beforeEach, names that state the scenario. | _always_ | `.claude/rules/agentkit/core/testing.md` |
+| TypeScript settings and type discipline — strictness, no `any`, schema-derived types, error classes over generic Error. | _always_ | `.claude/rules/agentkit/core/typescript.md` |
 | The queue contract shared by producer and consumer, and how a worker process is named, started and shut down. | `**/*.queue.ts`, `**/queues/**`, `**/workflows/**`, `**/*.processor.ts` | `.claude/rules/agentkit/profiles/bullmq/queue-convention.md` |
 | The migration journal invariant — what a generated migration consists of, and why discarding one halfway breaks every test run. | `**/migrations/**`, `**/drizzle.config.*` | `.claude/rules/agentkit/profiles/drizzle/migration-convention.md` |
 | Drizzle schema and query rules — table and column naming, inferred types, read/write split, soft deletes, and building a where from conditional terms. | `**/*.schema.ts`, `**/*.repository.ts`, `**/database/**`, `**/db/**` | `.claude/rules/agentkit/profiles/drizzle/query-convention.md` |

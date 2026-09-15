@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
 import { CurrencyEnum } from '@utils/currency';
 
@@ -90,7 +90,7 @@ export const getCustomersSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type Customer = Static<typeof customerSchema>;
+export type CustomerResponse = Static<typeof customerSchema>;
 export type CreateCustomerPayload = Static<typeof createCustomerSchema>;
 export type UpdateCustomerPayload = Static<typeof updateCustomerSchema>;
 export type GetCustomersQuery = Static<typeof getCustomersSchema>;

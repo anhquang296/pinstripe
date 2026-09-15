@@ -1,11 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.js"
-  - "**/*.jsx"
-  - "**/*.mjs"
-  - "**/*.cjs"
 description: >
   Which import path to write — alias by default, relative only within a folder's own subtree.
 agentkit:

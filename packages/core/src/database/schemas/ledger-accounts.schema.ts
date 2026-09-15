@@ -1,11 +1,11 @@
-import { sql } from 'drizzle-orm';
-import { bigint, index, pgTable, pgView, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import type {
   LedgerAccountCode,
   LedgerAccountType,
   PostingDirection,
 } from '@contracts/ledger.types';
 import type { Currency } from '@utils/currency';
+import { sql } from 'drizzle-orm';
+import { bigint, index, pgTable, pgView, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const ledgerAccounts = pgTable(
   'ledger_accounts',
@@ -18,15 +18,17 @@ export const ledgerAccounts = pgTable(
     customerId: text('customer_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    uniqueIndex('ledger_accounts_code_currency_customer_id_idx')
-      .on(table.code, table.currency, table.customerId)
-      .where(sql`customer_id is not null`),
-    uniqueIndex('ledger_accounts_code_currency_idx')
-      .on(table.code, table.currency)
-      .where(sql`customer_id is null`),
-    index('ledger_accounts_customer_id_idx').on(table.customerId),
-  ],
+  (table) => {
+    return [
+      uniqueIndex('ledger_accounts_code_currency_customer_id_idx')
+        .on(table.code, table.currency, table.customerId)
+        .where(sql`customer_id is not null`),
+      uniqueIndex('ledger_accounts_code_currency_idx')
+        .on(table.code, table.currency)
+        .where(sql`customer_id is null`),
+      index('ledger_accounts_customer_id_idx').on(table.customerId),
+    ];
+  },
 );
 
 export const ledgerAccountBalances = pgView('ledger_account_balances', {
@@ -36,5 +38,5 @@ export const ledgerAccountBalances = pgView('ledger_account_balances', {
   balance: bigint('balance', { mode: 'number' }).notNull(),
 }).existing();
 
-export type LedgerAccountEntity = typeof ledgerAccounts.$inferSelect;
-export type NewLedgerAccountEntity = typeof ledgerAccounts.$inferInsert;
+export type LedgerAccount = typeof ledgerAccounts.$inferSelect;
+export type NewLedgerAccount = typeof ledgerAccounts.$inferInsert;

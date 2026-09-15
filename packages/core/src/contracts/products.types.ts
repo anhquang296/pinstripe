@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 
 export const productSchema = Type.Object({
   object: Type.Literal('product'),
@@ -49,7 +49,7 @@ export const getProductsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type Product = Static<typeof productSchema>;
+export type ProductResponse = Static<typeof productSchema>;
 export type CreateProductPayload = Static<typeof createProductSchema>;
 export type UpdateProductPayload = Static<typeof updateProductSchema>;
 export type GetProductsQuery = Static<typeof getProductsSchema>;

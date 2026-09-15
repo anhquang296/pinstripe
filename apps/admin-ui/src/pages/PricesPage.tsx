@@ -4,10 +4,11 @@ import { usePricesQuery } from '@reactquery/prices';
 const PAGE_LIMIT = 50;
 
 export default function PricesPage() {
-  const { data, isPending, error } = usePricesQuery(
-    { limit: PAGE_LIMIT },
-    { hasPlaceholder: true },
-  );
+  const {
+    data: prices,
+    isPending,
+    error,
+  } = usePricesQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,9 +32,9 @@ export default function PricesPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.data.map((price) => (
-              <PriceItem key={price.id} price={price} />
-            ))}
+            {prices?.data.map((price) => {
+              return <PriceItem key={price.id} price={price} />;
+            })}
           </tbody>
         </table>
         {isPending ? <p className="px-4 py-3 text-slate-500">Đang tải…</p> : null}

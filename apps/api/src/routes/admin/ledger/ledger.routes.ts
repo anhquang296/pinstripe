@@ -1,3 +1,4 @@
+import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   getLedgerAccountsSchema,
   getLedgerTransactionsSchema,
@@ -9,7 +10,6 @@ import {
   postLedgerTransactionSchema,
   reverseLedgerTransactionSchema,
 } from '@pinstripe/core/contracts';
-import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { ApiResponse } from '@utils/api-response';
 
 export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {

@@ -1,12 +1,12 @@
-import type { SelectHTMLAttributes } from 'react';
 import { cn } from '@lib/cn';
+import type { SelectHTMLAttributes } from 'react';
 
-export interface SelectFieldOption {
+interface SelectFieldOption {
   value: string;
   label: string;
 }
 
-export interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
   options: SelectFieldOption[];
   error?: string;
@@ -29,11 +29,13 @@ export default function SelectField({
         )}
         {...rest}
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
+        {options.map((option) => {
+          return (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          );
+        })}
       </select>
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
     </label>

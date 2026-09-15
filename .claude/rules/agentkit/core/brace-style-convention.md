@@ -1,11 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.js"
-  - "**/*.jsx"
-  - "**/*.mjs"
-  - "**/*.cjs"
 description: >
   Every body is a braced block — control flow and arrow functions alike, however short.
 agentkit:

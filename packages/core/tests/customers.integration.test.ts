@@ -1,8 +1,9 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
 import { NotFoundError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { buildTestContext } from './context';
 
 let fastify: FastifyInstance;
@@ -54,7 +55,11 @@ describe('CustomerService.findCustomers', () => {
 
     expect(firstPage.data).toHaveLength(2);
     expect(firstPage.hasMore).toBe(true);
-    expect(secondPage.data.map((customer) => customer.id)).not.toContain(firstPage.data[0]?.id);
+    expect(
+      secondPage.data.map((customer) => {
+        return customer.id;
+      }),
+    ).not.toContain(firstPage.data[0]?.id);
   });
 });
 

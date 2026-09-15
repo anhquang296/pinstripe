@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
 import { CurrencyEnum } from '@utils/currency';
 
@@ -137,8 +137,8 @@ export const getSubscriptionsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type Subscription = Static<typeof subscriptionSchema>;
-export type SubscriptionItem = Static<typeof subscriptionItemSchema>;
+export type SubscriptionResponse = Static<typeof subscriptionSchema>;
+export type SubscriptionItemResponse = Static<typeof subscriptionItemSchema>;
 export type CreateSubscriptionPayload = Static<typeof createSubscriptionSchema>;
 export type UpdateSubscriptionPayload = Static<typeof updateSubscriptionSchema>;
 export type CancelSubscriptionPayload = Static<typeof cancelSubscriptionSchema>;

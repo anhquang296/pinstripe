@@ -4,7 +4,8 @@
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@workflows/*": ["src/workflows/*"]
+      "@workflows/*": ["src/workflows/*"],
+      "@type/*": ["src/types/*"]
     }
   },
   "include": ["src/**/*.ts", "tsup.config.ts"]

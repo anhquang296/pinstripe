@@ -1,9 +1,13 @@
-import type { FastifyInstance } from 'fastify';
 import type { DatabaseTransaction } from '@database/database.client';
 import type { NewOutboxEvent } from '@database/schemas';
+import type { DomainEventDispatchJob } from '@queues/domain-event.queue';
 import { buildDomainEventDispatchJob, DOMAIN_EVENT_DISPATCH_JOB } from '@queues/domain-event.queue';
 import { QueueNameEnum } from '@queues/queue-name';
+import type { ClaimedOutboxEvent } from '@repositories/outbox-event.repository';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { Job } from 'bullmq';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 
 export interface RecordEventPayload {
   aggregateType: string;
@@ -20,47 +24,39 @@ export class OutboxService {
     executor?: DatabaseTransaction,
   ): Promise<string[]> {
     const occurredAt = this.fastify.clock.now();
-    const rows: NewOutboxEvent[] = events.map((event) => ({
-      id: generateId(ObjectPrefixEnum.EVENT),
-      aggregateType: event.aggregateType,
-      aggregateId: event.aggregateId,
-      eventType: event.eventType,
-      payload: event.payload,
-      occurredAt,
-    }));
+    const outboxRows: NewOutboxEvent[] = _.map(events, (event) => {
+      return {
+        id: generateId(ObjectPrefixEnum.EVENT),
+        aggregateType: event.aggregateType,
+        aggregateId: event.aggregateId,
+        eventType: event.eventType,
+        payload: event.payload,
+        occurredAt,
+      };
+    });
 
-    await this.fastify.outboxEventRepository.createOutboxEvents(rows, executor);
+    await this.fastify.outboxEventRepository.createOutboxEvents(outboxRows, executor);
 
-    return rows.map((row) => row.id);
+    return _.map(outboxRows, 'id');
   }
 
   async relayOutboxEvents(batchSize: number): Promise<number> {
-    const claimed = await this.fastify.outboxEventRepository.claimOutboxEvents(batchSize);
+    const claimedEvents = await this.fastify.outboxEventRepository.claimOutboxEvents(batchSize);
 
-    if (claimed.length === 0) {
+    if (_.isEmpty(claimedEvents)) {
       return 0;
     }
 
-    const queue = this.fastify.queues.resolve(QueueNameEnum.DOMAIN_EVENT);
     const published: string[] = [];
 
-    for (const event of claimed) {
+    for (const event of claimedEvents) {
       try {
-        const job = buildDomainEventDispatchJob({
-          eventId: event.id,
-          aggregateType: event.aggregateType,
-          aggregateId: event.aggregateId,
-          eventType: event.eventType,
-          payload: event.payload,
-          occurredAt: event.occurredAt,
-        });
-
-        await queue.add(DOMAIN_EVENT_DISPATCH_JOB, job, { jobId: event.id });
+        await this.dispatchDomainEvent(event);
         published.push(event.id);
       } catch (error) {
         this.fastify.log.error(
-          { err: error, eventId: event.id },
-          '[OutboxService] relayOutboxEvents() failed to dispatch event',
+          { error, eventId: event.id },
+          '[OutboxService] relayOutboxEvents() error',
         );
 
         await this.fastify.outboxEventRepository.failOutboxEvent(
@@ -77,5 +73,22 @@ export class OutboxService {
     );
 
     return published.length;
+  }
+
+  private async dispatchDomainEvent(
+    event: ClaimedOutboxEvent,
+  ): Promise<Job<DomainEventDispatchJob>> {
+    const job = buildDomainEventDispatchJob({
+      eventId: event.id,
+      aggregateType: event.aggregateType,
+      aggregateId: event.aggregateId,
+      eventType: event.eventType,
+      payload: event.payload,
+      occurredAt: event.occurredAt,
+    });
+
+    return this.fastify.queues
+      .resolve(QueueNameEnum.DOMAIN_EVENT)
+      .add(DOMAIN_EVENT_DISPATCH_JOB, job, { jobId: event.id });
   }
 }

@@ -1,18 +1,26 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
+import { PostingDirectionEnum } from '@contracts/ledger.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type {
-  LedgerPostingEntity,
-  LedgerTransactionEntity,
-  NewLedgerPostingEntity,
-  NewLedgerTransactionEntity,
+  LedgerPosting,
+  LedgerTransaction,
+  NewLedgerPosting,
+  NewLedgerTransaction,
 } from '@database/schemas';
 import { ledgerPostings, ledgerTransactions } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import _ from 'lodash';
 
-export interface FindLedgerTransactionsFilters {
-  accountIdEq?: string;
-  beforeCursor?: RowCursor;
-  afterCursor?: RowCursor;
+export interface LedgerTransactionFilters {
+  accountId?: string;
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
+}
+
+export interface ImbalancedTransactionTotals {
+  transactionId: string;
+  signedTotal: number;
 }
 
 export class LedgerTransactionRepository {
@@ -22,7 +30,7 @@ export class LedgerTransactionRepository {
     this._db = db;
   }
 
-  async findLedgerTransaction(id: string): Promise<LedgerTransactionEntity | null> {
+  async findLedgerTransaction(id: string): Promise<LedgerTransaction | null> {
     const [transaction] = await this._db.master
       .select()
       .from(ledgerTransactions)
@@ -33,18 +41,18 @@ export class LedgerTransactionRepository {
   }
 
   async findLedgerTransactions(
-    filters: FindLedgerTransactionsFilters,
-    limit: number,
-  ): Promise<LedgerTransactionEntity[]> {
+    filters: LedgerTransactionFilters = {},
+    limit = DEFAULT_QUERY_LIMIT,
+  ): Promise<LedgerTransaction[]> {
     const where = and(
-      filters.accountIdEq
-        ? sql`exists (select 1 from ${ledgerPostings} where ${ledgerPostings.transactionId} = ${ledgerTransactions.id} and ${ledgerPostings.accountId} = ${filters.accountIdEq})`
+      filters.accountId
+        ? sql`exists (select 1 from ${ledgerPostings} where ${ledgerPostings.transactionId} = ${ledgerTransactions.id} and ${ledgerPostings.accountId} = ${filters.accountId})`
         : undefined,
-      filters.beforeCursor
-        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) < (${filters.beforeCursor.createdAt.toISOString()}::timestamptz, ${filters.beforeCursor.id})`
+      filters.beforeAt
+        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
-      filters.afterCursor
-        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) > (${filters.afterCursor.createdAt.toISOString()}::timestamptz, ${filters.afterCursor.id})`
+      filters.afterAt
+        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -56,8 +64,8 @@ export class LedgerTransactionRepository {
       .limit(limit);
   }
 
-  async findLedgerPostings(transactionIds: readonly string[]): Promise<LedgerPostingEntity[]> {
-    if (transactionIds.length === 0) {
+  async findLedgerPostings(transactionIds: readonly string[]): Promise<LedgerPosting[]> {
+    if (_.isEmpty(transactionIds)) {
       return [];
     }
 
@@ -67,11 +75,27 @@ export class LedgerTransactionRepository {
       .where(inArray(ledgerPostings.transactionId, [...transactionIds]));
   }
 
+  async aggregateImbalancedTransactions(limit: number): Promise<ImbalancedTransactionTotals[]> {
+    const imbalancedRows = await this._db.master
+      .select({
+        transactionId: ledgerPostings.transactionId,
+        signedTotal: sql<number>`sum(case when ${ledgerPostings.direction} = ${PostingDirectionEnum.DEBIT} then ${ledgerPostings.amount} else -${ledgerPostings.amount} end)`,
+      })
+      .from(ledgerPostings)
+      .groupBy(ledgerPostings.transactionId)
+      .having(
+        sql`sum(case when ${ledgerPostings.direction} = ${PostingDirectionEnum.DEBIT} then ${ledgerPostings.amount} else -${ledgerPostings.amount} end) <> 0`,
+      )
+      .limit(limit);
+
+    return imbalancedRows;
+  }
+
   async createLedgerTransaction(
-    transaction: NewLedgerTransactionEntity,
-    postings: readonly NewLedgerPostingEntity[],
+    transaction: NewLedgerTransaction,
+    postings: readonly NewLedgerPosting[],
     executor?: DatabaseTransaction,
-  ): Promise<LedgerTransactionEntity | null> {
+  ): Promise<LedgerTransaction | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [created] = await db.insert(ledgerTransactions).values(transaction).returning();
 

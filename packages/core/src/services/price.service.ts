@@ -1,11 +1,11 @@
-import type { FastifyInstance } from 'fastify';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
+  BillingScheme,
   CreatePricePayload,
   GetPricesQuery,
-  Price,
+  PriceResponse,
   UpdatePricePayload,
 } from '@contracts/prices.types';
 import {
@@ -14,17 +14,20 @@ import {
   TaxBehaviorEnum,
   UsageTypeEnum,
 } from '@contracts/prices.types';
-import type { PriceEntity } from '@database/schemas';
-import { BadRequestError, NotFoundError } from '@errors/app.error';
+import type { Price } from '@database/schemas';
+import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
+import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 
 const DEFAULT_INTERVAL_COUNT = 1;
 
 export class PriceService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPrice(payload: CreatePricePayload): Promise<Price> {
+  async createPrice(payload: CreatePricePayload): Promise<PriceResponse> {
     await this.fastify.productService.getProduct(payload.productId);
 
     const billingScheme = payload.billingScheme ?? BillingSchemeEnum.PER_UNIT;
@@ -35,61 +38,82 @@ export class PriceService {
     const id = generateId(ObjectPrefixEnum.PRICE);
     const version = await this.resolveNextVersion(payload.lookupKey);
 
-    const created = await this.fastify.database.master.transaction(async (tx) => {
-      const price = await this.fastify.priceRepository.createPrice(
-        {
-          id,
-          productId: payload.productId,
-          lookupKey: payload.lookupKey ?? null,
-          version,
-          effectiveAt: payload.effectiveAt ? new Date(payload.effectiveAt) : now,
-          active: true,
-          nickname: payload.nickname ?? '',
-          currency: payload.currency,
-          type: payload.recurring ? PriceTypeEnum.RECURRING : PriceTypeEnum.ONE_TIME,
-          billingScheme,
-          unitAmount: payload.unitAmount ?? null,
-          taxBehavior: payload.taxBehavior ?? TaxBehaviorEnum.UNSPECIFIED,
-          recurringInterval: payload.recurring?.interval ?? null,
-          recurringIntervalCount: payload.recurring
-            ? (payload.recurring.intervalCount ?? DEFAULT_INTERVAL_COUNT)
-            : null,
-          usageType: payload.recurring
-            ? (payload.recurring.usageType ?? UsageTypeEnum.LICENSED)
-            : null,
-          tiersMode: payload.tiersMode ?? null,
-          tiers: payload.tiers ?? null,
-          transformQuantity: payload.transformQuantity ?? null,
-          metadata: payload.metadata ?? {},
-          createdAt: now,
-          updatedAt: now,
-        },
-        tx,
-      );
+    const createdPrice = await this.writePrice(id, payload, billingScheme, version, now);
 
-      if (!price) {
-        throw new NotFoundError(`Price ${id} could not be created`);
-      }
-
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.PRICE,
-            aggregateId: price.id,
-            eventType: DomainEventTypeEnum.PRICE_CREATED,
-            payload: { id: price.id, productId: price.productId, version: price.version },
-          },
-        ],
-        tx,
-      );
-
-      return price;
-    });
-
-    return PriceService.buildPrice(created);
+    return PriceService.buildPrice(createdPrice);
   }
 
-  async getPrice(id: string): Promise<Price> {
+  private async writePrice(
+    id: string,
+    payload: CreatePricePayload,
+    billingScheme: BillingScheme,
+    version: number,
+    now: Date,
+  ): Promise<Price> {
+    try {
+      return await this.fastify.database.master.transaction(async (tx) => {
+        const price = await this.fastify.priceRepository.createPrice(
+          {
+            id,
+            productId: payload.productId,
+            lookupKey: payload.lookupKey ?? null,
+            version,
+            effectiveAt: payload.effectiveAt ? new Date(payload.effectiveAt) : now,
+            active: true,
+            nickname: payload.nickname ?? '',
+            currency: payload.currency,
+            type: payload.recurring ? PriceTypeEnum.RECURRING : PriceTypeEnum.ONE_TIME,
+            billingScheme,
+            unitAmount: payload.unitAmount ?? null,
+            taxBehavior: payload.taxBehavior ?? TaxBehaviorEnum.UNSPECIFIED,
+            recurringInterval: payload.recurring?.interval ?? null,
+            recurringIntervalCount: payload.recurring
+              ? (payload.recurring.intervalCount ?? DEFAULT_INTERVAL_COUNT)
+              : null,
+            usageType: payload.recurring
+              ? (payload.recurring.usageType ?? UsageTypeEnum.LICENSED)
+              : null,
+            tiersMode: payload.tiersMode ?? null,
+            tiers: payload.tiers ?? null,
+            transformQuantity: payload.transformQuantity ?? null,
+            metadata: payload.metadata ?? {},
+            createdAt: now,
+            updatedAt: now,
+          },
+          tx,
+        );
+
+        if (!price) {
+          throw new NotFoundError(`Price ${id} could not be created`);
+        }
+
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.PRICE,
+              aggregateId: price.id,
+              eventType: DomainEventTypeEnum.PRICE_CREATED,
+              payload: { id: price.id, productId: price.productId, version: price.version },
+            },
+          ],
+          tx,
+        );
+
+        return price;
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new ConflictError(
+          `A price version ${version} already exists for lookup key ${payload.lookupKey}`,
+          { param: 'lookupKey', cause: error },
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  async getPrice(id: string): Promise<PriceResponse> {
     const price = await this.fastify.priceRepository.findPrice(id);
 
     if (price) {
@@ -99,10 +123,10 @@ export class PriceService {
     throw new NotFoundError(`No such price: ${id}`);
   }
 
-  async updatePrice(id: string, payload: UpdatePricePayload): Promise<Price> {
+  async updatePrice(id: string, payload: UpdatePricePayload): Promise<PriceResponse> {
     await this.getPrice(id);
 
-    const updated = await this.fastify.database.master.transaction(async (tx) => {
+    const updatedPrice = await this.fastify.database.master.transaction(async (tx) => {
       const price = await this.fastify.priceRepository.updatePrice(
         id,
         {
@@ -133,10 +157,10 @@ export class PriceService {
       return price;
     });
 
-    return PriceService.buildPrice(updated);
+    return PriceService.buildPrice(updatedPrice);
   }
 
-  async resolvePrice(lookupKey: string, at: Date): Promise<Price> {
+  async resolvePrice(lookupKey: string, at: Date): Promise<PriceResponse> {
     const price = await this.fastify.priceRepository.findEffectivePrice(lookupKey, at);
 
     if (price) {
@@ -148,17 +172,17 @@ export class PriceService {
     );
   }
 
-  async findPrices(query: GetPricesQuery): Promise<ListResponse<Price>> {
+  async findPrices(query: GetPricesQuery): Promise<ListResponse<PriceResponse>> {
     const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
-    const beforeCursor = await this.resolveCursor(query.startingAfter);
-    const afterCursor = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.priceRepository.findPrices(
       {
-        productIdEq: query.productId,
-        lookupKeyEq: query.lookupKey,
-        activeEq: query.active,
-        beforeCursor,
-        afterCursor,
+        productId: query.productId,
+        lookupKey: query.lookupKey,
+        active: query.active,
+        beforeAt,
+        afterAt,
       },
       limit + 1,
     );
@@ -168,7 +192,7 @@ export class PriceService {
       object: 'list',
       url: '/v1/prices',
       hasMore,
-      data: rows.slice(0, limit).map(PriceService.buildPrice),
+      data: _(rows).take(limit).map(PriceService.buildPrice).value(),
     };
   }
 
@@ -177,7 +201,7 @@ export class PriceService {
       return 1;
     }
 
-    const latest = await this.fastify.priceRepository.findLatestPriceVersion(lookupKey);
+    const latest = await this.fastify.priceRepository.findLatestPrice(lookupKey);
 
     return latest ? latest.version + 1 : 1;
   }
@@ -222,7 +246,7 @@ export class PriceService {
     }
   }
 
-  private static buildPrice(entity: PriceEntity): Price {
+  private static buildPrice(entity: Price): PriceResponse {
     return {
       object: 'price',
       id: entity.id,

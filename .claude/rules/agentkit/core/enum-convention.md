@@ -1,7 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
 description: >
   Closed string sets as `<Name>Enum` plus a derived template-literal union, never a bare literal
   union.

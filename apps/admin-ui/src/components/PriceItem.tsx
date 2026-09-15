@@ -1,10 +1,10 @@
-import type { Price } from '@pinstripe/core/contracts';
+import type { PriceResponse } from '@pinstripe/core/contracts';
 
-export interface PriceItemProps {
-  price: Price;
+interface PriceItemProps {
+  price: PriceResponse;
 }
 
-function formatAmount(price: Price): string {
+function formatAmount(price: PriceResponse): string {
   if (price.billingScheme === 'tiered') {
     return `${price.tiers?.length ?? 0} tier (${price.tiersMode})`;
   }

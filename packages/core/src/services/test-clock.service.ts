@@ -1,4 +1,3 @@
-import type { FastifyInstance } from 'fastify';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
@@ -6,20 +5,22 @@ import type {
   AdvanceTestClockPayload,
   CreateTestClockPayload,
   GetTestClocksQuery,
-  TestClock,
+  TestClockResponse,
 } from '@contracts/test-clocks.types';
 import { TestClockStatusEnum } from '@contracts/test-clocks.types';
-import type { TestClockEntity } from '@database/schemas';
+import type { TestClock } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 
 export class TestClockService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createTestClock(payload: CreateTestClockPayload): Promise<TestClock> {
+  async createTestClock(payload: CreateTestClockPayload): Promise<TestClockResponse> {
     const now = this.fastify.clock.now();
-    const created = await this.fastify.testClockRepository.createTestClock({
+    const createdTestClock = await this.fastify.testClockRepository.createTestClock({
       id: generateId(ObjectPrefixEnum.TEST_CLOCK),
       name: payload.name,
       frozenTime: new Date(payload.frozenTime),
@@ -28,14 +29,14 @@ export class TestClockService {
       updatedAt: now,
     });
 
-    if (!created) {
+    if (!createdTestClock) {
       throw new NotFoundError('Test clock could not be created');
     }
 
-    return TestClockService.buildTestClock(created);
+    return TestClockService.buildTestClock(createdTestClock);
   }
 
-  async getTestClock(id: string): Promise<TestClock> {
+  async getTestClock(id: string): Promise<TestClockResponse> {
     const clock = await this.fastify.testClockRepository.findTestClock(id);
 
     if (clock) {
@@ -45,12 +46,12 @@ export class TestClockService {
     throw new NotFoundError(`No such test clock: ${id}`);
   }
 
-  async findTestClocks(query: GetTestClocksQuery): Promise<ListResponse<TestClock>> {
+  async findTestClocks(query: GetTestClocksQuery): Promise<ListResponse<TestClockResponse>> {
     const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
     const rows = await this.fastify.testClockRepository.findTestClocks(
       {
-        beforeCursor: await this.resolveCursor(query.startingAfter),
-        afterCursor: await this.resolveCursor(query.endingBefore),
+        beforeAt: await this.resolveCursor(query.startingAfter),
+        afterAt: await this.resolveCursor(query.endingBefore),
       },
       limit + 1,
     );
@@ -60,11 +61,11 @@ export class TestClockService {
       object: 'list',
       url: '/v1/test_helpers/test_clocks',
       hasMore,
-      data: rows.slice(0, limit).map(TestClockService.buildTestClock),
+      data: _(rows).take(limit).map(TestClockService.buildTestClock).value(),
     };
   }
 
-  async advanceTestClock(id: string, payload: AdvanceTestClockPayload): Promise<TestClock> {
+  async advanceTestClock(id: string, payload: AdvanceTestClockPayload): Promise<TestClockResponse> {
     const clock = await this.fastify.testClockRepository.findTestClock(id);
 
     if (!clock) {
@@ -143,7 +144,7 @@ export class TestClockService {
     return { createdAt: clock.createdAt, id: clock.id };
   }
 
-  private static buildTestClock(entity: TestClockEntity): TestClock {
+  private static buildTestClock(entity: TestClock): TestClockResponse {
     return {
       object: 'test_clock',
       id: entity.id,

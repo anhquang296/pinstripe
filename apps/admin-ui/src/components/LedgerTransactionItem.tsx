@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
-import type { LedgerTransaction } from '@pinstripe/core/contracts';
 import Button from '@components/ui/Button';
+import type { LedgerTransactionResponse } from '@pinstripe/core/contracts';
+import { useCallback } from 'react';
 
-export interface LedgerTransactionItemProps {
-  transaction: LedgerTransaction;
+interface LedgerTransactionItemProps {
+  transaction: LedgerTransactionResponse;
   isSelected: boolean;
   onSelect: (transactionId: string) => void;
 }
@@ -40,25 +40,27 @@ export default function LedgerTransactionItem({
 
       <table className="w-full text-left text-sm">
         <tbody>
-          {transaction.postings.map((posting) => (
-            <tr key={posting.id} className="text-slate-600">
-              <td className="py-1">{posting.accountCode}</td>
-              <td className="py-1">
-                <span
-                  className={
-                    posting.direction === 'debit'
-                      ? 'rounded bg-sky-50 px-2 py-0.5 text-xs text-sky-700'
-                      : 'rounded bg-violet-50 px-2 py-0.5 text-xs text-violet-700'
-                  }
-                >
-                  {posting.direction}
-                </span>
-              </td>
-              <td className="py-1 text-right tabular-nums">
-                {posting.amount.toLocaleString('vi-VN')} {posting.currency.toUpperCase()}
-              </td>
-            </tr>
-          ))}
+          {transaction.postings.map((posting) => {
+            return (
+              <tr key={posting.id} className="text-slate-600">
+                <td className="py-1">{posting.accountCode}</td>
+                <td className="py-1">
+                  <span
+                    className={
+                      posting.direction === 'debit'
+                        ? 'rounded bg-sky-50 px-2 py-0.5 text-xs text-sky-700'
+                        : 'rounded bg-violet-50 px-2 py-0.5 text-xs text-violet-700'
+                    }
+                  >
+                    {posting.direction}
+                  </span>
+                </td>
+                <td className="py-1 text-right tabular-nums">
+                  {posting.amount.toLocaleString('vi-VN')} {posting.currency.toUpperCase()}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </li>

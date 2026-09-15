@@ -1,10 +1,11 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
-import { sql } from 'drizzle-orm';
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { sql } from 'drizzle-orm';
+import type { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { buildTestContext } from './context';
 
 const RANDOM_TRANSACTION_COUNT = 1000;
@@ -108,20 +109,24 @@ describe('LedgerService.postTransaction', () => {
 
     for (let cursor = 0; cursor < pending.length; cursor += WRITE_CONCURRENCY) {
       await Promise.all(
-        pending
-          .slice(cursor, cursor + WRITE_CONCURRENCY)
-          .map((amount) => postRevenueTransaction(customerId, amount)),
+        pending.slice(cursor, cursor + WRITE_CONCURRENCY).map((amount) => {
+          return postRevenueTransaction(customerId, amount);
+        }),
       );
     }
 
     const imbalanced = await fastify.ledgerService.findImbalancedTransactions(10);
     const [receivable] = await fastify.ledgerAccountRepository.findLedgerAccounts(
-      { customerIdEq: customerId, codeEq: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
+      { customerId: customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
       1,
     );
 
     expect(imbalanced).toEqual([]);
-    expect(receivable?.balance).toBe(pending.reduce((total, amount) => total + amount, 0));
+    expect(receivable?.balance).toBe(
+      pending.reduce((total, amount) => {
+        return total + amount;
+      }, 0),
+    );
   });
 });
 
@@ -154,13 +159,13 @@ describe('LedgerService.reverseTransaction', () => {
     const customerId = buildCustomerId();
     const transactionId = await postRevenueTransaction(customerId, 250_000);
     const [before] = await fastify.ledgerAccountRepository.findLedgerAccounts(
-      { customerIdEq: customerId, codeEq: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
+      { customerId: customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
       1,
     );
 
     await fastify.ledgerService.reverseTransaction(transactionId, { reason: 'Issued in error' });
     const [after] = await fastify.ledgerAccountRepository.findLedgerAccounts(
-      { customerIdEq: customerId, codeEq: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
+      { customerId: customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
       1,
     );
     const original = await fastify.ledgerService.getTransaction(transactionId);

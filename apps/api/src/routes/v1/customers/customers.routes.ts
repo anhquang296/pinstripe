@@ -1,3 +1,4 @@
+import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createCustomerSchema,
   customerParamsSchema,
@@ -7,7 +8,6 @@ import {
   updateCustomerSchema,
 } from '@pinstripe/core/contracts';
 import { Type } from '@sinclair/typebox';
-import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { ApiResponse } from '@utils/api-response';
 
 export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {

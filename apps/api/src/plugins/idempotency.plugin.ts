@@ -10,7 +10,7 @@ const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const IDEMPOTENCY_HEADER = 'idempotency-key';
 const DEFAULT_SCOPE = 'default';
 
-export const idempotencyHook = fp(async (fastify) => {
+export const idempotencyPlugin = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request, reply) => {
     const key = request.headers[IDEMPOTENCY_HEADER];
 

@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 
 export enum TestClockStatusEnum {
   READY = 'ready',
@@ -44,7 +44,7 @@ export const getTestClocksSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type TestClock = Static<typeof testClockSchema>;
+export type TestClockResponse = Static<typeof testClockSchema>;
 export type CreateTestClockPayload = Static<typeof createTestClockSchema>;
 export type AdvanceTestClockPayload = Static<typeof advanceTestClockSchema>;
 export type GetTestClocksQuery = Static<typeof getTestClocksSchema>;

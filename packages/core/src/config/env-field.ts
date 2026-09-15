@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { TOptionalWithFlag, TSchema } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 
 export function Required<T extends TSchema>(schema: T): T {
   return schema;

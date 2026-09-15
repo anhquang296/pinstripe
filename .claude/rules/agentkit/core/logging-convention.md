@@ -1,11 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.js"
-  - "**/*.jsx"
-  - "**/*.mjs"
-  - "**/*.cjs"
 description: >
   The shape of a log message — `<function>() <message>`, `[<Class>] <method>() <message>`, errors
   at error level with the cause under `error`.

@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-import type { Subscription } from '@pinstripe/core/contracts';
 import Button from '@components/ui/Button';
+import type { SubscriptionResponse } from '@pinstripe/core/contracts';
+import { useCallback } from 'react';
 
 const STATUS_STYLES: Record<string, string> = {
   trialing: 'bg-sky-50 text-sky-700',
@@ -11,8 +11,8 @@ const STATUS_STYLES: Record<string, string> = {
   incomplete: 'bg-slate-100 text-slate-600',
 };
 
-export interface SubscriptionItemProps {
-  subscription: Subscription;
+interface SubscriptionItemProps {
+  subscription: SubscriptionResponse;
   onCancel: (subscriptionId: string, cancelAtPeriodEnd: boolean) => void;
 }
 

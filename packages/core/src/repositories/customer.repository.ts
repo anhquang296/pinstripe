@@ -1,13 +1,14 @@
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
-import type { CustomerEntity, NewCustomerEntity } from '@database/schemas';
+import type { Customer, NewCustomer } from '@database/schemas';
 import { customers } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
-export interface FindCustomersFilters {
-  emailEq?: string;
-  beforeCursor?: RowCursor;
-  afterCursor?: RowCursor;
+export interface CustomerFilters {
+  email?: string;
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
 }
 
 export class CustomerRepository {
@@ -17,7 +18,7 @@ export class CustomerRepository {
     this._db = db;
   }
 
-  async findCustomer(id: string): Promise<CustomerEntity | null> {
+  async findCustomer(id: string): Promise<Customer | null> {
     const [customer] = await this._db.master
       .select()
       .from(customers)
@@ -27,15 +28,18 @@ export class CustomerRepository {
     return customer ?? null;
   }
 
-  async findCustomers(filters: FindCustomersFilters, limit: number): Promise<CustomerEntity[]> {
+  async findCustomers(
+    filters: CustomerFilters = {},
+    limit = DEFAULT_QUERY_LIMIT,
+  ): Promise<Customer[]> {
     const where = and(
       isNull(customers.deletedAt),
-      filters.emailEq ? eq(customers.email, filters.emailEq) : undefined,
-      filters.beforeCursor
-        ? sql`(${customers.createdAt}, ${customers.id}) < (${filters.beforeCursor.createdAt.toISOString()}::timestamptz, ${filters.beforeCursor.id})`
+      filters.email ? eq(customers.email, filters.email) : undefined,
+      filters.beforeAt
+        ? sql`(${customers.createdAt}, ${customers.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
-      filters.afterCursor
-        ? sql`(${customers.createdAt}, ${customers.id}) > (${filters.afterCursor.createdAt.toISOString()}::timestamptz, ${filters.afterCursor.id})`
+      filters.afterAt
+        ? sql`(${customers.createdAt}, ${customers.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -48,9 +52,9 @@ export class CustomerRepository {
   }
 
   async createCustomer(
-    payload: NewCustomerEntity,
+    payload: NewCustomer,
     executor?: DatabaseTransaction,
-  ): Promise<CustomerEntity | null> {
+  ): Promise<Customer | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [customer] = await db.insert(customers).values(payload).returning();
 
@@ -59,9 +63,9 @@ export class CustomerRepository {
 
   async updateCustomer(
     id: string,
-    payload: Partial<NewCustomerEntity>,
+    payload: Partial<NewCustomer>,
     executor?: DatabaseTransaction,
-  ): Promise<CustomerEntity | null> {
+  ): Promise<Customer | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [customer] = await db
       .update(customers)
@@ -72,7 +76,7 @@ export class CustomerRepository {
     return customer ?? null;
   }
 
-  async softDeleteCustomer(
+  async archiveCustomer(
     id: string,
     deletedAt: Date,
     executor?: DatabaseTransaction,

@@ -1,28 +1,37 @@
+import { WorkerStartupError } from '@type/errors';
 import { workflowRegistry } from '@workflows/workflow-registry';
+
 import { buildContext } from './context';
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    startDraining: () => void;
+  }
+}
 
 async function main(): Promise<void> {
   const workflowName = process.env.WORKFLOW_NAME;
 
   if (!workflowName) {
-    throw new Error('main() WORKFLOW_NAME is required to start a worker process');
+    throw new WorkerStartupError('main() WORKFLOW_NAME is required to start a worker process');
   }
 
   const WorkflowClass = workflowRegistry.resolve(workflowName);
   const fastify = await buildContext();
   const workflow = new WorkflowClass(fastify);
 
-  let shuttingDown = false;
+  let isShuttingDown = false;
 
   const shutdown = async (signal: string): Promise<void> => {
-    if (shuttingDown) {
-      fastify.log.warn(`shutdown() ignoring ${signal}, shutdown already in progress`);
+    if (isShuttingDown) {
+      fastify.log.warn({ signal }, 'shutdown() skipped, shutdown already in progress');
 
       return;
     }
 
-    shuttingDown = true;
-    fastify.log.info(`shutdown() received ${signal}, draining ${workflowName} workflow`);
+    isShuttingDown = true;
+    fastify.startDraining();
+    fastify.log.info({ signal, workflowName }, 'shutdown() draining workflow');
 
     await workflow.destroy();
     await fastify.close();
@@ -36,8 +45,8 @@ async function main(): Promise<void> {
     void shutdown('SIGINT');
   });
 
-  await fastify.listen({ port: fastify.config.WORKER_PORT, host: fastify.config.API_HOST });
-  fastify.log.info(`main() ${workflowName} workflow started`);
+  await fastify.listen(fastify.workerAddress);
+  fastify.log.info({ workflowName }, 'main() workflow started');
 }
 
 main().catch((error: unknown) => {

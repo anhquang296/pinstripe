@@ -1,7 +1,7 @@
-import type { InputHTMLAttributes } from 'react';
 import { cn } from '@lib/cn';
+import type { InputHTMLAttributes } from 'react';
 
-export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
 }

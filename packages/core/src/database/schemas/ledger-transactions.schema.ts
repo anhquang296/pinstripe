@@ -1,3 +1,7 @@
+import type { PostingDirection } from '@contracts/ledger.types';
+import { ledgerAccounts } from '@database/schemas/ledger-accounts.schema';
+import type { Currency } from '@utils/currency';
+import { sql } from 'drizzle-orm';
 import {
   bigint,
   check,
@@ -8,10 +12,6 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
-import type { PostingDirection } from '@contracts/ledger.types';
-import type { Currency } from '@utils/currency';
-import { ledgerAccounts } from '@database/schemas/ledger-accounts.schema';
 
 export const ledgerTransactions = pgTable(
   'ledger_transactions',
@@ -26,11 +26,13 @@ export const ledgerTransactions = pgTable(
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    uniqueIndex('ledger_transactions_external_id_idx').on(table.externalId),
-    index('ledger_transactions_created_at_id_idx').on(table.createdAt, table.id),
-    index('ledger_transactions_effective_at_idx').on(table.effectiveAt),
-  ],
+  (table) => {
+    return [
+      uniqueIndex('ledger_transactions_external_id_idx').on(table.externalId),
+      index('ledger_transactions_created_at_id_idx').on(table.createdAt, table.id),
+      index('ledger_transactions_effective_at_idx').on(table.effectiveAt),
+    ];
+  },
 );
 
 export const ledgerPostings = pgTable(
@@ -39,23 +41,29 @@ export const ledgerPostings = pgTable(
     id: text('id').primaryKey(),
     transactionId: text('transaction_id')
       .notNull()
-      .references(() => ledgerTransactions.id),
+      .references(() => {
+        return ledgerTransactions.id;
+      }),
     accountId: text('account_id')
       .notNull()
-      .references(() => ledgerAccounts.id),
+      .references(() => {
+        return ledgerAccounts.id;
+      }),
     direction: text('direction').$type<PostingDirection>().notNull(),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('ledger_postings_transaction_id_idx').on(table.transactionId),
-    index('ledger_postings_account_id_idx').on(table.accountId),
-    check('ledger_postings_amount_positive', sql`${table.amount} > 0`),
-  ],
+  (table) => {
+    return [
+      index('ledger_postings_transaction_id_idx').on(table.transactionId),
+      index('ledger_postings_account_id_idx').on(table.accountId),
+      check('ledger_postings_amount_positive', sql`${table.amount} > 0`),
+    ];
+  },
 );
 
-export type LedgerTransactionEntity = typeof ledgerTransactions.$inferSelect;
-export type NewLedgerTransactionEntity = typeof ledgerTransactions.$inferInsert;
-export type LedgerPostingEntity = typeof ledgerPostings.$inferSelect;
-export type NewLedgerPostingEntity = typeof ledgerPostings.$inferInsert;
+export type LedgerTransaction = typeof ledgerTransactions.$inferSelect;
+export type NewLedgerTransaction = typeof ledgerTransactions.$inferInsert;
+export type LedgerPosting = typeof ledgerPostings.$inferSelect;
+export type NewLedgerPosting = typeof ledgerPostings.$inferInsert;

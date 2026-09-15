@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import TestClockItem from '@components/TestClockItem';
 import Button from '@components/ui/Button';
 import TextField from '@components/ui/TextField';
 import {
@@ -6,37 +6,42 @@ import {
   useCreateTestClockMutation,
   useTestClocksQuery,
 } from '@reactquery/test-clocks';
+import { useCallback, useState } from 'react';
 
 const PAGE_LIMIT = 20;
 
 export default function TestClocksPage() {
   const [name, setName] = useState('');
   const [advanceTargets, setAdvanceTargets] = useState<Record<string, string>>({});
-  const testClocksQuery = useTestClocksQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const createTestClockMutation = useCreateTestClockMutation();
-  const advanceTestClockMutation = useAdvanceTestClockMutation();
+  const { data: testClocks, error } = useTestClocksQuery(
+    { limit: PAGE_LIMIT },
+    { hasPlaceholder: true },
+  );
+  const { mutateAsync: createTestClock, isPending: isCreating } = useCreateTestClockMutation();
+  const { mutate: advanceTestClock } = useAdvanceTestClockMutation();
 
   const handleOnNameChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   }, []);
 
   const handleOnCreateClick = useCallback(async () => {
-    if (name.trim().length === 0) {
+    const trimmedName = name.trim();
+
+    if (trimmedName.length === 0) {
       return;
     }
 
-    await createTestClockMutation.mutateAsync({
-      name: name.trim(),
-      frozenTime: new Date().toISOString(),
-    });
+    await createTestClock({ name: trimmedName, frozenTime: new Date().toISOString() });
     setName('');
-  }, [createTestClockMutation, name]);
+  }, [createTestClock, name]);
 
-  const handleOnTargetChange = useCallback((testClockId: string, value: string) => {
-    setAdvanceTargets((current) => ({ ...current, [testClockId]: value }));
+  const handleOnTargetChange = useCallback((testClockId: string, target: string) => {
+    setAdvanceTargets((currentTargets) => {
+      return { ...currentTargets, [testClockId]: target };
+    });
   }, []);
 
-  const handleOnAdvanceClick = useCallback(
+  const handleOnAdvance = useCallback(
     (testClockId: string) => {
       const target = advanceTargets[testClockId];
 
@@ -44,12 +49,12 @@ export default function TestClocksPage() {
         return;
       }
 
-      advanceTestClockMutation.mutate({
+      advanceTestClock({
         id: testClockId,
         payload: { frozenTime: new Date(target).toISOString() },
       });
     },
-    [advanceTargets, advanceTestClockMutation],
+    [advanceTargets, advanceTestClock],
   );
 
   return (
@@ -68,7 +73,7 @@ export default function TestClocksPage() {
           value={name}
           onChange={handleOnNameChange}
         />
-        <Button onClick={handleOnCreateClick} disabled={createTestClockMutation.isPending}>
+        <Button onClick={handleOnCreateClick} disabled={isCreating}>
           Tạo test clock
         </Button>
       </div>
@@ -84,70 +89,21 @@ export default function TestClocksPage() {
             </tr>
           </thead>
           <tbody>
-            {testClocksQuery.data?.data.map((clock) => (
-              <TestClockRow
-                key={clock.id}
-                clockId={clock.id}
-                name={clock.name}
-                frozenTime={clock.frozenTime}
-                target={advanceTargets[clock.id] ?? ''}
-                onTargetChange={handleOnTargetChange}
-                onAdvance={handleOnAdvanceClick}
-              />
-            ))}
+            {testClocks?.data.map((testClock) => {
+              return (
+                <TestClockItem
+                  key={testClock.id}
+                  testClock={testClock}
+                  target={advanceTargets[testClock.id] ?? ''}
+                  onTargetChange={handleOnTargetChange}
+                  onAdvance={handleOnAdvance}
+                />
+              );
+            })}
           </tbody>
         </table>
+        {error ? <p className="px-4 py-3 text-red-600">{error.message}</p> : null}
       </div>
     </div>
-  );
-}
-
-interface TestClockRowProps {
-  clockId: string;
-  name: string;
-  frozenTime: string;
-  target: string;
-  onTargetChange: (testClockId: string, value: string) => void;
-  onAdvance: (testClockId: string) => void;
-}
-
-function TestClockRow({
-  clockId,
-  name,
-  frozenTime,
-  target,
-  onTargetChange,
-  onAdvance,
-}: TestClockRowProps) {
-  const handleOnChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onTargetChange(clockId, event.target.value);
-    },
-    [clockId, onTargetChange],
-  );
-
-  const handleOnClick = useCallback(() => {
-    onAdvance(clockId);
-  }, [clockId, onAdvance]);
-
-  return (
-    <tr className="border-t border-slate-100">
-      <td className="px-4 py-3 font-mono text-xs text-slate-500">{clockId}</td>
-      <td className="px-4 py-3">{name}</td>
-      <td className="px-4 py-3 text-slate-600">{new Date(frozenTime).toLocaleString('vi-VN')}</td>
-      <td className="px-4 py-3">
-        <div className="flex items-end gap-2">
-          <input
-            type="datetime-local"
-            value={target}
-            onChange={handleOnChange}
-            className="h-9 rounded-md border border-slate-200 px-3 text-sm outline-none focus:border-indigo-500"
-          />
-          <Button variant="ghost" onClick={handleOnClick}>
-            Tua
-          </Button>
-        </div>
-      </td>
-    </tr>
   );
 }

@@ -1,18 +1,19 @@
-import type { FastifyInstance } from 'fastify';
-import type { Entitlement, GetEntitlementsQuery } from '@contracts/entitlements.types';
+import { MAX_ITEMS_PER_SUBSCRIPTION } from '@constants/subscription';
+import type { EntitlementResponse, GetEntitlementsQuery } from '@contracts/entitlements.types';
+import type { EntitlementStatus } from '@contracts/entitlements.types';
 import { EntitlementStatusEnum } from '@contracts/entitlements.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
-import type { EntitlementStatus } from '@contracts/entitlements.types';
 import type { SubscriptionStatus } from '@contracts/subscriptions.types';
 import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
-import type { EntitlementEntity } from '@database/schemas';
+import type { Entitlement } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
 import { RedisNamespaceEnum } from '@utils/redis-key-factory';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 
 const ENTITLEMENT_CACHE_TTL_SECONDS = 300;
-const MAX_ITEMS_PER_SUBSCRIPTION = 100;
 
 const ENTITLEMENT_BY_SUBSCRIPTION_STATUS: Record<SubscriptionStatus, EntitlementStatus> = {
   [SubscriptionStatusEnum.INCOMPLETE]: EntitlementStatusEnum.BLOCKED,
@@ -37,24 +38,21 @@ export class EntitlementService {
     const now = this.fastify.clock.now();
 
     if (status === EntitlementStatusEnum.REVOKED) {
-      const revoked = await this.fastify.entitlementRepository.findEntitlements(
-        { subscriptionIdEq: subscriptionId },
+      const revokedEntitlements = await this.fastify.entitlementRepository.findEntitlements(
+        { subscriptionId },
         MAX_ITEMS_PER_SUBSCRIPTION,
       );
 
       await this.fastify.entitlementRepository.revokeEntitlements(subscriptionId, status, now);
-      await this.invalidateCache(
-        subscription.customerId,
-        revoked.map((entitlement) => entitlement.productId),
-      );
+      await this.invalidateCache(subscription.customerId, _.map(revokedEntitlements, 'productId'));
 
       return;
     }
 
     const items = await this.fastify.subscriptionRepository.findSubscriptionItems([subscriptionId]);
-    const priceIds = items.map((item) => item.priceId);
+    const priceIds = _.map(items, 'priceId');
     const prices = await this.fastify.priceRepository.findPrices(
-      { idIn: priceIds },
+      { ids: priceIds },
       MAX_ITEMS_PER_SUBSCRIPTION,
     );
 
@@ -72,10 +70,7 @@ export class EntitlementService {
       });
     }
 
-    await this.invalidateCache(
-      subscription.customerId,
-      prices.map((price) => price.productId),
-    );
+    await this.invalidateCache(subscription.customerId, _.map(prices, 'productId'));
   }
 
   async getEntitlementStatus(customerId: string, productId: string): Promise<EntitlementStatus> {
@@ -91,7 +86,7 @@ export class EntitlementService {
     }
 
     const [entitlement] = await this.fastify.entitlementRepository.findEntitlements(
-      { customerIdEq: customerId, productIdEq: productId, statusEq: EntitlementStatusEnum.ACTIVE },
+      { customerId: customerId, productId: productId, status: EntitlementStatusEnum.ACTIVE },
       1,
     );
     const status = entitlement ? entitlement.status : EntitlementStatusEnum.REVOKED;
@@ -101,28 +96,28 @@ export class EntitlementService {
     return status;
   }
 
-  async findEntitlements(query: GetEntitlementsQuery): Promise<ListResponse<Entitlement>> {
+  async findEntitlements(query: GetEntitlementsQuery): Promise<ListResponse<EntitlementResponse>> {
     const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
-    const rows = await this.fastify.entitlementRepository.findEntitlements(
-      { customerIdEq: query.customerId, productIdEq: query.productId },
+    const entitlementRows = await this.fastify.entitlementRepository.findEntitlements(
+      { customerId: query.customerId, productId: query.productId },
       limit + 1,
     );
-    const hasMore = rows.length > limit;
+    const hasMore = entitlementRows.length > limit;
 
     return {
       object: 'list',
       url: '/v1/entitlements',
       hasMore,
-      data: rows.slice(0, limit).map(EntitlementService.buildEntitlement),
+      data: _(entitlementRows).take(limit).map(EntitlementService.buildEntitlement).value(),
     };
   }
 
   private async invalidateCache(customerId: string, productIds: readonly string[]): Promise<void> {
-    if (productIds.length === 0) {
+    if (_.isEmpty(productIds)) {
       return;
     }
 
-    const keys = productIds.map((productId) => {
+    const keys = _.map(productIds, (productId) => {
       return this.fastify.redisKeyFactory.build(
         RedisNamespaceEnum.ENTITLEMENT,
         customerId,
@@ -133,7 +128,7 @@ export class EntitlementService {
     await this.fastify.redis.del(...keys);
   }
 
-  private static buildEntitlement(entity: EntitlementEntity): Entitlement {
+  private static buildEntitlement(entity: Entitlement): EntitlementResponse {
     return {
       object: 'entitlement',
       id: entity.id,

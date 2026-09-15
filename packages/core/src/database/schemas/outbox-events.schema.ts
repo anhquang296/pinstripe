@@ -1,12 +1,6 @@
+import type { OutboxStatus } from '@contracts/events.types';
+import { OutboxStatusEnum } from '@contracts/events.types';
 import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-
-export enum OutboxStatusEnum {
-  PENDING = 'pending',
-  PUBLISHING = 'publishing',
-  PUBLISHED = 'published',
-  FAILED = 'failed',
-}
-export type OutboxStatus = `${OutboxStatusEnum}`;
 
 export const outboxEvents = pgTable(
   'outbox_events',
@@ -23,13 +17,15 @@ export const outboxEvents = pgTable(
     publishedAt: timestamp('published_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('outbox_events_status_occurred_at_idx').on(table.status, table.occurredAt),
-    index('outbox_events_aggregate_type_aggregate_id_idx').on(
-      table.aggregateType,
-      table.aggregateId,
-    ),
-  ],
+  (table) => {
+    return [
+      index('outbox_events_status_occurred_at_idx').on(table.status, table.occurredAt),
+      index('outbox_events_aggregate_type_aggregate_id_idx').on(
+        table.aggregateType,
+        table.aggregateId,
+      ),
+    ];
+  },
 );
 
 export type OutboxEvent = typeof outboxEvents.$inferSelect;

@@ -1,6 +1,6 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
-import { UnauthorizedError } from '@pinstripe/core/errors';
 import { matchesSecret, readBearerToken } from '@hooks/verify-api-request';
+import { UnauthorizedError } from '@pinstripe/core/errors';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 
 export async function verifyAdminRequest(
   request: FastifyRequest,

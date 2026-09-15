@@ -1,11 +1,4 @@
 ---
-paths:
-  - ".claude/rules/**"
-  - "CLAUDE.md"
-  - "AGENTS.md"
-  - "**/AGENTS.md"
-  - ".agentkit/**"
-  - ".claude/skills/**"
 description: >
   How agent-facing docs are owned and changed — which files are generated, which are the project's
   own, and the house style every rule follows.
@@ -63,6 +56,23 @@ Write rules as instructions to an agent, not as observations about the codebase:
 > When a rename lands, it lands in code, rules, `CLAUDE.md` / `AGENTS.md` and the skills that cite the old name — in the same commit.
 
 A rule that names something no longer in the codebase is worse than no rule: it is confidently wrong, and an agent has no way to tell. The same applies in reverse — a convention introduced in code without a rule will be undone by the next agent that touches the file.
+
+## Which layer decides when a rule loads
+
+The layer is not just about who opts in; it decides how the rule reaches an agent at all.
+
+| Layer     | `paths` frontmatter | When it loads                                                     |
+| --------- | ------------------- | ----------------------------------------------------------------- |
+| `core`    | must be absent      | every session, in every project — it is in context before you start |
+| `profile` | must be present     | when a file tool touches a path its globs match                     |
+
+This is enforced, not conventional: a core rule that declares `paths` and a profile rule that omits
+them are both rejected. Core applies everywhere, so gating it contradicts itself; a profile is already
+opted into per project, so its globs are the second filter rather than the only one.
+
+The cost is real and worth stating — every core rule is paid for in context on every session, so a
+rule only belongs in core if it governs code an agent could write at any moment. A rule that applies
+to one kind of file belongs in a profile, where its globs keep it out of the way until it is needed.
 
 ## Keep rules small and linked
 

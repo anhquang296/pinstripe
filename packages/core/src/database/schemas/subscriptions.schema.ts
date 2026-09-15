@@ -1,9 +1,9 @@
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import type { CollectionMethod, SubscriptionStatus } from '@contracts/subscriptions.types';
-import type { Currency } from '@utils/currency';
 import { customers } from '@database/schemas/customers.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { testClocks } from '@database/schemas/test-clocks.schema';
+import type { Currency } from '@utils/currency';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const subscriptions = pgTable(
   'subscriptions',
@@ -11,7 +11,9 @@ export const subscriptions = pgTable(
     id: text('id').primaryKey(),
     customerId: text('customer_id')
       .notNull()
-      .references(() => customers.id),
+      .references(() => {
+        return customers.id;
+      }),
     status: text('status').$type<SubscriptionStatus>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     collectionMethod: text('collection_method').$type<CollectionMethod>().notNull(),
@@ -24,17 +26,21 @@ export const subscriptions = pgTable(
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
     canceledAt: timestamp('canceled_at', { withTimezone: true }),
     endedAt: timestamp('ended_at', { withTimezone: true }),
-    testClockId: text('test_clock_id').references(() => testClocks.id),
+    testClockId: text('test_clock_id').references(() => {
+      return testClocks.id;
+    }),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('subscriptions_customer_id_idx').on(table.customerId),
-    index('subscriptions_created_at_id_idx').on(table.createdAt, table.id),
-    index('subscriptions_status_current_period_end_idx').on(table.status, table.currentPeriodEnd),
-    index('subscriptions_test_clock_id_idx').on(table.testClockId),
-  ],
+  (table) => {
+    return [
+      index('subscriptions_customer_id_idx').on(table.customerId),
+      index('subscriptions_created_at_id_idx').on(table.createdAt, table.id),
+      index('subscriptions_status_current_period_end_idx').on(table.status, table.currentPeriodEnd),
+      index('subscriptions_test_clock_id_idx').on(table.testClockId),
+    ];
+  },
 );
 
 export const subscriptionItems = pgTable(
@@ -43,19 +49,25 @@ export const subscriptionItems = pgTable(
     id: text('id').primaryKey(),
     subscriptionId: text('subscription_id')
       .notNull()
-      .references(() => subscriptions.id),
+      .references(() => {
+        return subscriptions.id;
+      }),
     priceId: text('price_id')
       .notNull()
-      .references(() => prices.id),
+      .references(() => {
+        return prices.id;
+      }),
     quantity: integer('quantity').notNull().default(1),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
-  (table) => [index('subscription_items_subscription_id_idx').on(table.subscriptionId)],
+  (table) => {
+    return [index('subscription_items_subscription_id_idx').on(table.subscriptionId)];
+  },
 );
 
-export type SubscriptionEntity = typeof subscriptions.$inferSelect;
-export type NewSubscriptionEntity = typeof subscriptions.$inferInsert;
-export type SubscriptionItemEntity = typeof subscriptionItems.$inferSelect;
-export type NewSubscriptionItemEntity = typeof subscriptionItems.$inferInsert;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
+export type SubscriptionItem = typeof subscriptionItems.$inferSelect;
+export type NewSubscriptionItem = typeof subscriptionItems.$inferInsert;

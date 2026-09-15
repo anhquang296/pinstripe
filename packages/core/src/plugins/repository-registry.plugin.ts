@@ -1,7 +1,6 @@
-import fp from 'fastify-plugin';
 import { CustomerRepository } from '@repositories/customer.repository';
-import { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
 import { EntitlementRepository } from '@repositories/entitlement.repository';
+import { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
 import { LedgerAccountRepository } from '@repositories/ledger-account.repository';
 import { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
 import { OutboxEventRepository } from '@repositories/outbox-event.repository';
@@ -9,6 +8,7 @@ import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
 import { SubscriptionRepository } from '@repositories/subscription.repository';
 import { TestClockRepository } from '@repositories/test-clock.repository';
+import fp from 'fastify-plugin';
 
 export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('customerRepository', new CustomerRepository(fastify.database));

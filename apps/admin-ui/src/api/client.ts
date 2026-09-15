@@ -32,21 +32,13 @@ export class PinstripeApiError extends Error {
   }
 }
 
-function isEmpty(value: unknown): boolean {
-  if (value === undefined || value === null) {
-    return true;
-  }
-
-  if (typeof value === 'object') {
-    return Object.keys(value as object).length === 0;
-  }
-
-  return false;
+function isAbsent(value: unknown): boolean {
+  return value === undefined || value === null;
 }
 
 function set(field: keyof RequestConfig, value: unknown): RequestConfigFn {
   return (config) => {
-    if (isEmpty(value)) {
+    if (isAbsent(value)) {
       return config;
     }
 
@@ -62,16 +54,22 @@ export function Method(method: string): RequestConfigFn {
   return set('method', method);
 }
 
-export function Params(params: Record<string, unknown> | undefined): RequestConfigFn {
+export function Params(params: object | undefined): RequestConfigFn {
   return set('params', params);
 }
 
-export function Payload(payload: Record<string, unknown> | undefined): RequestConfigFn {
+export function Payload(payload: object | undefined): RequestConfigFn {
   return set('payload', payload);
 }
 
 export function Headers(headers: Record<string, string> | undefined): RequestConfigFn {
-  return set('headers', headers);
+  return (config) => {
+    if (isAbsent(headers)) {
+      return config;
+    }
+
+    return { ...config, headers: { ...config.headers, ...headers } };
+  };
 }
 
 function buildUrl(config: RequestConfig): string {
@@ -91,11 +89,16 @@ function buildUrl(config: RequestConfig): string {
 }
 
 export async function Request<T>(...fns: RequestConfigFn[]): Promise<T> {
-  const config = fns.reduceRight<RequestConfig>((result, fn) => fn(result), {
-    url: '',
-    method: 'GET',
-    headers: { 'content-type': 'application/json' },
-  });
+  const config = fns.reduceRight<RequestConfig>(
+    (result, fn) => {
+      return fn(result);
+    },
+    {
+      url: '',
+      method: 'GET',
+      headers: { 'content-type': 'application/json' },
+    },
+  );
 
   const response = await fetch(buildUrl(config), {
     method: config.method,

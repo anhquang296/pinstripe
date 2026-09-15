@@ -1,7 +1,8 @@
-import { Type } from '@sinclair/typebox';
-import type { Static } from '@sinclair/typebox';
-import { Value } from '@sinclair/typebox/value';
 import { Default, Optional, Required } from '@config/env-field';
+import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
+import { Value } from '@sinclair/typebox/value';
+import _ from 'lodash';
 
 export enum NodeEnvEnum {
   DEVELOPMENT = 'development',
@@ -61,13 +62,19 @@ export type Env = Static<typeof envSchema>;
 
 export function loadEnv(source: NodeJS.ProcessEnv): Env {
   const withoutEmpty = Object.fromEntries(
-    Object.entries(source).filter(([, value]) => value !== undefined && value !== ''),
+    Object.entries(source).filter(([, value]) => {
+      return value !== undefined && value !== '';
+    }),
   );
   const candidate = Value.Default(envSchema, Value.Convert(envSchema, withoutEmpty));
   const errors = [...Value.Errors(envSchema, candidate)];
 
   if (errors.length > 0) {
-    const details = errors.map((error) => `${error.path || '/'} ${error.message}`).join('; ');
+    const details = _(errors)
+      .map((error) => {
+        return `${error.path || '/'} ${error.message}`;
+      })
+      .join('; ');
 
     throw new Error(`loadEnv() invalid environment: ${details}`);
   }

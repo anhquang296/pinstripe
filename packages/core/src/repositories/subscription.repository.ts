@@ -1,23 +1,24 @@
-import { and, asc, desc, eq, inArray, isNull, lte, ne, sql } from 'drizzle-orm';
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { SubscriptionStatus } from '@contracts/subscriptions.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type {
-  NewSubscriptionEntity,
-  NewSubscriptionItemEntity,
-  SubscriptionEntity,
-  SubscriptionItemEntity,
+  NewSubscription,
+  NewSubscriptionItem,
+  Subscription,
+  SubscriptionItem,
 } from '@database/schemas';
 import { subscriptionItems, subscriptions } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
+import { and, asc, desc, eq, inArray, isNull, lte, ne, sql } from 'drizzle-orm';
 
-export interface FindSubscriptionsFilters {
-  customerIdEq?: string;
-  statusEq?: SubscriptionStatus;
+export interface SubscriptionFilters {
+  customerId?: string;
+  status?: SubscriptionStatus;
   statusNe?: SubscriptionStatus;
-  testClockIdEq?: string;
-  currentPeriodEndLte?: Date;
-  beforeCursor?: RowCursor;
-  afterCursor?: RowCursor;
+  testClockId?: string;
+  currentPeriodEndTo?: Date;
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
 }
 
 export class SubscriptionRepository {
@@ -27,7 +28,7 @@ export class SubscriptionRepository {
     this._db = db;
   }
 
-  async findSubscription(id: string): Promise<SubscriptionEntity | null> {
+  async findSubscription(id: string): Promise<Subscription | null> {
     const [subscription] = await this._db.master
       .select()
       .from(subscriptions)
@@ -38,22 +39,22 @@ export class SubscriptionRepository {
   }
 
   async findSubscriptions(
-    filters: FindSubscriptionsFilters,
-    limit: number,
-  ): Promise<SubscriptionEntity[]> {
+    filters: SubscriptionFilters = {},
+    limit = DEFAULT_QUERY_LIMIT,
+  ): Promise<Subscription[]> {
     const where = and(
-      filters.customerIdEq ? eq(subscriptions.customerId, filters.customerIdEq) : undefined,
-      filters.statusEq ? eq(subscriptions.status, filters.statusEq) : undefined,
+      filters.customerId ? eq(subscriptions.customerId, filters.customerId) : undefined,
+      filters.status ? eq(subscriptions.status, filters.status) : undefined,
       filters.statusNe ? ne(subscriptions.status, filters.statusNe) : undefined,
-      filters.testClockIdEq ? eq(subscriptions.testClockId, filters.testClockIdEq) : undefined,
-      filters.currentPeriodEndLte
-        ? lte(subscriptions.currentPeriodEnd, filters.currentPeriodEndLte)
+      filters.testClockId ? eq(subscriptions.testClockId, filters.testClockId) : undefined,
+      filters.currentPeriodEndTo
+        ? lte(subscriptions.currentPeriodEnd, filters.currentPeriodEndTo)
         : undefined,
-      filters.beforeCursor
-        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) < (${filters.beforeCursor.createdAt.toISOString()}::timestamptz, ${filters.beforeCursor.id})`
+      filters.beforeAt
+        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
-      filters.afterCursor
-        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) > (${filters.afterCursor.createdAt.toISOString()}::timestamptz, ${filters.afterCursor.id})`
+      filters.afterAt
+        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -65,9 +66,7 @@ export class SubscriptionRepository {
       .limit(limit);
   }
 
-  async findSubscriptionItems(
-    subscriptionIds: readonly string[],
-  ): Promise<SubscriptionItemEntity[]> {
+  async findSubscriptionItems(subscriptionIds: readonly string[]): Promise<SubscriptionItem[]> {
     if (subscriptionIds.length === 0) {
       return [];
     }
@@ -85,10 +84,10 @@ export class SubscriptionRepository {
   }
 
   async createSubscription(
-    payload: NewSubscriptionEntity,
-    items: readonly NewSubscriptionItemEntity[],
+    payload: NewSubscription,
+    items: readonly NewSubscriptionItem[],
     executor?: DatabaseTransaction,
-  ): Promise<SubscriptionEntity | null> {
+  ): Promise<Subscription | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [subscription] = await db.insert(subscriptions).values(payload).returning();
 
@@ -99,9 +98,9 @@ export class SubscriptionRepository {
 
   async updateSubscription(
     id: string,
-    payload: Partial<NewSubscriptionEntity>,
+    payload: Partial<NewSubscription>,
     executor?: DatabaseTransaction,
-  ): Promise<SubscriptionEntity | null> {
+  ): Promise<Subscription | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [subscription] = await db
       .update(subscriptions)
@@ -114,7 +113,7 @@ export class SubscriptionRepository {
 
   async replaceSubscriptionItems(
     subscriptionId: string,
-    items: readonly NewSubscriptionItemEntity[],
+    items: readonly NewSubscriptionItem[],
     deletedAt: Date,
     executor?: DatabaseTransaction,
   ): Promise<void> {

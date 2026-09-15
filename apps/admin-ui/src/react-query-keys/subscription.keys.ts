@@ -1,6 +1,6 @@
+import { getSubscription, getSubscriptions } from '@api/subscriptions';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import type { GetSubscriptionsQuery } from '@pinstripe/core/contracts';
-import { getSubscription, getSubscriptions } from '@api/subscriptions/subscriptions.api';
 import { ReactQuerySubjectEnum } from '@react-query-keys/react-query-subject';
 
 export const subscriptionQueries = createQueryKeys(ReactQuerySubjectEnum.SUBSCRIPTION, {

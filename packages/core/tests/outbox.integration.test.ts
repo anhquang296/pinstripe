@@ -1,7 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
-import { OutboxStatusEnum } from '@database/schemas';
+import { OutboxStatusEnum } from '@contracts/events.types';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { buildTestContext } from './context';
 
 const POLL_INTERVAL_MS = 100;
@@ -28,7 +29,9 @@ async function waitForPublished(eventId: string): Promise<string | undefined> {
       return event.status;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    await new Promise((resolve) => {
+      return setTimeout(resolve, POLL_INTERVAL_MS);
+    });
   }
 
   return undefined;

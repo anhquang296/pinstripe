@@ -1,58 +1,61 @@
+import { Endpoint, Method, Params, Payload, Request } from '@api/client';
+
 import type {
   CancelSubscriptionPayload,
   CreateSubscriptionPayload,
   GetSubscriptionsQuery,
   ListResponse,
-  Subscription,
+  SubscriptionResponse,
   UpdateSubscriptionPayload,
-} from '@pinstripe/core/contracts';
-import { Endpoint, Method, Params, Payload, Request } from '@api/request';
+} from './type';
 
 const SUBSCRIPTIONS_PATH = '/v1/subscriptions';
 
 export function getSubscriptions(
   query: GetSubscriptionsQuery = {},
-): Promise<ListResponse<Subscription>> {
-  return Request<ListResponse<Subscription>>(
+): Promise<ListResponse<SubscriptionResponse>> {
+  return Request<ListResponse<SubscriptionResponse>>(
     Endpoint(SUBSCRIPTIONS_PATH),
     Method('GET'),
-    Params(query as Record<string, unknown>),
+    Params(query),
   );
 }
 
-export function getSubscription(subscriptionId: string): Promise<Subscription> {
-  return Request<Subscription>(
+export function getSubscription(subscriptionId: string): Promise<SubscriptionResponse> {
+  return Request<SubscriptionResponse>(
     Endpoint(`${SUBSCRIPTIONS_PATH}/${encodeURIComponent(subscriptionId)}`),
     Method('GET'),
   );
 }
 
-export function createSubscription(payload: CreateSubscriptionPayload): Promise<Subscription> {
-  return Request<Subscription>(
+export function createSubscription(
+  payload: CreateSubscriptionPayload,
+): Promise<SubscriptionResponse> {
+  return Request<SubscriptionResponse>(
     Endpoint(SUBSCRIPTIONS_PATH),
     Method('POST'),
-    Payload(payload as Record<string, unknown>),
+    Payload(payload),
   );
 }
 
 export function updateSubscription(
   subscriptionId: string,
   payload: UpdateSubscriptionPayload,
-): Promise<Subscription> {
-  return Request<Subscription>(
+): Promise<SubscriptionResponse> {
+  return Request<SubscriptionResponse>(
     Endpoint(`${SUBSCRIPTIONS_PATH}/${encodeURIComponent(subscriptionId)}`),
     Method('POST'),
-    Payload(payload as Record<string, unknown>),
+    Payload(payload),
   );
 }
 
 export function cancelSubscription(
   subscriptionId: string,
   payload: CancelSubscriptionPayload,
-): Promise<Subscription> {
-  return Request<Subscription>(
+): Promise<SubscriptionResponse> {
+  return Request<SubscriptionResponse>(
     Endpoint(`${SUBSCRIPTIONS_PATH}/${encodeURIComponent(subscriptionId)}`),
     Method('DELETE'),
-    Payload(payload as Record<string, unknown>),
+    Payload(payload),
   );
 }

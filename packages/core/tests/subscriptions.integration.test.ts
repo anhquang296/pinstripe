@@ -1,13 +1,14 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
+import type { CustomerResponse } from '@contracts/customers.types';
 import { EntitlementStatusEnum } from '@contracts/entitlements.types';
+import type { PriceResponse } from '@contracts/prices.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
-import type { Price } from '@contracts/prices.types';
 import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
-import type { Customer } from '@contracts/customers.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { buildTestContext } from './context';
 
 const CLOCK_START = '2026-01-01T00:00:00.000Z';
@@ -23,7 +24,11 @@ afterAll(async () => {
   await fastify.close();
 });
 
-async function buildScenario(): Promise<{ customer: Customer; price: Price; clockId: string }> {
+async function buildScenario(): Promise<{
+  customer: CustomerResponse;
+  price: PriceResponse;
+  clockId: string;
+}> {
   const clock = await fastify.testClockService.createTestClock({
     name: `clock ${generateId(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,

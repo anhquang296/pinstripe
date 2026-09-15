@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { CurrencyEnum } from '@pinstripe/core/contracts';
+import { z } from 'zod';
 
 export const createCustomerFormSchema = z.object({
   email: z.string().email('Email không hợp lệ'),

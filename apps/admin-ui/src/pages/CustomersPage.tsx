@@ -1,24 +1,25 @@
-import { useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Button from '@components/ui/Button';
 import CustomerItem from '@components/CustomerItem';
+import Button from '@components/ui/Button';
 import TextField from '@components/ui/TextField';
+import type { CreateCustomerFormValues } from '@forms/create-customer-form';
 import {
   createCustomerFormDefaultValues,
   createCustomerFormSchema,
 } from '@forms/create-customer-form';
-import type { CreateCustomerFormValues } from '@forms/create-customer-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateCustomerMutation, useCustomersQuery } from '@reactquery/customers';
+import { useCallback } from 'react';
+import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
 
 export default function CustomersPage() {
-  const { data, isPending, error } = useCustomersQuery(
-    { limit: PAGE_LIMIT },
-    { hasPlaceholder: true },
-  );
-  const createCustomerMutation = useCreateCustomerMutation();
+  const {
+    data: customers,
+    isPending,
+    error,
+  } = useCustomersQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
+  const { mutateAsync: createCustomer } = useCreateCustomerMutation();
   const form = useForm<CreateCustomerFormValues>({
     resolver: zodResolver(createCustomerFormSchema),
     defaultValues: createCustomerFormDefaultValues,
@@ -26,11 +27,11 @@ export default function CustomersPage() {
 
   const handleOnSubmit = useCallback(
     async (values: CreateCustomerFormValues) => {
-      await createCustomerMutation.mutateAsync(values);
+      await createCustomer(values);
 
       form.reset(createCustomerFormDefaultValues);
     },
-    [createCustomerMutation, form],
+    [createCustomer, form],
   );
 
   return (
@@ -70,9 +71,9 @@ export default function CustomersPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.data.map((customer) => (
-              <CustomerItem key={customer.id} customer={customer} />
-            ))}
+            {customers?.data.map((customer) => {
+              return <CustomerItem key={customer.id} customer={customer} />;
+            })}
           </tbody>
         </table>
         {isPending ? <p className="px-4 py-3 text-slate-500">Đang tải…</p> : null}

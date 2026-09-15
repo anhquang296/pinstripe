@@ -1,9 +1,9 @@
+import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   entitlementSchema,
   getEntitlementsSchema,
   ListResponseSchema,
 } from '@pinstripe/core/contracts';
-import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { ApiResponse } from '@utils/api-response';
 
 export const entitlementsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {

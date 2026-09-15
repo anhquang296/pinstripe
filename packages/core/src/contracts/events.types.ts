@@ -1,3 +1,11 @@
+export enum OutboxStatusEnum {
+  PENDING = 'pending',
+  PUBLISHING = 'publishing',
+  PUBLISHED = 'published',
+  FAILED = 'failed',
+}
+export type OutboxStatus = `${OutboxStatusEnum}`;
+
 export enum AggregateTypeEnum {
   CUSTOMER = 'customer',
   PRODUCT = 'product',

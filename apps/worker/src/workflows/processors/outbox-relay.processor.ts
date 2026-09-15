@@ -1,6 +1,6 @@
+import type { OutboxRelayJob } from '@pinstripe/core/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
-import type { OutboxRelayJob } from '@pinstripe/core/queues';
 
 export class OutboxRelayProcessor {
   constructor(private readonly fastify: FastifyInstance) {}

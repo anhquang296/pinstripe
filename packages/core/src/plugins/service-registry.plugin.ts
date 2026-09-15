@@ -1,13 +1,13 @@
-import fp from 'fastify-plugin';
 import { CustomerService } from '@services/customer.service';
-import { IdempotencyService } from '@services/idempotency.service';
 import { EntitlementService } from '@services/entitlement.service';
+import { IdempotencyService } from '@services/idempotency.service';
 import { LedgerService } from '@services/ledger.service';
 import { OutboxService } from '@services/outbox.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
 import { SubscriptionService } from '@services/subscription.service';
 import { TestClockService } from '@services/test-clock.service';
+import fp from 'fastify-plugin';
 
 export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate(

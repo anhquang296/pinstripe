@@ -1,6 +1,7 @@
 import { BadRequestError } from '@errors/app.error';
 import type { Currency } from '@utils/currency';
 import { getCurrencyExponent } from '@utils/currency';
+import _ from 'lodash';
 
 export enum RoundingPolicyEnum {
   HALF_UP = 'half_up',
@@ -64,8 +65,14 @@ export class Money {
     return Money.of(roundToInteger(value * factor, policy), currency);
   }
 
-  static sum(values: readonly Money[], currency: Currency): Money {
-    return values.reduce((total, value) => total.add(value), Money.zero(currency));
+  static sum(amounts: readonly Money[], currency: Currency): Money {
+    return _.reduce(
+      amounts,
+      (total, amount) => {
+        return total.add(amount);
+      },
+      Money.zero(currency),
+    );
   }
 
   add(other: Money): Money {
@@ -89,27 +96,29 @@ export class Money {
   }
 
   allocate(weights: readonly number[]): Money[] {
-    const totalWeight = weights.reduce((total, weight) => total + weight, 0);
+    const totalWeight = _.sum(weights);
 
     if (totalWeight <= 0) {
       throw new BadRequestError('Money allocation requires weights summing to more than zero');
     }
 
     if (this.isNegative()) {
-      return this.negate()
-        .allocate(weights)
-        .map((share) => share.negate());
+      return _.map(this.negate().allocate(weights), (share) => {
+        return share.negate();
+      });
     }
 
-    const shares = weights.map((weight) => {
+    const shares = _.map(weights, (weight) => {
       return Math.floor((this.amount * weight) / totalWeight);
     });
-    const distributed = shares.reduce((total, share) => total + share, 0);
-    const remainders = weights.map((weight, index) => {
-      return { index, remainder: (this.amount * weight) / totalWeight - (shares[index] ?? 0) };
-    });
-
-    remainders.sort((left, right) => right.remainder - left.remainder);
+    const distributed = _.sum(shares);
+    const remainders = _.orderBy(
+      _.map(weights, (weight, index) => {
+        return { index, remainder: (this.amount * weight) / totalWeight - (shares[index] ?? 0) };
+      }),
+      'remainder',
+      'desc',
+    );
 
     let leftover = this.amount - distributed;
     let cursor = 0;
@@ -125,7 +134,9 @@ export class Money {
       cursor += 1;
     }
 
-    return shares.map((share) => Money.of(share, this.currency));
+    return _.map(shares, (share) => {
+      return Money.of(share, this.currency);
+    });
   }
 
   isZero(): boolean {
@@ -159,7 +170,7 @@ export class Money {
   }
 
   toString(): string {
-    return `${this.toMajorUnit().toFixed(getCurrencyExponent(this.currency))} ${this.currency.toUpperCase()}`;
+    return `${this.toMajorUnit().toFixed(getCurrencyExponent(this.currency))} ${_.toUpper(this.currency)}`;
   }
 
   private assertSameCurrency(other: Money): void {

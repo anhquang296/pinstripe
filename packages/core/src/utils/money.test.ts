@@ -1,12 +1,15 @@
-import { describe, expect, it } from 'vitest';
 import { CurrencyEnum } from '@utils/currency';
 import { Money, RoundingPolicyEnum } from '@utils/money';
+import _ from 'lodash';
+import { describe, expect, it } from 'vitest';
 
 describe('Money.of', () => {
   it('rejects a fractional amount because minor units are always integers', () => {
     const amount = 10.5;
 
-    const act = () => Money.of(amount, CurrencyEnum.USD);
+    const act = () => {
+      return Money.of(amount, CurrencyEnum.USD);
+    };
 
     expect(act).toThrowError(/safe integer/);
   });
@@ -17,7 +20,9 @@ describe('Money.add', () => {
     const usd = Money.of(100, CurrencyEnum.USD);
     const vnd = Money.of(100, CurrencyEnum.VND);
 
-    const act = () => usd.add(vnd);
+    const act = () => {
+      return usd.add(vnd);
+    };
 
     expect(act).toThrowError(/currency mismatch/);
   });
@@ -29,7 +34,7 @@ describe('Money.allocate', () => {
 
     const shares = total.allocate([1, 1, 1]);
 
-    expect(shares.map((share) => share.amount)).toEqual([34, 33, 33]);
+    expect(_.map(shares, 'amount')).toEqual([34, 33, 33]);
   });
 
   it('keeps the sum exact for a negative amount such as a credit', () => {
@@ -37,7 +42,7 @@ describe('Money.allocate', () => {
 
     const shares = credit.allocate([1, 1, 1]);
 
-    expect(shares.reduce((total, share) => total + share.amount, 0)).toBe(-100);
+    expect(_.sumBy(shares, 'amount')).toBe(-100);
   });
 
   it('weights the split by the given ratios', () => {
@@ -45,7 +50,7 @@ describe('Money.allocate', () => {
 
     const shares = total.allocate([7, 3]);
 
-    expect(shares.map((share) => share.amount)).toEqual([700, 300]);
+    expect(_.map(shares, 'amount')).toEqual([700, 300]);
   });
 });
 

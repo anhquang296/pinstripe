@@ -1,18 +1,19 @@
-import type { FastifyInstance } from 'fastify';
 import type {
   CreateCustomerPayload,
-  Customer,
+  CustomerResponse,
   GetCustomersQuery,
   UpdateCustomerPayload,
 } from '@contracts/customers.types';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
-import type { CustomerEntity } from '@database/schemas';
+import type { Customer } from '@database/schemas';
 import { ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 
 export interface DeletedCustomerResponse {
   object: 'customer';
@@ -23,20 +24,20 @@ export interface DeletedCustomerResponse {
 export class CustomerService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createCustomer(payload: CreateCustomerPayload): Promise<Customer> {
+  async createCustomer(payload: CreateCustomerPayload): Promise<CustomerResponse> {
     const now = this.fastify.clock.now();
     const id = generateId(ObjectPrefixEnum.CUSTOMER);
 
-    const created = await this.insertCustomer(id, payload, now);
+    const createdCustomer = await this.writeCustomer(id, payload, now);
 
-    return CustomerService.buildCustomer(created);
+    return CustomerService.buildCustomer(createdCustomer);
   }
 
-  private async insertCustomer(
+  private async writeCustomer(
     id: string,
     payload: CreateCustomerPayload,
     now: Date,
-  ): Promise<CustomerEntity> {
+  ): Promise<Customer> {
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const customer = await this.fastify.customerRepository.createCustomer(
@@ -87,7 +88,7 @@ export class CustomerService {
     }
   }
 
-  async getCustomer(id: string): Promise<Customer> {
+  async getCustomer(id: string): Promise<CustomerResponse> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
     if (customer) {
@@ -97,10 +98,10 @@ export class CustomerService {
     throw new NotFoundError(`No such customer: ${id}`);
   }
 
-  async updateCustomer(id: string, payload: UpdateCustomerPayload): Promise<Customer> {
+  async updateCustomer(id: string, payload: UpdateCustomerPayload): Promise<CustomerResponse> {
     await this.getCustomer(id);
 
-    const updated = await this.fastify.database.master.transaction(async (tx) => {
+    const updatedCustomer = await this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.updateCustomer(
         id,
         { ...payload, updatedAt: this.fastify.clock.now() },
@@ -126,14 +127,14 @@ export class CustomerService {
       return customer;
     });
 
-    return CustomerService.buildCustomer(updated);
+    return CustomerService.buildCustomer(updatedCustomer);
   }
 
   async deleteCustomer(id: string): Promise<DeletedCustomerResponse> {
     await this.getCustomer(id);
 
     await this.fastify.database.master.transaction(async (tx) => {
-      await this.fastify.customerRepository.softDeleteCustomer(id, this.fastify.clock.now(), tx);
+      await this.fastify.customerRepository.archiveCustomer(id, this.fastify.clock.now(), tx);
       await this.fastify.outboxService.recordEvents(
         [
           {
@@ -150,12 +151,12 @@ export class CustomerService {
     return { object: 'customer', id, deleted: true };
   }
 
-  async findCustomers(query: GetCustomersQuery): Promise<ListResponse<Customer>> {
+  async findCustomers(query: GetCustomersQuery): Promise<ListResponse<CustomerResponse>> {
     const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
-    const beforeCursor = await this.resolveCursor(query.startingAfter);
-    const afterCursor = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.customerRepository.findCustomers(
-      { emailEq: query.email, beforeCursor, afterCursor },
+      { email: query.email, beforeAt, afterAt },
       limit + 1,
     );
     const hasMore = rows.length > limit;
@@ -164,7 +165,7 @@ export class CustomerService {
       object: 'list',
       url: '/v1/customers',
       hasMore,
-      data: rows.slice(0, limit).map(CustomerService.buildCustomer),
+      data: _(rows).take(limit).map(CustomerService.buildCustomer).value(),
     };
   }
 
@@ -182,7 +183,7 @@ export class CustomerService {
     return { createdAt: customer.createdAt, id: customer.id };
   }
 
-  private static buildCustomer(entity: CustomerEntity): Customer {
+  private static buildCustomer(entity: Customer): CustomerResponse {
     return {
       object: 'customer',
       id: entity.id,

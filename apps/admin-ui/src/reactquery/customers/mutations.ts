@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { CreateCustomerPayload, UpdateCustomerPayload } from '@pinstripe/core/contracts';
-import { createCustomer, updateCustomer } from '@api/customers/customers.api';
+import { createCustomer, updateCustomer } from '@api/customers';
 import type { MutationProps } from '@lib/react-query.types';
 import { toast } from '@lib/toast';
+import type { CreateCustomerPayload, UpdateCustomerPayload } from '@pinstripe/core/contracts';
 import { queries } from '@react-query-keys/index';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useCreateCustomerMutation({ shouldBeSuccessToast = true }: MutationProps = {}) {
   const queryClient = useQueryClient();

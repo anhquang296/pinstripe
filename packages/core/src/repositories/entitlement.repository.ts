@@ -1,17 +1,18 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { EntitlementStatus } from '@contracts/entitlements.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
-import type { EntitlementEntity, NewEntitlementEntity } from '@database/schemas';
+import type { Entitlement, NewEntitlement } from '@database/schemas';
 import { entitlements } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
+import { and, desc, eq, sql } from 'drizzle-orm';
 
-export interface FindEntitlementsFilters {
-  customerIdEq?: string;
-  productIdEq?: string;
-  subscriptionIdEq?: string;
-  statusEq?: EntitlementStatus;
-  beforeCursor?: RowCursor;
-  afterCursor?: RowCursor;
+export interface EntitlementFilters {
+  customerId?: string;
+  productId?: string;
+  subscriptionId?: string;
+  status?: EntitlementStatus;
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
 }
 
 export class EntitlementRepository {
@@ -22,21 +23,19 @@ export class EntitlementRepository {
   }
 
   async findEntitlements(
-    filters: FindEntitlementsFilters,
-    limit: number,
-  ): Promise<EntitlementEntity[]> {
+    filters: EntitlementFilters = {},
+    limit = DEFAULT_QUERY_LIMIT,
+  ): Promise<Entitlement[]> {
     const where = and(
-      filters.customerIdEq ? eq(entitlements.customerId, filters.customerIdEq) : undefined,
-      filters.productIdEq ? eq(entitlements.productId, filters.productIdEq) : undefined,
-      filters.subscriptionIdEq
-        ? eq(entitlements.subscriptionId, filters.subscriptionIdEq)
+      filters.customerId ? eq(entitlements.customerId, filters.customerId) : undefined,
+      filters.productId ? eq(entitlements.productId, filters.productId) : undefined,
+      filters.subscriptionId ? eq(entitlements.subscriptionId, filters.subscriptionId) : undefined,
+      filters.status ? eq(entitlements.status, filters.status) : undefined,
+      filters.beforeAt
+        ? sql`(${entitlements.createdAt}, ${entitlements.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
-      filters.statusEq ? eq(entitlements.status, filters.statusEq) : undefined,
-      filters.beforeCursor
-        ? sql`(${entitlements.createdAt}, ${entitlements.id}) < (${filters.beforeCursor.createdAt.toISOString()}::timestamptz, ${filters.beforeCursor.id})`
-        : undefined,
-      filters.afterCursor
-        ? sql`(${entitlements.createdAt}, ${entitlements.id}) > (${filters.afterCursor.createdAt.toISOString()}::timestamptz, ${filters.afterCursor.id})`
+      filters.afterAt
+        ? sql`(${entitlements.createdAt}, ${entitlements.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -49,9 +48,9 @@ export class EntitlementRepository {
   }
 
   async upsertEntitlement(
-    payload: NewEntitlementEntity,
+    payload: NewEntitlement,
     executor?: DatabaseTransaction,
-  ): Promise<EntitlementEntity | null> {
+  ): Promise<Entitlement | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [entitlement] = await db
       .insert(entitlements)

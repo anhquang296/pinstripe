@@ -68,3 +68,8 @@ export class InternalError extends AppError {
   readonly statusCode = 500;
   readonly type = ErrorTypeEnum.API;
 }
+
+export class UnknownQueueError extends AppError {
+  readonly statusCode = 500;
+  readonly type = ErrorTypeEnum.API;
+}

@@ -1,11 +1,12 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
 import { BillingSchemeEnum, RecurringIntervalEnum, TiersModeEnum } from '@contracts/prices.types';
-import type { Product } from '@contracts/products.types';
-import { sql } from 'drizzle-orm';
+import type { ProductResponse } from '@contracts/products.types';
 import { BadRequestError, NotFoundError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { sql } from 'drizzle-orm';
+import type { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import { buildTestContext } from './context';
 
 let fastify: FastifyInstance;
@@ -18,7 +19,7 @@ afterAll(async () => {
   await fastify.close();
 });
 
-async function createProduct(): Promise<Product> {
+async function createProduct(): Promise<ProductResponse> {
   return fastify.productService.createProduct({
     name: `Plan ${generateId(ObjectPrefixEnum.PRODUCT)}`,
   });

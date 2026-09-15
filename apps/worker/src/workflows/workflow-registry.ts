@@ -1,5 +1,6 @@
 import type { WorkflowName } from '@pinstripe/core/queues';
 import { WorkflowNameEnum } from '@pinstripe/core/queues';
+import { UnknownWorkflowError } from '@type/errors';
 import { DomainEventWorkflow } from '@workflows/domain-event.workflow';
 import { LedgerWorkflow } from '@workflows/ledger.workflow';
 import { OutboxWorkflow } from '@workflows/outbox.workflow';
@@ -27,7 +28,7 @@ export class WorkflowRegistry {
       return workflow;
     }
 
-    throw new Error(
+    throw new UnknownWorkflowError(
       `WorkflowRegistry resolve() unknown workflow ${name}, expected one of ${[...this.workflows.keys()].join(', ')}`,
     );
   }

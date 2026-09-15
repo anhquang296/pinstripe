@@ -1,8 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/tsconfig*.json"
 description: >
   TypeScript settings and type discipline — strictness, no `any`, schema-derived types, error
   classes over generic Error.

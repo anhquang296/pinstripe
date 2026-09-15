@@ -1,5 +1,5 @@
-import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import type { TestClockStatus } from '@contracts/test-clocks.types';
+import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const testClocks = pgTable(
   'test_clocks',
@@ -11,8 +11,10 @@ export const testClocks = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('test_clocks_created_at_id_idx').on(table.createdAt, table.id)],
+  (table) => {
+    return [index('test_clocks_created_at_id_idx').on(table.createdAt, table.id)];
+  },
 );
 
-export type TestClockEntity = typeof testClocks.$inferSelect;
-export type NewTestClockEntity = typeof testClocks.$inferInsert;
+export type TestClock = typeof testClocks.$inferSelect;
+export type NewTestClock = typeof testClocks.$inferInsert;

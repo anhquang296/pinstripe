@@ -13,8 +13,10 @@ export const products = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
-  (table) => [index('products_created_at_id_idx').on(table.createdAt, table.id)],
+  (table) => {
+    return [index('products_created_at_id_idx').on(table.createdAt, table.id)];
+  },
 );
 
-export type ProductEntity = typeof products.$inferSelect;
-export type NewProductEntity = typeof products.$inferInsert;
+export type Product = typeof products.$inferSelect;
+export type NewProduct = typeof products.$inferInsert;

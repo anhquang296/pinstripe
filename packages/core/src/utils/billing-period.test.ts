@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { advancePeriod } from '@utils/billing-period';
+import { describe, expect, it } from 'vitest';
 
 describe('advancePeriod', () => {
   it('adds whole days for a daily interval', () => {

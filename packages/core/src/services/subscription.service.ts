@@ -1,4 +1,5 @@
-import type { FastifyInstance } from 'fastify';
+import { MAX_ITEMS_PER_SUBSCRIPTION } from '@constants/subscription';
+import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
@@ -8,8 +9,8 @@ import type {
   CancelSubscriptionPayload,
   CreateSubscriptionPayload,
   GetSubscriptionsQuery,
-  Subscription,
-  SubscriptionItem,
+  SubscriptionItemResponse,
+  SubscriptionResponse,
   SubscriptionStatus,
   UpdateSubscriptionPayload,
 } from '@contracts/subscriptions.types';
@@ -19,19 +20,14 @@ import {
   SubscriptionStatusEnum,
 } from '@contracts/subscriptions.types';
 import type { DatabaseTransaction } from '@database/database.client';
-import type {
-  NewSubscriptionItemEntity,
-  PriceEntity,
-  SubscriptionEntity,
-  SubscriptionItemEntity,
-} from '@database/schemas';
+import type { NewSubscriptionItem, Price, Subscription, SubscriptionItem } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { advancePeriod } from '@utils/billing-period';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
-const MAX_ITEMS_PER_SUBSCRIPTION = 100;
 const MAX_PERIOD_ROLLS = 120;
 const ADVANCE_BATCH_SIZE = 500;
 
@@ -43,9 +39,9 @@ export interface SubscriptionInterval {
 export class SubscriptionService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createSubscription(payload: CreateSubscriptionPayload): Promise<Subscription> {
+  async createSubscription(payload: CreateSubscriptionPayload): Promise<SubscriptionResponse> {
     const customer = await this.fastify.customerService.getCustomer(payload.customerId);
-    const prices = await this.resolvePrices(payload.items.map((item) => item.priceId));
+    const prices = await this.resolvePrices(_.map(payload.items, 'priceId'));
     const now = await this.resolveNow(customer.testClockId);
 
     SubscriptionService.assertPricesUsable(prices, customer.currency);
@@ -56,16 +52,18 @@ export class SubscriptionService {
       ? new Date(payload.billingCycleAnchor)
       : (trialEnd ?? now);
     const { interval, intervalCount } = SubscriptionService.resolveInterval(prices);
-    const items: NewSubscriptionItemEntity[] = payload.items.map((item) => ({
-      id: generateId(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
-      subscriptionId,
-      priceId: item.priceId,
-      quantity: item.quantity ?? 1,
-      metadata: item.metadata ?? {},
-      createdAt: now,
-    }));
+    const items: NewSubscriptionItem[] = _.map(payload.items, (item) => {
+      return {
+        id: generateId(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
+        subscriptionId,
+        priceId: item.priceId,
+        quantity: item.quantity ?? 1,
+        metadata: item.metadata ?? {},
+        createdAt: now,
+      };
+    });
 
-    const created = await this.fastify.database.master.transaction(async (tx) => {
+    const createdSubscription = await this.fastify.database.master.transaction(async (tx) => {
       const subscription = await this.fastify.subscriptionRepository.createSubscription(
         {
           id: subscriptionId,
@@ -104,10 +102,10 @@ export class SubscriptionService {
       return subscription;
     });
 
-    return SubscriptionService.buildSubscription(created, items);
+    return SubscriptionService.buildSubscription(createdSubscription, items);
   }
 
-  async getSubscription(id: string): Promise<Subscription> {
+  async getSubscription(id: string): Promise<SubscriptionResponse> {
     const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
 
     if (!subscription) {
@@ -119,37 +117,42 @@ export class SubscriptionService {
     return SubscriptionService.buildSubscription(subscription, items);
   }
 
-  async findSubscriptions(query: GetSubscriptionsQuery): Promise<ListResponse<Subscription>> {
+  async findSubscriptions(
+    query: GetSubscriptionsQuery,
+  ): Promise<ListResponse<SubscriptionResponse>> {
     const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
     const rows = await this.fastify.subscriptionRepository.findSubscriptions(
       {
-        customerIdEq: query.customerId,
-        statusEq: query.status,
-        beforeCursor: await this.resolveCursor(query.startingAfter),
-        afterCursor: await this.resolveCursor(query.endingBefore),
+        customerId: query.customerId,
+        status: query.status,
+        beforeAt: await this.resolveCursor(query.startingAfter),
+        afterAt: await this.resolveCursor(query.endingBefore),
       },
       limit + 1,
     );
     const hasMore = rows.length > limit;
     const page = rows.slice(0, limit);
     const items = await this.fastify.subscriptionRepository.findSubscriptionItems(
-      page.map((subscription) => subscription.id),
+      _.map(page, 'id'),
     );
 
     return {
       object: 'list',
       url: '/v1/subscriptions',
       hasMore,
-      data: page.map((subscription) => {
+      data: _.map(page, (subscription) => {
         return SubscriptionService.buildSubscription(
           subscription,
-          items.filter((item) => item.subscriptionId === subscription.id),
+          _.filter(items, { subscriptionId: subscription.id }),
         );
       }),
     };
   }
 
-  async updateSubscription(id: string, payload: UpdateSubscriptionPayload): Promise<Subscription> {
+  async updateSubscription(
+    id: string,
+    payload: UpdateSubscriptionPayload,
+  ): Promise<SubscriptionResponse> {
     const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
 
     if (!subscription) {
@@ -162,23 +165,25 @@ export class SubscriptionService {
 
     const now = await this.resolveNow(subscription.testClockId);
     const items = payload.items
-      ? payload.items.map((item) => ({
-          id: generateId(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
-          subscriptionId: id,
-          priceId: item.priceId,
-          quantity: item.quantity ?? 1,
-          metadata: item.metadata ?? {},
-          createdAt: now,
-        }))
+      ? _.map(payload.items, (item) => {
+          return {
+            id: generateId(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
+            subscriptionId: id,
+            priceId: item.priceId,
+            quantity: item.quantity ?? 1,
+            metadata: item.metadata ?? {},
+            createdAt: now,
+          };
+        })
       : null;
 
     if (items) {
-      const prices = await this.resolvePrices(items.map((item) => item.priceId));
+      const prices = await this.resolvePrices(_.map(items, 'priceId'));
 
       SubscriptionService.assertPricesUsable(prices, subscription.currency);
     }
 
-    const updated = await this.fastify.database.master.transaction(async (tx) => {
+    const updatedSubscription = await this.fastify.database.master.transaction(async (tx) => {
       if (items) {
         await this.fastify.subscriptionRepository.replaceSubscriptionItems(id, items, now, tx);
       }
@@ -202,10 +207,13 @@ export class SubscriptionService {
       return next;
     });
 
-    return this.getSubscription(updated.id);
+    return this.getSubscription(updatedSubscription.id);
   }
 
-  async cancelSubscription(id: string, payload: CancelSubscriptionPayload): Promise<Subscription> {
+  async cancelSubscription(
+    id: string,
+    payload: CancelSubscriptionPayload,
+  ): Promise<SubscriptionResponse> {
     const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
 
     if (!subscription) {
@@ -268,9 +276,9 @@ export class SubscriptionService {
   async advanceSubscriptions(testClockId: string, now: Date): Promise<number> {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
-        testClockIdEq: testClockId,
+        testClockId: testClockId,
         statusNe: SubscriptionStatusEnum.CANCELED,
-        currentPeriodEndLte: now,
+        currentPeriodEndTo: now,
       },
       ADVANCE_BATCH_SIZE,
     );
@@ -282,11 +290,11 @@ export class SubscriptionService {
     return due.length;
   }
 
-  private async advanceSubscription(subscription: SubscriptionEntity, now: Date): Promise<void> {
+  private async advanceSubscription(subscription: Subscription, now: Date): Promise<void> {
     const items = await this.fastify.subscriptionRepository.findSubscriptionItems([
       subscription.id,
     ]);
-    const prices = await this.resolvePrices(items.map((item) => item.priceId));
+    const prices = await this.resolvePrices(_.map(items, 'priceId'));
     const { interval, intervalCount } = SubscriptionService.resolveInterval(prices);
 
     let current = subscription;
@@ -303,10 +311,10 @@ export class SubscriptionService {
   }
 
   private async rollPeriod(
-    subscription: SubscriptionEntity,
+    subscription: Subscription,
     interval: RecurringInterval,
     intervalCount: number,
-  ): Promise<SubscriptionEntity> {
+  ): Promise<Subscription> {
     const periodEnd = subscription.currentPeriodEnd;
 
     if (subscription.cancelAtPeriodEnd) {
@@ -340,10 +348,10 @@ export class SubscriptionService {
   }
 
   private async writeTransition(
-    subscription: SubscriptionEntity,
-    changes: Partial<SubscriptionEntity>,
+    subscription: Subscription,
+    changes: Partial<Subscription>,
     eventType: DomainEventTypeEnum,
-  ): Promise<SubscriptionEntity> {
+  ): Promise<Subscription> {
     if (changes.status && changes.status !== subscription.status) {
       SubscriptionService.assertTransition(subscription.status, changes.status);
     }
@@ -366,7 +374,7 @@ export class SubscriptionService {
   }
 
   private async recordSubscriptionEvent(
-    subscription: SubscriptionEntity,
+    subscription: Subscription,
     eventType: DomainEventTypeEnum,
     tx: DatabaseTransaction,
   ): Promise<void> {
@@ -401,14 +409,14 @@ export class SubscriptionService {
     return clock.frozenTime;
   }
 
-  private async resolvePrices(priceIds: readonly string[]): Promise<PriceEntity[]> {
+  private async resolvePrices(priceIds: readonly string[]): Promise<Price[]> {
     const prices = await this.fastify.priceRepository.findPrices(
-      { idIn: priceIds },
+      { ids: priceIds },
       MAX_ITEMS_PER_SUBSCRIPTION,
     );
 
     for (const priceId of priceIds) {
-      if (!prices.some((price) => price.id === priceId)) {
+      if (!_.some(prices, { id: priceId })) {
         throw new NotFoundError(`No such price: ${priceId}`);
       }
     }
@@ -442,19 +450,21 @@ export class SubscriptionService {
     return null;
   }
 
-  private static resolveInterval(prices: readonly PriceEntity[]): SubscriptionInterval {
-    const [first] = prices;
+  private static resolveInterval(prices: readonly Price[]): SubscriptionInterval {
+    const [firstPrice] = prices;
+    const interval = _.get(firstPrice, 'recurringInterval');
+    const intervalCount = _.get(firstPrice, 'recurringIntervalCount');
 
-    if (!first?.recurringInterval || !first.recurringIntervalCount) {
-      throw new BadRequestError('A subscription needs at least one recurring price', {
-        param: 'items',
-      });
+    if (interval && intervalCount) {
+      return { interval, intervalCount };
     }
 
-    return { interval: first.recurringInterval, intervalCount: first.recurringIntervalCount };
+    throw new BadRequestError('A subscription needs at least one recurring price', {
+      param: 'items',
+    });
   }
 
-  private static assertPricesUsable(prices: readonly PriceEntity[], currency: string): void {
+  private static assertPricesUsable(prices: readonly Price[], currency: string): void {
     for (const price of prices) {
       if (!price.active) {
         throw new BadRequestError(`Price ${price.id} is archived and cannot be subscribed to`, {
@@ -476,15 +486,20 @@ export class SubscriptionService {
       }
     }
 
-    const [first] = prices;
-    const mismatched = prices.find((price) => {
+    const [firstPrice] = prices;
+
+    if (!firstPrice) {
+      throw new BadRequestError('A subscription needs at least one price', { param: 'items' });
+    }
+
+    const mismatchedPrice = _.find(prices, (price) => {
       return (
-        price.recurringInterval !== first?.recurringInterval ||
-        price.recurringIntervalCount !== first?.recurringIntervalCount
+        price.recurringInterval !== firstPrice.recurringInterval ||
+        price.recurringIntervalCount !== firstPrice.recurringIntervalCount
       );
     });
 
-    if (mismatched) {
+    if (mismatchedPrice) {
       throw new BadRequestError(
         'Every price on a subscription must share the same billing period',
         {
@@ -495,15 +510,15 @@ export class SubscriptionService {
   }
 
   private static assertTransition(from: SubscriptionStatus, to: SubscriptionStatus): void {
-    if (!SUBSCRIPTION_TRANSITIONS[from].includes(to)) {
+    if (!_.includes(SUBSCRIPTION_TRANSITIONS[from], to)) {
       throw new ConflictError(`A subscription cannot move from ${from} to ${to}`);
     }
   }
 
   private static buildSubscription(
-    entity: SubscriptionEntity,
-    items: readonly (SubscriptionItemEntity | NewSubscriptionItemEntity)[],
-  ): Subscription {
+    entity: Subscription,
+    items: readonly (SubscriptionItem | NewSubscriptionItem)[],
+  ): SubscriptionResponse {
     return {
       object: 'subscription',
       id: entity.id,
@@ -511,7 +526,7 @@ export class SubscriptionService {
       status: entity.status,
       currency: entity.currency,
       collectionMethod: entity.collectionMethod,
-      items: items.map((item): SubscriptionItem => {
+      items: _.map(items, (item): SubscriptionItemResponse => {
         return {
           object: 'subscription_item',
           id: item.id,

@@ -1,5 +1,5 @@
-import fp from 'fastify-plugin';
 import { DatabaseClient } from '@database/database.client';
+import fp from 'fastify-plugin';
 
 export const databasePlugin = fp(async (fastify) => {
   const { DATABASE_URL, DATABASE_POOL_MAX } = fastify.config;

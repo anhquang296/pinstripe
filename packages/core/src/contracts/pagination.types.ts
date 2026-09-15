@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static, TSchema } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 
 export const DEFAULT_PAGE_LIMIT = 10;
 export const MAX_PAGE_LIMIT = 100;

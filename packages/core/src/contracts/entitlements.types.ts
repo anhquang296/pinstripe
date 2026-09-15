@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 
 export enum EntitlementStatusEnum {
   ACTIVE = 'active',
@@ -31,5 +31,5 @@ export const getEntitlementsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type Entitlement = Static<typeof entitlementSchema>;
+export type EntitlementResponse = Static<typeof entitlementSchema>;
 export type GetEntitlementsQuery = Static<typeof getEntitlementsSchema>;

@@ -1,7 +1,7 @@
-import type { Job } from 'bullmq';
-import type { FastifyInstance } from 'fastify';
 import { AggregateTypeEnum } from '@pinstripe/core/contracts';
 import type { DomainEventDispatchJob } from '@pinstripe/core/queues';
+import type { Job } from 'bullmq';
+import type { FastifyInstance } from 'fastify';
 
 export class DomainEventDispatchProcessor {
   constructor(private readonly fastify: FastifyInstance) {}

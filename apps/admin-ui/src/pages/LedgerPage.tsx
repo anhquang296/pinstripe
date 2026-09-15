@@ -1,13 +1,13 @@
-import { useCallback, useState } from 'react';
-import Button from '@components/ui/Button';
 import LedgerAccountItem from '@components/LedgerAccountItem';
 import LedgerTransactionItem from '@components/LedgerTransactionItem';
+import Button from '@components/ui/Button';
 import TextField from '@components/ui/TextField';
 import {
   useLedgerAccountsQuery,
   useLedgerTransactionsQuery,
   useReverseLedgerTransactionMutation,
 } from '@reactquery/ledger';
+import { useCallback, useState } from 'react';
 
 const ACCOUNT_LIMIT = 20;
 const TRANSACTION_LIMIT = 20;
@@ -15,15 +15,21 @@ const TRANSACTION_LIMIT = 20;
 export default function LedgerPage() {
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
-  const accountsQuery = useLedgerAccountsQuery({ limit: ACCOUNT_LIMIT }, { hasPlaceholder: true });
-  const transactionsQuery = useLedgerTransactionsQuery(
+  const { data: ledgerAccounts, error: accountsError } = useLedgerAccountsQuery(
+    { limit: ACCOUNT_LIMIT },
+    { hasPlaceholder: true },
+  );
+  const { data: ledgerTransactions, error: transactionsError } = useLedgerTransactionsQuery(
     { limit: TRANSACTION_LIMIT },
     { hasPlaceholder: true },
   );
-  const reverseMutation = useReverseLedgerTransactionMutation();
+  const { mutateAsync: reverseLedgerTransaction, isPending: isReversing } =
+    useReverseLedgerTransactionMutation();
 
   const handleOnTransactionSelect = useCallback((transactionId: string) => {
-    setSelectedTransactionId((current) => (current === transactionId ? null : transactionId));
+    setSelectedTransactionId((current) => {
+      return current === transactionId ? null : transactionId;
+    });
   }, []);
 
   const handleOnReasonChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,14 +41,14 @@ export default function LedgerPage() {
       return;
     }
 
-    await reverseMutation.mutateAsync({
+    await reverseLedgerTransaction({
       id: selectedTransactionId,
       payload: { reason: reason.trim() },
     });
 
     setSelectedTransactionId(null);
     setReason('');
-  }, [reason, reverseMutation, selectedTransactionId]);
+  }, [reason, reverseLedgerTransaction, selectedTransactionId]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -70,14 +76,12 @@ export default function LedgerPage() {
               </tr>
             </thead>
             <tbody>
-              {accountsQuery.data?.data.map((account) => (
-                <LedgerAccountItem key={account.id} account={account} />
-              ))}
+              {ledgerAccounts?.data.map((account) => {
+                return <LedgerAccountItem key={account.id} account={account} />;
+              })}
             </tbody>
           </table>
-          {accountsQuery.error ? (
-            <p className="px-4 py-3 text-red-600">{accountsQuery.error.message}</p>
-          ) : null}
+          {accountsError ? <p className="px-4 py-3 text-red-600">{accountsError.message}</p> : null}
         </div>
       </section>
 
@@ -94,24 +98,26 @@ export default function LedgerPage() {
               value={reason}
               onChange={handleOnReasonChange}
             />
-            <Button onClick={handleOnReverseConfirm} disabled={reverseMutation.isPending}>
+            <Button onClick={handleOnReverseConfirm} disabled={isReversing}>
               Xác nhận đảo
             </Button>
           </div>
         ) : null}
 
         <ul className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          {transactionsQuery.data?.data.map((transaction) => (
-            <LedgerTransactionItem
-              key={transaction.id}
-              transaction={transaction}
-              isSelected={selectedTransactionId === transaction.id}
-              onSelect={handleOnTransactionSelect}
-            />
-          ))}
+          {ledgerTransactions?.data.map((transaction) => {
+            return (
+              <LedgerTransactionItem
+                key={transaction.id}
+                transaction={transaction}
+                isSelected={selectedTransactionId === transaction.id}
+                onSelect={handleOnTransactionSelect}
+              />
+            );
+          })}
         </ul>
-        {transactionsQuery.error ? (
-          <p className="px-4 py-3 text-red-600">{transactionsQuery.error.message}</p>
+        {transactionsError ? (
+          <p className="px-4 py-3 text-red-600">{transactionsError.message}</p>
         ) : null}
       </section>
     </div>

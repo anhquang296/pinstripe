@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
+import _ from 'lodash';
+
 export enum ObjectPrefixEnum {
   CUSTOMER = 'cus',
   PRODUCT = 'prod',
@@ -43,5 +45,5 @@ export function generateId(prefix: ObjectPrefix): string {
 }
 
 export function hasPrefix(id: string, prefix: ObjectPrefix): boolean {
-  return id.startsWith(`${prefix}_`);
+  return _.startsWith(id, `${prefix}_`);
 }

@@ -1,15 +1,13 @@
-import { useCallback, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import SubscriptionItem from '@components/SubscriptionItem';
 import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
-import SubscriptionItem from '@components/SubscriptionItem';
 import TextField from '@components/ui/TextField';
+import type { CreateSubscriptionFormValues } from '@forms/create-subscription-form';
 import {
   createSubscriptionFormDefaultValues,
   createSubscriptionFormSchema,
 } from '@forms/create-subscription-form';
-import type { CreateSubscriptionFormValues } from '@forms/create-subscription-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCustomersQuery } from '@reactquery/customers';
 import { useEntitlementsQuery } from '@reactquery/entitlements';
 import { usePricesQuery } from '@reactquery/prices';
@@ -18,17 +16,25 @@ import {
   useCreateSubscriptionMutation,
   useSubscriptionsQuery,
 } from '@reactquery/subscriptions';
+import { useCallback, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 
 const PAGE_LIMIT = 20;
 const OPTION_LIMIT = 100;
 
 export default function SubscriptionsPage() {
-  const subscriptionsQuery = useSubscriptionsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const customersQuery = useCustomersQuery({ limit: OPTION_LIMIT });
-  const pricesQuery = usePricesQuery({ limit: OPTION_LIMIT, active: true });
-  const entitlementsQuery = useEntitlementsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const createSubscriptionMutation = useCreateSubscriptionMutation();
-  const cancelSubscriptionMutation = useCancelSubscriptionMutation();
+  const { data: subscriptions, error: subscriptionsError } = useSubscriptionsQuery(
+    { limit: PAGE_LIMIT },
+    { hasPlaceholder: true },
+  );
+  const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
+  const { data: prices } = usePricesQuery({ limit: OPTION_LIMIT, active: true });
+  const { data: entitlements } = useEntitlementsQuery(
+    { limit: PAGE_LIMIT },
+    { hasPlaceholder: true },
+  );
+  const { mutateAsync: createSubscription } = useCreateSubscriptionMutation();
+  const { mutate: cancelSubscription } = useCancelSubscriptionMutation();
 
   const form = useForm<CreateSubscriptionFormValues>({
     resolver: zodResolver(createSubscriptionFormSchema),
@@ -36,32 +42,38 @@ export default function SubscriptionsPage() {
   });
 
   const customerOptions = useMemo(() => {
-    const customers = customersQuery.data?.data ?? [];
+    const customerOptionSource = customers?.data ?? [];
 
     return [
       { value: '', label: '— chọn khách hàng —' },
-      ...customers.map((customer) => ({
-        value: customer.id,
-        label: `${customer.name || customer.email || customer.id} (${customer.currency.toUpperCase()})`,
-      })),
+      ...customerOptionSource.map((customer) => {
+        return {
+          value: customer.id,
+          label: `${customer.name || customer.email || customer.id} (${customer.currency.toUpperCase()})`,
+        };
+      }),
     ];
-  }, [customersQuery.data]);
+  }, [customers]);
 
   const priceOptions = useMemo(() => {
-    const prices = (pricesQuery.data?.data ?? []).filter((price) => price.type === 'recurring');
+    const priceOptionSource = (prices?.data ?? []).filter((price) => {
+      return price.type === 'recurring';
+    });
 
     return [
       { value: '', label: '— chọn bảng giá —' },
-      ...prices.map((price) => ({
-        value: price.id,
-        label: `${price.lookupKey ?? price.id} · ${price.billingScheme} · ${price.currency.toUpperCase()}`,
-      })),
+      ...priceOptionSource.map((price) => {
+        return {
+          value: price.id,
+          label: `${price.lookupKey ?? price.id} · ${price.billingScheme} · ${price.currency.toUpperCase()}`,
+        };
+      }),
     ];
-  }, [pricesQuery.data]);
+  }, [prices]);
 
   const handleOnSubmit = useCallback(
     async (values: CreateSubscriptionFormValues) => {
-      await createSubscriptionMutation.mutateAsync({
+      await createSubscription({
         customerId: values.customerId,
         items: [{ priceId: values.priceId }],
         trialPeriodDays: values.trialPeriodDays > 0 ? values.trialPeriodDays : undefined,
@@ -69,14 +81,14 @@ export default function SubscriptionsPage() {
 
       form.reset(createSubscriptionFormDefaultValues);
     },
-    [createSubscriptionMutation, form],
+    [createSubscription, form],
   );
 
   const handleOnCancel = useCallback(
     (subscriptionId: string, cancelAtPeriodEnd: boolean) => {
-      cancelSubscriptionMutation.mutate({ id: subscriptionId, payload: { cancelAtPeriodEnd } });
+      cancelSubscription({ id: subscriptionId, payload: { cancelAtPeriodEnd } });
     },
-    [cancelSubscriptionMutation],
+    [cancelSubscription],
   );
 
   return (
@@ -129,17 +141,19 @@ export default function SubscriptionsPage() {
             </tr>
           </thead>
           <tbody>
-            {subscriptionsQuery.data?.data.map((subscription) => (
-              <SubscriptionItem
-                key={subscription.id}
-                subscription={subscription}
-                onCancel={handleOnCancel}
-              />
-            ))}
+            {subscriptions?.data.map((subscription) => {
+              return (
+                <SubscriptionItem
+                  key={subscription.id}
+                  subscription={subscription}
+                  onCancel={handleOnCancel}
+                />
+              );
+            })}
           </tbody>
         </table>
-        {subscriptionsQuery.error ? (
-          <p className="px-4 py-3 text-red-600">{subscriptionsQuery.error.message}</p>
+        {subscriptionsError ? (
+          <p className="px-4 py-3 text-red-600">{subscriptionsError.message}</p>
         ) : null}
       </div>
 
@@ -156,20 +170,22 @@ export default function SubscriptionsPage() {
               </tr>
             </thead>
             <tbody>
-              {entitlementsQuery.data?.data.map((entitlement) => (
-                <tr key={entitlement.id} className="border-t border-slate-100">
-                  <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                    {entitlement.customerId}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                    {entitlement.productId}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                    {entitlement.subscriptionId}
-                  </td>
-                  <td className="px-4 py-3">{entitlement.status}</td>
-                </tr>
-              ))}
+              {entitlements?.data.map((entitlement) => {
+                return (
+                  <tr key={entitlement.id} className="border-t border-slate-100">
+                    <td className="px-4 py-3 font-mono text-xs text-slate-500">
+                      {entitlement.customerId}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-slate-500">
+                      {entitlement.productId}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-slate-500">
+                      {entitlement.subscriptionId}
+                    </td>
+                    <td className="px-4 py-3">{entitlement.status}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

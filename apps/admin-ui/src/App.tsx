@@ -1,11 +1,11 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from '@components/AppLayout';
 import CustomersPage from '@pages/CustomersPage';
 import LedgerPage from '@pages/LedgerPage';
 import PricesPage from '@pages/PricesPage';
+import ProductsPage from '@pages/ProductsPage';
 import SubscriptionsPage from '@pages/SubscriptionsPage';
 import TestClocksPage from '@pages/TestClocksPage';
-import ProductsPage from '@pages/ProductsPage';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 export default function App() {
   return (

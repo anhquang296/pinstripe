@@ -1,7 +1,7 @@
-import type { LedgerAccount } from '@pinstripe/core/contracts';
+import type { LedgerAccountResponse } from '@pinstripe/core/contracts';
 
-export interface LedgerAccountItemProps {
-  account: LedgerAccount;
+interface LedgerAccountItemProps {
+  account: LedgerAccountResponse;
 }
 
 export default function LedgerAccountItem({ account }: LedgerAccountItemProps) {

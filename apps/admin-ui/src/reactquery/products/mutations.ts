@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { CreateProductPayload, UpdateProductPayload } from '@pinstripe/core/contracts';
-import { createProduct, updateProduct } from '@api/products/products.api';
+import { createProduct, updateProduct } from '@api/products';
 import type { MutationProps } from '@lib/react-query.types';
 import { toast } from '@lib/toast';
+import type { CreateProductPayload, UpdateProductPayload } from '@pinstripe/core/contracts';
 import { queries } from '@react-query-keys/index';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useCreateProductMutation({ shouldBeSuccessToast = true }: MutationProps = {}) {
   const queryClient = useQueryClient();

@@ -1,26 +1,27 @@
-import type { FastifyInstance } from 'fastify';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
   CreateProductPayload,
   GetProductsQuery,
-  Product,
+  ProductResponse,
   UpdateProductPayload,
 } from '@contracts/products.types';
-import type { ProductEntity } from '@database/schemas';
+import type { Product } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 
 export class ProductService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createProduct(payload: CreateProductPayload): Promise<Product> {
+  async createProduct(payload: CreateProductPayload): Promise<ProductResponse> {
     const now = this.fastify.clock.now();
     const id = generateId(ObjectPrefixEnum.PRODUCT);
 
-    const created = await this.fastify.database.master.transaction(async (tx) => {
+    const createdProduct = await this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.createProduct(
         {
           id,
@@ -54,10 +55,10 @@ export class ProductService {
       return product;
     });
 
-    return ProductService.buildProduct(created);
+    return ProductService.buildProduct(createdProduct);
   }
 
-  async getProduct(id: string): Promise<Product> {
+  async getProduct(id: string): Promise<ProductResponse> {
     const product = await this.fastify.productRepository.findProduct(id);
 
     if (product) {
@@ -67,10 +68,10 @@ export class ProductService {
     throw new NotFoundError(`No such product: ${id}`);
   }
 
-  async updateProduct(id: string, payload: UpdateProductPayload): Promise<Product> {
+  async updateProduct(id: string, payload: UpdateProductPayload): Promise<ProductResponse> {
     await this.getProduct(id);
 
-    const updated = await this.fastify.database.master.transaction(async (tx) => {
+    const updatedProduct = await this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.updateProduct(
         id,
         { ...payload, updatedAt: this.fastify.clock.now() },
@@ -96,15 +97,15 @@ export class ProductService {
       return product;
     });
 
-    return ProductService.buildProduct(updated);
+    return ProductService.buildProduct(updatedProduct);
   }
 
-  async findProducts(query: GetProductsQuery): Promise<ListResponse<Product>> {
+  async findProducts(query: GetProductsQuery): Promise<ListResponse<ProductResponse>> {
     const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
-    const beforeCursor = await this.resolveCursor(query.startingAfter);
-    const afterCursor = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.productRepository.findProducts(
-      { activeEq: query.active, beforeCursor, afterCursor },
+      { active: query.active, beforeAt, afterAt },
       limit + 1,
     );
     const hasMore = rows.length > limit;
@@ -113,7 +114,7 @@ export class ProductService {
       object: 'list',
       url: '/v1/products',
       hasMore,
-      data: rows.slice(0, limit).map(ProductService.buildProduct),
+      data: _(rows).take(limit).map(ProductService.buildProduct).value(),
     };
   }
 
@@ -131,7 +132,7 @@ export class ProductService {
     return { createdAt: product.createdAt, id: product.id };
   }
 
-  private static buildProduct(entity: ProductEntity): Product {
+  private static buildProduct(entity: Product): ProductResponse {
     return {
       object: 'product',
       id: entity.id,

@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
 import { CurrencyEnum } from '@utils/currency';
 
@@ -156,7 +156,7 @@ export const getPricesSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type Price = Static<typeof priceSchema>;
+export type PriceResponse = Static<typeof priceSchema>;
 export type CreatePricePayload = Static<typeof createPriceSchema>;
 export type UpdatePricePayload = Static<typeof updatePriceSchema>;
 export type GetPricesQuery = Static<typeof getPricesSchema>;

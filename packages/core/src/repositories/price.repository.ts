@@ -1,16 +1,17 @@
-import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
-import type { NewPriceEntity, PriceEntity } from '@database/schemas';
+import type { NewPrice, Price } from '@database/schemas';
 import { prices } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
+import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
-export interface FindPricesFilters {
-  idIn?: readonly string[];
-  productIdEq?: string;
-  lookupKeyEq?: string;
-  activeEq?: boolean;
-  beforeCursor?: RowCursor;
-  afterCursor?: RowCursor;
+export interface PriceFilters {
+  ids?: readonly string[];
+  productId?: string;
+  lookupKey?: string;
+  active?: boolean;
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
 }
 
 export class PriceRepository {
@@ -20,23 +21,23 @@ export class PriceRepository {
     this._db = db;
   }
 
-  async findPrice(id: string): Promise<PriceEntity | null> {
+  async findPrice(id: string): Promise<Price | null> {
     const [price] = await this._db.master.select().from(prices).where(eq(prices.id, id)).limit(1);
 
     return price ?? null;
   }
 
-  async findPrices(filters: FindPricesFilters, limit: number): Promise<PriceEntity[]> {
+  async findPrices(filters: PriceFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Price[]> {
     const where = and(
-      filters.idIn ? inArray(prices.id, [...filters.idIn]) : undefined,
-      filters.productIdEq ? eq(prices.productId, filters.productIdEq) : undefined,
-      filters.lookupKeyEq ? eq(prices.lookupKey, filters.lookupKeyEq) : undefined,
-      filters.activeEq === undefined ? undefined : eq(prices.active, filters.activeEq),
-      filters.beforeCursor
-        ? sql`(${prices.createdAt}, ${prices.id}) < (${filters.beforeCursor.createdAt.toISOString()}::timestamptz, ${filters.beforeCursor.id})`
+      filters.ids ? inArray(prices.id, [...filters.ids]) : undefined,
+      filters.productId ? eq(prices.productId, filters.productId) : undefined,
+      filters.lookupKey ? eq(prices.lookupKey, filters.lookupKey) : undefined,
+      filters.active === undefined ? undefined : eq(prices.active, filters.active),
+      filters.beforeAt
+        ? sql`(${prices.createdAt}, ${prices.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
-      filters.afterCursor
-        ? sql`(${prices.createdAt}, ${prices.id}) > (${filters.afterCursor.createdAt.toISOString()}::timestamptz, ${filters.afterCursor.id})`
+      filters.afterAt
+        ? sql`(${prices.createdAt}, ${prices.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -48,7 +49,7 @@ export class PriceRepository {
       .limit(limit);
   }
 
-  async findLatestPriceVersion(lookupKey: string): Promise<PriceEntity | null> {
+  async findLatestPrice(lookupKey: string): Promise<Price | null> {
     const [price] = await this._db.master
       .select()
       .from(prices)
@@ -59,7 +60,7 @@ export class PriceRepository {
     return price ?? null;
   }
 
-  async findEffectivePrice(lookupKey: string, at: Date): Promise<PriceEntity | null> {
+  async findEffectivePrice(lookupKey: string, at: Date): Promise<Price | null> {
     const [price] = await this._db.master
       .select()
       .from(prices)
@@ -72,10 +73,7 @@ export class PriceRepository {
     return price ?? null;
   }
 
-  async createPrice(
-    payload: NewPriceEntity,
-    executor?: DatabaseTransaction,
-  ): Promise<PriceEntity | null> {
+  async createPrice(payload: NewPrice, executor?: DatabaseTransaction): Promise<Price | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [price] = await db.insert(prices).values(payload).returning();
 
@@ -84,9 +82,9 @@ export class PriceRepository {
 
   async updatePrice(
     id: string,
-    payload: Partial<NewPriceEntity>,
+    payload: Partial<NewPrice>,
     executor?: DatabaseTransaction,
-  ): Promise<PriceEntity | null> {
+  ): Promise<Price | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [price] = await db.update(prices).set(payload).where(eq(prices.id, id)).returning();
 

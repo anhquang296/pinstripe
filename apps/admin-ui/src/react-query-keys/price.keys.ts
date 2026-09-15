@@ -1,6 +1,6 @@
+import { getPrice, getPrices } from '@api/prices';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import type { GetPricesQuery } from '@pinstripe/core/contracts';
-import { getPrice, getPrices } from '@api/prices/prices.api';
 import { ReactQuerySubjectEnum } from '@react-query-keys/react-query-subject';
 
 export const priceQueries = createQueryKeys(ReactQuerySubjectEnum.PRICE, {

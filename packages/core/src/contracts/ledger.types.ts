@@ -1,5 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
 import { CurrencyEnum } from '@utils/currency';
 
@@ -173,9 +173,9 @@ export const getLedgerAccountsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type LedgerAccount = Static<typeof ledgerAccountSchema>;
-export type LedgerPosting = Static<typeof ledgerPostingSchema>;
-export type LedgerTransaction = Static<typeof ledgerTransactionSchema>;
+export type LedgerAccountResponse = Static<typeof ledgerAccountSchema>;
+export type LedgerPostingResponse = Static<typeof ledgerPostingSchema>;
+export type LedgerTransactionResponse = Static<typeof ledgerTransactionSchema>;
 export type PostLedgerTransactionPayload = Static<typeof postLedgerTransactionSchema>;
 export type ReverseLedgerTransactionPayload = Static<typeof reverseLedgerTransactionSchema>;
 export type GetLedgerTransactionsQuery = Static<typeof getLedgerTransactionsSchema>;

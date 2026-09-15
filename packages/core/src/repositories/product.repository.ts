@@ -1,13 +1,14 @@
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
-import type { NewProductEntity, ProductEntity } from '@database/schemas';
+import type { NewProduct, Product } from '@database/schemas';
 import { products } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
-export interface FindProductsFilters {
-  activeEq?: boolean;
-  beforeCursor?: RowCursor;
-  afterCursor?: RowCursor;
+export interface ProductFilters {
+  active?: boolean;
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
 }
 
 export class ProductRepository {
@@ -17,7 +18,7 @@ export class ProductRepository {
     this._db = db;
   }
 
-  async findProduct(id: string): Promise<ProductEntity | null> {
+  async findProduct(id: string): Promise<Product | null> {
     const [product] = await this._db.master
       .select()
       .from(products)
@@ -27,15 +28,18 @@ export class ProductRepository {
     return product ?? null;
   }
 
-  async findProducts(filters: FindProductsFilters, limit: number): Promise<ProductEntity[]> {
+  async findProducts(
+    filters: ProductFilters = {},
+    limit = DEFAULT_QUERY_LIMIT,
+  ): Promise<Product[]> {
     const where = and(
       isNull(products.deletedAt),
-      filters.activeEq === undefined ? undefined : eq(products.active, filters.activeEq),
-      filters.beforeCursor
-        ? sql`(${products.createdAt}, ${products.id}) < (${filters.beforeCursor.createdAt.toISOString()}::timestamptz, ${filters.beforeCursor.id})`
+      filters.active === undefined ? undefined : eq(products.active, filters.active),
+      filters.beforeAt
+        ? sql`(${products.createdAt}, ${products.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
-      filters.afterCursor
-        ? sql`(${products.createdAt}, ${products.id}) > (${filters.afterCursor.createdAt.toISOString()}::timestamptz, ${filters.afterCursor.id})`
+      filters.afterAt
+        ? sql`(${products.createdAt}, ${products.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -48,9 +52,9 @@ export class ProductRepository {
   }
 
   async createProduct(
-    payload: NewProductEntity,
+    payload: NewProduct,
     executor?: DatabaseTransaction,
-  ): Promise<ProductEntity | null> {
+  ): Promise<Product | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [product] = await db.insert(products).values(payload).returning();
 
@@ -59,9 +63,9 @@ export class ProductRepository {
 
   async updateProduct(
     id: string,
-    payload: Partial<NewProductEntity>,
+    payload: Partial<NewProduct>,
     executor?: DatabaseTransaction,
-  ): Promise<ProductEntity | null> {
+  ): Promise<Product | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [product] = await db
       .update(products)

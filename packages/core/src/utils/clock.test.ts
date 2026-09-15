@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { FrozenClock } from '@utils/clock';
+import { describe, expect, it } from 'vitest';
 
 describe('FrozenClock', () => {
   it('returns the same instant until it is advanced', () => {
@@ -22,7 +22,9 @@ describe('FrozenClock', () => {
   it('refuses to move backwards because billing history must not be rewritten', () => {
     const clock = new FrozenClock(new Date('2026-01-01T00:00:00.000Z'));
 
-    const act = () => clock.advanceTo(new Date('2025-12-31T00:00:00.000Z'));
+    const act = () => {
+      return clock.advanceTo(new Date('2025-12-31T00:00:00.000Z'));
+    };
 
     expect(act).toThrowError(/cannot move backwards/);
   });

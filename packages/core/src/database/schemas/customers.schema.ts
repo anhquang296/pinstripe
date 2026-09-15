@@ -1,7 +1,7 @@
+import type { CustomerResponse as CustomerContract } from '@contracts/customers.types';
+import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
 import { bigint, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
-import type { Customer as CustomerContract } from '@contracts/customers.types';
-import type { Currency } from '@utils/currency';
 
 export const customers = pgTable(
   'customers',
@@ -21,13 +21,15 @@ export const customers = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
-  (table) => [
-    index('customers_created_at_id_idx').on(table.createdAt, table.id),
-    uniqueIndex('customers_email_idx')
-      .on(table.email)
-      .where(sql`deleted_at is null and email is not null`),
-  ],
+  (table) => {
+    return [
+      index('customers_created_at_id_idx').on(table.createdAt, table.id),
+      uniqueIndex('customers_email_idx')
+        .on(table.email)
+        .where(sql`deleted_at is null and email is not null`),
+    ];
+  },
 );
 
-export type CustomerEntity = typeof customers.$inferSelect;
-export type NewCustomerEntity = typeof customers.$inferInsert;
+export type Customer = typeof customers.$inferSelect;
+export type NewCustomer = typeof customers.$inferInsert;

@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto';
-import type { FastifyInstance } from 'fastify';
+
+import { MILLISECONDS_PER_HOUR } from '@constants/time';
+import { IdempotencyStatusEnum } from '@contracts/idempotency.types';
 import type { IdempotencyKey } from '@database/schemas';
-import { IdempotencyStatusEnum } from '@database/schemas';
 import { IdempotencyConflictError, IdempotencyInProgressError } from '@errors/idempotency.error';
 import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
-
-const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
+import type { FastifyInstance } from 'fastify';
 
 export interface BeginIdempotentRequestPayload {
   scope: string;
@@ -37,7 +37,7 @@ export class IdempotencyService {
   async beginRequest(payload: BeginIdempotentRequestPayload): Promise<IdempotentRequestTicket> {
     const requestHash = IdempotencyService.buildRequestHash(payload.body);
     const now = this.fastify.clock.now();
-    const created = await this.fastify.idempotencyKeyRepository.createIdempotencyKey({
+    const createdIdempotencyKey = await this.fastify.idempotencyKeyRepository.createIdempotencyKey({
       id: generateId(ObjectPrefixEnum.REQUEST),
       key: payload.key,
       scope: payload.scope,
@@ -50,23 +50,26 @@ export class IdempotencyService {
       expiresAt: new Date(now.getTime() + this.config.retentionHours * MILLISECONDS_PER_HOUR),
     });
 
-    if (created) {
-      return { id: created.id, replay: null };
+    if (createdIdempotencyKey) {
+      return { id: createdIdempotencyKey.id, replay: null };
     }
 
-    const existing = await this.fastify.idempotencyKeyRepository.findIdempotencyKey(
+    const existingIdempotencyKey = await this.fastify.idempotencyKeyRepository.findIdempotencyKey(
       payload.scope,
       payload.key,
       payload.route,
     );
 
-    if (!existing) {
+    if (!existingIdempotencyKey) {
       throw new IdempotencyInProgressError(
         `Idempotency key ${payload.key} is being processed concurrently`,
       );
     }
 
-    return { id: existing.id, replay: this.resolveReplay(existing, requestHash) };
+    return {
+      id: existingIdempotencyKey.id,
+      replay: this.resolveReplay(existingIdempotencyKey, requestHash),
+    };
   }
 
   async completeRequest(id: string, statusCode: number, body: unknown): Promise<void> {
@@ -82,27 +85,36 @@ export class IdempotencyService {
     await this.fastify.idempotencyKeyRepository.releaseIdempotencyKey(id);
   }
 
-  async purgeExpiredRequests(): Promise<void> {
+  async deleteExpiredRequests(): Promise<void> {
     await this.fastify.idempotencyKeyRepository.deleteExpiredIdempotencyKeys(
       this.fastify.clock.now(),
     );
   }
 
-  private resolveReplay(existing: IdempotencyKey, requestHash: string): ReplayedResponse | null {
-    if (existing.requestHash !== requestHash) {
+  private resolveReplay(
+    existingIdempotencyKey: IdempotencyKey,
+    requestHash: string,
+  ): ReplayedResponse | null {
+    if (existingIdempotencyKey.requestHash !== requestHash) {
       throw new IdempotencyConflictError(
-        `Idempotency key ${existing.key} was already used with a different request body`,
+        `Idempotency key ${existingIdempotencyKey.key} was already used with a different request body`,
       );
     }
 
-    if (existing.status === IdempotencyStatusEnum.IN_PROGRESS) {
+    if (existingIdempotencyKey.status === IdempotencyStatusEnum.IN_PROGRESS) {
       throw new IdempotencyInProgressError(
-        `Idempotency key ${existing.key} is being processed concurrently`,
+        `Idempotency key ${existingIdempotencyKey.key} is being processed concurrently`,
       );
     }
 
-    if (existing.status === IdempotencyStatusEnum.SUCCEEDED && existing.responseStatusCode) {
-      return { statusCode: existing.responseStatusCode, body: existing.responseBody };
+    if (
+      existingIdempotencyKey.status === IdempotencyStatusEnum.SUCCEEDED &&
+      existingIdempotencyKey.responseStatusCode
+    ) {
+      return {
+        statusCode: existingIdempotencyKey.responseStatusCode,
+        body: existingIdempotencyKey.responseBody,
+      };
     }
 
     return null;

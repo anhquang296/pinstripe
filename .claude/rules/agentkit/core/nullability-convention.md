@@ -1,12 +1,4 @@
 ---
-paths:
-  - "**/*.sql"
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.js"
-  - "**/*.jsx"
-  - "**/*.mjs"
-  - "**/*.cjs"
 description: >
   Database schema design — a column is `NOT NULL` until absence is a real domain state, `''` / `0`
   / a sentinel date never stand in for unknown, and the type mirrors the column.

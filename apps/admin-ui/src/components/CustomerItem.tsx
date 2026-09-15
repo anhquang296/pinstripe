@@ -1,7 +1,7 @@
-import type { Customer } from '@pinstripe/core/contracts';
+import type { CustomerResponse } from '@pinstripe/core/contracts';
 
-export interface CustomerItemProps {
-  customer: Customer;
+interface CustomerItemProps {
+  customer: CustomerResponse;
 }
 
 export default function CustomerItem({ customer }: CustomerItemProps) {

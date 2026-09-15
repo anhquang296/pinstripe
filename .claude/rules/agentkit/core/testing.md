@@ -1,11 +1,4 @@
 ---
-paths:
-  - "**/*.test.ts"
-  - "**/*.test.tsx"
-  - "**/*.spec.ts"
-  - "**/*.spec.tsx"
-  - "**/tests/**"
-  - "**/__tests__/**"
 description: >
   What to test and what to skip, and how a test file is shaped — AAA, flat structure, setup
   functions over beforeEach, names that state the scenario.

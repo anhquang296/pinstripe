@@ -1,7 +1,9 @@
-import { Queue } from 'bullmq';
-import type { Redis } from 'ioredis';
+import { UnknownQueueError } from '@errors/app.error';
 import type { QueueName } from '@queues/queue-name';
 import { QueueNameEnum } from '@queues/queue-name';
+import { Queue } from 'bullmq';
+import type { Redis } from 'ioredis';
+import _ from 'lodash';
 
 const DEFAULT_JOB_ATTEMPTS = 5;
 const DEFAULT_BACKOFF_DELAY_MS = 2000;
@@ -39,10 +41,14 @@ export class QueueRegistry {
       return queue;
     }
 
-    throw new Error(`QueueRegistry resolve() unknown queue ${name}`);
+    throw new UnknownQueueError(`QueueRegistry resolve() unknown queue ${name}`);
   }
 
   async close(): Promise<void> {
-    await Promise.all([...this.queues.values()].map((queue) => queue.close()));
+    await Promise.all(
+      _.map([...this.queues.values()], (queue) => {
+        return queue.close();
+      }),
+    );
   }
 }
