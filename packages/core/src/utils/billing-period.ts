@@ -1,8 +1,8 @@
+import { MILLISECONDS_PER_DAY } from '@constants/time';
 import type { RecurringInterval } from '@contracts/prices.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 
 const DAYS_PER_WEEK = 7;
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const MONTHS_PER_YEAR = 12;
 
 function addDays(start: Date, days: number): Date {

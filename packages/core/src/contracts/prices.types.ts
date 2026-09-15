@@ -70,6 +70,7 @@ export const priceSchema = Type.Object({
     }),
     Type.Null(),
   ]),
+  meterId: Type.Union([Type.String(), Type.Null()]),
   tiersMode: Type.Union([Type.Unsafe<TiersMode>(Type.Enum(TiersModeEnum)), Type.Null()]),
   tiers: Type.Union([
     Type.Array(
@@ -113,6 +114,7 @@ export const createPriceSchema = Type.Object(
         usageType: Type.Optional(Type.Unsafe<UsageType>(Type.Enum(UsageTypeEnum))),
       }),
     ),
+    meterId: Type.Optional(Type.String({ minLength: 1 })),
     tiersMode: Type.Optional(Type.Unsafe<TiersMode>(Type.Enum(TiersModeEnum))),
     tiers: Type.Optional(
       Type.Array(

@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: '/prices', label: 'Prices' },
   { to: '/subscriptions', label: 'Subscriptions' },
   { to: '/meters', label: 'Meters' },
+  { to: '/rating', label: 'Rating' },
   { to: '/ledger', label: 'Ledger' },
   { to: '/test-clocks', label: 'Test clocks' },
 ];

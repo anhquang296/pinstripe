@@ -1,6 +1,7 @@
 import { mergeQueryKeys } from '@lukemorales/query-key-factory';
 import { customerQueries } from '@react-query-keys/customer.keys';
 import { entitlementQueries } from '@react-query-keys/entitlement.keys';
+import { invoiceQueries } from '@react-query-keys/invoice.keys';
 import { ledgerQueries } from '@react-query-keys/ledger.keys';
 import { meterQueries } from '@react-query-keys/meter.keys';
 import { priceQueries } from '@react-query-keys/price.keys';
@@ -17,4 +18,5 @@ export const queries = mergeQueryKeys(
   testClockQueries,
   entitlementQueries,
   meterQueries,
+  invoiceQueries,
 );

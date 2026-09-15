@@ -7,5 +7,6 @@ export * from '@services/meter-event.service';
 export * from '@services/outbox.service';
 export * from '@services/price.service';
 export * from '@services/product.service';
+export * from '@services/rating.service';
 export * from '@services/subscription.service';
 export * from '@services/test-clock.service';

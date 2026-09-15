@@ -7,5 +7,6 @@ export enum ReactQuerySubjectEnum {
   TEST_CLOCK = 'test_clock',
   ENTITLEMENT = 'entitlement',
   METER = 'meter',
+  INVOICE = 'invoice',
 }
 export type ReactQuerySubject = `${ReactQuerySubjectEnum}`;

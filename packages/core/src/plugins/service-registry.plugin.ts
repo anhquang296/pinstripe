@@ -7,6 +7,7 @@ import { MeterEventService } from '@services/meter-event.service';
 import { OutboxService } from '@services/outbox.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
+import { RatingService } from '@services/rating.service';
 import { SubscriptionService } from '@services/subscription.service';
 import { TestClockService } from '@services/test-clock.service';
 import fp from 'fastify-plugin';
@@ -23,6 +24,7 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('ledgerService', new LedgerService(fastify));
   fastify.decorate('entitlementService', new EntitlementService(fastify));
   fastify.decorate('subscriptionService', new SubscriptionService(fastify));
+  fastify.decorate('ratingService', new RatingService(fastify));
   fastify.decorate('testClockService', new TestClockService(fastify));
   fastify.decorate('meterService', new MeterService(fastify));
   fastify.decorate(

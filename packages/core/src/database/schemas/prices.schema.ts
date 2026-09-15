@@ -7,6 +7,7 @@ import type {
   TiersMode,
   UsageType,
 } from '@contracts/prices.types';
+import { meters } from '@database/schemas/meters.schema';
 import { products } from '@database/schemas/products.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
@@ -45,6 +46,9 @@ export const prices = pgTable(
     recurringInterval: text('recurring_interval').$type<RecurringInterval>(),
     recurringIntervalCount: integer('recurring_interval_count'),
     usageType: text('usage_type').$type<UsageType>(),
+    meterId: text('meter_id').references(() => {
+      return meters.id;
+    }),
     tiersMode: text('tiers_mode').$type<TiersMode>(),
     tiers: jsonb('tiers').$type<NonNullable<PriceContract['tiers']>>(),
     transformQuantity:
@@ -74,6 +78,11 @@ export const prices = pgTable(
         'prices_one_time_shape',
         sql`type <> 'one_time' or (recurring_interval is null and recurring_interval_count is null and usage_type is null)`,
       ),
+      check(
+        'prices_metered_shape',
+        sql`coalesce(usage_type = 'metered', false) = (meter_id is not null)`,
+      ),
+      index('prices_meter_id_idx').on(table.meterId),
     ];
   },
 );

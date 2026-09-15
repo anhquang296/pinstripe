@@ -7,6 +7,7 @@ import type {
   GetPricesQuery,
   PriceResponse,
   UpdatePricePayload,
+  UsageType,
 } from '@contracts/prices.types';
 import {
   BillingSchemeEnum,
@@ -31,8 +32,15 @@ export class PriceService {
     await this.fastify.productService.getProduct(payload.productId);
 
     const billingScheme = payload.billingScheme ?? BillingSchemeEnum.PER_UNIT;
+    const usageType = payload.recurring
+      ? (payload.recurring.usageType ?? UsageTypeEnum.LICENSED)
+      : null;
 
-    PriceService.assertPriceShape(payload, billingScheme);
+    PriceService.assertPriceShape(payload, billingScheme, usageType);
+
+    if (payload.meterId) {
+      await this.fastify.meterService.getMeter(payload.meterId);
+    }
 
     const now = this.fastify.clock.now();
     const id = generateId(ObjectPrefixEnum.PRICE);
@@ -73,6 +81,7 @@ export class PriceService {
             usageType: payload.recurring
               ? (payload.recurring.usageType ?? UsageTypeEnum.LICENSED)
               : null,
+            meterId: payload.meterId ?? null,
             tiersMode: payload.tiersMode ?? null,
             tiers: payload.tiers ?? null,
             transformQuantity: payload.transformQuantity ?? null,
@@ -220,7 +229,23 @@ export class PriceService {
     return { createdAt: price.createdAt, id: price.id };
   }
 
-  private static assertPriceShape(payload: CreatePricePayload, billingScheme: string): void {
+  private static assertPriceShape(
+    payload: CreatePricePayload,
+    billingScheme: string,
+    usageType: UsageType | null,
+  ): void {
+    if (usageType === UsageTypeEnum.METERED && !payload.meterId) {
+      throw new BadRequestError('meterId is required when recurring.usageType is metered', {
+        param: 'meterId',
+      });
+    }
+
+    if (usageType !== UsageTypeEnum.METERED && payload.meterId) {
+      throw new BadRequestError('meterId is only allowed when recurring.usageType is metered', {
+        param: 'meterId',
+      });
+    }
+
     if (billingScheme === BillingSchemeEnum.PER_UNIT && payload.unitAmount === undefined) {
       throw new BadRequestError('unitAmount is required when billingScheme is per_unit', {
         param: 'unitAmount',
@@ -269,6 +294,7 @@ export class PriceService {
               usageType: entity.usageType,
             }
           : null,
+      meterId: entity.meterId,
       tiersMode: entity.tiersMode,
       tiers: entity.tiers,
       transformQuantity: entity.transformQuantity,

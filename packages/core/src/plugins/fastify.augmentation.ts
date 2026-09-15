@@ -23,6 +23,7 @@ import type { MeterEventService } from '@services/meter-event.service';
 import type { OutboxService } from '@services/outbox.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
+import type { RatingService } from '@services/rating.service';
 import type { SubscriptionService } from '@services/subscription.service';
 import type { TestClockService } from '@services/test-clock.service';
 import type { Clock } from '@utils/clock';
@@ -59,6 +60,7 @@ declare module 'fastify' {
     entitlementService: EntitlementService;
     priceService: PriceService;
     productService: ProductService;
+    ratingService: RatingService;
     subscriptionService: SubscriptionService;
     testClockService: TestClockService;
     ledgerService: LedgerService;

@@ -7,6 +7,7 @@ export * from '@contracts/meters.types';
 export * from '@contracts/pagination.types';
 export * from '@contracts/prices.types';
 export * from '@contracts/products.types';
+export * from '@contracts/rating.types';
 export * from '@contracts/subscriptions.types';
 export * from '@contracts/test-clocks.types';
 export * from '@utils/currency';
