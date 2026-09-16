@@ -1,6 +1,7 @@
 import { BillingRunService } from '@services/billing-run.service';
 import { CreditNoteService } from '@services/credit-note.service';
 import { CustomerService } from '@services/customer.service';
+import { DunningService } from '@services/dunning.service';
 import { EntitlementService } from '@services/entitlement.service';
 import { IdempotencyService } from '@services/idempotency.service';
 import { InvoiceService } from '@services/invoice.service';
@@ -15,6 +16,7 @@ import { RatingService } from '@services/rating.service';
 import { RefundService } from '@services/refund.service';
 import { SubscriptionService } from '@services/subscription.service';
 import { TestClockService } from '@services/test-clock.service';
+import { WebhookService } from '@services/webhook.service';
 import fp from 'fastify-plugin';
 
 export const serviceRegistryPlugin = fp(async (fastify) => {
@@ -30,10 +32,21 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('entitlementService', new EntitlementService(fastify));
   fastify.decorate('subscriptionService', new SubscriptionService(fastify));
   fastify.decorate('ratingService', new RatingService(fastify));
-  fastify.decorate('invoiceService', new InvoiceService(fastify));
+  fastify.decorate(
+    'invoiceService',
+    new InvoiceService(fastify, { dueDays: fastify.config.INVOICE_DUE_DAYS }),
+  );
   fastify.decorate('creditNoteService', new CreditNoteService(fastify));
   fastify.decorate('paymentService', new PaymentService(fastify));
   fastify.decorate('refundService', new RefundService(fastify));
+  fastify.decorate('webhookService', new WebhookService(fastify));
+  fastify.decorate(
+    'dunningService',
+    new DunningService(fastify, {
+      batchSize: fastify.workflowSchedules.dunningBatchSize,
+      retryDelayDays: fastify.workflowSchedules.dunningRetryDelayDays,
+    }),
+  );
   fastify.decorate(
     'billingRunService',
     new BillingRunService(fastify, { batchSize: fastify.workflowSchedules.billingRunBatchSize }),

@@ -3,8 +3,10 @@ import { WorkflowNameEnum } from '@pinstripe/core/queues';
 import { UnknownWorkflowError } from '@type/errors';
 import { BillingWorkflow } from '@workflows/billing.workflow';
 import { DomainEventWorkflow } from '@workflows/domain-event.workflow';
+import { DunningWorkflow } from '@workflows/dunning.workflow';
 import { LedgerWorkflow } from '@workflows/ledger.workflow';
 import { OutboxWorkflow } from '@workflows/outbox.workflow';
+import { WebhookWorkflow } from '@workflows/webhook.workflow';
 import type { WorkflowConstructor } from '@workflows/workflow';
 
 export class WorkflowRegistry {
@@ -41,3 +43,5 @@ workflowRegistry.add(WorkflowNameEnum.OUTBOX, OutboxWorkflow);
 workflowRegistry.add(WorkflowNameEnum.DOMAIN_EVENT, DomainEventWorkflow);
 workflowRegistry.add(WorkflowNameEnum.LEDGER, LedgerWorkflow);
 workflowRegistry.add(WorkflowNameEnum.BILLING, BillingWorkflow);
+workflowRegistry.add(WorkflowNameEnum.WEBHOOK, WebhookWorkflow);
+workflowRegistry.add(WorkflowNameEnum.DUNNING, DunningWorkflow);

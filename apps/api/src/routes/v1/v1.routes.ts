@@ -12,6 +12,8 @@ import { productsRoutes } from '@routes/v1/products/products.routes';
 import { refundsRoutes } from '@routes/v1/refunds/refunds.routes';
 import { subscriptionsRoutes } from '@routes/v1/subscriptions/subscriptions.routes';
 import { testClocksRoutes } from '@routes/v1/test-clocks/test-clocks.routes';
+import { webhookDeliveriesRoutes } from '@routes/v1/webhook-deliveries/webhook-deliveries.routes';
+import { webhookEndpointsRoutes } from '@routes/v1/webhook-endpoints/webhook-endpoints.routes';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import type { FastifyInstance } from 'fastify';
@@ -30,6 +32,8 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(creditNotesRoutes, { prefix: '/credit_notes' });
   await fastify.register(paymentIntentsRoutes, { prefix: '/payment_intents' });
   await fastify.register(refundsRoutes, { prefix: '/refunds' });
+  await fastify.register(webhookEndpointsRoutes, { prefix: '/webhook_endpoints' });
+  await fastify.register(webhookDeliveriesRoutes, { prefix: '/webhook_deliveries' });
   await fastify.register(metersRoutes, { prefix: '/billing/meters' });
   await fastify.register(meterEventsRoutes, { prefix: '/billing' });
   await fastify.register(testClocksRoutes, { prefix: '/test_helpers/test_clocks' });

@@ -12,6 +12,7 @@ export interface InvoiceFilters {
   status?: InvoiceStatus;
   statuses?: readonly InvoiceStatus[];
   periodEndBeforeAt?: Date;
+  nextAttemptBeforeAt?: Date;
   shardCount?: number;
   shardIndex?: number;
   beforeAt?: RowCursor;
@@ -113,6 +114,9 @@ export class InvoiceRepository {
       filters.status ? eq(invoices.status, filters.status) : undefined,
       filters.statuses ? inArray(invoices.status, [...filters.statuses]) : undefined,
       filters.periodEndBeforeAt ? lte(invoices.periodEnd, filters.periodEndBeforeAt) : undefined,
+      filters.nextAttemptBeforeAt
+        ? lte(invoices.nextAttemptAt, filters.nextAttemptBeforeAt)
+        : undefined,
       filters.shardCount && filters.shardIndex !== undefined
         ? sql`abs(hashtext(${invoices.customerId})) % ${filters.shardCount} = ${filters.shardIndex}`
         : undefined,

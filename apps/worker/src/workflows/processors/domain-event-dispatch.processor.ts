@@ -9,6 +9,15 @@ export class DomainEventDispatchProcessor {
   async handle(job: Job<DomainEventDispatchJob>): Promise<void> {
     const { eventId, eventType, aggregateType, aggregateId } = job.data;
 
+    const deliveries = await this.fastify.webhookService.handleDomainEvent(job.data);
+
+    if (deliveries > 0) {
+      this.fastify.log.info(
+        { eventId, eventType, deliveries },
+        '[DomainEventDispatchProcessor] handle() queued webhook deliveries',
+      );
+    }
+
     if (aggregateType === AggregateTypeEnum.SUBSCRIPTION) {
       await this.fastify.entitlementService.handleSubscriptionChanged(aggregateId);
 

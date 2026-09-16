@@ -19,9 +19,11 @@ import type { ProductRepository } from '@repositories/product.repository';
 import type { RefundRepository } from '@repositories/refund.repository';
 import type { SubscriptionRepository } from '@repositories/subscription.repository';
 import type { TestClockRepository } from '@repositories/test-clock.repository';
+import type { WebhookRepository } from '@repositories/webhook.repository';
 import type { BillingRunService } from '@services/billing-run.service';
 import type { CreditNoteService } from '@services/credit-note.service';
 import type { CustomerService } from '@services/customer.service';
+import type { DunningService } from '@services/dunning.service';
 import type { EntitlementService } from '@services/entitlement.service';
 import type { IdempotencyService } from '@services/idempotency.service';
 import type { InvoiceService } from '@services/invoice.service';
@@ -36,6 +38,7 @@ import type { RatingService } from '@services/rating.service';
 import type { RefundService } from '@services/refund.service';
 import type { SubscriptionService } from '@services/subscription.service';
 import type { TestClockService } from '@services/test-clock.service';
+import type { WebhookService } from '@services/webhook.service';
 import type { Clock } from '@utils/clock';
 import type { RedisKeyFactory } from '@utils/redis-key-factory';
 import type { Redis } from 'ioredis';
@@ -69,6 +72,7 @@ declare module 'fastify' {
     creditNoteRepository: CreditNoteRepository;
     paymentIntentRepository: PaymentIntentRepository;
     refundRepository: RefundRepository;
+    webhookRepository: WebhookRepository;
     customerService: CustomerService;
     idempotencyService: IdempotencyService;
     entitlementService: EntitlementService;
@@ -86,6 +90,8 @@ declare module 'fastify' {
     billingRunService: BillingRunService;
     paymentService: PaymentService;
     refundService: RefundService;
+    dunningService: DunningService;
+    webhookService: WebhookService;
     psp: MockPspClient;
   }
 }

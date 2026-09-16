@@ -18,6 +18,7 @@ export enum ObjectPrefixEnum {
   PAYMENT_METHOD = 'pm',
   EVENT = 'evt',
   WEBHOOK_ENDPOINT = 'we',
+  WEBHOOK_DELIVERY = 'wd',
   METER = 'mtr',
   METER_EVENT = 'mtrevt',
   LEDGER_ACCOUNT = 'lacct',

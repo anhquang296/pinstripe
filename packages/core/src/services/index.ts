@@ -1,6 +1,7 @@
 export * from '@services/billing-run.service';
 export * from '@services/credit-note.service';
 export * from '@services/customer.service';
+export * from '@services/dunning.service';
 export * from '@services/entitlement.service';
 export * from '@services/idempotency.service';
 export * from '@services/invoice.service';
@@ -15,3 +16,4 @@ export * from '@services/rating.service';
 export * from '@services/refund.service';
 export * from '@services/subscription.service';
 export * from '@services/test-clock.service';
+export * from '@services/webhook.service';

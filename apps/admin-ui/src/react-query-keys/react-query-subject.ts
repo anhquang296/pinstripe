@@ -9,5 +9,6 @@ export enum ReactQuerySubjectEnum {
   METER = 'meter',
   INVOICE = 'invoice',
   PAYMENT = 'payment',
+  WEBHOOK = 'webhook',
 }
 export type ReactQuerySubject = `${ReactQuerySubjectEnum}`;

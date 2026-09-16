@@ -11,3 +11,10 @@ export class UnknownWorkflowError extends Error {
     this.name = 'UnknownWorkflowError';
   }
 }
+
+export class WebhookDeliveryFailedError extends Error {
+  constructor(deliveryId: string, reason: string) {
+    super(`Webhook delivery ${deliveryId} failed: ${reason}`);
+    this.name = 'WebhookDeliveryFailedError';
+  }
+}

@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/rating', label: 'Rating' },
   { to: '/invoices', label: 'Invoices' },
   { to: '/payments', label: 'Payments' },
+  { to: '/webhooks', label: 'Webhooks' },
   { to: '/ledger', label: 'Ledger' },
   { to: '/test-clocks', label: 'Test clocks' },
 ];

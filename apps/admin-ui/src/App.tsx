@@ -9,6 +9,7 @@ import ProductsPage from '@pages/ProductsPage';
 import RatingPage from '@pages/RatingPage';
 import SubscriptionsPage from '@pages/SubscriptionsPage';
 import TestClocksPage from '@pages/TestClocksPage';
+import WebhooksPage from '@pages/WebhooksPage';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/rating" element={<RatingPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
+        <Route path="/webhooks" element={<WebhooksPage />} />
         <Route path="/ledger" element={<LedgerPage />} />
         <Route path="/test-clocks" element={<TestClocksPage />} />
       </Route>

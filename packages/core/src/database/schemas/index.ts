@@ -12,3 +12,4 @@ export * from '@database/schemas/prices.schema';
 export * from '@database/schemas/products.schema';
 export * from '@database/schemas/subscriptions.schema';
 export * from '@database/schemas/test-clocks.schema';
+export * from '@database/schemas/webhooks.schema';

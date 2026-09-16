@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "dev": "concurrently -n outbox,events,ledger,billing -c blue,magenta,cyan,yellow \"WORKFLOW_NAME=outbox tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=domain-event WORKER_PORT=3002 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=ledger WORKER_PORT=3003 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=billing WORKER_PORT=3004 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\"",
+    "dev": "concurrently -n outbox,events,ledger,billing,webhook,dunning -c blue,magenta,cyan,yellow,green,red \"WORKFLOW_NAME=outbox tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=domain-event WORKER_PORT=3002 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=ledger WORKER_PORT=3003 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=billing WORKER_PORT=3004 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=webhook WORKER_PORT=3005 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=dunning WORKER_PORT=3006 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\"",
     "start": "node dist/worker.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",

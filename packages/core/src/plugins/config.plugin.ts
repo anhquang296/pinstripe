@@ -2,6 +2,7 @@ import { loadEnv } from '@config/env.schema';
 import { SystemClock } from '@utils/clock';
 import { RedisKeyFactory } from '@utils/redis-key-factory';
 import fp from 'fastify-plugin';
+import _ from 'lodash';
 
 export interface ListenAddress {
   port: number;
@@ -17,6 +18,13 @@ export interface WorkflowSchedules {
   billingRunBatchSize: number;
   billingRunShardCount: number;
   billingRunJitterMs: number;
+  dunningIntervalMs: number;
+  dunningBatchSize: number;
+  dunningJitterMs: number;
+  dunningRetryDelayDays: number[];
+  webhookMaxAttempts: number;
+  webhookBackoffMs: number;
+  webhookTimeoutMs: number;
 }
 
 export const configPlugin = fp(async (fastify) => {
@@ -36,5 +44,12 @@ export const configPlugin = fp(async (fastify) => {
     billingRunBatchSize: config.BILLING_RUN_BATCH_SIZE,
     billingRunShardCount: config.BILLING_RUN_SHARD_COUNT,
     billingRunJitterMs: config.BILLING_RUN_JITTER_MS,
+    dunningIntervalMs: config.DUNNING_INTERVAL_MS,
+    dunningBatchSize: config.DUNNING_BATCH_SIZE,
+    dunningJitterMs: config.DUNNING_JITTER_MS,
+    dunningRetryDelayDays: _.map(config.DUNNING_RETRY_DELAY_DAYS.split(','), Number),
+    webhookMaxAttempts: config.WEBHOOK_MAX_ATTEMPTS,
+    webhookBackoffMs: config.WEBHOOK_BACKOFF_MS,
+    webhookTimeoutMs: config.WEBHOOK_TIMEOUT_MS,
   });
 });

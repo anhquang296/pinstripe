@@ -76,6 +76,10 @@ export class CreditNoteService {
       await this.postCredit(creditNote, tx);
       await this.recordCreditNoteEvent(creditNote, tx);
 
+      if (creditable === payload.amount) {
+        await this.settleInvoice(invoice, now, tx);
+      }
+
       return creditNote;
     });
 
@@ -107,6 +111,31 @@ export class CreditNoteService {
       hasMore: rows.length > limit,
       data: _(rows).take(limit).map(CreditNoteService.buildCreditNote).value(),
     };
+  }
+
+  private async settleInvoice(invoice: Invoice, now: Date, tx: DatabaseTransaction): Promise<void> {
+    await this.fastify.invoiceRepository.updateInvoice(
+      invoice.id,
+      {
+        status: InvoiceStatusEnum.PAID,
+        paidAt: now,
+        nextAttemptAt: null,
+        updatedAt: now,
+      },
+      tx,
+    );
+
+    await this.fastify.outboxService.recordEvents(
+      [
+        {
+          aggregateType: AggregateTypeEnum.INVOICE,
+          aggregateId: invoice.id,
+          eventType: DomainEventTypeEnum.INVOICE_PAID,
+          payload: { id: invoice.id, number: invoice.number, total: invoice.total },
+        },
+      ],
+      tx,
+    );
   }
 
   private async resolveCreditedAmount(invoiceId: string): Promise<number> {

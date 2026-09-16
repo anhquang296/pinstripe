@@ -5,6 +5,7 @@ export enum QueueNameEnum {
   BILLING = 'BillingQueue',
   PAYMENT = 'PaymentQueue',
   WEBHOOK = 'WebhookQueue',
+  DUNNING = 'DunningQueue',
   NOTIFICATION = 'NotificationQueue',
 }
 export type QueueName = `${QueueNameEnum}`;
@@ -16,6 +17,7 @@ export enum WorkflowNameEnum {
   BILLING = 'billing',
   PAYMENT = 'payment',
   WEBHOOK = 'webhook',
+  DUNNING = 'dunning',
   NOTIFICATION = 'notification',
 }
 export type WorkflowName = `${WorkflowNameEnum}`;

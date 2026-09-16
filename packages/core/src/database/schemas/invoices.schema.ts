@@ -41,6 +41,9 @@ export const invoices = pgTable(
     subtotal: bigint('subtotal', { mode: 'number' }).notNull().default(0),
     total: bigint('total', { mode: 'number' }).notNull().default(0),
     amountPaid: bigint('amount_paid', { mode: 'number' }).notNull().default(0),
+    dueAt: timestamp('due_at', { withTimezone: true }),
+    attemptCount: integer('attempt_count').notNull().default(0),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
     finalizedAt: timestamp('finalized_at', { withTimezone: true }),
     paidAt: timestamp('paid_at', { withTimezone: true }),
     voidedAt: timestamp('voided_at', { withTimezone: true }),
@@ -55,6 +58,7 @@ export const invoices = pgTable(
       index('invoices_created_at_id_idx').on(table.createdAt, table.id),
       uniqueIndex('invoices_number_idx').on(table.number),
       uniqueIndex('invoices_subscription_period_idx').on(table.subscriptionId, table.periodStart),
+      index('invoices_status_next_attempt_at_idx').on(table.status, table.nextAttemptAt),
     ];
   },
 );

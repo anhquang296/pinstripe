@@ -19,6 +19,9 @@ pnpm dev
 | worker outbox       | 3001  | relay outbox → domain event queue                          |
 | worker domain-event | 3002  | consume domain event                                       |
 | worker ledger       | 3003  | quét sổ lệch mỗi 60s                                       |
+| worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn            |
+| worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                  |
+| worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`               |
 | admin-ui            | 5173  | Vite, proxy `/api` sang api kèm admin key                  |
 | portal-ui           | 3100  | Next.js                                                    |
 | postgres            | 55432 | user/pass/db: `pinstripe`                                  |
@@ -55,6 +58,7 @@ pnpm db:generate
 | Credit notes   | `POST/GET /v1/credit_notes`, `GET /v1/credit_notes/:creditNoteId`                                                                       |
 | Payments       | `POST/GET /v1/payment_intents`, `GET /v1/payment_intents/:id`, `POST /v1/payment_intents/:id/{confirm,cancel}`                          |
 | Refunds        | `POST/GET /v1/refunds`, `GET /v1/refunds/:refundId`                                                                                     |
+| Webhooks       | `POST/GET /v1/webhook_endpoints`, `GET/POST /v1/webhook_endpoints/:id`, `GET /v1/webhook_deliveries`                                    |
 | Test clocks    | `POST/GET /v1/test_helpers/test_clocks`, `POST /v1/test_helpers/test_clocks/:id/advance`                                                |
 | Ledger (admin) | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
 

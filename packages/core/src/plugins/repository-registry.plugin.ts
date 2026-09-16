@@ -14,6 +14,7 @@ import { ProductRepository } from '@repositories/product.repository';
 import { RefundRepository } from '@repositories/refund.repository';
 import { SubscriptionRepository } from '@repositories/subscription.repository';
 import { TestClockRepository } from '@repositories/test-clock.repository';
+import { WebhookRepository } from '@repositories/webhook.repository';
 import fp from 'fastify-plugin';
 
 export const repositoryRegistryPlugin = fp(async (fastify) => {
@@ -36,4 +37,5 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('creditNoteRepository', new CreditNoteRepository(fastify.database));
   fastify.decorate('paymentIntentRepository', new PaymentIntentRepository(fastify.database));
   fastify.decorate('refundRepository', new RefundRepository(fastify.database));
+  fastify.decorate('webhookRepository', new WebhookRepository(fastify.database));
 });

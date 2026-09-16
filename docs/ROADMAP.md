@@ -28,22 +28,11 @@ Nền tảng chung: `docs/RESEARCH.md` (phân tích domain + 8 rủi ro kiến t
 | 5     | Rating engine thuần (per_unit, graduated, volume, proration)           | Xong       | [0008](adr/0008-phase-5-rating.md)                   |
 | 6     | Invoicing draft→finalize→issue, credit note, billing run shard+jitter  | Xong       | [0009](adr/0009-phase-6-invoicing.md)                |
 | 7     | Payment orchestration + PSP giả lập + refund                           | Xong       | [0010](adr/0010-phase-7-payments.md)                 |
-| **8** | **Dunning state machine + webhook gửi ra ngoài**                       | Chưa       | —                                                    |
+| 8     | Dunning state machine + webhook gửi ra ngoài                           | Xong       | [0011](adr/0011-phase-8-dunning-webhooks.md)         |
 | **9** | **Portal (Next.js) + reporting + reconciliation**                      | Chưa       | —                                                    |
 
 Hai ADR không gắn với phase nào: [0004](adr/0004-nullability-policy.md) (chính sách nullable) và
 [0006](adr/0006-rule-compliance.md) (vì sao agent không theo rule, và lớp chặn ESLint dựng sau đó).
-
-## Phase 8 — Dunning & webhook
-
-- State machine nhắc nợ: hóa đơn `open` quá hạn → retry theo lịch → `uncollectible`. Trạng thái
-  `uncollectible` đã có sẵn trong state machine của phase 6 nhưng **chưa ai chuyển sang nó**.
-- Webhook **gửi ra ngoài**: endpoint đăng ký, ký payload (`WEBHOOK_SIGNING_SECRET` đã có trong env
-  từ phase 0), retry với backoff, consumer phải idempotent.
-- Đây cũng là chỗ xử lý callback bất đồng bộ của PSP thật. **PSP giả lập của phase 7 trả lời đồng bộ,
-  PSP thật thì không** — `confirmPaymentIntent` sẽ chỉ đẩy intent sang `processing`, và một webhook
-  handler idempotent mới là chỗ chuyển sang `succeeded`. Chi tiết trong
-  [ADR 0010](adr/0010-phase-7-payments.md) §Hạn chế đã biết.
 
 ## Phase 9 — Portal, reporting, reconciliation
 
@@ -75,6 +64,17 @@ phải tự dựng:
 **Deviation đã biết, chờ chốt.** Rating tính `flatAmount` của một bậc chỉ khi số lượng chạm vào bậc
 đó, nên usage 0 ra 0 đồng — Stripe được cho là vẫn thu `flat_amount` bậc 1. Chi tiết và lý do trong
 [ADR 0008](adr/0008-phase-5-rating.md) §3.
+
+**Webhook chưa có rate limit theo endpoint.** Một đợt relay lớn dội thẳng vào endpoint của khách.
+Thấy được khi chạy thật ở phase 8 — chi tiết trong
+[ADR 0011](adr/0011-phase-8-dunning-webhooks.md) §Kiểm chứng. Phải thêm trước khi chạy production.
+
+**Callback bất đồng bộ của PSP thật.** `confirmPaymentIntent` hiện giả định PSP trả lời đồng bộ.
+Hạ tầng ký/verify đã có từ phase 8, nhưng route `/api/v1/system/*` cho PSP gọi vào thì gắn cùng lúc
+với PSP thật. Chi tiết trong [ADR 0010](adr/0010-phase-7-payments.md) §Hạn chế đã biết.
+
+**Notification.** `NotificationQueue` vẫn là một cái tên chưa dùng. Dunning hiện chỉ thử thu lại chứ
+không báo gì cho khách.
 
 **Dọn nợ nhỏ.** ~30 negated guard (`if (!x) { throw }`) chưa nhất quán;
 `deleteExpiredIdempotencyKeys` và `findEffectivePrice` còn mã hóa điều kiện vào tên method.

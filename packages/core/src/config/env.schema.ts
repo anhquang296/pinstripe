@@ -60,6 +60,16 @@ export const envSchema = Type.Object({
   BILLING_RUN_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
   BILLING_RUN_JITTER_MS: Default(Type.Integer({ minimum: 0 }), 5_000),
   PSP_REFERENCE_PREFIX: Default(Type.String({ minLength: 1 }), 'mockpsp'),
+
+  INVOICE_DUE_DAYS: Default(Type.Integer({ minimum: 0 }), 7),
+  DUNNING_INTERVAL_MS: Default(Type.Integer({ minimum: 1000 }), 60_000),
+  DUNNING_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
+  DUNNING_JITTER_MS: Default(Type.Integer({ minimum: 0 }), 5_000),
+  DUNNING_RETRY_DELAY_DAYS: Default(Type.String({ minLength: 1 }), '1,3,5,7'),
+
+  WEBHOOK_MAX_ATTEMPTS: Default(Type.Integer({ minimum: 1 }), 5),
+  WEBHOOK_BACKOFF_MS: Default(Type.Integer({ minimum: 100 }), 2_000),
+  WEBHOOK_TIMEOUT_MS: Default(Type.Integer({ minimum: 100 }), 5_000),
 });
 
 export type Env = Static<typeof envSchema>;

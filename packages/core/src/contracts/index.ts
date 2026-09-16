@@ -12,4 +12,5 @@ export * from '@contracts/products.types';
 export * from '@contracts/rating.types';
 export * from '@contracts/subscriptions.types';
 export * from '@contracts/test-clocks.types';
+export * from '@contracts/webhooks.types';
 export * from '@utils/currency';

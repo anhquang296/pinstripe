@@ -323,6 +323,24 @@ describe('CreditNoteService.createCreditNote', () => {
     expect(receivable.balance).toBe(0);
   });
 
+  it('settles an invoice a credit note has fully covered, so nothing keeps chasing it', async () => {
+    const { subscriptionId } = await makeSubscription();
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
+    await fastify.creditNoteService.createCreditNote({
+      invoiceId: open.id,
+      amount: BASE_AMOUNT,
+      reason: 'Hủy toàn bộ theo thỏa thuận',
+    });
+
+    const settled = await fastify.invoiceRepository.findInvoice(open.id);
+
+    expect(settled?.status).toBe(InvoiceStatusEnum.PAID);
+    expect(settled?.nextAttemptAt).toBeNull();
+    expect(settled?.amountPaid).toBe(0);
+  });
+
   it('refuses to credit a draft that can still be edited', async () => {
     const { subscriptionId } = await makeSubscription();
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId });

@@ -39,6 +39,11 @@ export class PaymentService {
     }
 
     const owed = await this.resolveOwed(invoice);
+
+    if (owed <= 0) {
+      throw new ConflictError(`Invoice ${invoice.id} has nothing left to pay`);
+    }
+
     const amount = payload.amount ?? owed;
 
     if (amount > owed) {

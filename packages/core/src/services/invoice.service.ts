@@ -1,3 +1,4 @@
+import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type {
   CreateInvoicePayload,
@@ -32,8 +33,15 @@ export interface EnsuredInvoice {
   isCreated: boolean;
 }
 
+export interface InvoiceOptions {
+  dueDays: number;
+}
+
 export class InvoiceService {
-  constructor(private readonly fastify: FastifyInstance) {}
+  constructor(
+    private readonly fastify: FastifyInstance,
+    private readonly options: InvoiceOptions,
+  ) {}
 
   async createInvoice(payload: CreateInvoicePayload): Promise<InvoiceResponse> {
     const subscription = await this.getSubscription(payload.subscriptionId);
@@ -120,6 +128,7 @@ export class InvoiceService {
 
     const rated = await this.fastify.ratingService.rateUpcomingInvoice(invoice.subscriptionId);
     const now = this.fastify.clock.now();
+    const dueAt = new Date(now.getTime() + this.options.dueDays * MILLISECONDS_PER_DAY);
     const lineItems = _.map(rated.lineItems, (lineItem): NewInvoiceLineItem => {
       return {
         id: generateId(ObjectPrefixEnum.INVOICE_LINE_ITEM),
@@ -156,6 +165,8 @@ export class InvoiceService {
           subtotal: rated.total,
           total: rated.total,
           finalizedAt: now,
+          dueAt,
+          nextAttemptAt: dueAt,
           updatedAt: now,
         },
         tx,
