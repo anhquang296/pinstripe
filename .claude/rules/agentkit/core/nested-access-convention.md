@@ -1,11 +1,11 @@
 ---
 description: >
-  Read a deep path once into a named local — never an optional-chain ladder, and never the same
-  path walked twice.
+  Read an optional path once into a named local with its fallback at the read — never `?.` and
+  `??` in one expression, at any depth, and never the same path walked twice.
 agentkit:
   id: core/nested-access-convention
   layer: core
-  requires: [core/naming-convention]
+  requires: [core/naming-convention, core/statement-convention, core/nullability-convention]
   since: 0.1.0
   generated: true
 ---
@@ -17,6 +17,8 @@ agentkit:
 
 An optional-chain ladder restates the same uncertainty at every step, and again at every call site that copies it — `data?.page?.errors` in four places is one assumption written four times, and when the shape changes three of them get fixed. Reading the path once, into a local with a name, turns four assumptions into one that a reader can check.
 
+The ladder is the loudest case, not the only one. `row?.total ?? 0` is the same unnamed assumption in one segment, and it is the shape that slips through unread because it looks too small to be worth a name.
+
 ## Scope
 
 Applies to every hand-written `.ts` / `.tsx` / `.js` source file.
@@ -25,7 +27,7 @@ Does **not** apply to generated output (codegen, tool-emitted `*.d.ts`, build di
 
 ## Read it once
 
-- A path two or more levels deep, or one that contains an index, is read **once, into a named local** — never re-walked at each use site, and never chained inside an argument.
+- An **optional read** — a property access that may be absent, whether the path is one segment or five — is read **once, into a named local**, and its fallback sits at that read. Never re-walked at each use site, and never chained inside an argument.
 - The default belongs with the read, not appended by every consumer afterwards.
 - Take the first element and check **it** for truthiness — never `length > 0` followed by `[0]`.
 - Look up by field with a predicate helper rather than repeating a hand-written `===` callback in several places.
@@ -35,7 +37,9 @@ Does **not** apply to generated output (codegen, tool-emitted `*.d.ts`, build di
 const userError = data?.page?.errors?.[0];
 
 if (userError) {
-  throw new UpstreamError(userError?.message ?? 'failed');
+  const { message = 'failed' } = userError;
+
+  throw new UpstreamError(message);
 }
 
 // WRONG — the ladder, and the same path walked twice
@@ -53,9 +57,30 @@ const authorName = data?.page?.author?.name;
 
 Where the stack provides a path accessor, its profile states the exact call to write. The requirement here is the same either way: one read, one name, the default at the read site.
 
+## Depth is not the test
+
+`?.` says the value may be absent; `??` says what to use when it is. Two statements about one condition, fused into a single expression: there is no name for a reader to check the fallback against, no line for a debugger to stop on, and the next call site that needs the value copies both halves. Counting segments changes none of that, so the number of segments is not what triggers this rule. A one-segment read is in scope exactly as a five-segment one is.
+
+```ts
+// CORRECT — the read is its own statement, and the fallback belongs to it
+const { total = 0 } = row;
+
+// WRONG — one segment, still a read fused to its fallback
+const revenue = row?.total ?? 0;
+sum += row?.total ?? 0;
+return formatMoney(row?.total ?? 0);
+```
+
+Where the container itself may be absent, do not rescue the destructure with `row ?? {}` — that is the same fusion moved one place left, and it invents an object to read a field off. Guard the container first ([statement-convention.md](./statement-convention.md#happy-path-first-positive-conditions)), or use the path accessor the stack provides.
+
+One exception, and it is not a fallback: `?? null` at a boundary, where `undefined` is being restated in the vocabulary the row type uses (`email: account.email ?? null`). It supplies no value and answers no absence — see [nullability-convention.md](./nullability-convention.md#the-type-mirrors-the-column). A `??` that produces `''`, `0`, `false` or a sentinel date is not that exception; it is [the sentinel that rule forbids](./nullability-convention.md#never-encode-unknown-as-a-value).
+
 ## NEVER Do
 
 - Write an optional-chain ladder (`a?.b?.c`) for a deep read — read the path once into a named local.
 - Repeat the same optional-chained path at more than one use site.
 - Append the default at every consumer instead of putting it where the read happens.
 - Check `length > 0` and then read `[0]` — take the first element and check it for truthiness.
+- Write `?.` and `??` in the same expression, at any depth — a one-segment read is in scope too.
+- Treat a read as outside this rule because it is short, or because it is not a ladder.
+- Write `<container> ?? {}` so a destructure can reach through it — guard the container instead.

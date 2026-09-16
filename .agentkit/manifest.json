@@ -1,7 +1,7 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.1",
   "files": {
-    ".claude/rules/agentkit/00-index.md": "a477a2f919842f186c0e36019006247145d3c394f0fa9d0a7fe33780031b58d2",
+    ".claude/rules/agentkit/00-index.md": "2c4ac4f297222564fbd45a93335ff404f981770c65f10558e51f5feb285caa65",
     ".claude/rules/agentkit/core/agent-tooling-convention.md": "d32057fae9f27f7aa9d2286dc882cd599a23c3b2f4ffed3fd52149389bd39f2d",
     ".claude/rules/agentkit/core/brace-style-convention.md": "f35bafd1677f02d3bc5ec63b7999faadb7aeff55f20060c75136da7213a80816",
     ".claude/rules/agentkit/core/comment-convention.md": "69fab5cbd5541fa5df00c1e2c9d67a39af7184ae31f4e9f39dbbc628151c736c",
@@ -11,7 +11,7 @@
     ".claude/rules/agentkit/core/logging-convention.md": "60b7fa7af13f4540b3ef5f2f880a121ea28932ee47a86a48adb60bd8f89a239c",
     ".claude/rules/agentkit/core/minimal-surface-convention.md": "b651c4cc4fcffea1196f022dc89303397b8e17203cf81a7081b85ac152a91683",
     ".claude/rules/agentkit/core/naming-convention.md": "aa76700a9f2d04ac99ffabf255bdec6e4a860441586a52c571396764671131b4",
-    ".claude/rules/agentkit/core/nested-access-convention.md": "8456c094cd8c38ad0b3714db3d527658b98f63a5d1cbaadf112b8981b4f80019",
+    ".claude/rules/agentkit/core/nested-access-convention.md": "de529d67f334b0acf3650f33479b401236374b3cb88d2f062a7266b0146be38e",
     ".claude/rules/agentkit/core/nullability-convention.md": "3611f2f676b045dce22baf3459bbf5409400df9ce75748cab10d6094e5fcd0e9",
     ".claude/rules/agentkit/core/rule-maintenance.md": "8c2228b48975b9ac687ef15466d990f4498d8e3659b00c99a5a5d59d12975678",
     ".claude/rules/agentkit/core/statement-convention.md": "a78874c028edd503e7a305969f9e9dbd63650073423bc3926a8c6782b60344e7",
@@ -22,7 +22,7 @@
     ".claude/rules/agentkit/profiles/drizzle/query-convention.md": "cdb077e1c3d37913b890c09d06f9f2e85a33d4e44eb597d41e3318b9f173e155",
     ".claude/rules/agentkit/profiles/fastify/plugin-convention.md": "084dc63734068904987cfcfe741c1935149d937f9eb2987889392b476149ce6b",
     ".claude/rules/agentkit/profiles/fastify/route-convention.md": "c8088dda9f6beada6839821af22e73f09102ef9abcd92525968b381345245dba",
-    ".claude/rules/agentkit/profiles/lodash/usage-convention.md": "cc2d3b9325e43ac6595d7768940ce823bf8626cf3993afeabf598856ef7fc075",
+    ".claude/rules/agentkit/profiles/lodash/usage-convention.md": "99a6216284d622cd94cf3d6c5c08c07468a4907adbfd4fcd0cff595446f74c14",
     ".claude/rules/agentkit/profiles/monorepo-turborepo/shared-package-build.md": "69df36efff9925b2cb91a4c6aee724adcd325c2ac92016381f122b0fd4348a75",
     ".claude/rules/agentkit/profiles/node-backend/repository-convention.md": "f80744a881d8ea22e14624130a8f765eae23e423fa92eb92813e3e0c4b1c1d73",
     ".claude/rules/agentkit/profiles/node-backend/schema-type-convention.md": "2c1ea4d033715aea7719ff29672ecb6982b1ef6ba007a78e908e7f316fbda078",
