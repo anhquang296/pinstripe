@@ -24,6 +24,16 @@ afterAll(async () => {
   await fastify.close();
 });
 
+async function readPeriodEnd(subscriptionId: string): Promise<Date> {
+  const subscription = await fastify.subscriptionRepository.findSubscription(subscriptionId);
+
+  if (subscription) {
+    return subscription.currentPeriodEnd;
+  }
+
+  throw new Error(`test fixture lost subscription ${subscriptionId}`);
+}
+
 async function makeSubscription(
   amount = BASE_AMOUNT,
 ): Promise<{ subscriptionId: string; customerId: string }> {
@@ -358,8 +368,8 @@ describe('CreditNoteService.createCreditNote', () => {
 describe('BillingRunService.runBillingShard', () => {
   it('drafts an invoice once for a due subscription no matter how often it runs', async () => {
     const { subscriptionId } = await makeSubscription();
-    const subscription = await fastify.subscriptionRepository.findSubscription(subscriptionId);
-    const runAt = new Date((subscription?.currentPeriodEnd ?? new Date()).getTime() + 1_000);
+    const periodEnd = await readPeriodEnd(subscriptionId);
+    const runAt = new Date(periodEnd.getTime() + 1_000);
     const job = { shardIndex: 0, shardCount: 1, runAt: runAt.toISOString() };
 
     const first = await fastify.billingRunService.runBillingShard(job);
@@ -371,8 +381,8 @@ describe('BillingRunService.runBillingShard', () => {
 
   it('sends every subscription to exactly one shard', async () => {
     const { subscriptionId } = await makeSubscription();
-    const subscription = await fastify.subscriptionRepository.findSubscription(subscriptionId);
-    const runAt = new Date((subscription?.currentPeriodEnd ?? new Date()).getTime() + 1_000);
+    const periodEnd = await readPeriodEnd(subscriptionId);
+    const runAt = new Date(periodEnd.getTime() + 1_000);
     const shardCount = 4;
 
     const scanned = await Promise.all(

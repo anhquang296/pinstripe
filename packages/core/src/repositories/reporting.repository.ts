@@ -107,7 +107,7 @@ export class ReportingRepository {
         ),
       );
 
-    return row?.total ?? 0;
+    return _.get(row, 'total', 0);
   }
 
   async aggregateInvoiceTotals(
@@ -130,7 +130,7 @@ export class ReportingRepository {
         ),
       );
 
-    return { invoiced: row?.invoiced ?? 0, outstanding: row?.outstanding ?? 0 };
+    return { invoiced: _.get(row, 'invoiced', 0), outstanding: _.get(row, 'outstanding', 0) };
   }
 
   async aggregateRefundTotal(
@@ -149,7 +149,7 @@ export class ReportingRepository {
         ),
       );
 
-    return row?.total ?? 0;
+    return _.get(row, 'total', 0);
   }
 
   async aggregateCashMovement(
@@ -173,7 +173,7 @@ export class ReportingRepository {
         ),
       );
 
-    return row?.total ?? 0;
+    return _.get(row, 'total', 0);
   }
 
   async findCashMovements(windowStart: Date, windowEnd: Date): Promise<CashMovement[]> {

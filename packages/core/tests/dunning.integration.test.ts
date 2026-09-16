@@ -67,6 +67,27 @@ async function readInvoiceRow(invoiceId: string) {
   return invoice;
 }
 
+async function readOnlyDeliveryId(endpointId: string): Promise<string> {
+  const [delivery] = await fastify.webhookRepository.findWebhookDeliveries({ endpointId });
+
+  if (delivery) {
+    return delivery.id;
+  }
+
+  throw new Error(`test fixture queued no delivery for endpoint ${endpointId}`);
+}
+
+async function readDueAt(invoiceId: string): Promise<Date> {
+  const invoice = await readInvoiceRow(invoiceId);
+  const { dueAt } = invoice;
+
+  if (dueAt) {
+    return dueAt;
+  }
+
+  throw new Error(`test fixture left invoice ${invoiceId} without a due date`);
+}
+
 describe('InvoiceService.finalizeInvoice due dating', () => {
   it('gives a freshly issued invoice a due date and a first collection attempt', async () => {
     const invoiceId = await makeOpenInvoice();
@@ -82,8 +103,8 @@ describe('InvoiceService.finalizeInvoice due dating', () => {
 describe('DunningService.runDunningShard', () => {
   it('leaves an invoice alone until its due date arrives', async () => {
     const invoiceId = await makeOpenInvoice();
-    const invoice = await readInvoiceRow(invoiceId);
-    const beforeDue = new Date((invoice.dueAt?.getTime() ?? 0) - MILLISECONDS_PER_DAY);
+    const dueAt = await readDueAt(invoiceId);
+    const beforeDue = new Date(dueAt.getTime() - MILLISECONDS_PER_DAY);
 
     const dunningRun = await fastify.dunningService.runDunningShard({
       ...SHARD_JOB,
@@ -98,8 +119,8 @@ describe('DunningService.runDunningShard', () => {
 
   it('collects an overdue invoice and stops chasing it', async () => {
     const invoiceId = await makeOpenInvoice();
-    const invoice = await readInvoiceRow(invoiceId);
-    const afterDue = new Date((invoice.dueAt?.getTime() ?? 0) + MILLISECONDS_PER_DAY);
+    const dueAt = await readDueAt(invoiceId);
+    const afterDue = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
     await fastify.dunningService.runDunningShard({
       ...SHARD_JOB,
@@ -114,8 +135,8 @@ describe('DunningService.runDunningShard', () => {
 
   it('schedules another attempt when the card is declined instead of giving up', async () => {
     const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
-    const invoice = await readInvoiceRow(invoiceId);
-    const afterDue = new Date((invoice.dueAt?.getTime() ?? 0) + MILLISECONDS_PER_DAY);
+    const dueAt = await readDueAt(invoiceId);
+    const afterDue = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
     const dunningRun = await fastify.dunningService.runDunningShard({
       ...SHARD_JOB,
@@ -131,19 +152,17 @@ describe('DunningService.runDunningShard', () => {
 
   it('gives up and marks the invoice uncollectible once the retry schedule runs out', async () => {
     const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
-    const invoice = await readInvoiceRow(invoiceId);
+    const dueAt = await readDueAt(invoiceId);
     const retryCount = fastify.workflowSchedules.dunningRetryDelayDays.length;
 
-    let runAt = new Date((invoice.dueAt?.getTime() ?? 0) + MILLISECONDS_PER_DAY);
+    let runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
     for (const attempt of _.range(retryCount + 1)) {
       await fastify.dunningService.runDunningShard({ ...SHARD_JOB, runAt: runAt.toISOString() });
 
-      const current = await readInvoiceRow(invoiceId);
+      const { nextAttemptAt } = await readInvoiceRow(invoiceId);
 
-      runAt = new Date(
-        (current.nextAttemptAt?.getTime() ?? runAt.getTime()) + MILLISECONDS_PER_DAY,
-      );
+      runAt = new Date((nextAttemptAt ?? runAt).getTime() + MILLISECONDS_PER_DAY);
 
       expect(attempt).toBeGreaterThanOrEqual(0);
     }
@@ -157,19 +176,17 @@ describe('DunningService.runDunningShard', () => {
 
   it('stops chasing an invoice it has already given up on', async () => {
     const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
-    const invoice = await readInvoiceRow(invoiceId);
+    const dueAt = await readDueAt(invoiceId);
     const retryCount = fastify.workflowSchedules.dunningRetryDelayDays.length;
 
-    let runAt = new Date((invoice.dueAt?.getTime() ?? 0) + MILLISECONDS_PER_DAY);
+    let runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
     for (const _attempt of _.range(retryCount + 1)) {
       await fastify.dunningService.runDunningShard({ ...SHARD_JOB, runAt: runAt.toISOString() });
 
-      const current = await readInvoiceRow(invoiceId);
+      const { nextAttemptAt } = await readInvoiceRow(invoiceId);
 
-      runAt = new Date(
-        (current.nextAttemptAt?.getTime() ?? runAt.getTime()) + MILLISECONDS_PER_DAY,
-      );
+      runAt = new Date((nextAttemptAt ?? runAt).getTime() + MILLISECONDS_PER_DAY);
     }
 
     const afterAbandon = await fastify.dunningService.runDunningShard({
@@ -267,14 +284,12 @@ describe('WebhookService.handleDomainEvent', () => {
       occurredAt: new Date().toISOString(),
     });
 
-    const [delivery] = await fastify.webhookRepository.findWebhookDeliveries({
-      endpointId: created.id,
-    });
-    const attempt = await fastify.webhookService.resolveDeliveryAttempt(delivery?.id ?? '');
+    const deliveryId = await readOnlyDeliveryId(created.id);
+    const attempt = await fastify.webhookService.resolveDeliveryAttempt(deliveryId);
+    const { secret } = created;
 
-    expect(isWebhookSignatureValid(attempt.body, created.secret ?? '', attempt.signature)).toBe(
-      true,
-    );
+    expect(secret).not.toBeNull();
+    expect(isWebhookSignatureValid(attempt.body, String(secret), attempt.signature)).toBe(true);
     expect(isWebhookSignatureValid(attempt.body, 'whsec_wrong', attempt.signature)).toBe(false);
   });
 
@@ -294,10 +309,8 @@ describe('WebhookService.handleDomainEvent', () => {
       occurredAt: new Date().toISOString(),
     });
 
-    const [delivery] = await fastify.webhookRepository.findWebhookDeliveries({
-      endpointId: created.id,
-    });
-    const attempt = await fastify.webhookService.resolveDeliveryAttempt(delivery?.id ?? '');
+    const deliveryId = await readOnlyDeliveryId(created.id);
+    const attempt = await fastify.webhookService.resolveDeliveryAttempt(deliveryId);
 
     expect(JSON.parse(attempt.body)).toMatchObject({
       id: eventId,
@@ -323,17 +336,15 @@ describe('WebhookService.recordDeliveryResult', () => {
       occurredAt: new Date().toISOString(),
     });
 
-    const [delivery] = await fastify.webhookRepository.findWebhookDeliveries({
-      endpointId: created.id,
-    });
+    const deliveryId = await readOnlyDeliveryId(created.id);
 
-    await fastify.webhookService.recordDeliveryResult(delivery?.id ?? '', {
+    await fastify.webhookService.recordDeliveryResult(deliveryId, {
       responseStatus: 500,
       error: 'endpoint answered 500',
       attemptCount: 3,
     });
 
-    const failed = await fastify.webhookRepository.findWebhookDelivery(delivery?.id ?? '');
+    const failed = await fastify.webhookRepository.findWebhookDelivery(deliveryId);
 
     expect(failed?.status).toBe(WebhookDeliveryStatusEnum.FAILED);
     expect(failed?.attemptCount).toBe(3);

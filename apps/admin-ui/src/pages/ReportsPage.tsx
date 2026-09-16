@@ -1,5 +1,5 @@
 import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@reactquery/reporting';
-import { map, toUpper } from 'lodash-es';
+import { isNil, map, toUpper } from 'lodash-es';
 import { useMemo } from 'react';
 
 const WINDOW_DAYS = 30;
@@ -11,6 +11,16 @@ const OUTCOME_CLASSES: Record<string, string> = {
   missing_in_processor: 'bg-amber-100 text-amber-700',
   amount_mismatch: 'bg-red-100 text-red-700',
 };
+
+const MISSING_AMOUNT = '—';
+
+function formatAmount(amount: number | null): string {
+  if (isNil(amount)) {
+    return MISSING_AMOUNT;
+  }
+
+  return amount.toLocaleString('vi-VN');
+}
 
 function buildWindow() {
   const now = Date.now();
@@ -79,36 +89,36 @@ export default function ReportsPage() {
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">
           Đối soát {WINDOW_DAYS} ngày
         </h2>
-        <div className="flex flex-wrap gap-4 rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex flex-col">
-            <span className="text-xs text-slate-500">Cổng thanh toán</span>
-            <span className="text-lg font-semibold tabular-nums">
-              {reconciliation?.processorTotal.toLocaleString('vi-VN') ?? '—'}
-            </span>
+        {reconciliation ? (
+          <div className="flex flex-wrap gap-4 rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500">Cổng thanh toán</span>
+              <span className="text-lg font-semibold tabular-nums">
+                {reconciliation.processorTotal.toLocaleString('vi-VN')}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500">Sổ cái</span>
+              <span className="text-lg font-semibold tabular-nums">
+                {reconciliation.ledgerTotal.toLocaleString('vi-VN')}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500">Chênh lệch</span>
+              <span
+                className={`text-lg font-semibold tabular-nums ${
+                  reconciliation.difference === 0 ? 'text-emerald-600' : 'text-red-600'
+                }`}
+              >
+                {reconciliation.difference.toLocaleString('vi-VN')}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500">Khớp</span>
+              <span className="text-lg font-semibold tabular-nums">{reconciliation.matched}</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs text-slate-500">Sổ cái</span>
-            <span className="text-lg font-semibold tabular-nums">
-              {reconciliation?.ledgerTotal.toLocaleString('vi-VN') ?? '—'}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs text-slate-500">Chênh lệch</span>
-            <span
-              className={`text-lg font-semibold tabular-nums ${
-                reconciliation?.difference === 0 ? 'text-emerald-600' : 'text-red-600'
-              }`}
-            >
-              {reconciliation?.difference.toLocaleString('vi-VN') ?? '—'}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs text-slate-500">Khớp</span>
-            <span className="text-lg font-semibold tabular-nums">
-              {reconciliation?.matched ?? '—'}
-            </span>
-          </div>
-        </div>
+        ) : null}
 
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="w-full min-w-[48rem] text-left text-sm">
@@ -135,10 +145,10 @@ export default function ReportsPage() {
                       {exception.reference}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
-                      {exception.processorAmount?.toLocaleString('vi-VN') ?? '—'}
+                      {formatAmount(exception.processorAmount)}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
-                      {exception.ledgerAmount?.toLocaleString('vi-VN') ?? '—'}
+                      {formatAmount(exception.ledgerAmount)}
                     </td>
                   </tr>
                 );

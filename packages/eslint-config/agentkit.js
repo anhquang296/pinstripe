@@ -24,6 +24,17 @@ export const AGENTKIT_RESTRICTED_SYNTAX = [
       'nested-access-convention: read a deep path once into a named local instead of writing an optional-chain ladder.',
   },
   {
+    selector: "LogicalExpression[operator='??'][right.raw!='null'] > ChainExpression.left",
+    message:
+      'nested-access-convention §Depth is not the test: `?.` with `??` fuses a read to its fallback — read it once into a named local (or _.get where lodash ships). Only `?? null` at a boundary stays.',
+  },
+  {
+    selector:
+      "VariableDeclarator[id.type='ObjectPattern'] > LogicalExpression[operator='??'] > ObjectExpression.right[properties.length=0]",
+    message:
+      'nested-access-convention §Depth is not the test: `<container> ?? {}` so a destructure can reach through it invents an object to read a field off — guard the container instead.',
+  },
+  {
     selector: 'MethodDefinition[key.name=/By[A-Z]/]',
     message:
       'naming-convention: the lookup key lives in the parameter name, not the method name — findCustomer(id), never findCustomerById.',
