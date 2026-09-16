@@ -1,6 +1,7 @@
 import { verifyAdminRequest } from '@hooks/verify-admin-request';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { ledgerRoutes } from '@routes/admin/ledger/ledger.routes';
+import { reportingRoutes } from '@routes/admin/reporting/reporting.routes';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import type { FastifyInstance } from 'fastify';
@@ -10,6 +11,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 
   await fastify.register(idempotencyPlugin);
   await fastify.register(ledgerRoutes, { prefix: '/ledger' });
+  await fastify.register(reportingRoutes, { prefix: '/reporting' });
 
   fastify.get(
     '/ping',

@@ -36,7 +36,9 @@ export class IdempotencyService {
 
   async beginRequest(payload: BeginIdempotentRequestPayload): Promise<IdempotentRequestTicket> {
     const requestHash = IdempotencyService.buildRequestHash(payload.body);
+
     const now = this.fastify.clock.now();
+
     const createdIdempotencyKey = await this.fastify.idempotencyKeyRepository.createIdempotencyKey({
       id: generateId(ObjectPrefixEnum.REQUEST),
       key: payload.key,

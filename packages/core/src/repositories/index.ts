@@ -13,6 +13,7 @@ export * from '@repositories/payment-intent.repository';
 export * from '@repositories/price.repository';
 export * from '@repositories/product.repository';
 export * from '@repositories/refund.repository';
+export * from '@repositories/reporting.repository';
 export * from '@repositories/subscription.repository';
 export * from '@repositories/test-clock.repository';
 export * from '@repositories/webhook.repository';

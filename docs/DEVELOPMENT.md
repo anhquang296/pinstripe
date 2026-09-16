@@ -13,20 +13,20 @@ pnpm db:migrate
 pnpm dev
 ```
 
-| Service             | Cổng  | Ghi chú                                                    |
-| ------------------- | ----- | ---------------------------------------------------------- |
-| api                 | 3000  | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*` |
-| worker outbox       | 3001  | relay outbox → domain event queue                          |
-| worker domain-event | 3002  | consume domain event                                       |
-| worker ledger       | 3003  | quét sổ lệch mỗi 60s                                       |
-| worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn            |
-| worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                  |
-| worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`               |
-| admin-ui            | 5173  | Vite, proxy `/api` sang api kèm admin key                  |
-| portal-ui           | 3100  | Next.js                                                    |
-| postgres            | 55432 | user/pass/db: `pinstripe`                                  |
-| redis               | 56379 |                                                            |
-| mailpit             | 58025 | UI xem email dev                                           |
+| Service             | Cổng  | Ghi chú                                                       |
+| ------------------- | ----- | ------------------------------------------------------------- |
+| api                 | 3000  | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*`    |
+| worker outbox       | 3001  | relay outbox → domain event queue                             |
+| worker domain-event | 3002  | consume domain event                                          |
+| worker ledger       | 3003  | quét sổ lệch mỗi 60s                                          |
+| worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn               |
+| worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                     |
+| worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                  |
+| admin-ui            | 5173  | Vite, proxy `/api` sang api kèm admin key                     |
+| portal-ui           | 3100  | Next.js; cần `PINSTRIPE_API_URL` + `PINSTRIPE_SECRET_API_KEY` |
+| postgres            | 55432 | user/pass/db: `pinstripe`                                     |
+| redis               | 56379 |                                                               |
+| mailpit             | 58025 | UI xem email dev                                              |
 
 ## Lệnh hay dùng
 
@@ -44,23 +44,24 @@ pnpm db:generate
 
 ## API hiện có
 
-| Resource       | Endpoint                                                                                                                                |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Customers      | `POST/GET /v1/customers`, `GET/POST/DELETE /v1/customers/:customerId`                                                                   |
-| Products       | `POST/GET /v1/products`, `GET/POST /v1/products/:productId`                                                                             |
-| Prices         | `POST/GET /v1/prices`, `GET/POST /v1/prices/:priceId`                                                                                   |
-| Subscriptions  | `POST/GET /v1/subscriptions`, `GET/POST/DELETE /v1/subscriptions/:subscriptionId`                                                       |
-| Entitlements   | `GET /v1/entitlements`                                                                                                                  |
-| Meters         | `POST/GET /v1/billing/meters`, `GET/POST /v1/billing/meters/:meterId`, `GET /v1/billing/meters/:meterId/event_summaries`                |
-| Meter events   | `POST /v1/billing/meter_events`, `POST /v1/billing/meter_event_batches`                                                                 |
-| Rating         | `GET /v1/invoices/upcoming?subscriptionId=…`                                                                                            |
-| Invoices       | `POST/GET /v1/invoices`, `GET /v1/invoices/:invoiceId`, `POST /v1/invoices/:invoiceId/{finalize,pay,void}`                              |
-| Credit notes   | `POST/GET /v1/credit_notes`, `GET /v1/credit_notes/:creditNoteId`                                                                       |
-| Payments       | `POST/GET /v1/payment_intents`, `GET /v1/payment_intents/:id`, `POST /v1/payment_intents/:id/{confirm,cancel}`                          |
-| Refunds        | `POST/GET /v1/refunds`, `GET /v1/refunds/:refundId`                                                                                     |
-| Webhooks       | `POST/GET /v1/webhook_endpoints`, `GET/POST /v1/webhook_endpoints/:id`, `GET /v1/webhook_deliveries`                                    |
-| Test clocks    | `POST/GET /v1/test_helpers/test_clocks`, `POST /v1/test_helpers/test_clocks/:id/advance`                                                |
-| Ledger (admin) | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
+| Resource          | Endpoint                                                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Customers         | `POST/GET /v1/customers`, `GET/POST/DELETE /v1/customers/:customerId`                                                                   |
+| Products          | `POST/GET /v1/products`, `GET/POST /v1/products/:productId`                                                                             |
+| Prices            | `POST/GET /v1/prices`, `GET/POST /v1/prices/:priceId`                                                                                   |
+| Subscriptions     | `POST/GET /v1/subscriptions`, `GET/POST/DELETE /v1/subscriptions/:subscriptionId`                                                       |
+| Entitlements      | `GET /v1/entitlements`                                                                                                                  |
+| Meters            | `POST/GET /v1/billing/meters`, `GET/POST /v1/billing/meters/:meterId`, `GET /v1/billing/meters/:meterId/event_summaries`                |
+| Meter events      | `POST /v1/billing/meter_events`, `POST /v1/billing/meter_event_batches`                                                                 |
+| Rating            | `GET /v1/invoices/upcoming?subscriptionId=…`                                                                                            |
+| Invoices          | `POST/GET /v1/invoices`, `GET /v1/invoices/:invoiceId`, `POST /v1/invoices/:invoiceId/{finalize,pay,void}`                              |
+| Credit notes      | `POST/GET /v1/credit_notes`, `GET /v1/credit_notes/:creditNoteId`                                                                       |
+| Payments          | `POST/GET /v1/payment_intents`, `GET /v1/payment_intents/:id`, `POST /v1/payment_intents/:id/{confirm,cancel}`                          |
+| Refunds           | `POST/GET /v1/refunds`, `GET /v1/refunds/:refundId`                                                                                     |
+| Webhooks          | `POST/GET /v1/webhook_endpoints`, `GET/POST /v1/webhook_endpoints/:id`, `GET /v1/webhook_deliveries`                                    |
+| Reporting (admin) | `GET /api/v1/admin/reporting/revenue`, `GET /api/v1/admin/reporting/reconciliation`                                                     |
+| Test clocks       | `POST/GET /v1/test_helpers/test_clocks`, `POST /v1/test_helpers/test_clocks/:id/advance`                                                |
+| Ledger (admin)    | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
 
 Mọi `POST` nhận header `Idempotency-Key`. List dùng cursor `startingAfter` / `endingBefore`.
 

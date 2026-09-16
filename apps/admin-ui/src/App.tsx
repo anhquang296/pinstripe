@@ -7,6 +7,7 @@ import PaymentsPage from '@pages/PaymentsPage';
 import PricesPage from '@pages/PricesPage';
 import ProductsPage from '@pages/ProductsPage';
 import RatingPage from '@pages/RatingPage';
+import ReportsPage from '@pages/ReportsPage';
 import SubscriptionsPage from '@pages/SubscriptionsPage';
 import TestClocksPage from '@pages/TestClocksPage';
 import WebhooksPage from '@pages/WebhooksPage';
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/webhooks" element={<WebhooksPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route path="/ledger" element={<LedgerPage />} />
         <Route path="/test-clocks" element={<TestClocksPage />} />
       </Route>

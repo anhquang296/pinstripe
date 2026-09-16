@@ -147,9 +147,11 @@ export class PaymentService {
       return updatedPaymentIntent;
     });
 
-    await this.fastify.invoiceService.payInvoice(paymentIntent.invoiceId, {
-      amount: paymentIntent.amount,
-    });
+    await this.fastify.invoiceService.payInvoice(
+      paymentIntent.invoiceId,
+      { amount: paymentIntent.amount },
+      `payment_intent:${paymentIntent.id}`,
+    );
 
     return this.buildPaymentIntent(succeededPaymentIntent);
   }

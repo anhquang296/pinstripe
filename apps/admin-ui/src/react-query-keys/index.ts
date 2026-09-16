@@ -7,6 +7,7 @@ import { meterQueries } from '@react-query-keys/meter.keys';
 import { paymentQueries } from '@react-query-keys/payment.keys';
 import { priceQueries } from '@react-query-keys/price.keys';
 import { productQueries } from '@react-query-keys/product.keys';
+import { reportingQueries } from '@react-query-keys/reporting.keys';
 import { subscriptionQueries } from '@react-query-keys/subscription.keys';
 import { testClockQueries } from '@react-query-keys/test-clock.keys';
 import { webhookQueries } from '@react-query-keys/webhook.keys';
@@ -23,4 +24,5 @@ export const queries = mergeQueryKeys(
   invoiceQueries,
   paymentQueries,
   webhookQueries,
+  reportingQueries,
 );

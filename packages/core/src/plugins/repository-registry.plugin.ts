@@ -12,6 +12,7 @@ import { PaymentIntentRepository } from '@repositories/payment-intent.repository
 import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
 import { RefundRepository } from '@repositories/refund.repository';
+import { ReportingRepository } from '@repositories/reporting.repository';
 import { SubscriptionRepository } from '@repositories/subscription.repository';
 import { TestClockRepository } from '@repositories/test-clock.repository';
 import { WebhookRepository } from '@repositories/webhook.repository';
@@ -38,4 +39,5 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('paymentIntentRepository', new PaymentIntentRepository(fastify.database));
   fastify.decorate('refundRepository', new RefundRepository(fastify.database));
   fastify.decorate('webhookRepository', new WebhookRepository(fastify.database));
+  fastify.decorate('reportingRepository', new ReportingRepository(fastify.database));
 });

@@ -17,6 +17,7 @@ import type { PaymentIntentRepository } from '@repositories/payment-intent.repos
 import type { PriceRepository } from '@repositories/price.repository';
 import type { ProductRepository } from '@repositories/product.repository';
 import type { RefundRepository } from '@repositories/refund.repository';
+import type { ReportingRepository } from '@repositories/reporting.repository';
 import type { SubscriptionRepository } from '@repositories/subscription.repository';
 import type { TestClockRepository } from '@repositories/test-clock.repository';
 import type { WebhookRepository } from '@repositories/webhook.repository';
@@ -35,7 +36,9 @@ import type { PaymentService } from '@services/payment.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
 import type { RatingService } from '@services/rating.service';
+import type { ReconciliationService } from '@services/reconciliation.service';
 import type { RefundService } from '@services/refund.service';
+import type { ReportingService } from '@services/reporting.service';
 import type { SubscriptionService } from '@services/subscription.service';
 import type { TestClockService } from '@services/test-clock.service';
 import type { WebhookService } from '@services/webhook.service';
@@ -73,6 +76,7 @@ declare module 'fastify' {
     paymentIntentRepository: PaymentIntentRepository;
     refundRepository: RefundRepository;
     webhookRepository: WebhookRepository;
+    reportingRepository: ReportingRepository;
     customerService: CustomerService;
     idempotencyService: IdempotencyService;
     entitlementService: EntitlementService;
@@ -92,6 +96,8 @@ declare module 'fastify' {
     refundService: RefundService;
     dunningService: DunningService;
     webhookService: WebhookService;
+    reportingService: ReportingService;
+    reconciliationService: ReconciliationService;
     psp: MockPspClient;
   }
 }

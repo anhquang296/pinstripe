@@ -13,7 +13,9 @@ import { PaymentService } from '@services/payment.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
 import { RatingService } from '@services/rating.service';
+import { ReconciliationService } from '@services/reconciliation.service';
 import { RefundService } from '@services/refund.service';
+import { ReportingService } from '@services/reporting.service';
 import { SubscriptionService } from '@services/subscription.service';
 import { TestClockService } from '@services/test-clock.service';
 import { WebhookService } from '@services/webhook.service';
@@ -40,6 +42,8 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('paymentService', new PaymentService(fastify));
   fastify.decorate('refundService', new RefundService(fastify));
   fastify.decorate('webhookService', new WebhookService(fastify));
+  fastify.decorate('reportingService', new ReportingService(fastify));
+  fastify.decorate('reconciliationService', new ReconciliationService(fastify));
   fastify.decorate(
     'dunningService',
     new DunningService(fastify, {

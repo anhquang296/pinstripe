@@ -185,7 +185,11 @@ export class InvoiceService {
     return this.buildInvoice(finalizedInvoice);
   }
 
-  async payInvoice(id: string, payload: PayInvoicePayload): Promise<InvoiceResponse> {
+  async payInvoice(
+    id: string,
+    payload: PayInvoicePayload,
+    settlementReference?: string,
+  ): Promise<InvoiceResponse> {
     const invoice = await this.getInvoiceEntity(id);
 
     InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
@@ -222,7 +226,7 @@ export class InvoiceService {
         throw new NotFoundError(`No such invoice: ${invoice.id}`);
       }
 
-      await this.postCashReceipt(updatedInvoice, amount, tx);
+      await this.postCashReceipt(updatedInvoice, amount, settlementReference, tx);
 
       if (isSettled) {
         await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_PAID, tx);
@@ -360,13 +364,14 @@ export class InvoiceService {
   private async postCashReceipt(
     invoice: Invoice,
     amount: number,
+    settlementReference: string | undefined,
     tx: DatabaseTransaction,
   ): Promise<void> {
     await this.fastify.ledgerService.postTransaction(
       {
         description: `Invoice ${invoice.number} payment`,
         currency: invoice.currency,
-        externalId: `invoice_payment:${invoice.id}:${invoice.amountPaid}`,
+        externalId: settlementReference ?? `invoice_payment:${invoice.id}:${invoice.amountPaid}`,
         entries: [
           {
             accountCode: LedgerAccountCodeEnum.CASH,

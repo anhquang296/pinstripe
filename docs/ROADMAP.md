@@ -29,17 +29,17 @@ Nền tảng chung: `docs/RESEARCH.md` (phân tích domain + 8 rủi ro kiến t
 | 6     | Invoicing draft→finalize→issue, credit note, billing run shard+jitter  | Xong       | [0009](adr/0009-phase-6-invoicing.md)                |
 | 7     | Payment orchestration + PSP giả lập + refund                           | Xong       | [0010](adr/0010-phase-7-payments.md)                 |
 | 8     | Dunning state machine + webhook gửi ra ngoài                           | Xong       | [0011](adr/0011-phase-8-dunning-webhooks.md)         |
-| **9** | **Portal (Next.js) + reporting + reconciliation**                      | Chưa       | —                                                    |
+| 9     | Portal (Next.js) + reporting + reconciliation                          | Xong       | [0012](adr/0012-phase-9-portal-reporting.md)         |
 
 Hai ADR không gắn với phase nào: [0004](adr/0004-nullability-policy.md) (chính sách nullable) và
 [0006](adr/0006-rule-compliance.md) (vì sao agent không theo rule, và lớp chặn ESLint dựng sau đó).
 
-## Phase 9 — Portal, reporting, reconciliation
+## Roadmap đã hết. Đây là những gì chặn đường ra production
 
-- `apps/portal-ui` hiện là skeleton Next.js rỗng (mỗi `layout.tsx` + `page.tsx`).
-- Reporting: MRR/ARR/churn đọc từ read model, không tính trên bảng giao dịch.
-- Đối soát 3 chiều (ledger nội bộ ↔ PSP ↔ ngân hàng) + exception workflow — RESEARCH.md xếp
-  reconciliation vào loại "không phải tùy chọn".
+**Portal chưa có đăng nhập khách hàng — đây là thứ nghiêm trọng nhất.** `/customers/<customerId>`
+không kiểm tra người xem là ai; ai có customerId là đọc được hóa đơn của khách đó. **Không được đưa
+ra internet ở dạng hiện tại.** Cần magic link + session + tầng API riêng cho portal. Chi tiết trong
+[ADR 0012](adr/0012-phase-9-portal-reporting.md) §Hạn chế.
 
 ## Nằm ngoài roadmap nhưng sẽ phải trả
 
