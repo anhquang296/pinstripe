@@ -70,7 +70,7 @@
     "postgres": "^3.4.5"
   },
   "devDependencies": {
-    "@pinstripe/config": "workspace:*",
+    "@pinstripe/tsconfig": "workspace:*",
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.2",
     "drizzle-kit": "^0.30.1",

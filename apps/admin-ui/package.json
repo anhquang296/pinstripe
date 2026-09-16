@@ -27,7 +27,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@pinstripe/config": "workspace:*",
+    "@pinstripe/tsconfig": "workspace:*",
     "@pinstripe/eslint-config": "workspace:*",
     "@tailwindcss/vite": "^4.0.0",
     "@types/lodash-es": "^4.17.12",

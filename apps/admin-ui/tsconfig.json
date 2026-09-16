@@ -1,5 +1,5 @@
 {
-  "extends": "@pinstripe/config/tsconfig/react.json",
+  "extends": "@pinstripe/tsconfig/react.json",
   "compilerOptions": {
     "types": ["vite/client"],
     "paths": {

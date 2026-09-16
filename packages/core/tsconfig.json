@@ -1,5 +1,5 @@
 {
-  "extends": "@pinstripe/config/tsconfig/node.json",
+  "extends": "@pinstripe/tsconfig/node.json",
   "compilerOptions": {
     "outDir": "dist",
     "paths": {
