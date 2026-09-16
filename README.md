@@ -84,6 +84,16 @@ PINSTRIPE_SECRET_API_KEY=<same value as SECRET_API_KEY>
 
 Workers run on ports `3001`–`3006`: outbox, domain-event, ledger, billing, webhook, dunning.
 
+## Understanding the system
+
+[docs/flows/](docs/flows/00-index.md) walks each end-to-end flow — request lifecycle, the outbox and
+webhook pipeline, billing, payments, the ledger — with every step linked to the file and line that
+implements it. Start there rather than with the ADRs, which record decisions rather than mechanics.
+
+[docs/PITFALLS.md](docs/PITFALLS.md) collects the places where the code runs fine but the money comes
+out wrong, and what a green test run does and does not prove. Read it before your first change and
+before writing your first test.
+
 ## Useful commands
 
 ```bash

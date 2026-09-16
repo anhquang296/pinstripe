@@ -7,6 +7,9 @@ hành** trước khi bàn chuyện customize cho team kế toán. Mỗi phase xo
 Nền tảng chung: `docs/RESEARCH.md` (phân tích domain + 8 rủi ro kiến trúc). Quy ước code:
 `.claude/rules/`. Cách chạy: `docs/DEVELOPMENT.md`.
 
+ADR ghi **tại sao**; [`docs/flows/`](flows/00-index.md) ghi **chạy thế nào** — mỗi luồng end-to-end,
+từng bước trỏ vào `file:line`.
+
 ## Quyết định khung (đã chốt, không mở lại trừ khi có lý do mới)
 
 | Vấn đề     | Chốt                                                                                           |
@@ -49,6 +52,9 @@ ra internet ở dạng hiện tại.** Cần magic link + session + tầng API r
   `apps/api` hiện không có thư mục test nào.
 - Unit test cho logic thuần trong service: `assertTransition`, `assertPricesUsable`,
   `resolveInterval`, `resolveTrialEnd`, `assertPriceShape`, `resolveReplay`.
+
+Bảng đầy đủ từng vùng, cùng những thứ phải biết trước khi viết test (integration chạy thẳng vào DB
+dev, `pnpm test` không chạm database, test clock chỉ kiểm soát một service): [PITFALLS.md §10](PITFALLS.md#10-lưu-ý-khi-test).
 
 **Thuế và hóa đơn điện tử.** RESEARCH.md §Recommendations xếp việc này vào **giai đoạn 1 (MVP)** vì
 là nghĩa vụ pháp lý (NĐ 123/2020, sửa bởi NĐ 70/2025) — không phải giai đoạn 2, và hiện **không nằm
