@@ -1,37 +1,16 @@
 {
   "extends": "@pinstripe/config/tsconfig/react.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "types": [
-      "vite/client"
-    ],
+    "types": ["vite/client"],
     "paths": {
-      "@api/*": [
-        "src/api/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@lib/*": [
-        "src/lib/*"
-      ],
-      "@pages/*": [
-        "src/pages/*"
-      ],
-      "@forms/*": [
-        "src/forms/*"
-      ],
-      "@react-query-keys/*": [
-        "src/react-query-keys/*"
-      ],
-      "@reactquery/*": [
-        "src/reactquery/*"
-      ]
+      "@api/*": ["./src/api/*"],
+      "@components/*": ["./src/components/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@forms/*": ["./src/forms/*"],
+      "@react-query-keys/*": ["./src/react-query-keys/*"],
+      "@reactquery/*": ["./src/reactquery/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "vite.config.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
 }

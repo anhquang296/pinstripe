@@ -1,25 +1,13 @@
 {
   "extends": "@pinstripe/config/tsconfig/node.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@hooks/*": [
-        "src/hooks/*"
-      ],
-      "@routes/*": [
-        "src/routes/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@plugins/*": [
-        "src/plugins/*"
-      ]
+      "@hooks/*": ["./src/hooks/*"],
+      "@routes/*": ["./src/routes/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@plugins/*": ["./src/plugins/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "tsup.config.ts"
-  ]
+  "include": ["src/**/*.ts", "tsup.config.ts"]
 }

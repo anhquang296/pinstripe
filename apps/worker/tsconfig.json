@@ -1,11 +1,10 @@
 {
   "extends": "@pinstripe/config/tsconfig/node.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@workflows/*": ["src/workflows/*"],
-      "@type/*": ["src/types/*"]
+      "@workflows/*": ["./src/workflows/*"],
+      "@type/*": ["./src/types/*"]
     }
   },
   "include": ["src/**/*.ts", "tsup.config.ts"]

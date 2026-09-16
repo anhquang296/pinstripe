@@ -1,21 +1,20 @@
 {
   "extends": "@pinstripe/config/tsconfig/node.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@clients/*": ["src/clients/*"],
-      "@config/*": ["src/config/*"],
-      "@constants/*": ["src/constants/*"],
-      "@contracts/*": ["src/contracts/*"],
-      "@database/*": ["src/database/*"],
-      "@errors/*": ["src/errors/*"],
-      "@plugins/*": ["src/plugins/*"],
-      "@queues/*": ["src/queues/*"],
-      "@repositories/*": ["src/repositories/*"],
-      "@services/*": ["src/services/*"],
-      "@type/*": ["src/types/*"],
-      "@utils/*": ["src/utils/*"]
+      "@clients/*": ["./src/clients/*"],
+      "@config/*": ["./src/config/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@contracts/*": ["./src/contracts/*"],
+      "@database/*": ["./src/database/*"],
+      "@errors/*": ["./src/errors/*"],
+      "@plugins/*": ["./src/plugins/*"],
+      "@queues/*": ["./src/queues/*"],
+      "@repositories/*": ["./src/repositories/*"],
+      "@services/*": ["./src/services/*"],
+      "@type/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"]
     }
   },
   "include": [
