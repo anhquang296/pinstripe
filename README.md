@@ -86,9 +86,16 @@ Workers run on ports `3001`–`3006`: outbox, domain-event, ledger, billing, web
 
 ## Understanding the system
 
-[docs/flows/](docs/flows/00-index.md) walks each end-to-end flow — request lifecycle, the outbox and
+[docs/usecases/](docs/usecases/00-index.md) is the easiest way in. Each file follows one real
+scenario — a customer onto a plan, an invoice issued and collected, a declined card chased by
+dunning — from the click in admin-ui down through the API, the transaction, and the workers it wakes,
+saying plainly what is done by the time the response returns and what only happens seconds later.
+Every use case ends with the UI steps, the equivalent curl, and the SQL to see the rows for yourself.
+
+[docs/flows/](docs/flows/00-index.md) walks each mechanism instead — request lifecycle, the outbox and
 webhook pipeline, billing, payments, the ledger — with every step linked to the file and line that
-implements it. Start there rather than with the ADRs, which record decisions rather than mechanics.
+implements it. Read it when a use case points you at the machinery. Both beat the ADRs as a starting
+point: those record decisions rather than mechanics.
 
 [docs/PITFALLS.md](docs/PITFALLS.md) collects the places where the code runs fine but the money comes
 out wrong, and what a green test run does and does not prove. Read it before your first change and

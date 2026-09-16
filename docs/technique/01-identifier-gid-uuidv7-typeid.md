@@ -1,4 +1,4 @@
-# GID — định danh object trên nền TypeID + UUIDv7
+# Global Object ID — định danh object trên nền TypeID
 
 Mọi object trong Pinstripe mang một **GID** (global unique id, mượn cách gọi của Stripe): một chuỗi
 `prefix_suffix` sinh ở service, không để database sinh. Tài liệu này nói GID là gì, vì sao nó đứng

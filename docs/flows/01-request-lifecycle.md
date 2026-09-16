@@ -48,7 +48,7 @@ sequenceDiagram
 | 9   | [verify-api-request.ts:9-18](../../apps/api/src/hooks/verify-api-request.ts)            | `matchesSecret` dùng `timingSafeEqual`, so độ dài trước để tránh throw                                      |
 | 10  | [v1.routes.ts:24](../../apps/api/src/routes/v1/v1.routes.ts)                            | Đăng ký `idempotencyPlugin` cho toàn bộ `/v1`                                                               |
 | 11  | [idempotency.plugin.ts:14-38](../../apps/api/src/plugins/idempotency.plugin.ts)         | `preHandler`: chỉ chạy khi method là POST/PUT/PATCH/DELETE **và** có header `idempotency-key`               |
-| 12  | [idempotency.service.ts:37-75](../../packages/core/src/services/idempotency.service.ts) | `beginRequest` — hash body SHA-256, INSERT hàng `idempotency_keys` trạng thái `in_progress`                 |
+| 12  | [idempotency.service.ts:37-75](../../packages/core/src/services/idempotency.service.ts) | `beginRequest` — hash params + body SHA-256, INSERT hàng `idempotency_keys` trạng thái `in_progress`        |
 | 13  | Route handler                                                                           | Validate body/query bằng schema TypeBox rồi gọi service                                                     |
 | 14  | [api-response.ts:3-15](../../apps/api/src/utils/api-response.ts)                        | `ApiResponse.success` (200) / `created` (201) / `accepted` (202)                                            |
 | 15  | [idempotency.plugin.ts:40-58](../../apps/api/src/plugins/idempotency.plugin.ts)         | `onSend`: status ≥ 500 → `releaseRequest` (cho phép thử lại); còn lại → `completeRequest` lưu status + body |
@@ -90,11 +90,11 @@ Không có `new XService()` rải rác trong code nghiệp vụ: service nhận 
 | Tình huống                      | Kết quả                                                                                       |
 | ------------------------------- | --------------------------------------------------------------------------------------------- |
 | Chưa có key → INSERT thành công | trả ticket, request chạy bình thường                                                          |
-| Có key, `requestHash` khác      | `IdempotencyConflictError` — cùng key nhưng body khác                                         |
+| Có key, `requestHash` khác      | `IdempotencyConflictError` — cùng key nhưng khác body hoặc khác path param                    |
 | Có key, status `in_progress`    | `IdempotencyInProgressError` — đang chạy song song                                            |
 | Có key, status `succeeded`      | replay: trả lại `responseStatusCode` + `responseBody`, kèm header `idempotent-replayed: true` |
 
-Hash lấy từ body (`JSON.stringify(body ?? null)`, SHA-256) — [idempotency.service.ts:125-129](../../packages/core/src/services/idempotency.service.ts). Hàng hết hạn sau `IDEMPOTENCY_RETENTION_HOURS`.
+Hash lấy từ path params + body (`JSON.stringify({ params, body })`, SHA-256) — [idempotency.service.ts](../../packages/core/src/services/idempotency.service.ts). Params nằm trong hash vì `route` lưu route template (`/v1/invoices/:invoiceId/finalize`), không phải URL thật. Hàng hết hạn sau `IDEMPOTENCY_RETENTION_HOURS`. Chi tiết: [docs/technique/02-idempotency.md](../technique/02-idempotency.md).
 
 ## Lỗi trả ra sao
 

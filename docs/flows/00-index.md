@@ -2,7 +2,7 @@
 
 Mỗi file trong thư mục này mô tả **một luồng chạy hết một vòng**: bắt đầu từ đâu, đi qua file nào, chạm bảng nào, phát event gì, hỏng thì ra sao. Mỗi bước trỏ thẳng vào `file:line` để vừa đọc vừa mở code.
 
-Tài liệu này trả lời câu hỏi **"chạy thế nào"**. Câu hỏi **"tại sao chọn cách đó"** nằm ở [docs/adr/](../adr/); bối cảnh domain ở [docs/RESEARCH.md](../RESEARCH.md); cách chạy máy ở [README.md](../../README.md).
+Tài liệu này trả lời câu hỏi **"cơ chế chạy thế nào"**, tổ chức theo subsystem. Muốn hỏi **"một kịch bản diễn ra thế nào"** — bấm nút này thì chuyện gì xảy ra, theo thứ tự thời gian, xuyên hết các tầng — thì sang [docs/usecases/](../usecases/00-index.md); đó cũng là cửa vào dễ hơn cho người mới. Câu hỏi **"tại sao chọn cách đó"** nằm ở [docs/adr/](../adr/); bối cảnh domain ở [docs/RESEARCH.md](../RESEARCH.md); cách chạy máy ở [README.md](../../README.md).
 
 ## Bản đồ
 
@@ -53,22 +53,23 @@ Bốn file đó là đủ để đọc hiểu phần còn lại theo nhu cầu.
 
 ## Muốn hiểu X thì đọc file nào
 
-| Câu hỏi                                                           | File                                   |
-| ----------------------------------------------------------------- | -------------------------------------- |
-| Request đi qua những gì? API key, idempotency, lỗi trả về ra sao? | [01](./01-request-lifecycle.md)        |
-| Webhook được gửi thế nào? Tại sao có outbox?                      | [02](./02-event-pipeline.md)           |
-| CRUD, phân trang con trỏ, soft delete, version của giá            | [03](./03-catalog-and-customer.md)     |
-| Trạng thái subscription, trial, gia hạn; khi nào khách bị chặn    | [04](./04-subscription-entitlement.md) |
-| Nạp event dùng, chống trùng; tính tiền theo bậc, chia tỷ lệ       | [05](./05-metering-and-rating.md)      |
-| Nháp → phát hành → thu → huỷ; credit note khác refund chỗ nào     | [06](./06-invoicing.md)                |
-| Gọi PSP, xử lý bị từ chối, hoàn tiền                              | [07](./07-payments-and-refunds.md)     |
-| Job nền tạo hoá đơn; mẫu scheduler + shard                        | [08](./08-billing-run.md)              |
-| Thu hồi nợ, lịch retry, khi nào bỏ cuộc                           | [09](./09-dunning.md)                  |
-| Bút toán kép, bất biến, đảo bút toán, số dư                       | [10](./10-ledger.md)                   |
-| MRR, churn; đối chiếu PSP với sổ cái                              | [11](./11-reporting-reconciliation.md) |
-| Nhảy thời gian để thử hành vi theo kỳ                             | [12](./12-test-clock.md)               |
-| React Query, query key, form; portal-ui đọc dữ liệu thế nào       | [13](./13-frontend-data-flow.md)       |
-| Chỗ nào dễ tự bắn vào chân; cần biết gì trước khi viết test       | [PITFALLS](../PITFALLS.md)             |
+| Câu hỏi                                                            | File                                   |
+| ------------------------------------------------------------------ | -------------------------------------- |
+| Request đi qua những gì? API key, idempotency, lỗi trả về ra sao?  | [01](./01-request-lifecycle.md)        |
+| Webhook được gửi thế nào? Tại sao có outbox?                       | [02](./02-event-pipeline.md)           |
+| CRUD, phân trang con trỏ, soft delete, version của giá             | [03](./03-catalog-and-customer.md)     |
+| Trạng thái subscription, trial, gia hạn; khi nào khách bị chặn     | [04](./04-subscription-entitlement.md) |
+| Nạp event dùng, chống trùng; tính tiền theo bậc, chia tỷ lệ        | [05](./05-metering-and-rating.md)      |
+| Nháp → phát hành → thu → huỷ; credit note khác refund chỗ nào      | [06](./06-invoicing.md)                |
+| Gọi PSP, xử lý bị từ chối, hoàn tiền                               | [07](./07-payments-and-refunds.md)     |
+| Job nền tạo hoá đơn; mẫu scheduler + shard                         | [08](./08-billing-run.md)              |
+| Thu hồi nợ, lịch retry, khi nào bỏ cuộc                            | [09](./09-dunning.md)                  |
+| Bút toán kép, bất biến, đảo bút toán, số dư                        | [10](./10-ledger.md)                   |
+| MRR, churn; đối chiếu PSP với sổ cái                               | [11](./11-reporting-reconciliation.md) |
+| Nhảy thời gian để thử hành vi theo kỳ                              | [12](./12-test-clock.md)               |
+| React Query, query key, form; portal-ui đọc dữ liệu thế nào        | [13](./13-frontend-data-flow.md)       |
+| Chỗ nào dễ tự bắn vào chân; cần biết gì trước khi viết test        | [PITFALLS](../PITFALLS.md)             |
+| Bấm nút này thì chuyện gì xảy ra, cái gì xong ngay cái gì phải chờ | [usecases](../usecases/00-index.md)    |
 
 ## Bốn quy tắc lặp lại ở mọi flow
 

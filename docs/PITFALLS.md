@@ -3,8 +3,9 @@
 Đây là billing system, nên phần lớn lỗi **không crash mà ra sai số**. File này gom những chỗ code
 chạy đúng về mặt kỹ thuật nhưng sai về mặt tiền, cùng những chỗ test xanh mà chẳng chứng minh gì.
 
-[`flows/`](flows/00-index.md) nói **chạy thế nào**, [`adr/`](adr/) nói **tại sao chọn cách đó**; file
-này nói **chỗ nào dễ tự bắn vào chân**. Mỗi mục trỏ thẳng vào `file:line` để kiểm chứng.
+[`usecases/`](usecases/00-index.md) nói **một kịch bản diễn ra thế nào**, [`flows/`](flows/00-index.md)
+nói **cơ chế chạy thế nào**, [`adr/`](adr/) nói **tại sao chọn cách đó**; file này nói **chỗ nào dễ
+tự bắn vào chân**. Mỗi mục trỏ thẳng vào `file:line` để kiểm chứng.
 
 ## Bảng tra nhanh
 

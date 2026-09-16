@@ -11,6 +11,7 @@ export interface BeginIdempotentRequestPayload {
   scope: string;
   key: string;
   route: string;
+  params: unknown;
   body: unknown;
 }
 
@@ -35,7 +36,7 @@ export class IdempotencyService {
   ) {}
 
   async beginRequest(payload: BeginIdempotentRequestPayload): Promise<IdempotentRequestTicket> {
-    const requestHash = IdempotencyService.buildRequestHash(payload.body);
+    const requestHash = IdempotencyService.buildRequestHash(payload);
 
     const now = this.fastify.clock.now();
 
@@ -99,7 +100,7 @@ export class IdempotencyService {
   ): ReplayedResponse | null {
     if (existingIdempotencyKey.requestHash !== requestHash) {
       throw new IdempotencyConflictError(
-        `Idempotency key ${existingIdempotencyKey.key} was already used with a different request body`,
+        `Idempotency key ${existingIdempotencyKey.key} was already used with different request parameters`,
       );
     }
 
@@ -122,9 +123,9 @@ export class IdempotencyService {
     return null;
   }
 
-  private static buildRequestHash(body: unknown): string {
-    return createHash('sha256')
-      .update(JSON.stringify(body ?? null))
-      .digest('hex');
+  private static buildRequestHash(payload: BeginIdempotentRequestPayload): string {
+    const identity = { params: payload.params ?? null, body: payload.body ?? null };
+
+    return createHash('sha256').update(JSON.stringify(identity)).digest('hex');
   }
 }

@@ -15,8 +15,8 @@ afterAll(async () => {
   await fastify.close();
 });
 
-function buildRequest(key: string, body: unknown) {
-  return { scope: 'test', key, route: '/v1/customers', body };
+function buildRequest(key: string, body: unknown, params: unknown = {}) {
+  return { scope: 'test', key, route: '/v1/customers', params, body };
 }
 
 describe('IdempotencyService.beginRequest', () => {
@@ -55,5 +55,33 @@ describe('IdempotencyService.beginRequest', () => {
     const act = fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
 
     await expect(act).rejects.toThrowError(IdempotencyInProgressError);
+  });
+
+  it('rejects a repeated key aimed at a different path param', async () => {
+    const key = generateGid(ObjectPrefixEnum.REQUEST);
+    const first = await fastify.idempotencyService.beginRequest(
+      buildRequest(key, undefined, { invoiceId: 'in_1' }),
+    );
+    await fastify.idempotencyService.completeRequest(first.id, 200, { id: 'in_1' });
+
+    const act = fastify.idempotencyService.beginRequest(
+      buildRequest(key, undefined, { invoiceId: 'in_2' }),
+    );
+
+    await expect(act).rejects.toThrowError(IdempotencyConflictError);
+  });
+
+  it('replays a repeated key aimed at the same path param when there is no body', async () => {
+    const key = generateGid(ObjectPrefixEnum.REQUEST);
+    const first = await fastify.idempotencyService.beginRequest(
+      buildRequest(key, undefined, { invoiceId: 'in_1' }),
+    );
+    await fastify.idempotencyService.completeRequest(first.id, 200, { id: 'in_1' });
+
+    const second = await fastify.idempotencyService.beginRequest(
+      buildRequest(key, undefined, { invoiceId: 'in_1' }),
+    );
+
+    expect(second.replay).toEqual({ statusCode: 200, body: { id: 'in_1' } });
   });
 });

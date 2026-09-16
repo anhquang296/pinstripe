@@ -22,6 +22,7 @@ export const idempotencyPlugin = fp(async (fastify) => {
       scope: DEFAULT_SCOPE,
       key,
       route: request.routeOptions.url ?? request.url,
+      params: request.params,
       body: request.body,
     });
 
