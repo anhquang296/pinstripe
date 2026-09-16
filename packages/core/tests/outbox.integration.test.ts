@@ -1,5 +1,5 @@
 import { OutboxStatusEnum } from '@contracts/events.types';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -39,7 +39,7 @@ async function waitForPublished(eventId: string): Promise<string | undefined> {
 
 describe('OutboxService.relayOutboxEvents', () => {
   it('publishes a recorded event and leaves nothing claimable behind', async () => {
-    const aggregateId = generateId(ObjectPrefixEnum.CUSTOMER);
+    const aggregateId = generateGid(ObjectPrefixEnum.CUSTOMER);
     const [eventId] = await fastify.outboxService.recordEvents([
       {
         aggregateType: 'customer',

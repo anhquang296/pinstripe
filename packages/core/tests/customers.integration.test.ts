@@ -1,6 +1,6 @@
 import { NotFoundError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -17,7 +17,7 @@ afterAll(async () => {
 });
 
 function buildEmail(): string {
-  return `${generateId(ObjectPrefixEnum.CUSTOMER)}@example.test`;
+  return `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`;
 }
 
 describe('CustomerService.deleteCustomer', () => {

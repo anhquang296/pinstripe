@@ -10,7 +10,7 @@ import type {
 import type { Product } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -19,7 +19,7 @@ export class ProductService {
 
   async createProduct(payload: CreateProductPayload): Promise<ProductResponse> {
     const now = this.fastify.clock.now();
-    const id = generateId(ObjectPrefixEnum.PRODUCT);
+    const id = generateGid(ObjectPrefixEnum.PRODUCT);
 
     const createdProduct = await this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.createProduct(

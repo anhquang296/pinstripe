@@ -5,7 +5,7 @@ import { PaymentAttemptOutcomeEnum, PaymentIntentStatusEnum } from '@contracts/p
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -28,16 +28,16 @@ afterAll(async () => {
 
 async function makeOpenInvoice(): Promise<{ invoiceId: string; customerId: string }> {
   const clock = await fastify.testClockService.createTestClock({
-    name: `clock ${generateId(ObjectPrefixEnum.TEST_CLOCK)}`,
+    name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
   const customer = await fastify.customerService.createCustomer({
-    email: `${generateId(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
     testClockId: clock.id,
   });
   const product = await fastify.productService.createProduct({
-    name: `Plan ${generateId(ObjectPrefixEnum.PRODUCT)}`,
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
   const price = await fastify.priceService.createPrice({
     productId: product.id,

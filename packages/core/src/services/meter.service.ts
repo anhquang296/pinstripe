@@ -12,7 +12,7 @@ import type { Meter } from '@database/schemas';
 import { ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -86,7 +86,7 @@ export class MeterService {
 
   private async writeMeter(payload: CreateMeterPayload, now: Date): Promise<Meter> {
     const DEFAULT_VALUE_KEY = 'value';
-    const id = generateId(ObjectPrefixEnum.METER);
+    const id = generateGid(ObjectPrefixEnum.METER);
 
     try {
       return await this.fastify.database.master.transaction(async (tx) => {

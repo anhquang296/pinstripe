@@ -11,7 +11,7 @@ import { TestClockStatusEnum } from '@contracts/test-clocks.types';
 import type { TestClock } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -22,7 +22,7 @@ export class TestClockService {
     const now = this.fastify.clock.now();
 
     const createdTestClock = await this.fastify.testClockRepository.createTestClock({
-      id: generateId(ObjectPrefixEnum.TEST_CLOCK),
+      id: generateGid(ObjectPrefixEnum.TEST_CLOCK),
       name: payload.name,
       frozenTime: new Date(payload.frozenTime),
       status: TestClockStatusEnum.READY,

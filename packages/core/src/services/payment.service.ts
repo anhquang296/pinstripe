@@ -20,7 +20,7 @@ import type { DatabaseTransaction } from '@database/database.client';
 import type { Invoice, PaymentAttempt, PaymentIntent } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -54,7 +54,7 @@ export class PaymentService {
     }
 
     const now = this.fastify.clock.now();
-    const id = generateId(ObjectPrefixEnum.PAYMENT_INTENT);
+    const id = generateGid(ObjectPrefixEnum.PAYMENT_INTENT);
     const paymentMethod = payload.paymentMethod ?? null;
 
     const createdPaymentIntent = await this.fastify.paymentIntentRepository.createPaymentIntent({
@@ -127,7 +127,7 @@ export class PaymentService {
 
       await this.fastify.paymentIntentRepository.createPaymentAttempt(
         {
-          id: generateId(ObjectPrefixEnum.CHARGE),
+          id: generateGid(ObjectPrefixEnum.CHARGE),
           paymentIntentId: paymentIntent.id,
           paymentMethod,
           outcome: PaymentAttemptOutcomeEnum.SUCCEEDED,
@@ -244,7 +244,7 @@ export class PaymentService {
 
       await this.fastify.paymentIntentRepository.createPaymentAttempt(
         {
-          id: generateId(ObjectPrefixEnum.CHARGE),
+          id: generateGid(ObjectPrefixEnum.CHARGE),
           paymentIntentId: paymentIntent.id,
           paymentMethod,
           outcome: PaymentAttemptOutcomeEnum.DECLINED,

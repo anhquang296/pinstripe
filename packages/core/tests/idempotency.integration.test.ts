@@ -1,5 +1,5 @@
 import { IdempotencyConflictError, IdempotencyInProgressError } from '@errors/idempotency.error';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -21,7 +21,7 @@ function buildRequest(key: string, body: unknown) {
 
 describe('IdempotencyService.beginRequest', () => {
   it('returns no replay for a key seen for the first time', async () => {
-    const key = generateId(ObjectPrefixEnum.REQUEST);
+    const key = generateGid(ObjectPrefixEnum.REQUEST);
 
     const ticket = await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
 
@@ -29,7 +29,7 @@ describe('IdempotencyService.beginRequest', () => {
   });
 
   it('replays the stored response for a repeated key with the same body', async () => {
-    const key = generateId(ObjectPrefixEnum.REQUEST);
+    const key = generateGid(ObjectPrefixEnum.REQUEST);
     const first = await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
     await fastify.idempotencyService.completeRequest(first.id, 201, { id: 'cus_1' });
 
@@ -39,7 +39,7 @@ describe('IdempotencyService.beginRequest', () => {
   });
 
   it('rejects a repeated key whose request body differs', async () => {
-    const key = generateId(ObjectPrefixEnum.REQUEST);
+    const key = generateGid(ObjectPrefixEnum.REQUEST);
     const first = await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
     await fastify.idempotencyService.completeRequest(first.id, 201, { id: 'cus_1' });
 
@@ -49,7 +49,7 @@ describe('IdempotencyService.beginRequest', () => {
   });
 
   it('rejects a repeated key while the first request is still running', async () => {
-    const key = generateId(ObjectPrefixEnum.REQUEST);
+    const key = generateGid(ObjectPrefixEnum.REQUEST);
     await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
 
     const act = fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));

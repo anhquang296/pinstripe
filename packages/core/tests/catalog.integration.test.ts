@@ -2,7 +2,7 @@ import { BillingSchemeEnum, RecurringIntervalEnum, TiersModeEnum } from '@contra
 import type { ProductResponse } from '@contracts/products.types';
 import { BadRequestError, NotFoundError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -21,14 +21,14 @@ afterAll(async () => {
 
 async function createProduct(): Promise<ProductResponse> {
   return fastify.productService.createProduct({
-    name: `Plan ${generateId(ObjectPrefixEnum.PRODUCT)}`,
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
 }
 
 describe('PriceService.createPrice', () => {
   it('starts a new lookup key at version one', async () => {
     const product = await createProduct();
-    const lookupKey = `key_${generateId(ObjectPrefixEnum.PRICE)}`;
+    const lookupKey = `key_${generateGid(ObjectPrefixEnum.PRICE)}`;
 
     const price = await fastify.priceService.createPrice({
       productId: product.id,
@@ -43,7 +43,7 @@ describe('PriceService.createPrice', () => {
 
   it('creates a new version instead of mutating the existing price', async () => {
     const product = await createProduct();
-    const lookupKey = `key_${generateId(ObjectPrefixEnum.PRICE)}`;
+    const lookupKey = `key_${generateGid(ObjectPrefixEnum.PRICE)}`;
     const first = await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,
@@ -90,7 +90,7 @@ describe('PriceService.createPrice', () => {
 
   it('rejects a price for a product that does not exist', async () => {
     const act = fastify.priceService.createPrice({
-      productId: generateId(ObjectPrefixEnum.PRODUCT),
+      productId: generateGid(ObjectPrefixEnum.PRODUCT),
       currency: CurrencyEnum.VND,
       unitAmount: 1000,
     });
@@ -102,7 +102,7 @@ describe('PriceService.createPrice', () => {
 describe('PriceService.resolvePrice', () => {
   it('returns the version in force at the given instant, not the newest one', async () => {
     const product = await createProduct();
-    const lookupKey = `key_${generateId(ObjectPrefixEnum.PRICE)}`;
+    const lookupKey = `key_${generateGid(ObjectPrefixEnum.PRICE)}`;
     await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,
@@ -133,7 +133,7 @@ describe('PriceService.resolvePrice', () => {
 
   it('throws when no version is effective yet at that instant', async () => {
     const product = await createProduct();
-    const lookupKey = `key_${generateId(ObjectPrefixEnum.PRICE)}`;
+    const lookupKey = `key_${generateGid(ObjectPrefixEnum.PRICE)}`;
     await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,
@@ -151,7 +151,7 @@ describe('PriceService.resolvePrice', () => {
 describe('prices table constraints', () => {
   it('refuses a per unit price with no unit amount, even written straight to the database', async () => {
     const product = await createProduct();
-    const priceId = generateId(ObjectPrefixEnum.PRICE);
+    const priceId = generateGid(ObjectPrefixEnum.PRICE);
 
     const act = fastify.database.master.execute(sql`
       insert into prices (id, product_id, version, effective_at, currency, type, billing_scheme, tax_behavior, created_at, updated_at)
@@ -163,7 +163,7 @@ describe('prices table constraints', () => {
 
   it('refuses a recurring price with no interval', async () => {
     const product = await createProduct();
-    const priceId = generateId(ObjectPrefixEnum.PRICE);
+    const priceId = generateGid(ObjectPrefixEnum.PRICE);
 
     const act = fastify.database.master.execute(sql`
       insert into prices (id, product_id, version, effective_at, currency, type, billing_scheme, unit_amount, tax_behavior, created_at, updated_at)

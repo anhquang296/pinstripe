@@ -2,7 +2,7 @@ import { MILLISECONDS_PER_DAY } from '@constants/time';
 import type { CreateMeterEventPayload, MeterResponse } from '@contracts/meters.types';
 import { MeterAggregationEnum } from '@contracts/meters.types';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -45,12 +45,12 @@ describe('MeterEventService.ingestMeterEventBatch', () => {
   it('drops every repeated identifier and still totals exactly what it accepted', async () => {
     const meter = await fastify.meterService.createMeter({
       displayName: 'Ingestion volume',
-      eventName: `ingest_volume_${generateId(ObjectPrefixEnum.METER)}`,
+      eventName: `ingest_volume_${generateGid(ObjectPrefixEnum.METER)}`,
       aggregation: MeterAggregationEnum.SUM,
       valueKey: 'tokens',
     });
     const customer = await fastify.customerService.createCustomer({
-      email: `${generateId(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
     });
     const events = buildEvents(meter, customer.id);

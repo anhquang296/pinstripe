@@ -17,7 +17,7 @@ sequenceDiagram
     participant OB as OutboxService
 
     R->>S: createX(payload)
-    S->>S: clock.now() + generateId(prefix)
+    S->>S: clock.now() + generateGid(prefix)
     S->>TX: BEGIN
     TX->>Repo: INSERT ... RETURNING
     TX->>OB: recordEvents([x.created], tx)
@@ -28,7 +28,7 @@ sequenceDiagram
 Ba chi tiết lặp lại ở mọi service:
 
 - **Thời gian lấy từ `fastify.clock`**, không bao giờ `new Date()` trực tiếp — đó là thứ cho phép test clock (flow 12) hoạt động.
-- **Id sinh ở service**, không để DB sinh — `generateId(ObjectPrefixEnum.X)` ra `cus_...`, `prod_...`, `price_...`.
+- **Id sinh ở service**, không để DB sinh — `generateGid(ObjectPrefixEnum.X)` ra `cus_...`, `prod_...`, `price_...`. Định dạng và lý do chọn ở [docs/technique/01-identifier-gid-uuidv7-typeid.md](../technique/01-identifier-gid-uuidv7-typeid.md).
 - **Event ghi trong cùng `tx`** — xem [flow 02](./02-event-pipeline.md).
 
 ## Customer

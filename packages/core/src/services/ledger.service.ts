@@ -22,7 +22,7 @@ import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error
 import { isUniqueViolation } from '@errors/database.error';
 import type { LedgerAccountWithBalance } from '@repositories/ledger-account.repository';
 import type { Currency } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -54,7 +54,7 @@ export class LedgerService {
 
     try {
       await this.fastify.ledgerAccountRepository.createLedgerAccount({
-        id: generateId(ObjectPrefixEnum.LEDGER_ACCOUNT),
+        id: generateGid(ObjectPrefixEnum.LEDGER_ACCOUNT),
         code,
         type: definition.type,
         normalBalance: definition.normalBalance,
@@ -84,7 +84,7 @@ export class LedgerService {
     LedgerService.assertBalanced(payload);
 
     const now = this.fastify.clock.now();
-    const transactionId = generateId(ObjectPrefixEnum.LEDGER_TRANSACTION);
+    const transactionId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
     const postings = await this.buildPostings(transactionId, payload, now);
 
     const postedTransaction = await this.writeTransaction(
@@ -202,10 +202,10 @@ export class LedgerService {
       id,
     ]);
     const now = this.fastify.clock.now();
-    const reversalId = generateId(ObjectPrefixEnum.LEDGER_TRANSACTION);
+    const reversalId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
     const postings: NewLedgerPosting[] = _.map(originalPostings, (posting) => {
       return {
-        id: generateId(ObjectPrefixEnum.LEDGER_POSTING),
+        id: generateGid(ObjectPrefixEnum.LEDGER_POSTING),
         transactionId: reversalId,
         accountId: posting.accountId,
         direction:
@@ -325,7 +325,7 @@ export class LedgerService {
       }
 
       postings.push({
-        id: generateId(ObjectPrefixEnum.LEDGER_POSTING),
+        id: generateGid(ObjectPrefixEnum.LEDGER_POSTING),
         transactionId,
         accountId: account.id,
         direction: entry.direction,

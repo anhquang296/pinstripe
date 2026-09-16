@@ -8,7 +8,7 @@ import type { SubscriptionStatus } from '@contracts/subscriptions.types';
 import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
 import type { Entitlement } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { RedisNamespaceEnum } from '@utils/redis-key-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -58,7 +58,7 @@ export class EntitlementService {
 
     for (const price of prices) {
       await this.fastify.entitlementRepository.upsertEntitlement({
-        id: generateId(ObjectPrefixEnum.ENTITLEMENT),
+        id: generateGid(ObjectPrefixEnum.ENTITLEMENT),
         customerId: subscription.customerId,
         subscriptionId,
         productId: price.productId,

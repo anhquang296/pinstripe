@@ -4,7 +4,7 @@ import type { DomainEventDispatchJob } from '@queues/domain-event.queue';
 import { buildDomainEventDispatchJob, DOMAIN_EVENT_DISPATCH_JOB } from '@queues/domain-event.queue';
 import { QueueNameEnum } from '@queues/queue-name';
 import type { ClaimedOutboxEvent } from '@repositories/outbox-event.repository';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -26,7 +26,7 @@ export class OutboxService {
     const occurredAt = this.fastify.clock.now();
     const outboxRows: NewOutboxEvent[] = _.map(events, (event) => {
       return {
-        id: generateId(ObjectPrefixEnum.EVENT),
+        id: generateGid(ObjectPrefixEnum.EVENT),
         aggregateType: event.aggregateType,
         aggregateId: event.aggregateId,
         eventType: event.eventType,

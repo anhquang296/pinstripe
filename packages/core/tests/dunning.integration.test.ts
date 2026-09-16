@@ -4,7 +4,7 @@ import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { WebhookDeliveryStatusEnum, WebhookEndpointStatusEnum } from '@contracts/webhooks.types';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { buildWebhookSignature, isWebhookSignatureValid } from '@utils/webhook-signature';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -29,17 +29,17 @@ afterAll(async () => {
 
 async function makeOpenInvoice(paymentMethod?: string): Promise<string> {
   const clock = await fastify.testClockService.createTestClock({
-    name: `clock ${generateId(ObjectPrefixEnum.TEST_CLOCK)}`,
+    name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
   const customer = await fastify.customerService.createCustomer({
-    email: `${generateId(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
     testClockId: clock.id,
     metadata: paymentMethod ? { defaultPaymentMethod: paymentMethod } : undefined,
   });
   const product = await fastify.productService.createProduct({
-    name: `Plan ${generateId(ObjectPrefixEnum.PRODUCT)}`,
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
   const price = await fastify.priceService.createPrice({
     productId: product.id,
@@ -215,7 +215,7 @@ describe('WebhookService.createWebhookEndpoint', () => {
 
 describe('WebhookService.handleDomainEvent', () => {
   it('queues a delivery only for endpoints subscribed to that event', async () => {
-    const eventId = generateId(ObjectPrefixEnum.EVENT);
+    const eventId = generateGid(ObjectPrefixEnum.EVENT);
     const subscribed = await fastify.webhookService.createWebhookEndpoint({
       url: 'https://example.test/subscribed',
       enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
@@ -254,7 +254,7 @@ describe('WebhookService.handleDomainEvent', () => {
     });
 
     await fastify.webhookService.handleDomainEvent({
-      eventId: generateId(ObjectPrefixEnum.EVENT),
+      eventId: generateGid(ObjectPrefixEnum.EVENT),
       eventType: DomainEventTypeEnum.INVOICE_VOIDED,
       aggregateType: 'invoice',
       aggregateId: 'in_test',
@@ -276,7 +276,7 @@ describe('WebhookService.handleDomainEvent', () => {
     });
 
     await fastify.webhookService.handleDomainEvent({
-      eventId: generateId(ObjectPrefixEnum.EVENT),
+      eventId: generateGid(ObjectPrefixEnum.EVENT),
       eventType: DomainEventTypeEnum.INVOICE_FINALIZED,
       aggregateType: 'invoice',
       aggregateId: 'in_test',
@@ -294,7 +294,7 @@ describe('WebhookService.handleDomainEvent', () => {
   });
 
   it('carries the event id so a receiver can drop a repeat', async () => {
-    const eventId = generateId(ObjectPrefixEnum.EVENT);
+    const eventId = generateGid(ObjectPrefixEnum.EVENT);
     const created = await fastify.webhookService.createWebhookEndpoint({
       url: 'https://example.test/idempotent',
       enabledEvents: [DomainEventTypeEnum.REFUND_CREATED],
@@ -328,7 +328,7 @@ describe('WebhookService.recordDeliveryResult', () => {
     });
 
     await fastify.webhookService.handleDomainEvent({
-      eventId: generateId(ObjectPrefixEnum.EVENT),
+      eventId: generateGid(ObjectPrefixEnum.EVENT),
       eventType: DomainEventTypeEnum.INVOICE_CREATED,
       aggregateType: 'invoice',
       aggregateId: 'in_test',

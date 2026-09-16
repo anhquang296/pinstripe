@@ -4,7 +4,7 @@ import { MILLISECONDS_PER_HOUR } from '@constants/time';
 import { IdempotencyStatusEnum } from '@contracts/idempotency.types';
 import type { IdempotencyKey } from '@database/schemas';
 import { IdempotencyConflictError, IdempotencyInProgressError } from '@errors/idempotency.error';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 
 export interface BeginIdempotentRequestPayload {
@@ -40,7 +40,7 @@ export class IdempotencyService {
     const now = this.fastify.clock.now();
 
     const createdIdempotencyKey = await this.fastify.idempotencyKeyRepository.createIdempotencyKey({
-      id: generateId(ObjectPrefixEnum.REQUEST),
+      id: generateGid(ObjectPrefixEnum.REQUEST),
       key: payload.key,
       scope: payload.scope,
       route: payload.route,

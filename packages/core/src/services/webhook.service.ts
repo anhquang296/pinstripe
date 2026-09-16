@@ -18,7 +18,7 @@ import { QueueNameEnum } from '@queues/queue-name';
 import type { WebhookDeliveryJob } from '@queues/webhook.queue';
 import { buildWebhookDeliveryJob, WEBHOOK_DELIVERY_JOB } from '@queues/webhook.queue';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { buildWebhookSignature } from '@utils/webhook-signature';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
@@ -41,7 +41,7 @@ export class WebhookService {
     payload: CreateWebhookEndpointPayload,
   ): Promise<WebhookEndpointResponse> {
     const now = this.fastify.clock.now();
-    const id = generateId(ObjectPrefixEnum.WEBHOOK_ENDPOINT);
+    const id = generateGid(ObjectPrefixEnum.WEBHOOK_ENDPOINT);
     const createdEndpoint = await this.fastify.webhookRepository.createWebhookEndpoint({
       id,
       url: payload.url,
@@ -150,7 +150,7 @@ export class WebhookService {
     const deliveries = await this.fastify.webhookRepository.createWebhookDeliveries(
       _.map(subscribed, (endpoint) => {
         return {
-          id: generateId(ObjectPrefixEnum.WEBHOOK_DELIVERY),
+          id: generateGid(ObjectPrefixEnum.WEBHOOK_DELIVERY),
           endpointId: endpoint.id,
           eventId: event.eventId,
           eventType: event.eventType,

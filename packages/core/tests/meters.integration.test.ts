@@ -5,7 +5,7 @@ import type { MeterResponse } from '@contracts/meters.types';
 import { MeterAggregationEnum } from '@contracts/meters.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -36,8 +36,8 @@ afterAll(async () => {
 
 async function buildMeter(aggregation: MeterAggregationEnum): Promise<MeterResponse> {
   return fastify.meterService.createMeter({
-    displayName: `Meter ${generateId(ObjectPrefixEnum.METER)}`,
-    eventName: `api_request_${generateId(ObjectPrefixEnum.METER)}`,
+    displayName: `Meter ${generateGid(ObjectPrefixEnum.METER)}`,
+    eventName: `api_request_${generateGid(ObjectPrefixEnum.METER)}`,
     aggregation,
     valueKey: 'tokens',
   });
@@ -45,7 +45,7 @@ async function buildMeter(aggregation: MeterAggregationEnum): Promise<MeterRespo
 
 async function buildCustomer(): Promise<string> {
   const customer = await fastify.customerService.createCustomer({
-    email: `${generateId(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
   });
 
@@ -72,7 +72,7 @@ describe('MeterEventService.ingestMeterEvent', () => {
   it('stores an event once no matter how many times the same identifier arrives', async () => {
     const meter = await buildMeter(MeterAggregationEnum.SUM);
     const customerId = await buildCustomer();
-    const identifier = generateId(ObjectPrefixEnum.METER_EVENT);
+    const identifier = generateGid(ObjectPrefixEnum.METER_EVENT);
 
     await ingestEvent(meter, customerId, 10, INSIDE_WINDOW, identifier);
     await ingestEvent(meter, customerId, 10, INSIDE_WINDOW, identifier);

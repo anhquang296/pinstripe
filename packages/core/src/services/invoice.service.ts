@@ -21,7 +21,7 @@ import type { Invoice, InvoiceLineItem, NewInvoiceLineItem, Subscription } from 
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -60,7 +60,7 @@ export class InvoiceService {
       return { invoice: existingInvoice, isCreated: false };
     }
 
-    const id = generateId(ObjectPrefixEnum.INVOICE);
+    const id = generateGid(ObjectPrefixEnum.INVOICE);
     const now = this.fastify.clock.now();
 
     try {
@@ -131,7 +131,7 @@ export class InvoiceService {
     const dueAt = new Date(now.getTime() + this.options.dueDays * MILLISECONDS_PER_DAY);
     const lineItems = _.map(rated.lineItems, (lineItem): NewInvoiceLineItem => {
       return {
-        id: generateId(ObjectPrefixEnum.INVOICE_LINE_ITEM),
+        id: generateGid(ObjectPrefixEnum.INVOICE_LINE_ITEM),
         invoiceId: invoice.id,
         subscriptionItemId: lineItem.subscriptionItemId,
         priceId: lineItem.priceId,

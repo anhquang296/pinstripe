@@ -10,7 +10,7 @@ import type {
 import { MeterAggregationEnum } from '@contracts/meters.types';
 import type { Meter, NewMeterEvent } from '@database/schemas';
 import { BadRequestError, NotFoundError } from '@errors/app.error';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { RedisNamespaceEnum } from '@utils/redis-key-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -131,8 +131,8 @@ export class MeterEventService {
     MeterEventService.assertWithinWindow(timestamp, receivedAt, this.config.dedupWindowDays);
 
     return {
-      id: generateId(ObjectPrefixEnum.METER_EVENT),
-      identifier: payload.identifier ?? generateId(ObjectPrefixEnum.METER_EVENT),
+      id: generateGid(ObjectPrefixEnum.METER_EVENT),
+      identifier: payload.identifier ?? generateGid(ObjectPrefixEnum.METER_EVENT),
       meterId: meter.id,
       customerId: payload.customerId,
       eventName: payload.eventName,

@@ -19,7 +19,7 @@ import type { Price } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -43,7 +43,7 @@ export class PriceService {
     }
 
     const now = this.fastify.clock.now();
-    const id = generateId(ObjectPrefixEnum.PRICE);
+    const id = generateGid(ObjectPrefixEnum.PRICE);
     const version = await this.resolveNextVersion(payload.lookupKey);
 
     const createdPrice = await this.writePrice(id, payload, billingScheme, version, now);

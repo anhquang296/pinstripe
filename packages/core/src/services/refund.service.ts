@@ -12,7 +12,7 @@ import type { DatabaseTransaction } from '@database/database.client';
 import type { PaymentIntent, Refund } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -47,7 +47,7 @@ export class RefundService {
       );
     }
 
-    const id = generateId(ObjectPrefixEnum.REFUND);
+    const id = generateGid(ObjectPrefixEnum.REFUND);
     const pspRefund = await this.fastify.psp.createRefund({
       reference: pspReference,
       amount,

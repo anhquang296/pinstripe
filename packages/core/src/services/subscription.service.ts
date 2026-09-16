@@ -24,7 +24,7 @@ import type { NewSubscriptionItem, Price, Subscription, SubscriptionItem } from 
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { advancePeriod } from '@utils/billing-period';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -46,7 +46,7 @@ export class SubscriptionService {
 
     SubscriptionService.assertPricesUsable(prices, customer.currency);
 
-    const subscriptionId = generateId(ObjectPrefixEnum.SUBSCRIPTION);
+    const subscriptionId = generateGid(ObjectPrefixEnum.SUBSCRIPTION);
     const trialEnd = SubscriptionService.resolveTrialEnd(payload, now);
     const anchor = payload.billingCycleAnchor
       ? new Date(payload.billingCycleAnchor)
@@ -54,7 +54,7 @@ export class SubscriptionService {
     const { interval, intervalCount } = SubscriptionService.resolveInterval(prices);
     const items: NewSubscriptionItem[] = _.map(payload.items, (item) => {
       return {
-        id: generateId(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
+        id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
         subscriptionId,
         priceId: item.priceId,
         quantity: item.quantity ?? 1,
@@ -167,7 +167,7 @@ export class SubscriptionService {
     const items = payload.items
       ? _.map(payload.items, (item) => {
           return {
-            id: generateId(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
+            id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
             subscriptionId: id,
             priceId: item.priceId,
             quantity: item.quantity ?? 1,

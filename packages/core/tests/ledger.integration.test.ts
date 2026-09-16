@@ -1,7 +1,7 @@
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -23,7 +23,7 @@ afterAll(async () => {
 });
 
 function buildCustomerId(): string {
-  return generateId(ObjectPrefixEnum.CUSTOMER);
+  return generateGid(ObjectPrefixEnum.CUSTOMER);
 }
 
 async function postRevenueTransaction(customerId: string, amount: number): Promise<string> {
@@ -71,7 +71,7 @@ describe('LedgerService.postTransaction', () => {
   });
 
   it('rejects a second transaction posted under the same external id', async () => {
-    const externalId = `invoice:${generateId(ObjectPrefixEnum.INVOICE)}:finalize`;
+    const externalId = `invoice:${generateGid(ObjectPrefixEnum.INVOICE)}:finalize`;
     const entries = [
       {
         accountCode: LedgerAccountCodeEnum.CASH,

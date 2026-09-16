@@ -11,7 +11,7 @@ import type { Customer } from '@database/schemas';
 import { ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -26,7 +26,7 @@ export class CustomerService {
 
   async createCustomer(payload: CreateCustomerPayload): Promise<CustomerResponse> {
     const now = this.fastify.clock.now();
-    const id = generateId(ObjectPrefixEnum.CUSTOMER);
+    const id = generateGid(ObjectPrefixEnum.CUSTOMER);
 
     const createdCustomer = await this.writeCustomer(id, payload, now);
 

@@ -8,7 +8,7 @@ import {
 } from '@contracts/prices.types';
 import { BadRequestError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { LineItemTypeEnum } from '@utils/rating';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -34,7 +34,7 @@ afterAll(async () => {
 
 async function makeProduct(): Promise<string> {
   const product = await fastify.productService.createProduct({
-    name: `Plan ${generateId(ObjectPrefixEnum.PRODUCT)}`,
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
 
   return product.id;
@@ -42,11 +42,11 @@ async function makeProduct(): Promise<string> {
 
 async function makeCustomer(): Promise<{ customerId: string; clockId: string }> {
   const clock = await fastify.testClockService.createTestClock({
-    name: `clock ${generateId(ObjectPrefixEnum.TEST_CLOCK)}`,
+    name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
   const customer = await fastify.customerService.createCustomer({
-    email: `${generateId(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
     testClockId: clock.id,
   });
@@ -80,7 +80,7 @@ describe('RatingService.rateUpcomingInvoice', () => {
     const productId = await makeProduct();
     const meter = await fastify.meterService.createMeter({
       displayName: 'Rated tokens',
-      eventName: `rated_tokens_${generateId(ObjectPrefixEnum.METER)}`,
+      eventName: `rated_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
       aggregation: MeterAggregationEnum.SUM,
       valueKey: 'tokens',
     });
@@ -114,7 +114,7 @@ describe('RatingService.rateUpcomingInvoice', () => {
     const productId = await makeProduct();
     const meter = await fastify.meterService.createMeter({
       displayName: 'Idle tokens',
-      eventName: `idle_tokens_${generateId(ObjectPrefixEnum.METER)}`,
+      eventName: `idle_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
       aggregation: MeterAggregationEnum.SUM,
       valueKey: 'tokens',
     });
@@ -161,7 +161,7 @@ describe('PriceService.createPrice metered shape', () => {
     const productId = await makeProduct();
     const meter = await fastify.meterService.createMeter({
       displayName: 'Unused meter',
-      eventName: `unused_${generateId(ObjectPrefixEnum.METER)}`,
+      eventName: `unused_${generateGid(ObjectPrefixEnum.METER)}`,
       aggregation: MeterAggregationEnum.COUNT,
     });
 

@@ -12,7 +12,7 @@ import type { DatabaseTransaction } from '@database/database.client';
 import type { CreditNote, Invoice } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
-import { generateId, ObjectPrefixEnum } from '@utils/id-factory';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -42,7 +42,7 @@ export class CreditNoteService {
     }
 
     const now = this.fastify.clock.now();
-    const id = generateId(ObjectPrefixEnum.CREDIT_NOTE);
+    const id = generateGid(ObjectPrefixEnum.CREDIT_NOTE);
 
     const createdCreditNote = await this.fastify.database.master.transaction(async (tx) => {
       const sequenceValue = await this.fastify.invoiceRepository.claimNextNumber(

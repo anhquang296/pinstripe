@@ -1,6 +1,5 @@
-import { randomBytes } from 'node:crypto';
-
 import _ from 'lodash';
+import { typeid } from 'typeid-js';
 
 export enum ObjectPrefixEnum {
   CUSTOMER = 'cus',
@@ -31,20 +30,10 @@ export enum ObjectPrefixEnum {
 }
 export type ObjectPrefix = `${ObjectPrefixEnum}`;
 
-const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-const ID_BODY_LENGTH = 24;
-
-export function generateId(prefix: ObjectPrefix): string {
-  const bytes = randomBytes(ID_BODY_LENGTH);
-  let body = '';
-
-  for (const byte of bytes) {
-    body += BASE58_ALPHABET[byte % BASE58_ALPHABET.length];
-  }
-
-  return `${prefix}_${body}`;
+export function generateGid(prefix: ObjectPrefix): string {
+  return typeid(prefix).toString();
 }
 
-export function hasPrefix(id: string, prefix: ObjectPrefix): boolean {
-  return _.startsWith(id, `${prefix}_`);
+export function hasPrefix(gid: string, prefix: ObjectPrefix): boolean {
+  return _.startsWith(gid, `${prefix}_`);
 }
