@@ -1,7 +1,6 @@
-import { cn } from '@lib/cn';
-import { map } from 'lodash-es';
-import { useCallback } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { find, get, map } from 'lodash-es';
+import { type ChangeEvent, useCallback } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 const NAV_ITEMS = [
   { to: '/customers', label: 'Customers' },
@@ -19,27 +18,40 @@ const NAV_ITEMS = [
 ];
 
 export default function AppLayout() {
-  const handleOnNavLinkClassName = useCallback(({ isActive }: { isActive: boolean }) => {
-    return cn(
-      'rounded-md px-3 py-1.5 text-sm font-medium',
-      isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50',
-    );
-  }, []);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const activeNavItem = find(NAV_ITEMS, (navItem) => {
+    return pathname.startsWith(navItem.to);
+  });
+  const activeTo = get(activeNavItem, 'to', '');
+
+  const handleOnNavChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      navigate(event.target.value);
+    },
+    [navigate],
+  );
 
   return (
     <div className="min-h-screen">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center gap-8 px-6 py-4">
           <span className="text-lg font-semibold tracking-tight">Pinstripe</span>
-          <nav className="flex gap-1">
+          <select
+            aria-label="Navigate"
+            className="h-9 min-w-56 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500"
+            value={activeTo}
+            onChange={handleOnNavChange}
+          >
             {map(NAV_ITEMS, (navItem) => {
               return (
-                <NavLink key={navItem.to} to={navItem.to} className={handleOnNavLinkClassName}>
+                <option key={navItem.to} value={navItem.to}>
                   {navItem.label}
-                </NavLink>
+                </option>
               );
             })}
-          </nav>
+          </select>
         </div>
       </header>
 
