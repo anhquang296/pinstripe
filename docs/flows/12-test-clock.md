@@ -84,5 +84,6 @@ Trang `/test-clocks` của admin-ui làm đúng các bước này qua UI.
 
 ## Đọc tiếp
 
+- [technique 03 — Test clock](../technique/03-test-clock.md) — vì sao thiết kế như vậy, cách dùng, giới hạn
 - [04 — Subscription](./04-subscription-entitlement.md)
 - ADR: [0005 subscription + entitlement](../adr/0005-phase-3-subscription-entitlement.md)

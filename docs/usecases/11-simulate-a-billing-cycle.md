@@ -303,6 +303,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 
 ## Đọc sâu hơn
 
+- [technique 03 — Test clock](../technique/03-test-clock.md) — kỹ thuật đứng sau: vấn đề, hai tầng thời gian, điều kiện phải giữ
 - [flow 12 — Test clock](../flows/12-test-clock.md) — chi tiết `resolveNow`, trạng thái kẹt
 - [flow 04 — Subscription](../flows/04-subscription-entitlement.md) — `rollPeriod`, `advancePeriod`, `MAX_PERIOD_ROLLS`
 - [UC-08](./08-cancel-subscription.md) — nhánh "hủy cuối kỳ" mà use case này làm cho thấy được
