@@ -25,7 +25,9 @@ export class InvoiceItemService {
     livemode: boolean,
   ): Promise<InvoiceItemResponse> {
     const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
+
     const now = this.fastify.clock.now();
+
     const id = generateGid(ObjectPrefixEnum.INVOICE_ITEM);
 
     const { quantity = 1 } = payload;
@@ -140,6 +142,7 @@ export class InvoiceItemService {
 
     const quantity = payload.quantity ?? existingInvoiceItem.quantity;
     const unitAmount = payload.unitAmount ?? existingInvoiceItem.unitAmount;
+
     const amount = InvoiceItemService.resolveUpdatedAmount(
       payload,
       quantity,
@@ -225,6 +228,7 @@ export class InvoiceItemService {
     livemode: boolean,
   ): Promise<ListResponse<InvoiceItemResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
 

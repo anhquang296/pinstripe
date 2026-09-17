@@ -4,10 +4,14 @@ import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallba
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateCreditNotePayload,
+  CreateInvoiceItemPayload,
   CreateInvoicePayload,
   CreditNoteResponse,
+  DeletedInvoiceItemResponse,
+  InvoiceItemResponse,
   InvoiceResponse,
   PayInvoicePayload,
+  UpdateInvoiceItemPayload,
   VoidInvoicePayload,
 } from '@type/contracts.types';
 
@@ -89,6 +93,76 @@ export function useVoidInvoiceMutation({ successMessage }: MutationProps<Invoice
     onSuccess: (invoice) => {
       invalidate(invoice.id);
       notifySuccess(invoice);
+    },
+    onError: notifyError,
+  });
+}
+
+function useInvoiceItemInvalidation() {
+  const queryClient = useQueryClient();
+  const { queries } = usePinstripeContext();
+
+  return (invoiceItemId: string) => {
+    queryClient.invalidateQueries({
+      queryKey: queries.invoice.invoiceItem(invoiceItemId).queryKey,
+    });
+    queryClient.invalidateQueries({ queryKey: queries.invoice.invoiceItems._def });
+    queryClient.invalidateQueries({ queryKey: queries.invoice.invoices._def });
+  };
+}
+
+export function useCreateInvoiceItemMutation({
+  successMessage,
+}: MutationProps<InvoiceItemResponse> = {}) {
+  const { client } = usePinstripeContext();
+  const invalidate = useInvoiceItemInvalidation();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: (payload: CreateInvoiceItemPayload) => {
+      return client.invoiceItems.create(payload);
+    },
+    onSuccess: (invoiceItem) => {
+      invalidate(invoiceItem.id);
+      notifySuccess(invoiceItem);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useUpdateInvoiceItemMutation({
+  successMessage,
+}: MutationProps<InvoiceItemResponse> = {}) {
+  const { client } = usePinstripeContext();
+  const invalidate = useInvoiceItemInvalidation();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateInvoiceItemPayload }) => {
+      return client.invoiceItems.update(id, payload);
+    },
+    onSuccess: (invoiceItem) => {
+      invalidate(invoiceItem.id);
+      notifySuccess(invoiceItem);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useDeleteInvoiceItemMutation({
+  successMessage,
+}: MutationProps<DeletedInvoiceItemResponse> = {}) {
+  const { client } = usePinstripeContext();
+  const invalidate = useInvoiceItemInvalidation();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: (invoiceItemId: string) => {
+      return client.invoiceItems.delete(invoiceItemId);
+    },
+    onSuccess: (deletedInvoiceItem) => {
+      invalidate(deletedInvoiceItem.id);
+      notifySuccess(deletedInvoiceItem);
     },
     onError: notifyError,
   });

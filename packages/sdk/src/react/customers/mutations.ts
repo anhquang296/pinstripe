@@ -3,7 +3,9 @@ import type { MutationProps } from '@react/react-query.types';
 import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
+  CreateCustomerBalanceTransactionPayload,
   CreateCustomerPayload,
+  CustomerBalanceTransactionResponse,
   CustomerResponse,
   UpdateCustomerPayload,
 } from '@type/contracts.types';
@@ -42,6 +44,33 @@ export function useUpdateCustomerMutation({
       queryClient.invalidateQueries({ queryKey: queries.customer.customer(id).queryKey });
       queryClient.invalidateQueries({ queryKey: queries.customer.customers._def });
       notifySuccess(customer);
+    },
+    onError: notifyError,
+  });
+}
+
+export interface CreateCustomerBalanceTransactionVariables {
+  id: string;
+  payload: CreateCustomerBalanceTransactionPayload;
+}
+
+export function useCreateCustomerBalanceTransactionMutation({
+  successMessage,
+}: MutationProps<CustomerBalanceTransactionResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client, queries } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: ({ id, payload }: CreateCustomerBalanceTransactionVariables) => {
+      return client.customers.createBalanceTransaction(id, payload);
+    },
+    onSuccess: (balanceTransaction, { id }) => {
+      queryClient.invalidateQueries({
+        queryKey: queries.customer.customer(id)._ctx.balanceTransactions._def,
+      });
+      queryClient.invalidateQueries({ queryKey: queries.customer.customer(id).queryKey });
+      notifySuccess(balanceTransaction);
     },
     onError: notifyError,
   });

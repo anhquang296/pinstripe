@@ -87,6 +87,13 @@ it('balances the ledger when a credit balance pays part of an invoice', async ()
     TEST_LIVEMODE,
   );
 
+  const granted = await fastify.ledgerService.ensureAccount(
+    LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
+    CurrencyEnum.VND,
+    TEST_LIVEMODE,
+    customerId,
+  );
+
   const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
@@ -96,7 +103,7 @@ it('balances the ledger when a credit balance pays part of an invoice', async ()
     TEST_LIVEMODE,
     customerId,
   );
-  const creditBalance = await fastify.ledgerService.ensureAccount(
+  const consumed = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
     CurrencyEnum.VND,
     TEST_LIVEMODE,
@@ -104,8 +111,9 @@ it('balances the ledger when a credit balance pays part of an invoice', async ()
   );
 
   expect(open.amountDue).toBe(300_000);
+  expect(granted.balance).toBe(200_000);
   expect(receivable.balance).toBe(300_000);
-  expect(creditBalance.balance).toBe(200_000);
+  expect(consumed.balance).toBe(0);
 });
 
 it('attaches a pending invoice item to the invoice it was billed on', async () => {

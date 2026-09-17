@@ -1,19 +1,30 @@
+export type { CreateCustomerBalanceTransactionVariables } from '@react/customers/mutations';
 export {
+  useCreateCustomerBalanceTransactionMutation,
   useCreateCustomerMutation,
   useDeleteCustomerMutation,
   useUpdateCustomerMutation,
 } from '@react/customers/mutations';
-export { useCustomerQuery, useCustomersQuery } from '@react/customers/queries';
+export {
+  useCustomerBalanceTransactionsQuery,
+  useCustomerQuery,
+  useCustomersQuery,
+} from '@react/customers/queries';
 export { useEntitlementsQuery } from '@react/entitlements/queries';
 export {
   useCreateCreditNoteMutation,
+  useCreateInvoiceItemMutation,
   useCreateInvoiceMutation,
+  useDeleteInvoiceItemMutation,
   useFinalizeInvoiceMutation,
   usePayInvoiceMutation,
+  useUpdateInvoiceItemMutation,
   useVoidInvoiceMutation,
 } from '@react/invoices/mutations';
 export {
   useCreditNotesQuery,
+  useInvoiceItemQuery,
+  useInvoiceItemsQuery,
   useInvoiceQuery,
   useInvoicesQuery,
   useUpcomingInvoiceQuery,

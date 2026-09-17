@@ -824,7 +824,9 @@ export class InvoiceService {
         description: `Invoice ${invoice.number} issued`,
         currency: invoice.currency,
         externalId: `invoice:${invoice.id}`,
-        entries,
+        entries: _.filter(entries, (entry) => {
+          return entry.amount > 0;
+        }),
       },
       invoice.livemode,
       tx,
@@ -905,7 +907,9 @@ export class InvoiceService {
         description: `Invoice ${invoice.number} voided`,
         currency: invoice.currency,
         externalId: `invoice_void:${invoice.id}`,
-        entries,
+        entries: _.filter(entries, (entry) => {
+          return entry.amount > 0;
+        }),
       },
       invoice.livemode,
       tx,

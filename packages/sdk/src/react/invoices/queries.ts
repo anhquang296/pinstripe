@@ -1,7 +1,11 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { FindCreditNotesQuery, FindInvoicesQuery } from '@type/contracts.types';
+import type {
+  FindCreditNotesQuery,
+  FindInvoiceItemsQuery,
+  FindInvoicesQuery,
+} from '@type/contracts.types';
 
 export function useUpcomingInvoiceQuery(
   subscriptionId: string,
@@ -32,6 +36,25 @@ export function useInvoiceQuery(invoiceId: string, { enabled = true }: QueryProp
   const queries = usePinstripeQueries();
 
   return useQuery({ ...queries.invoice.invoice(invoiceId), enabled });
+}
+
+export function useInvoiceItemsQuery(
+  query?: FindInvoiceItemsQuery,
+  { enabled = true, hasPlaceholder = false }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.invoice.invoiceItems(query),
+    enabled,
+    placeholderData: hasPlaceholder ? keepPreviousData : undefined,
+  });
+}
+
+export function useInvoiceItemQuery(invoiceItemId: string, { enabled = true }: QueryProps = {}) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({ ...queries.invoice.invoiceItem(invoiceItemId), enabled });
 }
 
 export function useCreditNotesQuery(

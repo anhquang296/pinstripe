@@ -32,7 +32,7 @@ export class CreditNoteService {
     }
 
     const creditedAmount = await this.resolveCreditedAmount(invoice.id);
-    const creditable = invoice.total - invoice.amountPaid - creditedAmount;
+    const creditable = invoice.amountDue - invoice.amountPaid - creditedAmount;
 
     if (payload.amount > creditable) {
       throw new BadRequestError(

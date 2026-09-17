@@ -15,6 +15,7 @@ import _ from 'lodash';
 export interface LedgerTransactionFilters {
   livemode?: boolean;
   accountId?: string;
+  externalId?: string;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
@@ -52,6 +53,7 @@ export class LedgerTransactionRepository {
       filters.accountId
         ? sql`exists (select 1 from ${ledgerPostings} where ${ledgerPostings.transactionId} = ${ledgerTransactions.id} and ${ledgerPostings.accountId} = ${filters.accountId})`
         : undefined,
+      filters.externalId ? eq(ledgerTransactions.externalId, filters.externalId) : undefined,
       filters.beforeAt
         ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
         : undefined,

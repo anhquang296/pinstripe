@@ -1,7 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { FindCustomersQuery } from '@type/contracts.types';
+import type {
+  FindCustomerBalanceTransactionsQuery,
+  FindCustomersQuery,
+} from '@type/contracts.types';
 
 export function useCustomersQuery(
   query?: FindCustomersQuery,
@@ -20,4 +23,18 @@ export function useCustomerQuery(customerId: string, { enabled = true }: QueryPr
   const queries = usePinstripeQueries();
 
   return useQuery({ ...queries.customer.customer(customerId), enabled });
+}
+
+export function useCustomerBalanceTransactionsQuery(
+  customerId: string,
+  query?: FindCustomerBalanceTransactionsQuery,
+  { enabled = true, hasPlaceholder = false }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.customer.customer(customerId)._ctx.balanceTransactions(query),
+    enabled: enabled && Boolean(customerId),
+    placeholderData: hasPlaceholder ? keepPreviousData : undefined,
+  });
 }

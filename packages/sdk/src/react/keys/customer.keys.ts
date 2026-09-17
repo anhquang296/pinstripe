@@ -1,7 +1,10 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { FindCustomersQuery } from '@type/contracts.types';
+import type {
+  FindCustomerBalanceTransactionsQuery,
+  FindCustomersQuery,
+} from '@type/contracts.types';
 
 export function createCustomerQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.CUSTOMER, {
@@ -18,6 +21,16 @@ export function createCustomerQueries(client: PinstripeClient) {
         queryKey: [customerId],
         queryFn: () => {
           return client.customers.get(customerId);
+        },
+        contextQueries: {
+          balanceTransactions: (query?: FindCustomerBalanceTransactionsQuery) => {
+            return {
+              queryKey: [query],
+              queryFn: () => {
+                return client.customers.findBalanceTransactions(customerId, query);
+              },
+            };
+          },
         },
       };
     },

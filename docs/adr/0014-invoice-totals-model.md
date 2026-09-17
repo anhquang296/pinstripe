@@ -102,6 +102,27 @@ PaymentIntent độc lập phải tới phase 18 mới dùng, nhưng `payInvoice
 lần mới là lãng phí. Bảng `invoice_payments` (invoice ↔ payment intent ↔ số tiền) cũng dựng luôn và
 `payInvoice` ghi vào nó, để phase 18 chỉ cần điền `paymentIntentId`.
 
+### 8. `amountDue` thay `total` ở mọi chỗ hỏi "còn nợ bao nhiêu"
+
+Ba call site đã đọc `total` và giờ phải đọc `amountDue`, nếu không thì một hoá đơn được credit trả một
+phần sẽ cho phép thu quá:
+
+| Nơi                                  | Trước                           | Sau                                 |
+| ------------------------------------ | ------------------------------- | ----------------------------------- |
+| `invoiceService.payInvoice`          | `total − amountPaid − credited` | `amountDue − amountPaid − credited` |
+| `creditNoteService.createCreditNote` | `total − amountPaid − credited` | `amountDue − amountPaid − credited` |
+| `reportingRepository` `outstanding`  | `total − amountPaid`            | `amountDue − amountPaid`            |
+
+`invoiced` trong báo cáo doanh thu giữ `total`: đó là số đã phát hành, không phải số còn phải thu.
+
+### 9. Hợp đồng `externalId` có test giữ
+
+`ledger-contract.integration.test.ts` chốt ba thứ bằng cách đọc thẳng posting theo `externalId`:
+cash receipt mang đúng `invoice_payment:<invoiceId>:<amountPaid>` mà reconciliation đi tìm; hoá đơn
+phát hành tách đúng AR / revenue / credit balance và cân; void trả credit về đúng khách.
+`LedgerTransactionFilters` vì thế có thêm `externalId` — trước đó không có cách nào đọc một giao dịch
+theo tham chiếu của nó.
+
 ## Chệch có chủ ý so với `ROADMAP-V2.md`
 
 - **`amountRemaining` không thành cột.** Nó phụ thuộc credit note và refund ở bảng khác; lưu thành cột
@@ -116,4 +137,11 @@ lần mới là lãng phí. Bảng `invoice_payments` (invoice ↔ payment inten
 - `BillingReason` mở đủ bộ Stripe (`subscription_create`, `subscription_threshold`, `manual`,
   `upcoming`); mới `manual` có producer.
 - `LineItemType` thêm `invoiceitem`, `discount`, `tax`; mới `invoiceitem` có producer.
-- Reporting vẫn giả định `subtotal == total`. Đúng cho tới khi phase 14 có coupon đầu tiên — sửa ở đó.
+- Reporting vẫn cộng doanh thu bằng `invoices.total`, tức vẫn giả định `total` chưa có thuế tách ra.
+  Đúng cho tới khi phase 15 có thuế suất đầu tiên — sửa ở đó, cùng lúc với `tax_payable`.
+- `CustomerBalanceTransactionType` khai đủ bộ của cột `type`, nhưng mới ba member có producer:
+  `adjustment`, `applied_to_invoice`, `unapplied_from_invoice`. `credit_note` chờ phase 19,
+  `invoice_overpaid` chờ phase 18 — cùng lý do cột `credit_note_id` còn trống.
+- SDK: `pinstripe.invoiceItems` (find/get/create/update/delete) và
+  `pinstripe.customers.findBalanceTransactions` / `.createBalanceTransaction`, kèm hook React và
+  context query `customer(id)._ctx.balanceTransactions`.

@@ -7,6 +7,7 @@ import { TestHelpersNamespace } from '@namespaces/test-helpers.namespace';
 import { CreditNotesResource } from '@resources/credit-notes.resource';
 import { CustomersResource } from '@resources/customers.resource';
 import { EntitlementsResource } from '@resources/entitlements.resource';
+import { InvoiceItemsResource } from '@resources/invoice-items.resource';
 import { InvoicesResource } from '@resources/invoices.resource';
 import { PaymentIntentsResource } from '@resources/payment-intents.resource';
 import { PricesResource } from '@resources/prices.resource';
@@ -23,6 +24,7 @@ export class PinstripeClient {
   readonly subscriptions: SubscriptionsResource;
   readonly entitlements: EntitlementsResource;
   readonly invoices: InvoicesResource;
+  readonly invoiceItems: InvoiceItemsResource;
   readonly creditNotes: CreditNotesResource;
   readonly paymentIntents: PaymentIntentsResource;
   readonly refunds: RefundsResource;
@@ -47,6 +49,7 @@ export class PinstripeClient {
     this.subscriptions = new SubscriptionsResource(this._transport);
     this.entitlements = new EntitlementsResource(this._transport);
     this.invoices = new InvoicesResource(this._transport);
+    this.invoiceItems = new InvoiceItemsResource(this._transport);
     this.creditNotes = new CreditNotesResource(this._transport);
     this.paymentIntents = new PaymentIntentsResource(this._transport);
     this.refunds = new RefundsResource(this._transport);

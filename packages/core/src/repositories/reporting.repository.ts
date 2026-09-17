@@ -126,7 +126,7 @@ export class ReportingRepository {
     const [row] = await this._db.master
       .select({
         invoiced: sql<number>`coalesce(sum(${invoices.total}), 0)::int`,
-        outstanding: sql<number>`coalesce(sum(case when ${invoices.status} = ${InvoiceStatusEnum.OPEN} then ${invoices.total} - ${invoices.amountPaid} else 0 end), 0)::int`,
+        outstanding: sql<number>`coalesce(sum(case when ${invoices.status} = ${InvoiceStatusEnum.OPEN} then ${invoices.amountDue} - ${invoices.amountPaid} else 0 end), 0)::int`,
       })
       .from(invoices)
       .where(

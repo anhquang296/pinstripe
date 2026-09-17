@@ -3,6 +3,7 @@ import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
 import type {
   FindCreditNotesQuery,
+  FindInvoiceItemsQuery,
   FindInvoicesQuery,
   GetUpcomingInvoiceQuery,
 } from '@type/contracts.types';
@@ -30,6 +31,22 @@ export function createInvoiceQueries(client: PinstripeClient) {
         queryKey: [invoiceId],
         queryFn: () => {
           return client.invoices.get(invoiceId);
+        },
+      };
+    },
+    invoiceItems: (query?: FindInvoiceItemsQuery) => {
+      return {
+        queryKey: [query],
+        queryFn: () => {
+          return client.invoiceItems.find(query);
+        },
+      };
+    },
+    invoiceItem: (invoiceItemId: string) => {
+      return {
+        queryKey: [invoiceItemId],
+        queryFn: () => {
+          return client.invoiceItems.get(invoiceItemId);
         },
       };
     },

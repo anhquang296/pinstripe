@@ -5,8 +5,10 @@ import type {
 } from '@contracts/customers.types';
 import { CustomerBalanceTransactionTypeEnum } from '@contracts/customers.types';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
+import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import type { DatabaseTransaction } from '@database/database.client';
 import type { CustomerBalanceTransaction } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
@@ -23,6 +25,7 @@ export class CustomerBalanceTransactionService {
     livemode: boolean,
   ): Promise<CustomerBalanceTransactionResponse> {
     const now = this.fastify.clock.now();
+
     const id = generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION);
 
     const createdBalanceTransaction = await this.fastify.database.master.transaction(async (tx) => {
@@ -60,6 +63,8 @@ export class CustomerBalanceTransactionService {
         );
 
       if (balanceTransaction) {
+        await this.postBalanceAdjustment(balanceTransaction, tx);
+
         await this.fastify.outboxService.recordEvents(
           [
             {
@@ -81,6 +86,42 @@ export class CustomerBalanceTransactionService {
 
     return CustomerBalanceTransactionService.buildCustomerBalanceTransaction(
       createdBalanceTransaction,
+    );
+  }
+
+  private async postBalanceAdjustment(
+    balanceTransaction: CustomerBalanceTransaction,
+    tx: DatabaseTransaction,
+  ): Promise<void> {
+    const { amount, customerId } = balanceTransaction;
+
+    if (amount === 0) {
+      return;
+    }
+
+    const isCreditGranted = amount < 0;
+
+    await this.fastify.ledgerService.postTransaction(
+      {
+        description: `Customer balance adjustment ${balanceTransaction.id}`,
+        currency: balanceTransaction.currency,
+        externalId: `customer_balance_transaction:${balanceTransaction.id}`,
+        entries: [
+          {
+            accountCode: LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
+            customerId,
+            direction: isCreditGranted ? PostingDirectionEnum.CREDIT : PostingDirectionEnum.DEBIT,
+            amount: Math.abs(amount),
+          },
+          {
+            accountCode: LedgerAccountCodeEnum.REVENUE,
+            direction: isCreditGranted ? PostingDirectionEnum.DEBIT : PostingDirectionEnum.CREDIT,
+            amount: Math.abs(amount),
+          },
+        ],
+      },
+      balanceTransaction.livemode,
+      tx,
     );
   }
 
@@ -106,6 +147,7 @@ export class CustomerBalanceTransactionService {
     await this.fastify.customerService.getCustomer(customerId, livemode);
 
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
 

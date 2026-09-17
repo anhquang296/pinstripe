@@ -2,9 +2,12 @@ import type { RequestOptions } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
+  CreateCustomerBalanceTransactionPayload,
   CreateCustomerPayload,
+  CustomerBalanceTransactionResponse,
   CustomerResponse,
   DeletedCustomerResponse,
+  FindCustomerBalanceTransactionsQuery,
   FindCustomersQuery,
   ListResponse,
   UpdateCustomerPayload,
@@ -66,6 +69,32 @@ export class CustomersResource {
     return this._transport.request({
       path: buildPath(CUSTOMERS_PATH, customerId),
       method: HttpMethodEnum.DELETE,
+      options,
+    });
+  }
+
+  findBalanceTransactions(
+    customerId: string,
+    query: FindCustomerBalanceTransactionsQuery = {},
+    options?: RequestOptions,
+  ): Promise<ListResponse<CustomerBalanceTransactionResponse>> {
+    return this._transport.request({
+      path: buildPath(CUSTOMERS_PATH, customerId, 'balance_transactions'),
+      method: HttpMethodEnum.GET,
+      query,
+      options,
+    });
+  }
+
+  createBalanceTransaction(
+    customerId: string,
+    payload: CreateCustomerBalanceTransactionPayload,
+    options?: RequestOptions,
+  ): Promise<CustomerBalanceTransactionResponse> {
+    return this._transport.request({
+      path: buildPath(CUSTOMERS_PATH, customerId, 'balance_transactions'),
+      method: HttpMethodEnum.POST,
+      payload,
       options,
     });
   }
