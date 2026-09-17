@@ -46,6 +46,9 @@ importers:
       '@pinstripe/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@pinstripe/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       '@tanstack/react-query':
         specifier: ^5.62.7
         version: 5.102.8(react@19.3.0)
@@ -168,6 +171,9 @@ importers:
       '@pinstripe/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@pinstripe/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
@@ -372,6 +378,48 @@ importers:
       prettier:
         specifier: ^3.0.0
         version: 3.9.6
+
+  packages/sdk:
+    devDependencies:
+      '@lukemorales/query-key-factory':
+        specifier: ^1.3.4
+        version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
+      '@pinstripe/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pinstripe/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@pinstripe/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@tanstack/react-query':
+        specifier: ^5.62.7
+        version: 5.102.8(react@19.3.0)
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.2
+      '@types/react':
+        specifier: ^19.0.2
+        version: 19.3.0
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.5(jiti@2.7.0)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.3)(vite@6.4.3(@types/node@22.20.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.13)(yaml@2.9.1))
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.2)(lightningcss@1.32.0)
 
   packages/tsconfig: {}
 

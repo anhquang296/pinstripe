@@ -1,0 +1,18 @@
+{
+  "extends": "@pinstripe/tsconfig/node.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "paths": {
+      "@client/*": ["./src/client/*"],
+      "@errors/*": ["./src/errors/*"],
+      "@namespaces/*": ["./src/namespaces/*"],
+      "@node/*": ["./src/node/*"],
+      "@react/*": ["./src/react/*"],
+      "@resources/*": ["./src/resources/*"],
+      "@type/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tsup.config.ts", "vitest.config.ts"]
+}

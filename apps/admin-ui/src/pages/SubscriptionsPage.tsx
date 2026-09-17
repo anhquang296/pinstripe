@@ -6,14 +6,14 @@ import {
   subscriptionFormDefaultValues,
   subscriptionFormResolver,
 } from '@forms/subscription-form';
-import { useCustomersQuery } from '@reactquery/customers';
-import { useEntitlementsQuery } from '@reactquery/entitlements';
-import { usePricesQuery } from '@reactquery/prices';
 import {
   useCancelSubscriptionMutation,
   useCreateSubscriptionMutation,
+  useCustomersQuery,
+  useEntitlementsQuery,
+  usePricesQuery,
   useSubscriptionsQuery,
-} from '@reactquery/subscriptions';
+} from '@pinstripe/sdk/react';
 import { filter, map, toUpper } from 'lodash-es';
 import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -32,8 +32,12 @@ export default function SubscriptionsPage() {
     { limit: PAGE_LIMIT },
     { hasPlaceholder: true },
   );
-  const { mutateAsync: createSubscription, isPending: isSaving } = useCreateSubscriptionMutation();
-  const { mutate: cancelSubscription } = useCancelSubscriptionMutation();
+  const { mutateAsync: createSubscription, isPending: isSaving } = useCreateSubscriptionMutation({
+    successMessage: 'Đã tạo subscription.',
+  });
+  const { mutate: cancelSubscription } = useCancelSubscriptionMutation({
+    successMessage: 'Đã hủy subscription.',
+  });
 
   const form = useForm<SubscriptionFormData>({
     resolver: subscriptionFormResolver,

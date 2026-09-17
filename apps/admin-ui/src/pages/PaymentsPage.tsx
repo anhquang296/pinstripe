@@ -4,7 +4,7 @@ import {
   useCreateRefundMutation,
   usePaymentIntentsQuery,
   useRefundsQuery,
-} from '@reactquery/payments';
+} from '@pinstripe/sdk/react';
 import { map, toUpper } from 'lodash-es';
 import { useCallback, useState } from 'react';
 
@@ -19,7 +19,9 @@ export default function PaymentsPage() {
     { hasPlaceholder: true },
   );
   const { data: refunds } = useRefundsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const { mutate: createRefund, isPending: isRefunding } = useCreateRefundMutation();
+  const { mutate: createRefund, isPending: isRefunding } = useCreateRefundMutation({
+    successMessage: 'Đã hoàn tiền.',
+  });
 
   const handleOnRefundAmountChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setRefundAmount(event.target.value);

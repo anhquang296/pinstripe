@@ -2,16 +2,18 @@ import InvoiceItem from '@components/InvoiceItem';
 import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
 import TextField from '@components/ui/TextField';
+import { toast } from '@lib/toast';
+import type { PaymentIntentResponse } from '@pinstripe/sdk';
 import {
+  useChargeInvoiceMutation,
   useCreateCreditNoteMutation,
   useCreateInvoiceMutation,
   useCreditNotesQuery,
   useFinalizeInvoiceMutation,
   useInvoicesQuery,
+  useSubscriptionsQuery,
   useVoidInvoiceMutation,
-} from '@reactquery/invoices';
-import { useChargeInvoiceMutation } from '@reactquery/payments';
-import { useSubscriptionsQuery } from '@reactquery/subscriptions';
+} from '@pinstripe/sdk/react';
 import { map, toUpper } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -34,11 +36,23 @@ export default function InvoicesPage() {
     { hasPlaceholder: true },
   );
   const { data: subscriptions } = useSubscriptionsQuery({ limit: OPTION_LIMIT });
-  const { mutate: createInvoice, isPending: isCreating } = useCreateInvoiceMutation();
-  const { mutate: finalizeInvoice, isPending: isFinalizing } = useFinalizeInvoiceMutation();
+  const { mutate: createInvoice, isPending: isCreating } = useCreateInvoiceMutation({
+    successMessage: 'Đã tạo hóa đơn nháp.',
+  });
+  const { mutate: finalizeInvoice, isPending: isFinalizing } = useFinalizeInvoiceMutation({
+    successMessage: (invoice) => {
+      return `Đã phát hành ${invoice.number}.`;
+    },
+  });
   const { mutate: chargeInvoice, isPending: isCharging } = useChargeInvoiceMutation();
-  const { mutate: voidInvoice, isPending: isVoiding } = useVoidInvoiceMutation();
-  const { mutate: createCreditNote, isPending: isCrediting } = useCreateCreditNoteMutation();
+  const { mutate: voidInvoice, isPending: isVoiding } = useVoidInvoiceMutation({
+    successMessage: 'Đã hủy hóa đơn.',
+  });
+  const { mutate: createCreditNote, isPending: isCrediting } = useCreateCreditNoteMutation({
+    successMessage: (creditNote) => {
+      return `Đã tạo ${creditNote.number}.`;
+    },
+  });
 
   const subscriptionOptions = useMemo(() => {
     return [
@@ -70,18 +84,32 @@ export default function InvoicesPage() {
     [finalizeInvoice],
   );
 
+  const chargeOptions = useMemo(() => {
+    return {
+      onSuccess: (paymentIntent: PaymentIntentResponse) => {
+        if (paymentIntent.failureMessage) {
+          toast.show(paymentIntent.failureMessage, { isError: true });
+
+          return;
+        }
+
+        toast.show('Đã thu tiền qua PSP.');
+      },
+    };
+  }, []);
+
   const handleOnCharge = useCallback(
     (invoiceId: string) => {
-      chargeInvoice({ invoiceId, paymentMethod: APPROVED_PAYMENT_METHOD });
+      chargeInvoice({ invoiceId, paymentMethod: APPROVED_PAYMENT_METHOD }, chargeOptions);
     },
-    [chargeInvoice],
+    [chargeInvoice, chargeOptions],
   );
 
   const handleOnDecline = useCallback(
     (invoiceId: string) => {
-      chargeInvoice({ invoiceId, paymentMethod: DECLINED_PAYMENT_METHOD });
+      chargeInvoice({ invoiceId, paymentMethod: DECLINED_PAYMENT_METHOD }, chargeOptions);
     },
-    [chargeInvoice],
+    [chargeInvoice, chargeOptions],
   );
 
   const handleOnVoid = useCallback(

@@ -1,7 +1,6 @@
 import RatedLineItem from '@components/RatedLineItem';
 import SelectField from '@components/ui/SelectField';
-import { useUpcomingInvoiceQuery } from '@reactquery/invoices';
-import { useSubscriptionsQuery } from '@reactquery/subscriptions';
+import { useSubscriptionsQuery, useUpcomingInvoiceQuery } from '@pinstripe/sdk/react';
 import { map, toUpper } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 

@@ -1,6 +1,6 @@
-import type { CreateMeterPayload } from '@api/meters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MeterAggregationEnum } from '@pinstripe/core/contracts';
+import type { CreateMeterPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const meterFormSchema = z.object({

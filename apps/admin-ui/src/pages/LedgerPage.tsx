@@ -11,7 +11,7 @@ import {
   useLedgerAccountsQuery,
   useLedgerTransactionsQuery,
   useReverseLedgerTransactionMutation,
-} from '@reactquery/ledger';
+} from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -30,7 +30,7 @@ export default function LedgerPage() {
     { hasPlaceholder: true },
   );
   const { mutateAsync: reverseLedgerTransaction, isPending: isReversing } =
-    useReverseLedgerTransactionMutation();
+    useReverseLedgerTransactionMutation({ successMessage: 'Đã đảo bút toán.' });
   const form = useForm<ReverseTransactionFormData>({
     resolver: reverseTransactionFormResolver,
     defaultValues: reverseTransactionFormDefaultValues,

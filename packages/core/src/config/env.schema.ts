@@ -84,13 +84,13 @@ export function loadEnv(source: NodeJS.ProcessEnv): Env {
   const errors = [...Value.Errors(envSchema, candidate)];
 
   if (errors.length > 0) {
-    const details = _(errors)
+    const reason = _(errors)
       .map((error) => {
         return `${error.path || '/'} ${error.message}`;
       })
       .join('; ');
 
-    throw new Error(`loadEnv() invalid environment: ${details}`);
+    throw new Error(`loadEnv() invalid environment: ${reason}`);
   }
 
   return candidate as Env;

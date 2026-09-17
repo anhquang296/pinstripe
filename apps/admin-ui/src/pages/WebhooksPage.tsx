@@ -9,7 +9,7 @@ import {
   useUpdateWebhookEndpointMutation,
   useWebhookDeliveriesQuery,
   useWebhookEndpointsQuery,
-} from '@reactquery/webhooks';
+} from '@pinstripe/sdk/react';
 import { map, values } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -34,8 +34,14 @@ export default function WebhooksPage() {
     { limit: PAGE_LIMIT },
     { hasPlaceholder: true },
   );
-  const { mutate: createEndpoint, isPending: isCreating } = useCreateWebhookEndpointMutation();
-  const { mutate: updateEndpoint, isPending: isUpdating } = useUpdateWebhookEndpointMutation();
+  const { mutate: createEndpoint, isPending: isCreating } = useCreateWebhookEndpointMutation({
+    successMessage: (webhookEndpoint) => {
+      return `Đã tạo endpoint. Secret chỉ hiện một lần: ${webhookEndpoint.secret}`;
+    },
+  });
+  const { mutate: updateEndpoint, isPending: isUpdating } = useUpdateWebhookEndpointMutation({
+    successMessage: 'Đã cập nhật endpoint.',
+  });
 
   const eventOptions = useMemo(() => {
     return map(values(DomainEventTypeEnum), (eventType) => {

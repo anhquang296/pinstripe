@@ -6,7 +6,7 @@ import {
   customerFormDefaultValues,
   customerFormResolver,
 } from '@forms/customer-form';
-import { useCreateCustomerMutation, useCustomersQuery } from '@reactquery/customers';
+import { useCreateCustomerMutation, useCustomersQuery } from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
 import { useForm } from 'react-hook-form';
 
@@ -18,7 +18,9 @@ export default function CustomersPage() {
     isPending,
     error,
   } = useCustomersQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const { mutateAsync: createCustomer, isPending: isSaving } = useCreateCustomerMutation();
+  const { mutateAsync: createCustomer, isPending: isSaving } = useCreateCustomerMutation({
+    successMessage: 'Đã tạo customer.',
+  });
   const form = useForm<CustomerFormData>({
     resolver: customerFormResolver,
     defaultValues: customerFormDefaultValues,

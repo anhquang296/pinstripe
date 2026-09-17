@@ -1,4 +1,3 @@
-import type { GetMeterEventSummariesQuery } from '@api/meters';
 import MeterForm from '@components/MeterForm';
 import MeterItem from '@components/MeterItem';
 import Button from '@components/ui/Button';
@@ -10,13 +9,14 @@ import {
   meterFormDefaultValues,
   meterFormResolver,
 } from '@forms/meter-form';
-import { useCustomersQuery } from '@reactquery/customers';
+import type { GetMeterEventSummariesQuery } from '@pinstripe/sdk';
 import {
   useCreateMeterEventMutation,
   useCreateMeterMutation,
+  useCustomersQuery,
   useMeterEventSummaryQuery,
   useMetersQuery,
-} from '@reactquery/meters';
+} from '@pinstripe/sdk/react';
 import { find, map } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -46,8 +46,12 @@ export default function MetersPage() {
 
   const { data: meters, error } = useMetersQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
-  const { mutateAsync: createMeter, isPending: isSaving } = useCreateMeterMutation();
-  const { mutateAsync: createMeterEvent, isPending: isSending } = useCreateMeterEventMutation();
+  const { mutateAsync: createMeter, isPending: isSaving } = useCreateMeterMutation({
+    successMessage: 'Đã tạo meter.',
+  });
+  const { mutateAsync: createMeterEvent, isPending: isSending } = useCreateMeterEventMutation({
+    successMessage: 'Đã ghi nhận usage event.',
+  });
 
   const { data: summary } = useMeterEventSummaryQuery(selectedMeterId, usageWindow, {
     enabled: Boolean(selectedMeterId) && Boolean(selectedCustomerId),

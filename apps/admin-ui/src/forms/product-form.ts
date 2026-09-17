@@ -1,5 +1,5 @@
-import type { CreateProductPayload } from '@api/products';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { CreateProductPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const productFormSchema = z.object({

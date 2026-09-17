@@ -10,7 +10,7 @@ import {
   useAdvanceTestClockMutation,
   useCreateTestClockMutation,
   useTestClocksQuery,
-} from '@reactquery/test-clocks';
+} from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -23,12 +23,16 @@ export default function TestClocksPage() {
     { limit: PAGE_LIMIT },
     { hasPlaceholder: true },
   );
-  const { mutateAsync: createTestClock, isPending: isSaving } = useCreateTestClockMutation();
+  const { mutateAsync: createTestClock, isPending: isSaving } = useCreateTestClockMutation({
+    successMessage: 'Đã tạo test clock.',
+  });
   const form = useForm<TestClockFormData>({
     resolver: testClockFormResolver,
     defaultValues: testClockFormDefaultValues,
   });
-  const { mutate: advanceTestClock } = useAdvanceTestClockMutation();
+  const { mutate: advanceTestClock } = useAdvanceTestClockMutation({
+    successMessage: 'Đã tua đồng hồ.',
+  });
 
   const handleOnSave = form.handleSubmit(async (formData) => {
     await createTestClock(testClockFormDataToPayload(formData));

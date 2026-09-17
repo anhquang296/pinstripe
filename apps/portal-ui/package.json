@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@pinstripe/core": "workspace:*",
+    "@pinstripe/sdk": "workspace:*",
     "lodash-es": "^4.18.1",
     "next": "^15.1.3",
     "react": "^19.0.0",

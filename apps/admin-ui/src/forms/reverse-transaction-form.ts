@@ -1,5 +1,5 @@
-import type { ReverseLedgerTransactionPayload } from '@api/ledger';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ReverseLedgerTransactionPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const reverseTransactionFormSchema = z.object({

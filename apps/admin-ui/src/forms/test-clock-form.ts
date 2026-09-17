@@ -1,5 +1,5 @@
-import type { CreateTestClockPayload } from '@api/test-clocks';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { CreateTestClockPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const testClockFormSchema = z.object({

@@ -1,5 +1,6 @@
 import './index.css';
 
+import AdminPinstripeProvider from '@lib/pinstripe';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -21,10 +22,12 @@ if (!container) {
 createRoot(container).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-      <Toaster position="top-right" richColors />
+      <AdminPinstripeProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+        <Toaster position="top-right" richColors />
+      </AdminPinstripeProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

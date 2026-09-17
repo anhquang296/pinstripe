@@ -1,4 +1,5 @@
-import { getCustomer, getInvoices, getSubscriptions } from '@lib/billing-api';
+import { getInvoices, getSubscriptions } from '@lib/billing-api';
+import { pinstripe } from '@lib/pinstripe';
 import { map, toUpper } from 'lodash-es';
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -25,7 +26,7 @@ export default async function CustomerPortalPage({
   const { customerId } = await params;
 
   const [customer, subscriptions, invoices] = await Promise.all([
-    getCustomer(customerId),
+    pinstripe.customers.retrieve(customerId),
     getSubscriptions(customerId),
     getInvoices(customerId),
   ]);

@@ -3,13 +3,10 @@
   "compilerOptions": {
     "types": ["vite/client"],
     "paths": {
-      "@api/*": ["./src/api/*"],
       "@components/*": ["./src/components/*"],
       "@lib/*": ["./src/lib/*"],
       "@pages/*": ["./src/pages/*"],
-      "@forms/*": ["./src/forms/*"],
-      "@react-query-keys/*": ["./src/react-query-keys/*"],
-      "@reactquery/*": ["./src/reactquery/*"]
+      "@forms/*": ["./src/forms/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]

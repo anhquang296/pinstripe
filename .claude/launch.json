@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "admin-ui",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@pinstripe/admin-ui", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "portal-ui",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@pinstripe/portal-ui", "dev"],
+      "port": 3100
+    }
+  ]
+}

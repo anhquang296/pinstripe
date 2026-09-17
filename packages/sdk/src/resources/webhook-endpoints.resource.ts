@@ -1,0 +1,66 @@
+import type { RequestOptions } from '@client/pinstripe.types';
+import { HttpMethodEnum } from '@client/pinstripe.types';
+import type { PinstripeTransport } from '@client/pinstripe-transport';
+import type {
+  CreateWebhookEndpointPayload,
+  GetWebhookEndpointsQuery,
+  ListResponse,
+  UpdateWebhookEndpointPayload,
+  WebhookEndpointResponse,
+} from '@type/contracts.types';
+import { buildPath } from '@utils/build-path';
+
+const WEBHOOK_ENDPOINTS_PATH = '/v1/webhook_endpoints';
+
+export class WebhookEndpointsResource {
+  private _transport: PinstripeTransport;
+
+  constructor(transport: PinstripeTransport) {
+    this._transport = transport;
+  }
+
+  list(
+    query: GetWebhookEndpointsQuery = {},
+    options?: RequestOptions,
+  ): Promise<ListResponse<WebhookEndpointResponse>> {
+    return this._transport.request({
+      path: WEBHOOK_ENDPOINTS_PATH,
+      method: HttpMethodEnum.GET,
+      query,
+      options,
+    });
+  }
+
+  retrieve(webhookEndpointId: string, options?: RequestOptions): Promise<WebhookEndpointResponse> {
+    return this._transport.request({
+      path: buildPath(WEBHOOK_ENDPOINTS_PATH, webhookEndpointId),
+      method: HttpMethodEnum.GET,
+      options,
+    });
+  }
+
+  create(
+    payload: CreateWebhookEndpointPayload,
+    options?: RequestOptions,
+  ): Promise<WebhookEndpointResponse> {
+    return this._transport.request({
+      path: WEBHOOK_ENDPOINTS_PATH,
+      method: HttpMethodEnum.POST,
+      payload,
+      options,
+    });
+  }
+
+  update(
+    webhookEndpointId: string,
+    payload: UpdateWebhookEndpointPayload,
+    options?: RequestOptions,
+  ): Promise<WebhookEndpointResponse> {
+    return this._transport.request({
+      path: buildPath(WEBHOOK_ENDPOINTS_PATH, webhookEndpointId),
+      method: HttpMethodEnum.POST,
+      payload,
+      options,
+    });
+  }
+}

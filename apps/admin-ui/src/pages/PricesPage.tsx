@@ -1,5 +1,5 @@
 import PriceItem from '@components/PriceItem';
-import { usePricesQuery } from '@reactquery/prices';
+import { usePricesQuery } from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
 
 const PAGE_LIMIT = 50;

@@ -1,4 +1,4 @@
-import type { MeterResponse } from '@api/meters';
+import type { MeterResponse } from '@pinstripe/sdk';
 
 interface MeterItemProps {
   meter: MeterResponse;

@@ -1,5 +1,4 @@
 import type {
-  CustomerResponse,
   InvoiceResponse,
   ListResponse,
   SubscriptionResponse,
@@ -31,10 +30,6 @@ async function request<T>(path: string): Promise<T> {
   }
 
   return response.json() as Promise<T>;
-}
-
-export function getCustomer(customerId: string): Promise<CustomerResponse> {
-  return request<CustomerResponse>(`/v1/customers/${encodeURIComponent(customerId)}`);
 }
 
 export function getSubscriptions(customerId: string): Promise<ListResponse<SubscriptionResponse>> {

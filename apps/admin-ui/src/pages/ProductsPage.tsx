@@ -6,7 +6,7 @@ import {
   productFormDefaultValues,
   productFormResolver,
 } from '@forms/product-form';
-import { useCreateProductMutation, useProductsQuery } from '@reactquery/products';
+import { useCreateProductMutation, useProductsQuery } from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
 import { useForm } from 'react-hook-form';
 
@@ -18,7 +18,9 @@ export default function ProductsPage() {
     isPending,
     error,
   } = useProductsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
-  const { mutateAsync: createProduct, isPending: isSaving } = useCreateProductMutation();
+  const { mutateAsync: createProduct, isPending: isSaving } = useCreateProductMutation({
+    successMessage: 'Đã tạo product.',
+  });
   const form = useForm<ProductFormData>({
     resolver: productFormResolver,
     defaultValues: productFormDefaultValues,

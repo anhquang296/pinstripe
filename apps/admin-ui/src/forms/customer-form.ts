@@ -1,6 +1,6 @@
-import type { CreateCustomerPayload } from '@api/customers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CurrencyEnum } from '@pinstripe/core/contracts';
+import type { CreateCustomerPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const customerFormSchema = z.object({

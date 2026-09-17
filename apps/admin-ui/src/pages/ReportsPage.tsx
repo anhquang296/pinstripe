@@ -1,4 +1,4 @@
-import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@reactquery/reporting';
+import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@pinstripe/sdk/react';
 import { isNil, map, toUpper } from 'lodash-es';
 import { useMemo } from 'react';
 

@@ -1,5 +1,5 @@
-import type { CreateSubscriptionPayload } from '@api/subscriptions';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { CreateSubscriptionPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const MAX_TRIAL_DAYS = 730;
