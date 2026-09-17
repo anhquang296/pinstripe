@@ -84,3 +84,8 @@ không báo gì cho khách.
 
 **Dọn nợ nhỏ.** ~30 negated guard (`if (!x) { throw }`) chưa nhất quán;
 `deleteExpiredIdempotencyKeys` và `findEffectivePrice` còn mã hóa điều kiện vào tên method.
+
+## Chặng tiếp theo
+
+Mọi thứ ở trên — cùng toàn bộ bề mặt Stripe còn thiếu — được lên lịch trong
+[ROADMAP-V2.md](ROADMAP-V2.md), phase 10 → 24. File này giữ nguyên làm bản ghi của phase 0–9.
