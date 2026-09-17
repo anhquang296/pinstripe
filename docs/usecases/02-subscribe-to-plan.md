@@ -188,4 +188,5 @@ giá trị, và hàng `entitlements` từ không có thành có.
 - [flow 04 — Subscription và entitlement](../flows/04-subscription-entitlement.md) — máy trạng thái, bảng ánh xạ status → entitlement, cache Redis
 - [flow 02 — Event pipeline](../flows/02-event-pipeline.md) — vì sao phải qua outbox thay vì ghi entitlement luôn
 - [UC-11](./11-simulate-a-billing-cycle.md) — đẩy thời gian để thấy trial kết thúc và kỳ mới bắt đầu
+- [technique 04 — Entitlement](../technique/04-entitlement.md) — khái niệm: quyền dùng là gì, vì sao không suy ra từ trạng thái subscription
 - [ADR 0005](../adr/0005-phase-3-subscription-entitlement.md) — vì sao tách quyền dùng khỏi chu kỳ tính tiền

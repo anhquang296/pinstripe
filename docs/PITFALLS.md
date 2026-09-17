@@ -145,6 +145,7 @@ Những thứ sau đã khai báo nhưng chưa ai gọi. Sửa một cái là ph�
 | `NotificationQueue`                                                                 | một cái tên. Dunning thử thu lại nhưng không báo gì cho khách                                                                                                                                  |
 | `deferred_revenue`, `tax_payable`, `rounding_difference`, `customer_credit_balance` | tài khoản đã khai, chưa bút toán nào dùng                                                                                                                                                      |
 | `taxBehavior` trên price                                                            | có từ phase 1, **chưa ai đọc**. Thuế và hoá đơn điện tử chưa nằm trong phase nào                                                                                                               |
+| `resolvePrice` / `findEffectivePrice`                                               | không route, không caller. Subscription và rating resolve theo `price_id`, nên `effective_at` chưa quyết định gì — [technique 05](technique/05-product-and-price.md)                           |
 
 Hai khoảng trống về hành vi:
 
@@ -155,6 +156,7 @@ Hai khoảng trống về hành vi:
   theo các price **hiện tại**, không đụng tới entitlement của sản phẩm đã gỡ khỏi subscription —
   [entitlement.service.ts:59-70](../packages/core/src/services/entitlement.service.ts).
   `replaceSubscriptionItems` thay cả bộ item, nên gỡ một item là để lại entitlement `active` mồ côi.
+  Khái niệm và vì sao bảng này tồn tại: [technique 04](technique/04-entitlement.md).
 
 Ngoài ra `isWebhookSignatureValid` **không có cửa sổ dung sai thời gian** — nó tính lại HMAC bằng đúng
 `t` mà bên gọi gửi lên, nên một payload bắt được replay được vĩnh viễn. Phải thêm tolerance trước khi

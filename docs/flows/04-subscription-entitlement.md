@@ -138,10 +138,11 @@ Lưu ý: `GET /v1/entitlements` **không** đi qua cache, nó đọc thẳng DB.
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `subscriptions`      | `currentPeriodStart/End`, `chargedThroughDate`, `trialStart/End`, `canceledAt`, `endedAt`, `testClockId` — các cột nullable ở đây đều là trạng thái thật ("chưa xảy ra") |
 | `subscription_items` | `replaceSubscriptionItems` thay toàn bộ, không patch từng dòng                                                                                                           |
-| `entitlements`       | upsert theo `(customerId, subscriptionId, productId)`                                                                                                                    |
+| `entitlements`       | upsert theo unique index `(subscriptionId, productId)` — một khách có thể có hai hàng cho cùng product nếu quyền đến từ hai subscription                                 |
 
 ## Đọc tiếp
 
 - [05 — Metering và rating](./05-metering-and-rating.md)
 - [08 — Billing run](./08-billing-run.md) — nơi tạo hoá đơn nháp cho kỳ đã kết thúc
+- [technique 04 — Entitlement](../technique/04-entitlement.md) — entitlement là gì, vì sao cần một bảng riêng, cách app tiêu thụ gate tính năng
 - ADR: [0005 subscription + entitlement](../adr/0005-phase-3-subscription-entitlement.md)

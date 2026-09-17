@@ -175,5 +175,6 @@ Câu thứ hai là chỗ thấy rõ chuỗi bất đồng bộ: ngay sau khi t�
 
 - [flow 03 — Customer và catalog](../flows/03-catalog-and-customer.md) — khuôn CRUD, phân trang con trỏ, 6 quy tắc hình dạng của price
 - [flow 01 — Request lifecycle](../flows/01-request-lifecycle.md) — idempotency, vỏ lỗi
+- [technique 05 — Product và price](../technique/05-product-and-price.md) — vì sao tách hai bảng, ví dụ catalog Go / Plus / Pro
 - [technique 01 — GID](../technique/01-identifier-gid-uuidv7-typeid.md) — vì sao id là `cus_01m2...`
 - [ADR 0002](../adr/0002-phase-1-customer-catalog.md) — vì sao price bất biến và có version

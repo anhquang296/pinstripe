@@ -108,4 +108,5 @@ Tiền luôn là số nguyên đơn vị nhỏ nhất (cent / đồng), không b
 ## Đọc tiếp
 
 - [04 — Subscription và entitlement](./04-subscription-entitlement.md)
+- [technique 05 — Product và price](../technique/05-product-and-price.md) — vì sao tách hai bảng, một catalog thật đổ vào đó ra sao
 - ADR: [0002 customer + catalog](../adr/0002-phase-1-customer-catalog.md), [0004 nullability policy](../adr/0004-nullability-policy.md)
