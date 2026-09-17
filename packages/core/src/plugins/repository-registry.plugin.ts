@@ -1,7 +1,9 @@
 import { ApiKeyRepository } from '@repositories/api-key.repository';
+import { CouponRepository } from '@repositories/coupon.repository';
 import { CreditNoteRepository } from '@repositories/credit-note.repository';
 import { CustomerRepository } from '@repositories/customer.repository';
 import { CustomerBalanceTransactionRepository } from '@repositories/customer-balance-transaction.repository';
+import { DiscountRepository } from '@repositories/discount.repository';
 import { EntitlementRepository } from '@repositories/entitlement.repository';
 import { EventRepository } from '@repositories/event.repository';
 import { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
@@ -16,6 +18,7 @@ import { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import { PaymentIntentRepository } from '@repositories/payment-intent.repository';
 import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
+import { PromotionCodeRepository } from '@repositories/promotion-code.repository';
 import { RefundRepository } from '@repositories/refund.repository';
 import { ReportingRepository } from '@repositories/reporting.repository';
 import { SubscriptionRepository } from '@repositories/subscription.repository';
@@ -53,4 +56,7 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('refundRepository', new RefundRepository(fastify.database));
   fastify.decorate('webhookRepository', new WebhookRepository(fastify.database));
   fastify.decorate('reportingRepository', new ReportingRepository(fastify.database));
+  fastify.decorate('couponRepository', new CouponRepository(fastify.database));
+  fastify.decorate('promotionCodeRepository', new PromotionCodeRepository(fastify.database));
+  fastify.decorate('discountRepository', new DiscountRepository(fastify.database));
 });

@@ -9,6 +9,7 @@ export enum PinstripeQuerySubjectEnum {
   METER = 'meter',
   INVOICE = 'invoice',
   CREDIT_NOTE = 'credit_note',
+  DISCOUNT = 'discount',
   PAYMENT = 'payment',
   REFUND = 'refund',
   WEBHOOK = 'webhook',

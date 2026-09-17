@@ -10,6 +10,28 @@ export {
   useCustomerQuery,
   useCustomersQuery,
 } from '@react/customers/queries';
+export type {
+  UpdateCouponVariables,
+  UpdateDiscountVariables,
+  UpdatePromotionCodeVariables,
+} from '@react/discounts/mutations';
+export {
+  useCreateCouponMutation,
+  useCreateDiscountMutation,
+  useCreatePromotionCodeMutation,
+  useDeleteCouponMutation,
+  useDeleteDiscountMutation,
+  useUpdateCouponMutation,
+  useUpdateDiscountMutation,
+  useUpdatePromotionCodeMutation,
+} from '@react/discounts/mutations';
+export {
+  useCouponQuery,
+  useCouponsQuery,
+  useDiscountQuery,
+  useDiscountsQuery,
+  usePromotionCodesQuery,
+} from '@react/discounts/queries';
 export { useEntitlementsQuery } from '@react/entitlements/queries';
 export {
   useCreateCreditNoteMutation,

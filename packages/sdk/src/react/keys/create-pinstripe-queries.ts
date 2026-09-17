@@ -1,6 +1,7 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { mergeQueryKeys } from '@lukemorales/query-key-factory';
 import { createCustomerQueries } from '@react/keys/customer.keys';
+import { createDiscountQueries } from '@react/keys/discount.keys';
 import { createEntitlementQueries } from '@react/keys/entitlement.keys';
 import { createInvoiceQueries } from '@react/keys/invoice.keys';
 import { createLedgerQueries } from '@react/keys/ledger.keys';
@@ -16,6 +17,7 @@ import { createWebhookQueries } from '@react/keys/webhook.keys';
 export function createPinstripeQueries(client: PinstripeClient) {
   return mergeQueryKeys(
     createCustomerQueries(client),
+    createDiscountQueries(client),
     createProductQueries(client),
     createPriceQueries(client),
     createSubscriptionQueries(client),

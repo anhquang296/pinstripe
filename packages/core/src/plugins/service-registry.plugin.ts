@@ -1,8 +1,10 @@
 import { ApiKeyService } from '@services/api-key.service';
 import { BillingRunService } from '@services/billing-run.service';
+import { CouponService } from '@services/coupon.service';
 import { CreditNoteService } from '@services/credit-note.service';
 import { CustomerService } from '@services/customer.service';
 import { CustomerBalanceTransactionService } from '@services/customer-balance-transaction.service';
+import { DiscountService } from '@services/discount.service';
 import { DunningService } from '@services/dunning.service';
 import { EntitlementService } from '@services/entitlement.service';
 import { EventService } from '@services/event.service';
@@ -17,6 +19,7 @@ import { OutboxService } from '@services/outbox.service';
 import { PaymentService } from '@services/payment.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
+import { PromotionCodeService } from '@services/promotion-code.service';
 import { RatingService } from '@services/rating.service';
 import { ReconciliationService } from '@services/reconciliation.service';
 import { RefundService } from '@services/refund.service';
@@ -47,6 +50,9 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
     new InvoiceService(fastify, { dueDays: fastify.config.INVOICE_DUE_DAYS }),
   );
   fastify.decorate('invoiceItemService', new InvoiceItemService(fastify));
+  fastify.decorate('couponService', new CouponService(fastify));
+  fastify.decorate('promotionCodeService', new PromotionCodeService(fastify));
+  fastify.decorate('discountService', new DiscountService(fastify));
   fastify.decorate(
     'customerBalanceTransactionService',
     new CustomerBalanceTransactionService(fastify),

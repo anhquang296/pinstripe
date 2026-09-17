@@ -1,6 +1,7 @@
 export { PINSTRIPE_API_VERSION } from '@constants/api-version';
 export * from '@contracts/api-keys.types';
 export * from '@contracts/customers.types';
+export * from '@contracts/discounts.types';
 export * from '@contracts/entitlements.types';
 export * from '@contracts/errors.types';
 export * from '@contracts/events.types';

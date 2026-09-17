@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/prices', label: 'Prices' },
   { to: '/subscriptions', label: 'Subscriptions' },
   { to: '/meters', label: 'Meters' },
+  { to: '/discounts', label: 'Giảm giá' },
   { to: '/rating', label: 'Rating' },
   { to: '/invoices', label: 'Invoices' },
   { to: '/payments', label: 'Payments' },
