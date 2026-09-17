@@ -137,7 +137,6 @@ export const findTaxRatesSchema = Type.Object(
     inclusive: Type.Optional(Type.Boolean()),
     country: Type.Optional(Type.String()),
     taxType: Type.Optional(Type.Unsafe<TaxType>(Type.Enum(TaxTypeEnum))),
-    expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );

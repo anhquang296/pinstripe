@@ -67,11 +67,13 @@ Hoá đơn `subscription_update` được tạo, phát hành và post sổ cái 
 | 2   | [invoice.service.ts:123-127](../../packages/core/src/services/invoice.service.ts) | `subscription.currentPeriodStart` phải còn khớp `invoice.periodStart`, lệch → `ConflictError` |
 | 3   | [invoice.service.ts:129](../../packages/core/src/services/invoice.service.ts)     | `ratingService.rateUpcomingInvoice` — tính tiền **tại thời điểm này**                         |
 | 4   | [invoice.service.ts:419](../../packages/core/src/services/invoice.service.ts)     | `discountService.applyDiscounts` — ghi `discountAmounts` xuống từng dòng, trước khi ráp tổng  |
+| 4b  | [tax.service.ts](../../packages/core/src/services/tax.service.ts)                 | `taxService.applyTaxes` — thuế trên `amount - discountAmounts`, đóng băng snapshot thuế suất  |
 | 5   | [invoice.service.ts:131](../../packages/core/src/services/invoice.service.ts)     | `dueAt = now + INVOICE_DUE_DAYS`                                                              |
 | 6   | [invoice.service.ts:149-156](../../packages/core/src/services/invoice.service.ts) | `claimNumberSequence(INVOICE)` trong transaction — cấp số từ `number_sequences`               |
 | 7   | [invoice.service.ts:158](../../packages/core/src/services/invoice.service.ts)     | INSERT `invoice_line_items` — bản chụp bất biến của kết quả rating                            |
+| 7b  | [invoice.service.ts](../../packages/core/src/services/invoice.service.ts)         | INSERT `invoice_line_item_tax_amounts` — một hàng cho mỗi thuế suất áp lên mỗi dòng           |
 | 8   | [invoice.service.ts:160-173](../../packages/core/src/services/invoice.service.ts) | UPDATE: `number = INV-000123`, `status = open`, `subtotal`/`total`, `nextAttemptAt = dueAt`   |
-| 9   | [postReceivable:336-362](../../packages/core/src/services/invoice.service.ts)     | bút toán: **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue`                        |
+| 9   | [postReceivable:336-362](../../packages/core/src/services/invoice.service.ts)     | bút toán: **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue` + `tax_payable`        |
 | 10  | [invoice.service.ts:180](../../packages/core/src/services/invoice.service.ts)     | event `invoice.finalized`                                                                     |
 
 Bước 2 chặn một lỗi cụ thể: subscription đã sang kỳ mới trong lúc hoá đơn còn nháp thì rating sẽ trả về số của kỳ **mới**, dán nhầm vào hoá đơn của kỳ **cũ**.
@@ -127,12 +129,25 @@ Chúng được tính lại mỗi lần đọc, không lưu — nên không bao 
 
 ## Bảng DB
 
-| Bảng                 | Điểm cần nhớ                                                                                   |
-| -------------------- | ---------------------------------------------------------------------------------------------- |
-| `number_sequences`   | một hàng cho mỗi loại (`invoice`, `credit_note`); `claimNumberSequence` chạy trong transaction |
-| `invoices`           | `number` nullable tới khi finalize; `due_at`, `next_attempt_at` phục vụ dunning                |
-| `invoice_line_items` | bản chụp; sửa giá về sau không đổi hoá đơn cũ                                                  |
-| `credit_notes`       | chỉ ghi thêm, không sửa                                                                        |
+| Bảng                            | Điểm cần nhớ                                                                                   |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `number_sequences`              | một hàng cho mỗi loại (`invoice`, `credit_note`); `claimNumberSequence` chạy trong transaction |
+| `invoices`                      | `number` nullable tới khi finalize; `due_at`, `next_attempt_at` phục vụ dunning                |
+| `invoice_line_items`            | bản chụp; sửa giá về sau không đổi hoá đơn cũ                                                  |
+| `invoice_line_item_tax_amounts` | dòng thuế; mang snapshot `percentage`/`isInclusive`/`taxType`, tắt rate không đổi hoá đơn cũ   |
+| `tax_rates`                     | `percentage` và `inclusive` bất biến; đổi thuế suất là tạo rate mới                            |
+| `tax_ids`                       | `verification` do `TaxQueue` ghi; hôm nay verify là stub kiểm format                           |
+| `credit_notes`                  | chỉ ghi thêm, không sửa                                                                        |
+
+## Thuế
+
+Thuế chỉ xuất hiện lúc finalize, theo thứ tự: thuế suất gắn vào dòng → `invoices.defaultTaxRates`
+(hoá đơn chu kỳ thừa hưởng từ subscription) → tra bảng theo `country`/`state` khi
+`automaticTax.enabled`. `customer.taxExempt` khác `none` thì không thu gì.
+
+`total` chỉ cộng phần thuế **exclusive** — thuế inclusive đã nằm trong `subtotal`, và
+`subtotalExcludingTax` là chỗ nhìn ra phần gốc. Chi tiết công thức, làm tròn inclusive qua
+`Money.allocate`, và vì sao `authorityInvoiceNumber` tách khỏi `INV-000001`: [ADR 0016](../adr/0016-tax-model.md).
 
 ## Đọc tiếp
 
