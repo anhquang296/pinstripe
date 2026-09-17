@@ -206,6 +206,24 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
       EntitlementStatusEnum.BLOCKED,
     );
   });
+
+  it('counts a cycle with no payment method on file as a failed collection', async () => {
+    const customerId = await makeCustomer();
+    const priceId = await makePrice();
+    const subscription = await fastify.subscriptionService.createSubscription(
+      { customerId, items: [{ priceId }] },
+      LIVEMODE,
+    );
+
+    await runBilling(offsetFrom(subscription.currentPeriodEnd, 8 * MILLISECONDS_PER_DAY));
+
+    const invoice = await readSubscriptionInvoice(subscription.id);
+    const failed = await readSubscription(subscription.id);
+
+    expect(invoice.status).toBe(InvoiceStatusEnum.OPEN);
+    expect(invoice.attemptCount).toBe(1);
+    expect(failed.status).toBe(SubscriptionStatusEnum.INCOMPLETE);
+  });
 });
 
 describe('SubscriptionService.updateSubscription pauseCollection', () => {
@@ -269,6 +287,39 @@ describe('SubscriptionService.updateSubscription pauseCollection', () => {
     expect(resumed.status).toBe(SubscriptionStatusEnum.ACTIVE);
     expect(resumed.pauseCollection).toBeNull();
   });
+
+  it.each([
+    {
+      behavior: PauseCollectionBehaviorEnum.VOID,
+      expected: InvoiceStatusEnum.VOID,
+    },
+    {
+      behavior: PauseCollectionBehaviorEnum.MARK_UNCOLLECTIBLE,
+      expected: InvoiceStatusEnum.UNCOLLECTIBLE,
+    },
+  ])(
+    'leaves the cycle invoice $expected when collection is paused with $behavior',
+    async ({ behavior, expected }) => {
+      const testClockId = await makeTestClock();
+      const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+      const priceId = await makePrice();
+      const subscription = await fastify.subscriptionService.createSubscription(
+        { customerId, items: [{ priceId }] },
+        LIVEMODE,
+      );
+
+      await fastify.subscriptionService.updateSubscription(subscription.id, {
+        pauseCollection: { behavior },
+      });
+      await fastify.testClockService.advanceTestClock(testClockId, {
+        frozenTime: offsetFrom(subscription.currentPeriodEnd, MILLISECONDS_PER_DAY).toISOString(),
+      });
+
+      const invoice = await readSubscriptionInvoice(subscription.id);
+
+      expect(invoice.status).toBe(expected);
+    },
+  );
 });
 
 describe('SubscriptionService.cancelSubscription cancelAt', () => {
