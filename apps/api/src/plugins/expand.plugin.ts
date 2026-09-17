@@ -10,7 +10,11 @@ function readExpand(request: FastifyRequest): string[] {
 }
 
 export const expandPlugin = fp(async (fastify) => {
-  fastify.addHook('preSerialization', async (request, _reply, payload) => {
+  fastify.addHook('preSerialization', async (request, reply, payload) => {
+    if (reply.statusCode >= 400) {
+      return payload;
+    }
+
     const expand = readExpand(request);
 
     if (_.isEmpty(expand)) {

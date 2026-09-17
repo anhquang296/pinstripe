@@ -20,9 +20,9 @@ export const rateLimitPlugin = fp(async (fastify) => {
       },
     );
 
-    await reply.header('ratelimit-limit', String(limit));
-    await reply.header('ratelimit-remaining', String(remaining));
-    await reply.header('ratelimit-reset', String(resetSeconds));
+    reply.header('ratelimit-limit', String(limit));
+    reply.header('ratelimit-remaining', String(remaining));
+    reply.header('ratelimit-reset', String(resetSeconds));
 
     if (isAllowed) {
       return;

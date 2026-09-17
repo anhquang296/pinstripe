@@ -13,6 +13,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "test:integration": "pnpm --filter @pinstripe/core test:integration && pnpm --filter @pinstripe/api test:integration",
     "db:generate": "pnpm --filter @pinstripe/core db:generate",
     "db:migrate": "pnpm --filter @pinstripe/core db:migrate",
     "db:reset": "pnpm --filter @pinstripe/core db:reset",

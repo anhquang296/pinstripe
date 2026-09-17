@@ -27,25 +27,37 @@ PostgreSQL + BullMQ + Drizzle.
 
 ## Tiến độ
 
-| Phase | Nội dung                                                                      | Công sức | Nhóm             |
-| ----- | ----------------------------------------------------------------------------- | -------- | ---------------- |
-| 10    | Lưới test + sửa lỗi mất tiền / trùng tiền                                     | L        | Nền              |
-| 11    | API key trong DB + scopes + `livemode`                                        | L        | Nền — bẫy #4     |
-| 12    | Vỏ platform: `events`, `expand[]`, versioning, rate limit, webhook DLQ        | L        | Nền              |
-| 13    | Mô hình tổng hoá đơn + `InvoiceItem` + hoá đơn rời + tách bút toán            | XL       | Nền — bẫy #1     |
-| 14    | Giảm giá: Coupon, PromotionCode, Discount                                     | M        | Bề mặt           |
-| 15    | Thuế: TaxRate, dòng thuế, TaxId, khớp nối hoá đơn điện tử                     | L        | Bề mặt (pháp lý) |
-| 16    | Hoàn thiện vòng đời subscription                                              | XL       | Nền — bẫy #2     |
-| 17    | Chuyển sang bill **in advance**                                               | XL       | Trung thành      |
-| 18    | Mô hình payment: PaymentMethod, SetupIntent, Charge, 3DS, callback            | XL       | Nền — bẫy #3     |
-| 19    | Dòng tiền: BalanceTransaction, Balance, Payout, Dispute, refund/CN v2         | L        | Bề mặt           |
-| 20    | Bề mặt khách: portal auth, billing portal, Checkout, Payment Link, PDF, email | XL       | Bề mặt           |
-| 21    | SubscriptionSchedule + billing thresholds                                     | L        | Bề mặt           |
-| 22    | Catalog fidelity: `currencyOptions`, Feature/ProductFeature, `aggregateUsage` | M        | Bề mặt           |
-| 23    | Search API, OpenAPI, observability, load test                                 | M        | Vận hành         |
-| 24    | PSP thật + nhà cung cấp hoá đơn điện tử                                       | L        | Hoãn có chủ ý    |
+| Phase | Nội dung                                                                      | Công sức | Nhóm             | Trạng thái        |
+| ----- | ----------------------------------------------------------------------------- | -------- | ---------------- | ----------------- |
+| 10    | Lưới test + sửa lỗi mất tiền / trùng tiền                                     | L        | Nền              | Xong (còn nợ)     |
+| 11    | API key trong DB + scopes + `livemode`                                        | L        | Nền — bẫy #4     | Xong              |
+| 12    | Vỏ platform: `events`, `expand[]`, versioning, rate limit, webhook DLQ        | L        | Nền              | Xong (còn nợ)     |
+| 13    | Mô hình tổng hoá đơn + `InvoiceItem` + hoá đơn rời + tách bút toán            | XL       | Nền — bẫy #1     | Xong              |
+| 14    | Giảm giá: Coupon, PromotionCode, Discount                                     | M        | Bề mặt           | Chưa              |
+| 15    | Thuế: TaxRate, dòng thuế, TaxId, khớp nối hoá đơn điện tử                     | L        | Bề mặt (pháp lý) | Chưa              |
+| 16    | Hoàn thiện vòng đời subscription                                              | XL       | Nền — bẫy #2     | Chưa (mới schema) |
+| 17    | Chuyển sang bill **in advance**                                               | XL       | Trung thành      | Chưa              |
+| 18    | Mô hình payment: PaymentMethod, SetupIntent, Charge, 3DS, callback            | XL       | Nền — bẫy #3     | Chưa              |
+| 19    | Dòng tiền: BalanceTransaction, Balance, Payout, Dispute, refund/CN v2         | L        | Bề mặt           | Chưa              |
+| 20    | Bề mặt khách: portal auth, billing portal, Checkout, Payment Link, PDF, email | XL       | Bề mặt           | Chưa              |
+| 21    | SubscriptionSchedule + billing thresholds                                     | L        | Bề mặt           | Chưa              |
+| 22    | Catalog fidelity: `currencyOptions`, Feature/ProductFeature, `aggregateUsage` | M        | Bề mặt           | Chưa              |
+| 23    | Search API, OpenAPI, observability, load test                                 | M        | Vận hành         | Chưa              |
+| 24    | PSP thật + nhà cung cấp hoá đơn điện tử                                       | L        | Hoãn có chủ ý    | Chưa              |
 
 Ba phase XL là 13, 16, 18 — cộng thêm 17 và 20. Mọi thứ còn lại là phụ thuộc của chúng.
+
+Hai chỗ **còn nợ** ở trên, phải trả trước khi tin vào bất kỳ "test pass" nào:
+
+- **Phase 10** — task `test` của turbo trước đây được cache và không gọi integration test. Đã vá:
+  `turbo.json` đặt `"cache": false`, và script gốc `pnpm test:integration` chạy tuần tự
+  `@pinstripe/core` rồi `@pinstripe/api` (tuần tự chứ không qua turbo, vì hai suite dùng chung một
+  database test và `global-setup.ts` drop schema `public` — chạy song song là đua nhau).
+- **Phase 12** — SDK chưa có resource `events`.
+
+Phase 16 mới có phần schema (`trialStart`/`trialEnd`/`cancelAtPeriodEnd`). Hành vi thật chưa có:
+`advanceSubscriptions` đến giờ chỉ có đúng một caller là `TestClockService`, nên một subscription
+không gắn test clock **không bao giờ tự roll kỳ**.
 
 ## Đường ngắn nhất, nếu một ngày phải chạy thật
 

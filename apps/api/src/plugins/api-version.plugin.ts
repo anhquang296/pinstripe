@@ -5,7 +5,7 @@ const API_VERSION_HEADER = 'pinstripe-version';
 
 export const apiVersionPlugin = fp(async (fastify) => {
   fastify.addHook('onSend', async (_request, reply, payload) => {
-    await reply.header(API_VERSION_HEADER, PINSTRIPE_API_VERSION);
+    reply.header(API_VERSION_HEADER, PINSTRIPE_API_VERSION);
 
     return payload;
   });
