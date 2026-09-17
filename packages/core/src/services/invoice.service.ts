@@ -18,6 +18,9 @@ import {
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import type { TaxBehavior } from '@contracts/prices.types';
+import { TaxBehaviorEnum } from '@contracts/prices.types';
+import type { RatedInvoiceResponse } from '@contracts/rating.types';
 import { CollectionMethodEnum } from '@contracts/subscriptions.types';
 import type { DatabaseTransaction } from '@database/database.client';
 import type {
@@ -25,8 +28,9 @@ import type {
   Invoice,
   InvoiceLineDiscountAmount,
   InvoiceLineItem,
-  InvoiceLineTaxAmount,
+  InvoiceLineItemTaxAmount,
   NewInvoiceLineItem,
+  NewInvoiceLineItemTaxAmount,
   Subscription,
 } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
@@ -35,6 +39,7 @@ import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { LineItemType } from '@utils/rating';
 import { LineItemTypeEnum } from '@utils/rating';
+import type { LineTaxAmount } from '@utils/tax';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -57,7 +62,9 @@ export interface InvoiceDraftLine {
   amount: number;
   discountable: boolean;
   discountAmounts: InvoiceLineDiscountAmount[];
-  taxAmounts: InvoiceLineTaxAmount[];
+  taxAmounts: LineTaxAmount[];
+  taxRateIds: string[];
+  taxBehavior: TaxBehavior;
   periodStart: Date;
   periodEnd: Date;
   prorationFactor: number;
@@ -136,6 +143,8 @@ export class InvoiceService {
           daysUntilDue,
           periodStart: now,
           periodEnd: now,
+          defaultTaxRates: payload.defaultTaxRates ?? [],
+          automaticTaxEnabled: _.get(payload.automaticTax, 'enabled', false),
           metadata: payload.metadata ?? {},
           createdAt: now,
           updatedAt: now,
@@ -186,6 +195,7 @@ export class InvoiceService {
             subtotal: 0,
             total: 0,
             amountPaid: 0,
+            defaultTaxRates: subscription.defaultTaxRates,
             finalizedAt: null,
             paidAt: null,
             voidedAt: null,
@@ -256,7 +266,25 @@ export class InvoiceService {
 
     const rated = await this.fastify.ratingService.rateUpcomingInvoice(subscriptionId);
 
-    return _.map(rated.lineItems, (lineItem): InvoiceDraftLine => {
+    return this.buildSubscriptionLines(subscription, rated.lineItems);
+  }
+
+  private async buildSubscriptionLines(
+    subscription: Subscription,
+    lineItems: RatedInvoiceResponse['lineItems'],
+  ): Promise<InvoiceDraftLine[]> {
+    const taxBehaviorByPriceId = await this.resolveTaxBehaviors(_.map(lineItems, 'priceId'));
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [subscription.id],
+    });
+    const taxRateIdsBySubscriptionItemId = _.mapValues(
+      _.keyBy(subscriptionItems, 'id'),
+      'taxRates',
+    );
+
+    return _.map(lineItems, (lineItem): InvoiceDraftLine => {
+      const itemTaxRateIds = _.get(taxRateIdsBySubscriptionItemId, lineItem.subscriptionItemId, []);
+
       return {
         subscriptionItemId: lineItem.subscriptionItemId,
         invoiceItemId: null,
@@ -269,11 +297,27 @@ export class InvoiceService {
         discountable: true,
         discountAmounts: [],
         taxAmounts: [],
+        taxRateIds: itemTaxRateIds,
+        taxBehavior: _.get(taxBehaviorByPriceId, lineItem.priceId, TaxBehaviorEnum.UNSPECIFIED),
         periodStart: new Date(lineItem.periodStart),
         periodEnd: new Date(lineItem.periodEnd),
         prorationFactor: lineItem.prorationFactor,
       };
     });
+  }
+
+  private async resolveTaxBehaviors(
+    priceIds: readonly (string | null)[],
+  ): Promise<Record<string, TaxBehavior>> {
+    const ids = _.uniq(_.compact([...priceIds]));
+
+    if (_.isEmpty(ids)) {
+      return {};
+    }
+
+    const prices = await this.fastify.priceRepository.findPrices({ ids }, ids.length);
+
+    return _.mapValues(_.keyBy(prices, 'id'), 'taxBehavior');
   }
 
   private async collectInvoiceItemLines(invoice: Invoice): Promise<InvoiceDraftLine[]> {
@@ -283,6 +327,8 @@ export class InvoiceService {
       currency: invoice.currency,
       pendingForInvoiceId: invoice.id,
     });
+
+    const taxBehaviorByPriceId = await this.resolveTaxBehaviors(_.map(invoiceItems, 'priceId'));
 
     return _.map(invoiceItems, (invoiceItem): InvoiceDraftLine => {
       return {
@@ -297,6 +343,12 @@ export class InvoiceService {
         discountable: invoiceItem.discountable,
         discountAmounts: [],
         taxAmounts: [],
+        taxRateIds: invoiceItem.taxRates,
+        taxBehavior: _.get(
+          taxBehaviorByPriceId,
+          invoiceItem.priceId ?? '',
+          TaxBehaviorEnum.UNSPECIFIED,
+        ),
         periodStart: invoiceItem.periodStart,
         periodEnd: invoiceItem.periodEnd,
         prorationFactor: 1,
@@ -364,6 +416,7 @@ export class InvoiceService {
         subtotal: 0,
         total: 0,
         amountPaid: 0,
+        defaultTaxRates: subscription.defaultTaxRates,
         finalizedAt: null,
         paidAt: null,
         voidedAt: null,
@@ -377,25 +430,7 @@ export class InvoiceService {
     if (invoice) {
       await this.recordInvoiceEvent(invoice, DomainEventTypeEnum.INVOICE_CREATED, tx);
 
-      const lines = _.map(rated.lineItems, (lineItem): InvoiceDraftLine => {
-        return {
-          subscriptionItemId: lineItem.subscriptionItemId,
-          invoiceItemId: null,
-          priceId: lineItem.priceId,
-          type: lineItem.type,
-          description: '',
-          quantity: lineItem.quantity,
-          unitAmount: null,
-          amount: lineItem.amount,
-          discountable: true,
-          discountAmounts: [],
-          taxAmounts: [],
-          periodStart: new Date(lineItem.periodStart),
-          periodEnd: new Date(lineItem.periodEnd),
-          prorationFactor: lineItem.prorationFactor,
-        };
-      });
-
+      const lines = await this.buildSubscriptionLines(subscription, rated.lineItems);
       const finalizedInvoice = await this.writeFinalizedInvoice(invoice, lines, now, tx);
 
       await this.fastify.subscriptionRepository.markSubscriptionItemsInvoiced(
@@ -417,10 +452,15 @@ export class InvoiceService {
   ): Promise<Invoice> {
     const customer = await this.getLockedCustomer(invoice.customerId, tx);
     const discountedLines = await this.fastify.discountService.applyDiscounts(invoice, lines, tx);
-    const totals = InvoiceService.assembleInvoiceTotals(discountedLines, customer.balance);
+    const { lines: taxedLines, automaticTaxStatus } = await this.fastify.taxService.applyTaxes(
+      invoice,
+      customer,
+      discountedLines,
+    );
+    const totals = InvoiceService.assembleInvoiceTotals(taxedLines, customer.balance);
     const dueAt = this.resolveDueAt(invoice, now);
 
-    const lineItems = _.map(discountedLines, (line): NewInvoiceLineItem => {
+    const lineItems = _.map(taxedLines, (line): NewInvoiceLineItem => {
       return {
         id: generateGid(ObjectPrefixEnum.INVOICE_LINE_ITEM),
         livemode: invoice.livemode,
@@ -437,13 +477,13 @@ export class InvoiceService {
           line.amount - _.sumBy(_.filter(line.taxAmounts, 'isInclusive'), 'amount'),
         discountable: line.discountable,
         discountAmounts: line.discountAmounts,
-        taxAmounts: line.taxAmounts,
         periodStart: line.periodStart,
         periodEnd: line.periodEnd,
         prorationFactor: line.prorationFactor,
         createdAt: now,
       };
     });
+    const taxAmounts = InvoiceService.buildLineItemTaxAmounts(invoice, taxedLines, lineItems, now);
 
     const sequenceValue = await this.fastify.numberSequenceRepository.claimNumberSequence(
       NumberSequenceEnum.INVOICE,
@@ -455,6 +495,7 @@ export class InvoiceService {
     }
 
     await this.fastify.invoiceRepository.createInvoiceLineItems(lineItems, tx);
+    await this.fastify.invoiceRepository.createInvoiceLineItemTaxAmounts(taxAmounts, tx);
     await this.fastify.invoiceItemRepository.attachInvoiceItems(
       _.compact(_.map(lines, 'invoiceItemId')),
       invoice.id,
@@ -468,6 +509,7 @@ export class InvoiceService {
         number: InvoiceService.formatNumber(INVOICE_NUMBER_PREFIX, sequenceValue),
         status: InvoiceStatusEnum.OPEN,
         ...totals,
+        automaticTaxStatus,
         finalizedAt: now,
         dueAt,
         nextAttemptAt: InvoiceService.resolveNextAttemptAt(invoice, dueAt),
@@ -485,6 +527,37 @@ export class InvoiceService {
     }
 
     throw new NotFoundError(`No such invoice: ${invoice.id}`);
+  }
+
+  private static buildLineItemTaxAmounts(
+    invoice: Invoice,
+    lines: readonly InvoiceDraftLine[],
+    lineItems: readonly NewInvoiceLineItem[],
+    now: Date,
+  ): NewInvoiceLineItemTaxAmount[] {
+    return _.flatMap(lines, (line, index): NewInvoiceLineItemTaxAmount[] => {
+      const lineItem = lineItems[index];
+
+      if (!lineItem) {
+        return [];
+      }
+
+      return _.map(line.taxAmounts, (taxAmount): NewInvoiceLineItemTaxAmount => {
+        return {
+          id: generateGid(ObjectPrefixEnum.INVOICE_LINE_TAX_AMOUNT),
+          livemode: invoice.livemode,
+          invoiceId: invoice.id,
+          invoiceLineItemId: lineItem.id,
+          taxRateId: taxAmount.taxRateId,
+          amount: taxAmount.amount,
+          taxableAmount: taxAmount.taxableAmount,
+          isInclusive: taxAmount.isInclusive,
+          percentage: taxAmount.percentage,
+          taxType: taxAmount.taxType,
+          createdAt: now,
+        };
+      });
+    });
   }
 
   private static resolveNextAttemptAt(invoice: Invoice, dueAt: Date): Date | null {
@@ -732,6 +805,7 @@ export class InvoiceService {
     const page = _.take(rows, limit);
     const invoiceIds = _.map(page, 'id');
     const lineItemsByInvoiceId = await this.resolveLineItems(invoiceIds);
+    const taxAmountsByLineItemId = await this.resolveLineItemTaxAmounts(invoiceIds);
     const creditedByInvoiceId = await this.resolveCreditedAmounts(invoiceIds);
     const refundedByInvoiceId = await this.resolveRefundedAmounts(invoiceIds);
 
@@ -747,6 +821,7 @@ export class InvoiceService {
         return InvoiceService.buildInvoiceWithLineItems(
           invoice,
           lineItems,
+          taxAmountsByLineItemId,
           amountCredited,
           amountRefunded,
         );
@@ -1028,8 +1103,17 @@ export class InvoiceService {
     return _.groupBy(rows, 'invoiceId');
   }
 
+  private async resolveLineItemTaxAmounts(
+    invoiceIds: readonly string[],
+  ): Promise<Record<string, InvoiceLineItemTaxAmount[]>> {
+    const rows = await this.fastify.invoiceRepository.findInvoiceLineItemTaxAmounts(invoiceIds);
+
+    return _.groupBy(rows, 'invoiceLineItemId');
+  }
+
   private async buildInvoice(invoice: Invoice): Promise<InvoiceResponse> {
     const lineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([invoice.id]);
+    const taxAmountsByLineItemId = await this.resolveLineItemTaxAmounts([invoice.id]);
     const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
     const refundedByInvoiceId = await this.resolveRefundedAmounts([invoice.id]);
 
@@ -1039,6 +1123,7 @@ export class InvoiceService {
     return InvoiceService.buildInvoiceWithLineItems(
       invoice,
       lineItems,
+      taxAmountsByLineItemId,
       amountCredited,
       amountRefunded,
     );
@@ -1075,6 +1160,7 @@ export class InvoiceService {
   private static buildInvoiceWithLineItems(
     invoice: Invoice,
     lineItems: readonly InvoiceLineItem[],
+    taxAmountsByLineItemId: Record<string, InvoiceLineItemTaxAmount[]>,
     amountCredited: number,
     amountRefunded: number,
   ): InvoiceResponse {
@@ -1102,6 +1188,13 @@ export class InvoiceService {
       endingBalance: invoice.endingBalance,
       amountDue: invoice.amountDue,
       amountPaid: invoice.amountPaid,
+      defaultTaxRates: invoice.defaultTaxRates,
+      automaticTax: {
+        enabled: invoice.automaticTaxEnabled,
+        status: invoice.automaticTaxStatus,
+      },
+      authorityInvoiceNumber: invoice.authorityInvoiceNumber,
+      authorityStatus: invoice.authorityStatus,
       amountCredited,
       amountRefunded,
       amountRemaining: invoice.amountDue - invoice.amountPaid - amountCredited,
@@ -1120,7 +1213,16 @@ export class InvoiceService {
           amountExcludingTax: lineItem.amountExcludingTax,
           discountable: lineItem.discountable,
           discountAmounts: lineItem.discountAmounts,
-          taxAmounts: lineItem.taxAmounts,
+          taxAmounts: _.map(_.get(taxAmountsByLineItemId, lineItem.id, []), (taxAmount) => {
+            return {
+              taxRateId: taxAmount.taxRateId,
+              amount: taxAmount.amount,
+              taxableAmount: taxAmount.taxableAmount,
+              isInclusive: taxAmount.isInclusive,
+              percentage: taxAmount.percentage,
+              taxType: taxAmount.taxType,
+            };
+          }),
           periodStart: lineItem.periodStart.toISOString(),
           periodEnd: lineItem.periodEnd.toISOString(),
           prorationFactor: lineItem.prorationFactor,
