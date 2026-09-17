@@ -17,6 +17,7 @@ import { pricesRoutes } from '@routes/v1/prices/prices.routes';
 import { productsRoutes } from '@routes/v1/products/products.routes';
 import { promotionCodesRoutes } from '@routes/v1/promotion-codes/promotion-codes.routes';
 import { refundsRoutes } from '@routes/v1/refunds/refunds.routes';
+import { subscriptionItemsRoutes } from '@routes/v1/subscription-items/subscription-items.routes';
 import { subscriptionsRoutes } from '@routes/v1/subscriptions/subscriptions.routes';
 import { taxIdsRoutes } from '@routes/v1/tax-ids/tax-ids.routes';
 import { taxRatesRoutes } from '@routes/v1/tax-rates/tax-rates.routes';
@@ -38,6 +39,7 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(productsRoutes, { prefix: '/products' });
   await fastify.register(pricesRoutes, { prefix: '/prices' });
   await fastify.register(subscriptionsRoutes, { prefix: '/subscriptions' });
+  await fastify.register(subscriptionItemsRoutes, { prefix: '/subscription_items' });
   await fastify.register(entitlementsRoutes, { prefix: '/entitlements' });
   await fastify.register(eventsRoutes, { prefix: '/events' });
   await fastify.register(invoicesRoutes, { prefix: '/invoices' });

@@ -16,6 +16,7 @@ import { PricesResource } from '@resources/prices.resource';
 import { ProductsResource } from '@resources/products.resource';
 import { PromotionCodesResource } from '@resources/promotion-codes.resource';
 import { RefundsResource } from '@resources/refunds.resource';
+import { SubscriptionItemsResource } from '@resources/subscription-items.resource';
 import { SubscriptionsResource } from '@resources/subscriptions.resource';
 import { TaxIdsResource } from '@resources/tax-ids.resource';
 import { TaxRatesResource } from '@resources/tax-rates.resource';
@@ -27,6 +28,7 @@ export class PinstripeClient {
   readonly products: ProductsResource;
   readonly prices: PricesResource;
   readonly subscriptions: SubscriptionsResource;
+  readonly subscriptionItems: SubscriptionItemsResource;
   readonly entitlements: EntitlementsResource;
   readonly invoices: InvoicesResource;
   readonly invoiceItems: InvoiceItemsResource;
@@ -57,6 +59,7 @@ export class PinstripeClient {
     this.products = new ProductsResource(this._transport);
     this.prices = new PricesResource(this._transport);
     this.subscriptions = new SubscriptionsResource(this._transport);
+    this.subscriptionItems = new SubscriptionItemsResource(this._transport);
     this.entitlements = new EntitlementsResource(this._transport);
     this.invoices = new InvoicesResource(this._transport);
     this.invoiceItems = new InvoiceItemsResource(this._transport);
