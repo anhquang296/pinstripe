@@ -48,33 +48,33 @@ sequenceDiagram
 
 ## Kịch bản chính — tạo meter
 
-| #   | Ở đâu                                                                                 | Chuyện gì xảy ra                                                                             |
-| --- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 1   | UI [meter-form.ts:6-11](../../apps/admin-ui/src/forms/meter-form.ts)                  | bốn field: `displayName`, `eventName`, `aggregation` (từ `MeterAggregationEnum`), `valueKey` |
-| 2   | UI [meter-form.ts:17-22](../../apps/admin-ui/src/forms/meter-form.ts)                 | default: `aggregation = SUM`, `valueKey = 'value'`                                           |
-| 3   | Hook [mutations.ts:12-13](../../apps/admin-ui/src/reactquery/meters/mutations.ts)     | `createMeter(payload)`                                                                       |
-| 4   | API [request.ts:29-31](../../apps/admin-ui/src/api/meters/request.ts)                 | `POST /v1/billing/meters`                                                                    |
-| 5   | Service [meter.service.ts:92-125](../../packages/core/src/services/meter.service.ts)  | transaction: INSERT `meters` + `meter.created` vào outbox                                    |
-| 6   | Service [meter.service.ts:126-135](../../packages/core/src/services/meter.service.ts) | `eventName` trùng một meter chưa xoá → `ConflictError` với `param: 'eventName'`              |
+| #   | Ở đâu                                                                                       | Chuyện gì xảy ra                                                                             |
+| --- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1   | UI [meter-form.ts:6-11](../../apps/admin-ui/src/forms/meter-form.ts)                        | bốn field: `displayName`, `eventName`, `aggregation` (từ `MeterAggregationEnum`), `valueKey` |
+| 2   | UI [meter-form.ts:17-22](../../apps/admin-ui/src/forms/meter-form.ts)                       | default: `aggregation = SUM`, `valueKey = 'value'`                                           |
+| 3   | Hook [mutations.ts:13-23](../../packages/sdk/src/react/meters/mutations.ts)                 | `useCreateMeterMutation` → `pinstripe.meters.create(payload)`                                |
+| 4   | SDK [meters.resource.ts:41-47](../../packages/sdk/src/resources/billing/meters.resource.ts) | `POST /v1/billing/meters`                                                                    |
+| 5   | Service [meter.service.ts:92-125](../../packages/core/src/services/meter.service.ts)        | transaction: INSERT `meters` + `meter.created` vào outbox                                    |
+| 6   | Service [meter.service.ts:126-135](../../packages/core/src/services/meter.service.ts)       | `eventName` trùng một meter chưa xoá → `ConflictError` với `param: 'eventName'`              |
 
 `eventName` là khoá nghiệp vụ: một tên event chỉ có đúng một meter đang nghe
 ([meters.schema.ts:21-23](../../packages/core/src/database/schemas/meters.schema.ts)).
 
 ## Kịch bản chính — bắn một event
 
-| #   | Ở đâu                                                                                           | Chuyện gì xảy ra                                                                                                             | Quan sát được gì                                                   |
-| --- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | UI [MetersPage.tsx:98-102](../../apps/admin-ui/src/pages/MetersPage.tsx)                        | tìm meter trong **cache của bảng phía trên**, thiếu meter hoặc khách thì `return` im lặng                                    | bấm nút mà không chọn đủ thì không có gì xảy ra, cũng không có lỗi |
-| 2   | UI [MetersPage.tsx:104-108](../../apps/admin-ui/src/pages/MetersPage.tsx)                       | payload dựng từ chính meter: `{ eventName: meter.eventName, customerId, payload: { [meter.valueKey]: Number(eventValue) } }` | UI phải biết `valueKey` để đặt đúng khoá                           |
-| 3   | API [request.ts:52-54](../../apps/admin-ui/src/api/meters/request.ts)                           | `POST /v1/billing/meter_events`                                                                                              | —                                                                  |
-| 4   | Service [meter-event.service.ts:29](../../packages/core/src/services/meter-event.service.ts)    | `resolveMeter(eventName)`                                                                                                    | tên chưa khai báo meter → 404, **không** âm thầm bỏ qua            |
-| 5   | Service [buildMeterEvent:124-144](../../packages/core/src/services/meter-event.service.ts)      | `timestamp` = client gửi hoặc `receivedAt`; `identifier` = client gửi hoặc **id sinh mới**                                   | xem mục cảnh báo dưới                                              |
-| 6   | Service [assertWithinWindow:186-201](../../packages/core/src/services/meter-event.service.ts)   | `timestamp` cũ hơn `METER_DEDUP_WINDOW_DAYS` → 400                                                                           | —                                                                  |
-| 7   | Service [resolveValue:203-218](../../packages/core/src/services/meter-event.service.ts)         | `count` → luôn 1; ngược lại lấy `payload[valueKey]`, không phải số → 400                                                     | lỗi này hiện thành toast đỏ                                        |
-| 8   | Service [meter-event.service.ts:32-36](../../packages/core/src/services/meter-event.service.ts) | Redis `EXISTS` — đã thấy identifier thì trả về luôn, **không** ghi                                                           | —                                                                  |
-| 9   | Service [meter-event.service.ts:38](../../packages/core/src/services/meter-event.service.ts)    | INSERT với `onConflictDoNothing` trên `(meter_id, identifier)`                                                               | chốt chặn thật                                                     |
-| 10  | Hook [mutations.ts:36](../../apps/admin-ui/src/reactquery/meters/mutations.ts)                  | invalidate `meter.eventSummary._def`                                                                                         | query summary tự chạy lại                                          |
-| 11  | UI [MetersPage.tsx:171-180](../../apps/admin-ui/src/pages/MetersPage.tsx)                       | số tổng hợp và số event render lại                                                                                           | **một cú click = 1 ghi + 1 đọc lại**, thấy ngay                    |
+| #   | Ở đâu                                                                                                   | Chuyện gì xảy ra                                                                                                             | Quan sát được gì                                                   |
+| --- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1   | UI [MetersPage.tsx:100-105](../../apps/admin-ui/src/pages/MetersPage.tsx)                               | tìm meter trong **cache của bảng phía trên**, thiếu meter hoặc khách thì `return` im lặng                                    | bấm nút mà không chọn đủ thì không có gì xảy ra, cũng không có lỗi |
+| 2   | UI [MetersPage.tsx:107-111](../../apps/admin-ui/src/pages/MetersPage.tsx)                               | payload dựng từ chính meter: `{ eventName: meter.eventName, customerId, payload: { [meter.valueKey]: Number(eventValue) } }` | UI phải biết `valueKey` để đặt đúng khoá                           |
+| 3   | SDK [meter-events.resource.ts:15-21](../../packages/sdk/src/resources/billing/meter-events.resource.ts) | `POST /v1/billing/meter_events`                                                                                              | —                                                                  |
+| 4   | Service [meter-event.service.ts:29](../../packages/core/src/services/meter-event.service.ts)            | `resolveMeter(eventName)`                                                                                                    | tên chưa khai báo meter → 404, **không** âm thầm bỏ qua            |
+| 5   | Service [buildMeterEvent:124-144](../../packages/core/src/services/meter-event.service.ts)              | `timestamp` = client gửi hoặc `receivedAt`; `identifier` = client gửi hoặc **id sinh mới**                                   | xem mục cảnh báo dưới                                              |
+| 6   | Service [assertWithinWindow:186-201](../../packages/core/src/services/meter-event.service.ts)           | `timestamp` cũ hơn `METER_DEDUP_WINDOW_DAYS` → 400                                                                           | —                                                                  |
+| 7   | Service [resolveValue:203-218](../../packages/core/src/services/meter-event.service.ts)                 | `count` → luôn 1; ngược lại lấy `payload[valueKey]`, không phải số → 400                                                     | lỗi này hiện thành toast đỏ                                        |
+| 8   | Service [meter-event.service.ts:32-36](../../packages/core/src/services/meter-event.service.ts)         | Redis `EXISTS` — đã thấy identifier thì trả về luôn, **không** ghi                                                           | —                                                                  |
+| 9   | Service [meter-event.service.ts:38](../../packages/core/src/services/meter-event.service.ts)            | INSERT với `onConflictDoNothing` trên `(meter_id, identifier)`                                                               | chốt chặn thật                                                     |
+| 10  | Hook [mutations.ts:60](../../packages/sdk/src/react/meters/mutations.ts)                                | invalidate `meter.eventSummary._def`                                                                                         | query summary tự chạy lại                                          |
+| 11  | UI [MetersPage.tsx:171-180](../../apps/admin-ui/src/pages/MetersPage.tsx)                               | số tổng hợp và số event render lại                                                                                           | **một cú click = 1 ghi + 1 đọc lại**, thấy ngay                    |
 
 ## Mốc thời gian
 
@@ -103,7 +103,7 @@ chặn UPDATE và DELETE. Số liệu sai thì ghi event bù, không sửa lịc
 
 ## Chỗ dễ hiểu sai: nút này không bao giờ bị dedup
 
-[MetersPage.tsx:104-108](../../apps/admin-ui/src/pages/MetersPage.tsx) **không gửi `identifier`**.
+[MetersPage.tsx:107-111](../../apps/admin-ui/src/pages/MetersPage.tsx) **không gửi `identifier`**.
 Server thấy thiếu thì sinh một id mới
 ([meter-event.service.ts:135](../../packages/core/src/services/meter-event.service.ts)), nên mỗi cú
 click là một identifier khác nhau và luôn được ghi.
@@ -203,6 +203,7 @@ Postgres trả lỗi `append-only`. Đó là tầng phòng thủ cuối cùng ch
 
 ## Đọc sâu hơn
 
+- [technique 07 — Metering](../technique/07-metering.md) — khái niệm: meter là schema, meter event là data; vì sao hai trục thời gian
 - [flow 05 — Metering và rating](../flows/05-metering-and-rating.md) — chống trùng hai lớp, cửa sổ tổng hợp, `receivedBefore`
 - [UC-04](./04-preview-charges.md) — biến số usage này thành tiền
 - [ADR 0007](../adr/0007-phase-4-metering.md) — vì sao append-only và vì sao tổng hợp lúc đọc

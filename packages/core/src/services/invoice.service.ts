@@ -255,27 +255,28 @@ export class InvoiceService {
     payload: PayInvoicePayload,
     settlementReference?: string,
   ): Promise<InvoiceResponse> {
-    const invoice = await this.getInvoiceEntity(id);
-
-    InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
-
-    const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
-    const amountCredited = creditedByInvoiceId[invoice.id] ?? 0;
-    const owed = invoice.total - invoice.amountPaid - amountCredited;
-    const amount = payload.amount ?? owed;
-
-    if (amount > owed) {
-      throw new BadRequestError(
-        `Payment of ${amount} exceeds the ${owed} still owed on invoice ${id}`,
-        { param: 'amount' },
-      );
-    }
-
     const now = this.fastify.clock.now();
-    const amountPaid = invoice.amountPaid + amount;
-    const isSettled = amountPaid + amountCredited >= invoice.total;
 
     const paidInvoice = await this.fastify.database.master.transaction(async (tx) => {
+      const invoice = await this.getLockedInvoiceEntity(id, tx);
+
+      InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
+
+      const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
+      const amountCredited = creditedByInvoiceId[invoice.id] ?? 0;
+      const owed = invoice.total - invoice.amountPaid - amountCredited;
+      const amount = payload.amount ?? owed;
+
+      if (amount > owed) {
+        throw new BadRequestError(
+          `Payment of ${amount} exceeds the ${owed} still owed on invoice ${id}`,
+          { param: 'amount' },
+        );
+      }
+
+      const amountPaid = invoice.amountPaid + amount;
+      const isSettled = amountPaid + amountCredited >= invoice.total;
+
       const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
         invoice.id,
         {
@@ -532,6 +533,16 @@ export class InvoiceService {
 
   private async getInvoiceEntity(id: string): Promise<Invoice> {
     const invoice = await this.fastify.invoiceRepository.findInvoice(id);
+
+    if (invoice) {
+      return invoice;
+    }
+
+    throw new NotFoundError(`No such invoice: ${id}`);
+  }
+
+  private async getLockedInvoiceEntity(id: string, tx: DatabaseTransaction): Promise<Invoice> {
+    const invoice = await this.fastify.invoiceRepository.lockInvoice(id, tx);
 
     if (invoice) {
       return invoice;

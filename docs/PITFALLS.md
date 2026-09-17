@@ -350,7 +350,7 @@ Không có gì ngoài lời gọi service là đồng bộ. Entitlement chỉ c�
 | **Webhook**                   | `webhook.service.ts` không có file test. Không retry/backoff, không endpoint CRUD, không nhánh giao thất bại                            |
 | **Worker**                    | `apps/worker` 0 test                                                                                                                    |
 | **Outbox**                    | đúng 1 test. Không claim/lease expiry, không retry, không thứ tự                                                                        |
-| **Meter ingestion**           | đúng 1 test, dù là hot path                                                                                                             |
+| **Meter ingestion**           | đúng 1 test, dù là hot path — các giới hạn khác của tầng này ở [technique 07](technique/07-metering.md)                                 |
 | **Logic thuần trong service** | `assertTransition`, `assertPricesUsable`, `resolveInterval`, `resolveTrialEnd`, `assertPriceShape`, `resolveReplay` — chưa có unit test |
 | **Repository**                | không test trực tiếp. `cursor.ts` là logic thuần, chưa có unit test                                                                     |
 | **UI**                        | admin-ui và portal-ui không có test runner, 0 test                                                                                      |

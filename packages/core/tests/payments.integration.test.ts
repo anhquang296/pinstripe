@@ -2,15 +2,14 @@ import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
 import { PaymentAttemptOutcomeEnum, PaymentIntentStatusEnum } from '@contracts/payments.types';
-import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
-import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+import { makeOpenInvoice as makeOpenInvoiceFixture } from './factories';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const BASE_AMOUNT = 500_000;
@@ -27,32 +26,7 @@ afterAll(async () => {
 });
 
 async function makeOpenInvoice(): Promise<{ invoiceId: string; customerId: string }> {
-  const clock = await fastify.testClockService.createTestClock({
-    name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
-    frozenTime: CLOCK_START,
-  });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-  });
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
-  const price = await fastify.priceService.createPrice({
-    productId: product.id,
-    currency: CurrencyEnum.VND,
-    unitAmount: BASE_AMOUNT,
-    recurring: { interval: RecurringIntervalEnum.MONTH },
-  });
-  const subscription = await fastify.subscriptionService.createSubscription({
-    customerId: customer.id,
-    items: [{ priceId: price.id }],
-  });
-  const draft = await fastify.invoiceService.createInvoice({ subscriptionId: subscription.id });
-  const open = await fastify.invoiceService.finalizeInvoice(draft.id);
-
-  return { invoiceId: open.id, customerId: customer.id };
+  return makeOpenInvoiceFixture(fastify, { unitAmount: BASE_AMOUNT, frozenTime: CLOCK_START });
 }
 
 async function readReceivable(customerId: string): Promise<number> {

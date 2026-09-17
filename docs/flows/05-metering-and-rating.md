@@ -148,4 +148,5 @@ Mọi phép nhân đi qua `Money` với chính sách `HALF_UP` — [rating.ts:14
 ## Đọc tiếp
 
 - [06 — Invoicing](./06-invoicing.md) — nơi kết quả rating thành `invoice_line_items`
+- [technique 07 — Metering](../technique/07-metering.md) — meter và meter event là gì, hai trục thời gian, giới hạn của bản hiện tại và kiến trúc ở quy mô lớn
 - ADR: [0007 metering](../adr/0007-phase-4-metering.md), [0008 rating](../adr/0008-phase-5-rating.md)

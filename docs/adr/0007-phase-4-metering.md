@@ -56,3 +56,7 @@ một con số sống song song với raw và có thể lệch. Dựng khi phép
 - Event về trễ sau mốc chốt: kỳ đã chốt giữ nguyên 40, kỳ sau nhận đúng 60.
 - `UPDATE meter_events` bị DB từ chối.
 - Qua HTTP thật: 3 event lẻ (2 trùng) + batch 5 event (2 trùng) → tổng đúng 5 event, 500 tokens.
+
+## Đọc tiếp
+
+- [technique 07 — Metering](../technique/07-metering.md) — cơ chế: hai khái niệm, hai trục thời gian, chín giới hạn của bản hiện tại, và kiến trúc khi khối lượng tăng

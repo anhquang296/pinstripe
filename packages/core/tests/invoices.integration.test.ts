@@ -12,6 +12,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+import { makeSubscription as makeSubscriptionFixture } from './factories';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const SWAP_MID_CLOCK = new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString();
@@ -40,30 +41,7 @@ async function readPeriodEnd(subscriptionId: string): Promise<Date> {
 async function makeSubscription(
   amount = BASE_AMOUNT,
 ): Promise<{ subscriptionId: string; customerId: string }> {
-  const clock = await fastify.testClockService.createTestClock({
-    name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
-    frozenTime: CLOCK_START,
-  });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-  });
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
-  const price = await fastify.priceService.createPrice({
-    productId: product.id,
-    currency: CurrencyEnum.VND,
-    unitAmount: amount,
-    recurring: { interval: RecurringIntervalEnum.MONTH },
-  });
-  const subscription = await fastify.subscriptionService.createSubscription({
-    customerId: customer.id,
-    items: [{ priceId: price.id }],
-  });
-
-  return { subscriptionId: subscription.id, customerId: customer.id };
+  return makeSubscriptionFixture(fastify, { unitAmount: amount, frozenTime: CLOCK_START });
 }
 
 async function readSubscriptionRow(subscriptionId: string) {

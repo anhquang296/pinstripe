@@ -9,6 +9,10 @@ import _ from 'lodash';
 
 const DEFAULT_PAYMENT_METHOD = 'pm_card_ok';
 const PAYMENT_METHOD_METADATA_KEY = 'defaultPaymentMethod';
+const REUSABLE_INTENT_STATUSES = [
+  PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD,
+  PaymentIntentStatusEnum.REQUIRES_CONFIRMATION,
+] as const;
 
 export interface DunningOptions {
   batchSize: number;
@@ -21,6 +25,7 @@ export interface DunningRunResult {
   retried: number;
   abandoned: number;
   settled: number;
+  failed: number;
 }
 
 export class DunningService {
@@ -47,12 +52,22 @@ export class DunningService {
       retried: 0,
       abandoned: 0,
       settled: 0,
+      failed: 0,
     };
 
     for (const invoice of due) {
-      const outcome = await this.collectInvoice(invoice, runAt);
+      try {
+        const outcome = await this.collectInvoice(invoice, runAt);
 
-      dunningRun[outcome] += 1;
+        dunningRun[outcome] += 1;
+      } catch (error) {
+        dunningRun.failed += 1;
+
+        this.fastify.log.error(
+          { error, invoiceId: invoice.id },
+          '[DunningService] collectInvoice() error',
+        );
+      }
     }
 
     this.fastify.log.info(
@@ -79,11 +94,10 @@ export class DunningService {
     }
 
     const paymentMethod = await this.resolvePaymentMethod(invoice.customerId);
-    const paymentIntent = await this.fastify.paymentService.createPaymentIntent({
-      invoiceId: invoice.id,
+    const paymentIntentId = await this.resolveCollectionIntentId(invoice, paymentMethod);
+    const confirmed = await this.fastify.paymentService.confirmPaymentIntent(paymentIntentId, {
       paymentMethod,
     });
-    const confirmed = await this.fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
 
     if (confirmed.status === PaymentIntentStatusEnum.SUCCEEDED) {
       await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
@@ -115,6 +129,27 @@ export class DunningService {
     );
 
     return 'retried';
+  }
+
+  private async resolveCollectionIntentId(
+    invoice: Invoice,
+    paymentMethod: string,
+  ): Promise<string> {
+    const [reusableIntent] = await this.fastify.paymentIntentRepository.findPaymentIntents(
+      { invoiceId: invoice.id, statuses: REUSABLE_INTENT_STATUSES },
+      1,
+    );
+
+    if (reusableIntent) {
+      return reusableIntent.id;
+    }
+
+    const createdIntent = await this.fastify.paymentService.createPaymentIntent({
+      invoiceId: invoice.id,
+      paymentMethod,
+    });
+
+    return createdIntent.id;
   }
 
   private async resolvePaymentMethod(customerId: string): Promise<string> {

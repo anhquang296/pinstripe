@@ -38,6 +38,17 @@ export class InvoiceRepository {
     return invoice ?? null;
   }
 
+  async lockInvoice(id: string, executor: DatabaseTransaction): Promise<Invoice | null> {
+    const [invoice] = await executor
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, id))
+      .limit(1)
+      .for('update');
+
+    return invoice ?? null;
+  }
+
   async findInvoices(
     filters: InvoiceFilters = {},
     limit = DEFAULT_QUERY_LIMIT,

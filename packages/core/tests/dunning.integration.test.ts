@@ -1,9 +1,7 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { DomainEventTypeEnum } from '@contracts/events.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
-import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { WebhookDeliveryStatusEnum, WebhookEndpointStatusEnum } from '@contracts/webhooks.types';
-import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { buildWebhookSignature, isWebhookSignatureValid } from '@utils/webhook-signature';
 import type { FastifyInstance } from 'fastify';
@@ -11,6 +9,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+import { makeOpenInvoice as makeOpenInvoiceFixture } from './factories';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const BASE_AMOUNT = 500_000;
@@ -28,33 +27,13 @@ afterAll(async () => {
 });
 
 async function makeOpenInvoice(paymentMethod?: string): Promise<string> {
-  const clock = await fastify.testClockService.createTestClock({
-    name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
-    frozenTime: CLOCK_START,
-  });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-    metadata: paymentMethod ? { defaultPaymentMethod: paymentMethod } : undefined,
-  });
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
-  const price = await fastify.priceService.createPrice({
-    productId: product.id,
-    currency: CurrencyEnum.VND,
+  const { invoiceId } = await makeOpenInvoiceFixture(fastify, {
     unitAmount: BASE_AMOUNT,
-    recurring: { interval: RecurringIntervalEnum.MONTH },
+    frozenTime: CLOCK_START,
+    paymentMethod,
   });
-  const subscription = await fastify.subscriptionService.createSubscription({
-    customerId: customer.id,
-    items: [{ priceId: price.id }],
-  });
-  const draft = await fastify.invoiceService.createInvoice({ subscriptionId: subscription.id });
-  const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
-  return open.id;
+  return invoiceId;
 }
 
 async function readInvoiceRow(invoiceId: string) {
@@ -148,6 +127,29 @@ describe('DunningService.runDunningShard', () => {
     expect(retried.status).toBe(InvoiceStatusEnum.OPEN);
     expect(retried.attemptCount).toBe(1);
     expect(retried.nextAttemptAt?.getTime()).toBeGreaterThan(afterDue.getTime());
+  });
+
+  it('reuses the open payment intent instead of minting a new one for every attempt', async () => {
+    const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
+    const dueAt = await readDueAt(invoiceId);
+
+    let runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
+
+    for (const _attempt of _.range(3)) {
+      await fastify.dunningService.runDunningShard({ ...SHARD_JOB, runAt: runAt.toISOString() });
+
+      const { nextAttemptAt } = await readInvoiceRow(invoiceId);
+
+      runAt = new Date((nextAttemptAt ?? runAt).getTime() + MILLISECONDS_PER_DAY);
+    }
+
+    const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
+    const attempts = await fastify.paymentIntentRepository.findPaymentAttempts(
+      _.map(intents, 'id'),
+    );
+
+    expect(intents).toHaveLength(1);
+    expect(attempts.length).toBeGreaterThanOrEqual(3);
   });
 
   it('gives up and marks the invoice uncollectible once the retry schedule runs out', async () => {
