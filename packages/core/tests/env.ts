@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { NodeEnvEnum } from '@config/env.schema';
 import _ from 'lodash';
 
 const ENV_FILE = resolve(import.meta.dirname, '../../../.env');
 const TEST_DATABASE_SUFFIX = '_test';
 const TEST_REDIS_KEY_PREFIX = 'pinstripe_test';
+const TEST_NODE_ENV = 'test';
+const TEST_LOG_LEVEL = 'fatal';
 const DATABASE_NAME_PATTERN = /^[a-zA-Z0-9_]+$/;
 
 function readEnvFile(): void {
@@ -73,5 +74,6 @@ export function loadTestEnv(): void {
 
   process.env.DATABASE_URL = resolveTestDatabaseUrl(readRequiredEnv('DATABASE_URL'));
   process.env.REDIS_KEY_PREFIX = TEST_REDIS_KEY_PREFIX;
-  process.env.NODE_ENV = NodeEnvEnum.TEST;
+  process.env.NODE_ENV = TEST_NODE_ENV;
+  process.env.LOG_LEVEL = TEST_LOG_LEVEL;
 }

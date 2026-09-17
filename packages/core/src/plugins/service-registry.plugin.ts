@@ -1,3 +1,4 @@
+import { ApiKeyService } from '@services/api-key.service';
 import { BillingRunService } from '@services/billing-run.service';
 import { CreditNoteService } from '@services/credit-note.service';
 import { CustomerService } from '@services/customer.service';
@@ -27,6 +28,7 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
     new IdempotencyService(fastify, { retentionHours: fastify.config.IDEMPOTENCY_RETENTION_HOURS }),
   );
   fastify.decorate('outboxService', new OutboxService(fastify));
+  fastify.decorate('apiKeyService', new ApiKeyService(fastify));
   fastify.decorate('customerService', new CustomerService(fastify));
   fastify.decorate('productService', new ProductService(fastify));
   fastify.decorate('priceService', new PriceService(fastify));

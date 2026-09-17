@@ -1,3 +1,4 @@
+import { ApiKeyRepository } from '@repositories/api-key.repository';
 import { CreditNoteRepository } from '@repositories/credit-note.repository';
 import { CustomerRepository } from '@repositories/customer.repository';
 import { EntitlementRepository } from '@repositories/entitlement.repository';
@@ -20,6 +21,7 @@ import { WebhookRepository } from '@repositories/webhook.repository';
 import fp from 'fastify-plugin';
 
 export const repositoryRegistryPlugin = fp(async (fastify) => {
+  fastify.decorate('apiKeyRepository', new ApiKeyRepository(fastify.database));
   fastify.decorate('customerRepository', new CustomerRepository(fastify.database));
   fastify.decorate('idempotencyKeyRepository', new IdempotencyKeyRepository(fastify.database));
   fastify.decorate('ledgerAccountRepository', new LedgerAccountRepository(fastify.database));

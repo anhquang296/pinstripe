@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { Redis } from 'ioredis';
@@ -5,7 +7,7 @@ import postgres from 'postgres';
 
 import { loadTestEnv, readDatabaseName, readRequiredEnv, resolveAdminDatabaseUrl } from './env';
 
-const MIGRATIONS_FOLDER = 'migrations';
+const MIGRATIONS_FOLDER = resolve(import.meta.dirname, '../migrations');
 const REDIS_SCAN_BATCH_SIZE = 1000;
 
 async function ensureDatabase(databaseUrl: string): Promise<void> {

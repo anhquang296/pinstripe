@@ -3,11 +3,12 @@
   "compilerOptions": {
     "outDir": "dist",
     "paths": {
+      "@app": ["./src/app.ts"],
       "@hooks/*": ["./src/hooks/*"],
       "@routes/*": ["./src/routes/*"],
       "@utils/*": ["./src/utils/*"],
       "@plugins/*": ["./src/plugins/*"]
     }
   },
-  "include": ["src/**/*.ts", "tsup.config.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "tsup.config.ts", "vitest.integration.config.ts"]
 }

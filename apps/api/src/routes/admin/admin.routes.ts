@@ -1,5 +1,6 @@
 import { verifyAdminRequest } from '@hooks/verify-admin-request';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
+import { apiKeysRoutes } from '@routes/admin/api-keys/api-keys.routes';
 import { ledgerRoutes } from '@routes/admin/ledger/ledger.routes';
 import { reportingRoutes } from '@routes/admin/reporting/reporting.routes';
 import { Type } from '@sinclair/typebox';
@@ -10,6 +11,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.addHook('preHandler', verifyAdminRequest);
 
   await fastify.register(idempotencyPlugin);
+  await fastify.register(apiKeysRoutes, { prefix: '/api_keys' });
   await fastify.register(ledgerRoutes, { prefix: '/ledger' });
   await fastify.register(reportingRoutes, { prefix: '/reporting' });
 

@@ -1,25 +1,27 @@
+import type { RequestAuth } from '@pinstripe/core/contracts';
+import { ApiKeyScopeEnum } from '@pinstripe/core/contracts';
+import type { BootstrapApiKey } from '@pinstripe/core/services';
 import fp from 'fastify-plugin';
 
-export interface ApiKeyRegistry {
-  secret: string;
-  admin: string;
-  system: string;
-  management: string;
-}
-
 declare module 'fastify' {
-  interface FastifyInstance {
-    apiKeys: ApiKeyRegistry;
+  interface FastifyRequest {
+    auth?: RequestAuth;
   }
 }
 
 export const apiKeyPlugin = fp(async (fastify) => {
   const { SECRET_API_KEY, ADMIN_API_KEY, SYSTEM_API_KEY, MANAGEMENT_API_KEY } = fastify.config;
 
-  fastify.decorate('apiKeys', {
-    secret: SECRET_API_KEY,
-    admin: ADMIN_API_KEY,
-    system: SYSTEM_API_KEY,
-    management: MANAGEMENT_API_KEY,
-  });
+  const bootstrapKeys: BootstrapApiKey[] = [
+    { name: 'bootstrap secret', token: SECRET_API_KEY, scopes: [ApiKeyScopeEnum.V1] },
+    { name: 'bootstrap admin', token: ADMIN_API_KEY, scopes: [ApiKeyScopeEnum.ADMIN] },
+    { name: 'bootstrap system', token: SYSTEM_API_KEY, scopes: [ApiKeyScopeEnum.SYSTEM] },
+    {
+      name: 'bootstrap management',
+      token: MANAGEMENT_API_KEY,
+      scopes: [ApiKeyScopeEnum.MANAGEMENT],
+    },
+  ];
+
+  await fastify.apiKeyService.ensureBootstrapApiKeys(bootstrapKeys);
 });

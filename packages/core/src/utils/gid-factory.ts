@@ -27,6 +27,7 @@ export enum ObjectPrefixEnum {
   TEST_CLOCK = 'clock',
   TAX_RATE = 'txr',
   REQUEST = 'req',
+  API_KEY = 'ak',
 }
 export type ObjectPrefix = `${ObjectPrefixEnum}`;
 

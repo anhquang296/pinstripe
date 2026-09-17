@@ -1,3 +1,4 @@
+export * from '@contracts/api-keys.types';
 export * from '@contracts/customers.types';
 export * from '@contracts/entitlements.types';
 export * from '@contracts/errors.types';

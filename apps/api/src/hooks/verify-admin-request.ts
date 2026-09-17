@@ -1,14 +1,10 @@
-import { matchesSecret, readBearerToken } from '@hooks/verify-api-request';
-import { UnauthorizedError } from '@pinstripe/core/errors';
+import { authenticateRequest } from '@hooks/authenticate-request';
+import { ApiKeyScopeEnum } from '@pinstripe/core/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 export async function verifyAdminRequest(
   request: FastifyRequest,
   _reply: FastifyReply,
 ): Promise<void> {
-  const token = readBearerToken(request);
-
-  if (!matchesSecret(token, request.server.apiKeys.admin)) {
-    throw new UnauthorizedError('Invalid admin API key provided');
-  }
+  await authenticateRequest(request, ApiKeyScopeEnum.ADMIN);
 }

@@ -1,0 +1,73 @@
+import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
+import type { DatabaseClient } from '@database/database.client';
+import type { ApiKey, NewApiKey } from '@database/schemas';
+import { apiKeys } from '@database/schemas';
+import type { RowCursor } from '@repositories/cursor';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+
+export interface ApiKeyFilters {
+  tokenHash?: string;
+  livemode?: boolean;
+  revokedAtIsNull?: boolean;
+  beforeAt?: RowCursor;
+  afterAt?: RowCursor;
+}
+
+export class ApiKeyRepository {
+  private _db: DatabaseClient;
+
+  constructor(db: DatabaseClient) {
+    this._db = db;
+  }
+
+  async findApiKey(id: string): Promise<ApiKey | null> {
+    const [apiKey] = await this._db.master
+      .select()
+      .from(apiKeys)
+      .where(eq(apiKeys.id, id))
+      .limit(1);
+
+    return apiKey ?? null;
+  }
+
+  async findApiKeys(filters: ApiKeyFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<ApiKey[]> {
+    const where = and(
+      filters.tokenHash ? eq(apiKeys.tokenHash, filters.tokenHash) : undefined,
+      filters.livemode === undefined ? undefined : eq(apiKeys.livemode, filters.livemode),
+      filters.revokedAtIsNull ? isNull(apiKeys.revokedAt) : undefined,
+      filters.beforeAt
+        ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        : undefined,
+      filters.afterAt
+        ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        : undefined,
+    );
+
+    return this._db.master
+      .select()
+      .from(apiKeys)
+      .where(where)
+      .orderBy(desc(apiKeys.createdAt), desc(apiKeys.id))
+      .limit(limit);
+  }
+
+  async createApiKey(payload: NewApiKey): Promise<ApiKey | null> {
+    const [apiKey] = await this._db.master
+      .insert(apiKeys)
+      .values(payload)
+      .onConflictDoNothing({ target: apiKeys.tokenHash })
+      .returning();
+
+    return apiKey ?? null;
+  }
+
+  async updateApiKey(id: string, payload: Partial<NewApiKey>): Promise<ApiKey | null> {
+    const [apiKey] = await this._db.master
+      .update(apiKeys)
+      .set(payload)
+      .where(eq(apiKeys.id, id))
+      .returning();
+
+    return apiKey ?? null;
+  }
+}

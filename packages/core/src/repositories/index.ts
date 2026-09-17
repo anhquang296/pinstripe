@@ -1,3 +1,4 @@
+export * from '@repositories/api-key.repository';
 export * from '@repositories/credit-note.repository';
 export * from '@repositories/cursor';
 export * from '@repositories/customer.repository';
