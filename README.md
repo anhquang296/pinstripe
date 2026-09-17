@@ -48,10 +48,15 @@ The compose file lives at `docker/compose.yml`, so a bare `docker compose up` wi
 
 ## 4. Run database migrations
 
-`pnpm db:migrate` reads plain `process.env` and does not load `.env` itself, so export the variables first:
+```bash
+pnpm db:migrate
+```
+
+To wipe everything and start a fresh test run — drops the schema, replays every migration, and clears the
+app's Redis keys:
 
 ```bash
-set -a && source .env && set +a && pnpm db:migrate
+pnpm db:reset
 ```
 
 ## 5. Start everything

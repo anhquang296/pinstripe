@@ -42,6 +42,27 @@ pnpm --filter @pinstripe/core test:integration
 pnpm db:generate
 ```
 
+## Xoá sạch dữ liệu để test lại từ đầu
+
+```bash
+pnpm db:reset
+```
+
+Drop schema `public` và `drizzle`, tạo lại schema rồi chạy lại toàn bộ migration, sau đó xoá mọi key
+Redis dưới prefix `REDIS_KEY_PREFIX` (queue BullMQ, idempotency, meter-dedup, entitlement, billing-run
+lock). Không dùng `DELETE`/`TRUNCATE` được vì ledger, meter event, invoice và payment bị trigger
+append-only chặn.
+
+- Dừng `pnpm dev` trước khi chạy — worker đang chạy sẽ ghi dữ liệu mới vào giữa lúc reset.
+- Không đụng tới file migration trên đĩa, cũng không đụng volume Docker và Mailpit.
+- Từ chối chạy khi `NODE_ENV=production`.
+
+Muốn sạch cả volume Docker (Postgres data, Redis AOF, Mailpit):
+
+```bash
+docker compose -f docker/compose.yml down -v && pnpm docker:up && pnpm db:migrate
+```
+
 ## API hiện có
 
 | Resource          | Endpoint                                                                                                                                |

@@ -54,7 +54,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/database/migrate.ts",
+    "db:migrate": "tsx --env-file=../../.env src/database/migrate.ts",
+    "db:reset": "tsx --env-file=../../.env src/database/reset.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

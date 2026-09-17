@@ -130,7 +130,8 @@ sequenceDiagram
     participant S as SubscriptionService
 
     C->>T: POST /:id/advance { frozenTime }
-    T->>T: đang advancing → 409; target <= hiện tại → 400
+    T->>T: đang advancing thì 409
+    T->>T: target không lớn hơn mốc hiện tại thì 400
     T->>T: status = advancing, frozenTime = target
     T->>S: advanceSubscriptions(testClockId, target)
     Note over S: roll từng kỳ cho tới khi vượt target

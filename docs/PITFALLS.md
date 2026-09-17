@@ -219,18 +219,18 @@ Những chỗ **chưa** an toàn:
 
 ## 9. Bẫy môi trường phát triển
 
-| Bẫy                                                                | Triệu chứng                                                                                                                      |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/core` chạy từ `dist`, và `tsup` có `clean: true`         | sửa core rồi chạy một package lẻ → vẫn là code cũ. `pnpm dev` / `turbo` lo thứ tự, chạy tay thì không                            |
-| `pnpm db:migrate` đọc `process.env` trần, **không** tự load `.env` | phải `set -a && source .env && set +a && pnpm db:migrate`                                                                        |
-| Compose nằm ở `docker/compose.yml`                                 | `docker compose up` trần không tìm thấy — dùng `pnpm docker:up`                                                                  |
-| portal-ui không đọc `.env` gốc                                     | cần `apps/portal-ui/.env.local` riêng                                                                                            |
-| Migration là journal                                               | **không xoá file đã generate** — nhiều migration là SQL viết tay (trigger, view, seed `number_sequences`)                        |
-| Năm secret, mỗi cái ≥ 16 ký tự                                     | thiếu một cái là app không boot — kể cả `WEBHOOK_SIGNING_SECRET` vốn không ai đọc                                                |
-| `.env.example` thiếu mọi biến tinh chỉnh                           | `OUTBOX_*`, `BILLING_RUN_*`, `DUNNING_*`, `WEBHOOK_*`, `INVOICE_DUE_DAYS`, `METER_DEDUP_WINDOW_DAYS` chỉ có default trong schema |
-| Cổng cố định 55432 / 56379                                         | checkout thứ hai của repo là đụng cổng                                                                                           |
-| Worker cần `WORKFLOW_NAME`                                         | giá trị lạ → `UnknownWorkflowError`                                                                                              |
-| File viết bằng heredoc / `sed -i`                                  | không load rule nào, không được format, và không có gì báo — xem [CLAUDE.md](../CLAUDE.md)                                       |
+| Bẫy                                                                 | Triệu chứng                                                                                                                      |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core` chạy từ `dist`, và `tsup` có `clean: true`          | sửa core rồi chạy một package lẻ → vẫn là code cũ. `pnpm dev` / `turbo` lo thứ tự, chạy tay thì không                            |
+| `pnpm db:migrate` / `pnpm db:reset` nạp `.env` qua `tsx --env-file` | chạy `tsx src/database/migrate.ts` trần thì thiếu biến — dùng script pnpm                                                        |
+| Compose nằm ở `docker/compose.yml`                                  | `docker compose up` trần không tìm thấy — dùng `pnpm docker:up`                                                                  |
+| portal-ui không đọc `.env` gốc                                      | cần `apps/portal-ui/.env.local` riêng                                                                                            |
+| Migration là journal                                                | **không xoá file đã generate** — nhiều migration là SQL viết tay (trigger, view, seed `number_sequences`)                        |
+| Năm secret, mỗi cái ≥ 16 ký tự                                      | thiếu một cái là app không boot — kể cả `WEBHOOK_SIGNING_SECRET` vốn không ai đọc                                                |
+| `.env.example` thiếu mọi biến tinh chỉnh                            | `OUTBOX_*`, `BILLING_RUN_*`, `DUNNING_*`, `WEBHOOK_*`, `INVOICE_DUE_DAYS`, `METER_DEDUP_WINDOW_DAYS` chỉ có default trong schema |
+| Cổng cố định 55432 / 56379                                          | checkout thứ hai của repo là đụng cổng                                                                                           |
+| Worker cần `WORKFLOW_NAME`                                          | giá trị lạ → `UnknownWorkflowError`                                                                                              |
+| File viết bằng heredoc / `sed -i`                                   | không load rule nào, không được format, và không có gì báo — xem [CLAUDE.md](../CLAUDE.md)                                       |
 
 `MockPspClient` giữ toàn bộ state trong `Map` **trong bộ nhớ của từng tiến trình**
 ([mock-psp.client.ts](../packages/core/src/clients/mock-psp.client.ts)). Hệ quả:

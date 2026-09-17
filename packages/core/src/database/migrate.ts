@@ -5,7 +5,7 @@ import postgres from 'postgres';
 
 async function main(): Promise<void> {
   const env = loadEnv(process.env);
-  const sql = postgres(env.DATABASE_URL, { max: 1 });
+  const sql = postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
 
   await migrate(drizzle(sql), { migrationsFolder: 'migrations' });
   await sql.end();

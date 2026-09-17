@@ -104,7 +104,7 @@ thì đồng bộ** — khi toast hiện, sổ cái đã cân.
 
 ```bash
 pnpm docker:up
-set -a && source .env && set +a && pnpm db:migrate
+pnpm db:migrate
 pnpm dev
 ```
 
