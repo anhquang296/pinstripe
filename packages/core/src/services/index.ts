@@ -2,6 +2,7 @@ import '@plugins/fastify.augmentation';
 
 export * from '@services/api-key.service';
 export * from '@services/billing-run.service';
+export * from '@services/clock.service';
 export * from '@services/coupon.service';
 export * from '@services/credit-note.service';
 export * from '@services/customer.service';
@@ -27,6 +28,7 @@ export * from '@services/reconciliation.service';
 export * from '@services/refund.service';
 export * from '@services/reporting.service';
 export * from '@services/subscription.service';
+export * from '@services/subscription-item.service';
 export * from '@services/tax.service';
 export * from '@services/tax-id.service';
 export * from '@services/tax-rate.service';

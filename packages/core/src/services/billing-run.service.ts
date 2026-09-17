@@ -1,8 +1,13 @@
 import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
+import type { Subscription } from '@database/schemas';
 import type { BillingRunShardJob } from '@queues/billing.queue';
 import type { FastifyInstance } from 'fastify';
 
-const BILLABLE_STATUSES = [SubscriptionStatusEnum.ACTIVE, SubscriptionStatusEnum.PAST_DUE] as const;
+const BILLABLE_STATUSES = [
+  SubscriptionStatusEnum.ACTIVE,
+  SubscriptionStatusEnum.PAST_DUE,
+  SubscriptionStatusEnum.PAUSED,
+] as const;
 
 export interface BillingRunServiceConfig {
   batchSize: number;
@@ -10,9 +15,14 @@ export interface BillingRunServiceConfig {
 }
 
 export interface BillingRunResult {
+  advanced: number;
+  canceled: number;
+  resumed: number;
+  expired: number;
   drafted: number;
   scanned: number;
   finalized: number;
+  collected: number;
 }
 
 export class BillingRunService {
@@ -23,6 +33,10 @@ export class BillingRunService {
 
   async runBillingShard(job: BillingRunShardJob): Promise<BillingRunResult> {
     const runAt = new Date(job.runAt);
+    const lifecycle = await this.fastify.subscriptionService.runSubscriptionLifecycle(
+      { shardCount: job.shardCount, shardIndex: job.shardIndex },
+      runAt,
+    );
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         statuses: BILLABLE_STATUSES,
@@ -36,9 +50,9 @@ export class BillingRunService {
     let drafted = 0;
 
     for (const subscription of due) {
-      const { isCreated } = await this.fastify.invoiceService.ensureDraftInvoice(subscription, {});
+      const isDrafted = await this.draftInvoice(subscription);
 
-      if (isCreated) {
+      if (isDrafted) {
         drafted += 1;
       }
     }
@@ -50,12 +64,35 @@ export class BillingRunService {
       job.shardIndex,
       this.config.batchSize,
     );
+    const dunningRun = await this.fastify.dunningService.runDunningShard(job);
+
+    const billingRun: BillingRunResult = {
+      ...lifecycle,
+      drafted,
+      scanned: due.length,
+      finalized,
+      collected: dunningRun.collected,
+    };
 
     this.fastify.log.info(
-      { shardIndex: job.shardIndex, scanned: due.length, drafted, finalized },
+      { shardIndex: job.shardIndex, ...billingRun },
       '[BillingRunService] runBillingShard() completed',
     );
 
-    return { drafted, scanned: due.length, finalized };
+    return billingRun;
+  }
+
+  private async draftInvoice(subscription: Subscription): Promise<boolean> {
+    const { invoice, isCreated } = await this.fastify.invoiceService.ensureDraftInvoice(
+      subscription,
+      {},
+    );
+    const { pauseCollectionBehavior } = subscription;
+
+    if (isCreated && pauseCollectionBehavior) {
+      await this.fastify.invoiceService.applyPauseCollection(invoice, pauseCollectionBehavior);
+    }
+
+    return isCreated;
   }
 }
