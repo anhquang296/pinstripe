@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 
 const DEFAULT_CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const DEFAULT_UNIT_AMOUNT = 500_000;
+const DEFAULT_PAYMENT_METHOD = 'pm_card_ok';
 
 export const TEST_LIVEMODE = false;
 
@@ -33,7 +34,7 @@ export async function makeSubscription(
 ): Promise<SubscriptionFixture> {
   const {
     unitAmount = DEFAULT_UNIT_AMOUNT,
-    paymentMethod,
+    paymentMethod = DEFAULT_PAYMENT_METHOD,
     frozenTime = DEFAULT_CLOCK_START,
   } = overrides;
 
@@ -46,7 +47,7 @@ export async function makeSubscription(
       email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
       testClockId: clock.id,
-      metadata: paymentMethod ? { defaultPaymentMethod: paymentMethod } : undefined,
+      defaultPaymentMethod: paymentMethod,
     },
     TEST_LIVEMODE,
   );

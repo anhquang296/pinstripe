@@ -244,6 +244,17 @@ export class InvoiceService {
     return this.buildInvoice(finalizedInvoice);
   }
 
+  async ensureBillableDraft(subscription: Subscription): Promise<EnsuredInvoice> {
+    const ensured = await this.ensureDraftInvoice(subscription, {});
+    const { pauseCollectionBehavior } = subscription;
+
+    if (ensured.isCreated && pauseCollectionBehavior) {
+      await this.applyPauseCollection(ensured.invoice, pauseCollectionBehavior);
+    }
+
+    return ensured;
+  }
+
   async markInvoiceUncollectible(id: string): Promise<InvoiceResponse> {
     const invoice = await this.getInvoiceEntity(id);
 
@@ -320,14 +331,11 @@ export class InvoiceService {
     }
 
     const subscription = await this.getSubscription(subscriptionId);
-
-    if (subscription.currentPeriodStart.getTime() !== invoice.periodStart.getTime()) {
-      throw new ConflictError(
-        `Invoice ${invoice.id} covers a period the subscription has already left and can no longer be rated`,
-      );
-    }
-
-    const rated = await this.fastify.ratingService.rateUpcomingInvoice(subscriptionId);
+    const rated = await this.fastify.ratingService.rateInvoicePeriod(
+      subscriptionId,
+      invoice.periodStart,
+      invoice.periodEnd,
+    );
 
     return this.buildSubscriptionLines(subscription, rated.lineItems);
   }

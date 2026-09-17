@@ -15,6 +15,7 @@ import type {
   UpdateSubscriptionPayload,
 } from '@contracts/subscriptions.types';
 import {
+  BILLABLE_SUBSCRIPTION_STATUSES,
   CancellationReasonEnum,
   CollectionMethodEnum,
   PauseCollectionBehaviorEnum,
@@ -356,7 +357,7 @@ export class SubscriptionService {
     );
 
     for (const subscription of due) {
-      await this.advanceSubscription(subscription);
+      await this.advanceSubscription(subscription, now);
     }
 
     return due.length;
@@ -375,7 +376,7 @@ export class SubscriptionService {
     );
 
     for (const subscription of due) {
-      const subscriptionNow = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+      const subscriptionNow = await this.resolveScanNow(subscription, now);
       const cancelAt = subscription.cancelAt;
 
       if (cancelAt && cancelAt.getTime() <= subscriptionNow.getTime()) {
@@ -411,7 +412,7 @@ export class SubscriptionService {
     );
 
     for (const subscription of due) {
-      const subscriptionNow = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+      const subscriptionNow = await this.resolveScanNow(subscription, now);
       const resumesAt = subscription.pauseCollectionResumesAt;
 
       if (resumesAt && resumesAt.getTime() <= subscriptionNow.getTime()) {
@@ -450,7 +451,7 @@ export class SubscriptionService {
     );
 
     for (const subscription of stale) {
-      const subscriptionNow = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+      const subscriptionNow = await this.resolveScanNow(subscription, now);
       const ageMs = subscriptionNow.getTime() - subscription.updatedAt.getTime();
 
       if (ageMs >= INCOMPLETE_EXPIRY_HOURS * MILLISECONDS_PER_HOUR) {
@@ -576,8 +577,16 @@ export class SubscriptionService {
     return changes;
   }
 
-  private async advanceSubscription(subscription: Subscription): Promise<void> {
-    const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+  private async resolveScanNow(subscription: Subscription, runAt: Date): Promise<Date> {
+    if (subscription.testClockId) {
+      return this.fastify.clockService.resolveNow(subscription.testClockId);
+    }
+
+    return runAt;
+  }
+
+  private async advanceSubscription(subscription: Subscription, runAt: Date): Promise<void> {
+    const now = await this.resolveScanNow(subscription, runAt);
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
       deletedAtIsNull: true,
@@ -605,6 +614,10 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     const periodEnd = subscription.currentPeriodEnd;
     const cancelAt = subscription.cancelAt;
+
+    if (_.includes(BILLABLE_SUBSCRIPTION_STATUSES, subscription.status)) {
+      await this.fastify.invoiceService.ensureBillableDraft(subscription);
+    }
 
     if (subscription.cancelAtPeriodEnd || (cancelAt && cancelAt.getTime() <= periodEnd.getTime())) {
       const endedAt = cancelAt && cancelAt.getTime() <= periodEnd.getTime() ? cancelAt : periodEnd;

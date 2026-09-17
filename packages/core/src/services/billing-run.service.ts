@@ -1,13 +1,7 @@
-import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
+import { BILLABLE_SUBSCRIPTION_STATUSES } from '@contracts/subscriptions.types';
 import type { Subscription } from '@database/schemas';
 import type { BillingRunShardJob } from '@queues/billing.queue';
 import type { FastifyInstance } from 'fastify';
-
-const BILLABLE_STATUSES = [
-  SubscriptionStatusEnum.ACTIVE,
-  SubscriptionStatusEnum.PAST_DUE,
-  SubscriptionStatusEnum.PAUSED,
-] as const;
 
 export interface BillingRunServiceConfig {
   batchSize: number;
@@ -33,13 +27,9 @@ export class BillingRunService {
 
   async runBillingShard(job: BillingRunShardJob): Promise<BillingRunResult> {
     const runAt = new Date(job.runAt);
-    const lifecycle = await this.fastify.subscriptionService.runSubscriptionLifecycle(
-      { shardCount: job.shardCount, shardIndex: job.shardIndex },
-      runAt,
-    );
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
-        statuses: BILLABLE_STATUSES,
+        statuses: BILLABLE_SUBSCRIPTION_STATUSES,
         currentPeriodEndTo: runAt,
         shardCount: job.shardCount,
         shardIndex: job.shardIndex,
@@ -57,6 +47,10 @@ export class BillingRunService {
       }
     }
 
+    const lifecycle = await this.fastify.subscriptionService.runSubscriptionLifecycle(
+      { shardCount: job.shardCount, shardIndex: job.shardIndex },
+      runAt,
+    );
     const finalizeBeforeAt = new Date(runAt.getTime() - this.config.finalizeDelayMs);
     const finalized = await this.fastify.invoiceService.advanceDraftInvoices(
       finalizeBeforeAt,
@@ -83,15 +77,7 @@ export class BillingRunService {
   }
 
   private async draftInvoice(subscription: Subscription): Promise<boolean> {
-    const { invoice, isCreated } = await this.fastify.invoiceService.ensureDraftInvoice(
-      subscription,
-      {},
-    );
-    const { pauseCollectionBehavior } = subscription;
-
-    if (isCreated && pauseCollectionBehavior) {
-      await this.fastify.invoiceService.applyPauseCollection(invoice, pauseCollectionBehavior);
-    }
+    const { isCreated } = await this.fastify.invoiceService.ensureBillableDraft(subscription);
 
     return isCreated;
   }

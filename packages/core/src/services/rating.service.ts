@@ -14,18 +14,37 @@ import { LineItemTypeEnum, rateLines, resolveBillingWindow } from '@utils/rating
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
+export interface RatingPeriod {
+  periodStart: Date;
+  periodEnd: Date;
+}
+
 export class RatingService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async rateUpcomingInvoice(subscriptionId: string): Promise<RatedInvoiceResponse> {
     const subscription = await this.getSubscription(subscriptionId);
+
+    return this.rateInvoicePeriod(
+      subscriptionId,
+      subscription.currentPeriodStart,
+      subscription.currentPeriodEnd,
+    );
+  }
+
+  async rateInvoicePeriod(
+    subscriptionId: string,
+    periodStart: Date,
+    periodEnd: Date,
+  ): Promise<RatedInvoiceResponse> {
+    const subscription = await this.getSubscription(subscriptionId);
     const changes = await this.fastify.subscriptionRepository.findSubscriptionItemChanges({
       subscriptionIds: [subscriptionId],
-      billedFromBeforeAt: subscription.currentPeriodEnd,
-      billedThroughAfterAt: subscription.currentPeriodStart,
+      billedFromBeforeAt: periodEnd,
+      billedThroughAfterAt: periodStart,
     });
 
-    return this.rateSubscriptionItemChanges(subscription, changes);
+    return this.rateSubscriptionItemChanges(subscription, changes, { periodStart, periodEnd });
   }
 
   async rateProrationInvoice(
@@ -43,7 +62,10 @@ export class RatingService {
       executor,
     );
 
-    return this.rateSubscriptionItemChanges(subscription, changes);
+    return this.rateSubscriptionItemChanges(subscription, changes, {
+      periodStart: subscription.currentPeriodStart,
+      periodEnd: subscription.currentPeriodEnd,
+    });
   }
 
   private async getSubscription(subscriptionId: string): Promise<Subscription> {
@@ -59,9 +81,10 @@ export class RatingService {
   private async rateSubscriptionItemChanges(
     subscription: Subscription,
     changes: readonly SubscriptionItemChange[],
+    period: RatingPeriod,
   ): Promise<RatedInvoiceResponse> {
     const priceById = await this.resolvePrices(_.map(changes, 'priceId'));
-    const lines = await this.buildLines(subscription, changes, priceById);
+    const lines = await this.buildLines(subscription, changes, priceById, period);
     const { lineItems, total } = rateLines(lines, subscription.currency);
 
     return {
@@ -69,8 +92,8 @@ export class RatingService {
       subscriptionId: subscription.id,
       customerId: subscription.customerId,
       currency: subscription.currency,
-      periodStart: subscription.currentPeriodStart.toISOString(),
-      periodEnd: subscription.currentPeriodEnd.toISOString(),
+      periodStart: period.periodStart.toISOString(),
+      periodEnd: period.periodEnd.toISOString(),
       total: total.amount,
       lineItems: _.map(lineItems, RatingService.buildLineItem),
     };
@@ -80,6 +103,7 @@ export class RatingService {
     subscription: Subscription,
     changes: readonly SubscriptionItemChange[],
     priceById: Record<string, Price>,
+    period: RatingPeriod,
   ): Promise<RatingLine[]> {
     const lines: RatingLine[] = [];
 
@@ -94,12 +118,12 @@ export class RatingService {
         change.billedFrom,
         change.billedThrough,
         change.invoicedThrough,
-        subscription.currentPeriodStart,
-        subscription.currentPeriodEnd,
+        period.periodStart,
+        period.periodEnd,
       );
 
       if (window) {
-        const line = await this.buildLine(subscription, change, price, window);
+        const line = await this.buildLine(subscription, change, price, window, period);
 
         lines.push(line);
       }
@@ -113,6 +137,7 @@ export class RatingService {
     change: SubscriptionItemChange,
     price: Price,
     window: BillingWindow,
+    period: RatingPeriod,
   ): Promise<RatingLine> {
     const isMetered = price.usageType === UsageTypeEnum.METERED;
     const quantity = isMetered
@@ -125,8 +150,8 @@ export class RatingService {
       price: RatingService.buildRatingPrice(price),
       type: RatingService.resolveLineItemType(isMetered, window.isPartial),
       quantity,
-      periodStart: subscription.currentPeriodStart,
-      periodEnd: subscription.currentPeriodEnd,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
       usageStart: window.isPartial && !isMetered ? window.start : null,
       usageEnd: window.isPartial && !isMetered ? window.end : null,
       isCredit: false,

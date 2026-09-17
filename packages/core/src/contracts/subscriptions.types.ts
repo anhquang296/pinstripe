@@ -85,6 +85,12 @@ export const SUBSCRIPTION_TRANSITIONS: Record<SubscriptionStatus, SubscriptionSt
   [SubscriptionStatusEnum.CANCELED]: [],
 };
 
+export const BILLABLE_SUBSCRIPTION_STATUSES: SubscriptionStatus[] = [
+  SubscriptionStatusEnum.ACTIVE,
+  SubscriptionStatusEnum.PAST_DUE,
+  SubscriptionStatusEnum.PAUSED,
+];
+
 export const subscriptionItemSchema = Type.Object({
   object: Type.Literal('subscription_item'),
   id: Type.String(),

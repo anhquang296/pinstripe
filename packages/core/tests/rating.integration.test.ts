@@ -414,7 +414,7 @@ describe('RatingService proration', () => {
     );
     await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
     await fastify.subscriptionService.updateSubscription(subscription.id, {
-      items: [{ priceId: meteredPrice.priceId }],
+      items: [{ priceId: meteredPrice.priceId, quantity: 2 }],
     });
 
     const ratedInvoice = await fastify.ratingService.rateUpcomingInvoice(subscription.id);
