@@ -42,6 +42,24 @@ pnpm --filter @pinstripe/core test:integration
 pnpm db:generate
 ```
 
+## Port bị giữ sau khi `pnpm dev` chết không sạch
+
+`turbo dev` không phải lúc nào cũng giết hết cây process con khi Ctrl-C, nên một lần chạy có thể để lại
+`next-server`, `vite` hoặc worker vẫn giữ port. Lần `pnpm dev` sau báo `EADDRINUSE :::3100` — port bị
+chính lần chạy trước của dự án giữ, không phải app nào khác.
+
+```bash
+pnpm dev:stop
+```
+
+Giết mọi process đang LISTEN trên `3000`–`3006`, `3100`, `5173`, kèm các process `node` và `pnpm` cha
+của chúng (nếu không, `tsx watch` sẽ dựng lại). Dừng leo lên khi gặp shell, nên terminal và các session
+khác không bị ảnh hưởng.
+
+- Không bao giờ đụng Docker: port do container publish sẽ hiện ra dưới tên `com.docker.backend`, giết
+  nó là sập Docker Desktop. Container thì dùng `pnpm docker:down`.
+- Giết **mọi** dev process của repo này, kể cả cái mà một terminal khác đang dùng.
+
 ## Xoá sạch dữ liệu để test lại từ đầu
 
 ```bash

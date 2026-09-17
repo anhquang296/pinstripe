@@ -114,5 +114,25 @@ pnpm typecheck    # type-check the whole monorepo
 pnpm lint         # lint the whole monorepo
 pnpm test         # run the test suites
 pnpm db:generate  # generate a new migration from schema changes
+pnpm dev:stop     # free the dev ports after a `pnpm dev` that did not shut down cleanly
 pnpm docker:down  # stop the infrastructure containers
 ```
+
+## `EADDRINUSE` on a port you are not using
+
+`turbo dev` does not always kill its whole process tree on Ctrl-C, so a run can leave a `next-server`,
+a `vite` or a worker behind still holding its port. The next `pnpm dev` then fails with
+`EADDRINUSE: address already in use :::3100` — the port is held by an earlier run of this project, not
+by another app.
+
+```bash
+pnpm dev:stop
+```
+
+It kills whatever is listening on `3000`–`3006`, `3100` and `5173`, together with the `node` and `pnpm`
+processes that would otherwise respawn it. It stops walking up at the shell, so your terminal and any
+other session survive, and it never touches Docker — when a port is published by a container, `lsof`
+names `com.docker.backend`, and killing that would take down Docker Desktop. Use `pnpm docker:down` for
+the containers.
+
+It stops **every** dev process of this repo, including one another terminal is still using.
