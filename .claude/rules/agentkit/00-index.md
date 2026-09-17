@@ -26,13 +26,15 @@ not a step to complete first.
 | Which import path to write — alias by default, relative only within a folder's own subtree. | `.claude/rules/agentkit/core/import-convention.md` |
 | The shape of a log message — `<function>() <message>`, `[<Class>] <method>() <message>`, errors at error level with the cause under `error`. | `.claude/rules/agentkit/core/logging-convention.md` |
 | Do not build surface nobody reads — return the object you have, drop parameters no consumer touches. | `.claude/rules/agentkit/core/minimal-surface-convention.md` |
-| The vocabulary every other rule assumes — which word to pick when two would do. | `.claude/rules/agentkit/core/naming-convention.md` |
+| How a name is built — the slots a name has, which word may fill each, and why a name never reports the step that produced it. | `.claude/rules/agentkit/core/naming-convention.md` |
 | Read an optional path once into a named local with its fallback at the read — never `?.` and `??` in one expression, at any depth, and never the same path walked twice. | `.claude/rules/agentkit/core/nested-access-convention.md` |
 | Database schema design — a column is `NOT NULL` until absence is a real domain state, `''` / `0` / a sentinel date never stand in for unknown, and the type mirrors the column. | `.claude/rules/agentkit/core/nullability-convention.md` |
 | How agent-facing docs are owned and changed — which files are generated, which are the project's own, and the house style every rule follows. | `.claude/rules/agentkit/core/rule-maintenance.md` |
 | How a statement is written — one job per statement, happy path first in the affirmative. | `.claude/rules/agentkit/core/statement-convention.md` |
 | What to test and what to skip, and how a test file is shaped — AAA, flat structure, setup functions over beforeEach, names that state the scenario. | `.claude/rules/agentkit/core/testing.md` |
 | TypeScript settings and type discipline — strictness, no `any`, schema-derived types, error classes over generic Error. | `.claude/rules/agentkit/core/typescript.md` |
+| Which verb names an operation — `get` throws and `find` returns null, `delete` takes a record out of its store, `destroy` ends an object's life. | `.claude/rules/agentkit/core/verb-convention.md` |
+| The fixed words for data crossing a boundary — `payload`, `filters`, `query`, `params`, and the type suffixes that mirror them. | `.claude/rules/agentkit/core/vocabulary-convention.md` |
 | The queue contract shared by producer and consumer, and how a worker process is named, started and shut down. | `.claude/rules/agentkit/profiles/bullmq/queue-convention.md` |
 | The migration journal invariant — what a generated migration consists of, and why discarding one halfway breaks every test run. | `.claude/rules/agentkit/profiles/drizzle/migration-convention.md` |
 | Drizzle schema and query rules — table and column naming, inferred types, read/write split, soft deletes, and building a where from conditional terms. | `.claude/rules/agentkit/profiles/drizzle/query-convention.md` |

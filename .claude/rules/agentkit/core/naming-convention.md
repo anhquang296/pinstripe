@@ -1,6 +1,7 @@
 ---
 description: >
-  The vocabulary every other rule assumes — which word to pick when two would do.
+  How a name is built — the slots a name has, which word may fill each, and why a name never
+  reports the step that produced it.
 agentkit:
   id: core/naming-convention
   layer: core
@@ -13,7 +14,15 @@ agentkit:
 
 # Naming Convention
 
-The vocabulary every other rule assumes — which word to pick when two would do. Layer-specific rules link here instead of repeating it.
+A name that reports the step that produced it — `result`, `created`, `row` — sends every reader back
+to the line above to learn what is in the binding, and that cost is paid at each use site for as long
+as the code lives. Building the name from a fixed set of slots instead makes it answer the question on
+its own, and makes a wrong name something an agent can detect rather than something it has to have seen
+before.
+
+This file is the structure. Which word fills a slot is the other half: operation verbs are in
+[verb-convention.md](./verb-convention.md), the fixed words for parameters and type names in
+[vocabulary-convention.md](./vocabulary-convention.md).
 
 ## Scope
 
@@ -30,71 +39,45 @@ Does **not** apply to:
 
 A project adds its own domain words — the nouns only it uses — in `.claude/rules/local/`. This file holds the words that mean the same thing in every codebase.
 
-## Parameters
+## Name structure
 
-One word per concept, in every layer — repository, service, request function, hook, component.
+Build every name from four slots. Only `HEAD` is mandatory; the others appear when they have work to do.
 
-| Prefer                                                                                                      | Over                                                   |
-| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `payload` / `payloads` — a write DTO we define (`createRoutine(payload)`, `mutationFn: (payload) => { … }`) | `input`, `data`, `dto`, `values`, `body`               |
-| `<entityNoun>` — when the argument **is** a domain entity, not a DTO (`handleOrderCreated(order)`)          | `payload`, `data`                                      |
-| `filters` (`= {}`) — a multi-condition read (`findRoutines(filters, limit)`)                                | `where`, `criteria`, `options`, `params`, `conditions` |
-| `query` — an HTTP querystring DTO (`GetRoutinesQuery`)                                                      | `params`, `options`, `searchParams`, `qs`              |
-| `params` — route / path params only                                                                         | `pathParams`, `routeParams`                            |
-| `id` — when the method or receiver already names the entity (`findRoutine(id)`)                             | `routineId`, `key`                                     |
-| `<entity>Id` — when it points at a _different_ entity, or is a column / filter field                        | `id`, `<entity>ID`, `<entity>Key`                      |
-| `ids` — bulk operations (`archiveRoutines(ids, archivedAt)`)                                                | `idList`, `keys`, `idArray`                            |
-| `page` + `limit` — page-based paging (HTTP querystring, response `pagination`)                              | `pageSize`, `pageNumber`, `perPage`                    |
-| `offset` + `limit` — offset-based paging (data layer); the service converts `page` → `offset`               | `take` / `skip`, `start`, `count`                      |
-| `sort: { field; order }` — a sort argument as an object (typed union of fields)                             | `sortBy` + `sortOrder` as two arguments, `orderBy`     |
-| `sortBy` / `sortOrder` — only where the shape must be flat (querystring)                                    | `sort_by`, `orderBy`, `dir`, `direction`               |
-| `logger` — an injected logger (`(config, logger)`)                                                          | `log`, `logr`                                          |
-| `error` — a caught error (`catch (error)`, `{ error }`)                                                     | `err`, `e`, `ex`, `exception`                          |
+```
+name := [prefix] [qualifier] HEAD [suffix]
+```
 
-The key belongs in the **parameter name**, not the method name — `getRoutine(id)`, never `getRoutineById`; `findRoutines({ productIds })`, never `findRoutinesByProducts`.
+| Naming                          | prefix                                    | qualifier                           | HEAD                    | suffix                        | Example                   |
+| ------------------------------- | ----------------------------------------- | ----------------------------------- | ----------------------- | ----------------------------- | ------------------------- |
+| the only binding of an entity   | —                                         | —                                   | entity noun             | —                             | `routine`                 |
+| a second binding of that entity | —                                         | its state, or the verb that made it | entity noun             | —                             | `createdRoutine`          |
+| a collection                    | —                                         | optional                            | entity noun             | plural                        | `subscribedEndpoints`     |
+| a boolean                       | `is` / `has` / `should` / `can` / `could` | —                                   | adjective, noun or verb | —                             | `isPublished`, `hasMore`  |
+| a value with a shape or a unit  | —                                         | optional                            | noun                    | see [§ Affixes](#affixes)     | `createdAt`, `productIds` |
+| a type                          | —                                         | optional                            | `Entity`                | `Payload`, `Query`, `Filters` | `FindRoutinesQuery`       |
 
-## Verbs
+Four invariants decide whether a name is well formed, and an agent can check all four without knowing the domain:
 
-The read/write vocabulary, in every layer. A stack profile may narrow this further — a repository's closed verb set, a schema action list — but never contradicts it.
+1. **`HEAD` is a domain noun.** A generic container word (`result`, `record`, `row`, `item`, `data`, `value`, `obj`, `node`) or a bare participle (`created`, `existing`, `found`, `updated`) names the operation that ran rather than the value it produced. Either may fill the **qualifier** slot; neither is ever the `HEAD`.
+2. **Exactly one `HEAD`.** `subscribedEndpointList` carries two — the plural already says it is a list, so `List` goes.
+3. **A qualifier must distinguish something.** Add one only when a second binding of the same `HEAD` shares the scope.
+4. **A prefix and a type suffix never share a name.** `isCreatedAtValid` states two roles at once; split the value instead.
 
-> **The read verb states what happens when there is nothing to read.** `get` throws; `find` returns `null`. That is the whole distinction, and it is why a layer that never throws uses `find` throughout while a layer whose misses surface as errors uses `get`.
+Run these in order on a name you are about to write. The first question is the one that does the work:
 
-Reading `getRoutine(id)` you know there is no null to handle; reading `findRoutine(id)` you know there is. Choosing the verb by layer habit instead of by behaviour throws that away, and every call site then has to check the implementation to find out.
-
-A **list** read has no missing case, so the verb carries no such information there — which is why the layer's own convention decides it, and why `find<Entities>` on a server and `get<Entities>` on a client are the same rule rather than two.
-
-| Prefer                   | Meaning                                                                                | Over                                         |
-| ------------------------ | -------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `get<Entity>`            | read **one**, throws when missing                                                      | `find*` for a throwing read                  |
-| `find<Entity>`           | read **one**, returns `null` when missing                                              | `get*OrNull`, `lookup*`                      |
-| `find<Entities>`         | read **many** — nothing to miss, so the layer decides between this and `get<Entities>` | `list*`, `getAll*`, `search*`, `fetch*`      |
-| `create<Entity>`         | write a new record                                                                     | `insert*`, `save*`, `add*`, `new*`           |
-| `upsert<Entity>`         | write or replace by key                                                                | `saveOrUpdate*`, `createOrUpdate*`, `merge*` |
-| `update<Entity>`         | partial write — only when no domain verb fits                                          | `set*`, `patch*`, `modify*`                  |
-| `delete<Entity>`         | take it out of its store — see [§ Delete, remove, destroy](#delete-remove-destroy)     | `remove*`, `destroy*`, `purge*`              |
-| `count<Noun>`            | cardinality                                                                            | `total*`, `num*`, `aggregate<Noun>Count`     |
-| `aggregate<Noun>`        | grouped totals                                                                         | `stats*`, `sum*`, `getTotals*`               |
-| `ensure<X>`              | idempotent provisioning                                                                | `createIfMissing*`, `provision*`, `init*`    |
-| `handle<Event>`          | inbound event entry — `handleOrderCreated`                                             | `on<Event>`, `process<Event>`, `*Handler`    |
-| `build<X>`               | pure, sync constructor of a value — `buildTrackingUrl`                                 | `make*`, `generate*`, `to*`                  |
-| `resolve<X>`             | derive one value from another, may be `null`                                           | `lookup*`, `get*`                            |
-| `detect<X>`              | async probe returning a fact                                                           | `check*`, an `is*()` method                  |
-| `hydrate<X>`             | fill a result set from another source                                                  | `enrich*`, `populate*`, `decorate*`          |
-| `invalidate<X>`          | cache invalidation                                                                     | `clearCache*`, `flush*`, `bust*`             |
-| `run()`                  | the single entry of a script or task object                                            | `execute()`, `start()`, `process()`          |
-| `<domainVerb><Entities>` | a real domain action — `archiveRoutines`, `replaceRoutine`                             | a generic `update` that hides the intent     |
+```
+1. What does this hold?              → answer with one noun; that is the HEAD.
+   Cannot answer without re-reading the line above → the name is wrong.
+2. Another binding of that HEAD here? → yes: add a qualifier. No: stop.
+3. Boolean, instant, count, lookup?   → attach the prefix or suffix from the table.
+4. Any word describing the step?      → delete it.
+```
 
 ## Locals
 
-> **A local names what it holds, not the step that produced it.** A bare participle (`created`, `existing`, `found`) or a generic container word (`result`, `record`, `row`, `item`, `value`) names the operation that ran, so the reader has to go back to the call above to learn what is in the binding.
+A local falls out of invariants 1 and 3: it is named for what it holds, qualified only where a second binding of the same entity shares the scope.
 
-| Prefer                                                                                                                                                | Over                                                              |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `<entityNoun>` — the only binding of that entity in scope (`const routine = await findRoutine(id)`)                                                   | `result`, `record`, `row`, `item`, `data`, `value`, `obj`, `node` |
-| `<qualifier><Entity>` — a second binding of the same entity (`createdRoutine`, `existingRoutine`)                                                     | bare `created`, `existing`, `updated`, `found`                    |
-| a qualifier that reuses the verb that produced it (`created…`, `updated…`, `deleted…`) or the state it is in (`existing…`, `incoming…`, `persisted…`) | `new…` / `old…`, `…2`, `tmp…`                                     |
-| the entity noun as a callback parameter (`routines.map((routine) => { … })`)                                                                          | `x`, `r`, `el`, `item`                                            |
-| `is<Adj>` when the value genuinely is a boolean (`isCreated`)                                                                                         | a participle standing in for a boolean                            |
+Write the word out. A local is never a single letter (`x`, `r`, `e`), an initial, a truncation (`rtn`, `prd`), or a positional placeholder (`tmp`, `temp`, `val`, `foo`, `data2`) — see [§ Abbreviations](#abbreviations) for the words that have a fixed expansion. This holds most where the name is shortest: a callback parameter is the entity noun the collection is named after, `routines.map((routine) => { … })`, not `r` or `item`.
 
 ```ts
 // CORRECT — each binding says what it holds at every use site
@@ -116,7 +99,7 @@ if (created) {
 const existing = await this.routineRepository.findRoutine(payload.key);
 ```
 
-The qualifier earns its place only by telling two bindings of one entity apart. Where a scope holds a single `Routine`, the name is `routine` — this asks for more words exactly where they distinguish something, and no more.
+Where a scope holds a single `Routine`, the name is `routine` — this asks for more words exactly where they distinguish something, and no more.
 
 Three cases keep their short names:
 
@@ -124,36 +107,9 @@ Three cases keep their short names:
 - Destructured fields, which keep the name their source gives them.
 - A test's single Act binding, which may stay `result` — the call it names is the line above it. See [testing.md](./testing.md).
 
-## Delete, remove, destroy
+## Affixes
 
-Three verbs, three questions — **does it still exist**, **is it still a member**, **is it still alive**. When one word has to cover a CRUD operation, it is `delete`.
-
-| Verb      | Meaning                                                                                                                       | Examples                                                                                                                              |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `delete`  | take a record out of its **store** — database row, cache key, index document, file. Afterwards it does not exist.             | `deleteRoutine(id)`, `DELETE /routines/:id`, `redis.del(key)`, `fs.unlink`                                                            |
-| `remove`  | take an element out of a **collection or relation** — the element itself keeps existing elsewhere. Membership, not existence. | `registry.remove(Entry)`, `removeRoutineFromIndex(id)` (the row is untouched), `removeEventListener`, `useFieldArray().remove(index)` |
-| `destroy` | tear down a **whole object** and release what it holds — connections, timers, listeners — ending its lifecycle for good.      | `worker.destroy()`, `session.destroy()`, `socket.destroy()`                                                                           |
-
-`close()` / `quit()` stay the verbs of a **connection handle** that was opened with `connect()`. A class with no `connect()` that is built running and torn down once is `destroy()`.
-
-Rails-style `destroy` (delete + callbacks) does not exist here — a data-layer `delete<Entity>` runs no side effects; the service owns them (`deleteRoutine` → `removeRoutineFromIndex`).
-
-## Type and interface suffixes
-
-| Suffix                 | Meaning                                                                  | Over                                  |
-| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------- |
-| `…Payload`             | any write DTO we define — HTTP body, data-layer write, mutation argument | `…Body`, `…Dto`, `…Input`, `…Request` |
-| `…Query`               | HTTP querystring DTO                                                     | `…Params`, `…Options`                 |
-| `…Filters`             | read filters — exactly one per data-access class                         | `…Where`, `…Criteria`                 |
-| `…Totals` / `…Bucket`  | aggregate result rows                                                    | `…Stats`, `…Metrics`, `…Point`        |
-| `…Response`            | anything that crosses the wire to a client                               | `…Res`, `…Result`, `…Output`          |
-| `…Result`              | internal operation outcome that does **not** cross the wire              | `…Response`                           |
-| `…Item`                | one element of a list inside a response                                  | `…Row`, `…Entry`, `…Element`          |
-| `…Summary` / `…Detail` | coarse vs fine view of the same entity                                   | `…Overview`, `…Full`                  |
-| `…Config` (a `type`)   | a client's constructor config — `S3Config`                               | `…Options`, `…Settings`               |
-| `…Settings`            | user-facing stored settings (a domain noun, not a constructor arg)       | `…Config`, `…Preferences`             |
-
-## Booleans, timestamps, collections
+The suffix slot carries the shape or the unit, so a reader knows what a value is without looking it up.
 
 | Prefer                                                                                   | Over                                         |
 | ---------------------------------------------------------------------------------------- | -------------------------------------------- |
@@ -162,73 +118,57 @@ Rails-style `destroy` (delete + callbacks) does not exist here — a data-layer 
 | `is<Adj>` — `isSaving`, `isConfigured`                                                   | bare adjective, `…Flag`                      |
 | `has<Noun>` — `hasMore`                                                                  | `…Exists`, `contains…`                       |
 | `should<Verb>` — `shouldRetry`                                                           | `enable…`, `…Enabled`, `with…`               |
+| `can<Verb>` — `canEdit`, `canPublish`                                                    | `…Able`, `is<Verb>able`, `…Allowed`          |
+| `could<Verb>` — `couldRetry`                                                             | `maybe…`, `…Possible`                        |
 | plural noun — `routines`, `nodes`                                                        | `…List`, `…Array`, `arrayOf…`                |
 | `<noun>Ids`                                                                              | `…IdList`, `…Keys`                           |
 | `<noun>Count`                                                                            | `…Total`, `num…`, `…Qty`                     |
 | `<nouns>By<Key>` — `productsById`                                                        | `…Map`, `…Dict`, `…Lookup`                   |
+| `SCREAMING_SNAKE` module constants; `DEFAULT_*` for defaults                             | inline magic values, camelCase consts        |
+| `*_PATH` — `ROUTINES_PATH`                                                               | `*_URL`, `*_ROUTE`, `*_ENDPOINT`             |
+| `*_MS` / `*_SECONDS` / `*_DAYS`                                                          | bare durations                               |
+| `*_LIMIT` / `*_BATCH_SIZE`                                                               | `MAX_*` alone                                |
+| env `{GROUP}_{THING}` — `DB_MASTER_HOST`                                                 | `{thing}_{group}`                            |
+
+The four boolean prefixes answer four different questions, and picking between them is not a matter of taste: `is<Adj>` is a state the value is in, `has<Noun>` is something it holds, `should<Verb>` is a decision someone already made, `can<Verb>` is a capability or permission the subject has right now. `could<Verb>` is a possibility nothing has decided on yet — where a `can…` and a `could…` would both read correctly, it is `can`.
+
+Any string a second place has to match gets a named constant rather than being typed twice. Where a constant lives is in [constant-convention.md](./constant-convention.md); a closed set of such strings is an enum, in [enum-convention.md](./enum-convention.md).
+
+## Abbreviations
+
+Write the whole word. An abbreviation saves the author four characters and costs every reader the expansion.
+
+| Avoid                             | Use                                               |
+| --------------------------------- | ------------------------------------------------- |
+| `err`                             | `error`                                           |
+| `req` / `res`                     | `request` / `response`                            |
+| `cfg`, `ctx`, `btn`, `idx`, `msg` | `config`, `context`, `button`, `index`, `message` |
 
 ## Files and classes
 
-| Prefer                                                                                    | Over                                                  |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| kebab-case for every non-component file                                                   | camelCase, PascalCase, snake_case                     |
-| one concrete class per file, named after what it is                                       | `Base…` classes, `I…` interfaces, `…Impl`, `…Class`   |
-| a name that says the role in the filename — `{resource}.repository.ts`, `{sdk}.client.ts` | a role-neutral filename that only the folder explains |
-| `{module}.types.ts` next to `{module}.service.ts`                                         | `.dto.ts`, `.controller.ts`, `.handler.ts`            |
-| every error class of an app in one `types/errors.ts`                                      | error classes declared inside logic files             |
+| Prefer                                                                                    | Over                                                            |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| kebab-case for every non-component file                                                   | camelCase, PascalCase, snake_case                               |
+| one concrete class per file, named after what it is                                       | `Base…` classes, `I…` interfaces, `…Impl`, `…Class`             |
+| a named service / client / repository                                                     | `…Manager`, `…Helper`, `…Util` classes                          |
+| a name that says the role in the filename — `{resource}.repository.ts`, `{sdk}.client.ts` | a role-neutral filename that only the folder explains           |
+| `{module}.types.ts` next to `{module}.service.ts`                                         | `.dto.ts`, `.controller.ts`, `.handler.ts`                      |
+| every error class of an app in one `types/errors.ts`                                      | error classes declared inside logic files                       |
+| the plain resource name                                                                   | a name describing the technique — `_agg`, `_tmp`, `theme-setup` |
+| construction at the app's composition root                                                | a module-level `new XRepository()` singleton                    |
 
 A stack profile adds the file conventions its framework implies (component files, schema files, queue files). Where a profile and this table disagree, the profile wins inside its scope.
 
-## Constants and keys
-
-| Prefer                                                                                                                         | Over                                     |
-| ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
-| `SCREAMING_SNAKE` module constants; `DEFAULT_*` for defaults — placement in [constant-convention.md](./constant-convention.md) | inline magic values, camelCase consts    |
-| `*_PATH` — `ROUTINES_PATH`                                                                                                     | `*_URL`, `*_ROUTE`, `*_ENDPOINT`         |
-| `*_MS` / `*_SECONDS` / `*_DAYS`                                                                                                | bare durations                           |
-| `*_LIMIT` / `*_BATCH_SIZE`                                                                                                     | `MAX_*` alone                            |
-| `<Name>Enum` + derived `` `${<Name>Enum}` `` union — see [enum-convention.md](./enum-convention.md)                            | bare literal unions, numeric enums       |
-| env `{GROUP}_{THING}` — `DB_MASTER_HOST`                                                                                       | `{thing}_{group}`                        |
-| a named identifier constant for any string a second place has to match                                                         | the same literal typed at two call sites |
-
-## Errors and logging
-
-| Prefer                                                                                                                                    | Over                                                  |
-| ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| an `AppError` subclass named after the condition — `NotFoundError`, `ConflictError`                                                       | generic `Error`, numeric codes                        |
-| `{Vendor}{Condition}Error` declared in the client file — `S3NotConfiguredError`                                                           | importing app-level HTTP errors into a shared package |
-| log message `<fn>() <msg>` / `[<Class>] <method>() <msg>`; words `started`, `completed`, `success`, `received`, `skipped, <why>`, `error` | `Starting…`, `Done`, `Failed to …`                    |
-| `catch (error)` and context `{ error }`                                                                                                   | `catch (err)`, `{ err }`, `{ err: error }`            |
-
-See [logging-convention.md](./logging-convention.md).
-
-## Avoid → use instead
-
-| Avoid                                                                                            | Use                                                                                                                                   |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `dto`, `body`, `input`, `data` (our own write DTOs)                                              | `payload`                                                                                                                             |
-| `err`                                                                                            | `error`                                                                                                                               |
-| `req` / `res`                                                                                    | `request` / `response`                                                                                                                |
-| `cfg`, `ctx`, `btn`, `idx`, `msg`                                                                | `config`, `context`, `button`, `index`, `message`                                                                                     |
-| a local named after its step — `created`, `existing`, `found`, `result`, `record`, `row`, `item` | `<qualifier><Entity>` — `createdRoutine`, `existingRoutine` — [§ Locals](#locals)                                                     |
-| `…Manager`, `…Helper`, `…Util` classes                                                           | a named service / client / repository                                                                                                 |
-| `Base…` classes, `I…` interfaces, `…Impl`, `…Class`                                              | one concrete class per file                                                                                                           |
-| a module-level `new XRepository()` singleton                                                     | construction at the app's composition root                                                                                            |
-| `…Async`, `…OrThrow`, `…OrNull`, `…By<Field>` suffixes                                           | plain name; key in the parameter name; `\| null`                                                                                      |
-| `list*` (any layer)                                                                              | `find<Entities>` (server), `get<Entities>` (client / schema)                                                                          |
-| `remove*` / `destroy*` for a persisted record; `delete*` for detaching a member                  | `delete<Entity>` (existence), `remove<X>` (membership), `destroy()` (lifecycle) — [§ Delete, remove, destroy](#delete-remove-destroy) |
-| a name describing the technique (`_agg`, `_tmp`, `theme-setup`)                                  | the plain resource name                                                                                                               |
-| comments / JSDoc                                                                                 | a name that explains itself                                                                                                           |
-
 ## NEVER Do
 
-- Introduce a second word for a concept this file already names — extend the table instead.
-- Rename in code without updating the rule, `CLAUDE.md` / `AGENTS.md` and skill that cite the old name in the same change.
-- Use `input`, `data`, `dto` or `body` for a write DTO — it is `payload` in every layer.
-- Encode the lookup key in a method name (`…ById`, `…ByProducts`) — put it in the parameter or `filters`.
-- Use `list*` anywhere; use `err`, `req`, `res`, `cfg`, `ctx` anywhere.
-- Name a local after the step that produced it (`created`, `existing`, `result`) — name the entity it holds, qualified only when a second binding of the same entity shares the scope.
+- Name a binding after the step that produced it — a container word (`result`, `record`, `row`, `item`, `data`, `value`) or a bare participle (`created`, `existing`, `found`) is never the `HEAD`.
+- Carry two `HEAD`s in one name (`…List` on a plural, `…Array`, `…Map`).
+- Add a qualifier where no second binding of the same `HEAD` shares the scope.
+- Put a boolean prefix and a type suffix in the same name.
+- Name a local with a single letter, a truncation (`rtn`, `prd`) or a placeholder (`tmp`, `val`, `foo`, `data2`).
 - Bind a callback parameter to a letter or `item` — use the entity noun the collection is named after.
-- Use `remove` or `destroy` for a storage delete, `delete` for taking a member out of a collection, or `close()` on a class that has no `connect()`.
+- Use `err`, `req`, `res`, `cfg`, `ctx`, `btn`, `idx` or `msg` anywhere.
 - Name a table, module or file after the technique instead of the resource.
+- Declare a `Base…` class, an `I…` interface, an `…Impl` or a `…Manager` / `…Helper` / `…Util`.
+- Rename in code without updating the rule, `CLAUDE.md` / `AGENTS.md` and skill that cite the old name in the same change.
 - Put a project's own domain nouns in this file — they belong in `.claude/rules/local/`.

@@ -6,7 +6,7 @@ agentkit:
   id: react/react-query-convention
   layer: profile
   profile: react
-  requires: [core/naming-convention, react/api-client-convention]
+  requires: [core/naming-convention, core/verb-convention, react/api-client-convention]
   since: 0.1.0
   generated: true
 ---
@@ -16,7 +16,7 @@ agentkit:
 
 # React Query Convention
 
-Every hook that reads or writes server state. Hook names come from [naming-convention.md](../../core/naming-convention.md).
+Every hook that reads or writes server state. Hook names come from [verb-convention.md](../../core/verb-convention.md).
 
 ## Scope
 
@@ -48,11 +48,11 @@ Keys live in one file per domain, built with `createQueryKeys` from `@lukemorale
 
 ```ts
 export const routineQueries = createQueryKeys(ReactQuerySubject.ROUTINE, {
-  routines: (query?: GetRoutinesQuery) => {
+  routines: (query?: FindRoutinesQuery) => {
     return {
       queryKey: [query],
       queryFn: () => {
-        return getRoutines(query);
+        return findRoutines(query);
       },
     };
   },
@@ -105,7 +105,7 @@ Domain arguments first, then `QueryProps` last with defaults. Spread the factory
 ```ts
 // CORRECT
 export function useRoutinesQuery(
-  query?: GetRoutinesQuery,
+  query?: FindRoutinesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   return useQuery({
@@ -116,14 +116,14 @@ export function useRoutinesQuery(
 }
 
 // WRONG — missing the Query suffix
-export function useRoutines(query?: GetRoutinesQuery) { ... }
+export function useRoutines(query?: FindRoutinesQuery) { ... }
 
 // WRONG — inline queryKey / queryFn
-export function useRoutinesQuery(query?: GetRoutinesQuery) {
+export function useRoutinesQuery(query?: FindRoutinesQuery) {
   return useQuery({
     queryKey: ['routines', query],
     queryFn: () => {
-      return getRoutines(query);
+      return findRoutines(query);
     },
   });
 }

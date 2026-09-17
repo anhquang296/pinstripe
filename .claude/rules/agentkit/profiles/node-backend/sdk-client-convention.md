@@ -6,7 +6,7 @@ agentkit:
   id: node-backend/sdk-client-convention
   layer: profile
   profile: node-backend
-  requires: [core/naming-convention, core/logging-convention]
+  requires: [core/naming-convention, core/vocabulary-convention, core/logging-convention]
   since: 0.1.0
   generated: true
 ---
@@ -16,7 +16,7 @@ agentkit:
 
 # SDK Client Convention
 
-Ensure consistency for every third-party SDK wrapper ("client"). Vocabulary comes from [naming-convention.md](../../core/naming-convention.md).
+Ensure consistency for every third-party SDK wrapper ("client"). Vocabulary comes from [vocabulary-convention.md](../../core/vocabulary-convention.md).
 
 A client's job is to own one SDK connection and expose the operations the application actually uses. It knows nothing about HTTP, the web framework, or where its configuration came from.
 

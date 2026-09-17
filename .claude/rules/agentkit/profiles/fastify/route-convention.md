@@ -52,7 +52,7 @@ Request validation and response serialization both come from the route's `schema
 
 ```ts
 // CORRECT
-fastify.get('/routines', { schema: { querystring: getRoutinesSchema } }, handler);
+fastify.get('/routines', { schema: { querystring: findRoutinesSchema } }, handler);
 fastify.post('/routines', { schema: { body: upsertRoutineSchema } }, handler);
 ```
 

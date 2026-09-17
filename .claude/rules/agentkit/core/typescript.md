@@ -5,7 +5,7 @@ description: >
 agentkit:
   id: core/typescript
   layer: core
-  requires: [core/naming-convention]
+  requires: [core/naming-convention, core/vocabulary-convention]
   since: 0.1.0
   generated: true
 ---
@@ -15,7 +15,7 @@ agentkit:
 
 # TypeScript
 
-The type-level floor every package stands on. Naming of the types themselves is in [naming-convention.md](./naming-convention.md#type-and-interface-suffixes).
+The type-level floor every package stands on. Naming of the types themselves is in [vocabulary-convention.md](./vocabulary-convention.md#type-and-interface-suffixes).
 
 ## Scope
 

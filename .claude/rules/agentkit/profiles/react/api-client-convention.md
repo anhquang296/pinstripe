@@ -6,7 +6,7 @@ agentkit:
   id: react/api-client-convention
   layer: profile
   profile: react
-  requires: [core/naming-convention]
+  requires: [core/naming-convention, core/verb-convention, core/vocabulary-convention]
   since: 0.1.0
   generated: true
 ---
@@ -58,7 +58,7 @@ Every endpoint is one exported function. No classes, no `BaseRepository`, no sin
 // CORRECT
 const ROUTINES_PATH = '/admin/routines';
 
-export const getRoutines = (query: GetRoutinesQuery = {}) => {
+export const findRoutines = (query: FindRoutinesQuery = {}) => {
   return request<PaginatedResponse<Routine>>(ROUTINES_PATH, { method: 'GET', query });
 };
 
@@ -75,7 +75,7 @@ class RoutineRepository extends BaseRepository { ... }
 export const routineRepository = new RoutineRepository();
 
 // WRONG — the HTTP library reached directly from a domain module
-export const getRoutines = () => {
+export const findRoutines = () => {
   return axios.get('/admin/routines');
 };
 
@@ -96,11 +96,11 @@ The examples above show one plausible call shape; the bullets are the requiremen
 
 ## Naming
 
-- Reads: `get<Entities>` (list) / `get<Entity>` (one). Never `list*` or `fetch*`.
+- Reads: `find<Entities>` (list) / `get<Entity>` (one). Never `list*`, `get<Entities>` or `fetch*`.
 - Writes: `create<Entity>`, `update<Entity>`, `delete<Entity>`; non-CRUD is `{verb}<Entity>` — `setupTheme`, `sendTestEmail`, `uploadLogo`.
-- Types in `{domain}/type.ts`: `Get{Entities}Query`, `Create{Entity}Payload` / `Upsert{Entity}Payload`, `{Action}{Entity}Response`, entity nouns, `{Entity}Summary` / `{Entity}Detail`, `{X}Item` for list elements.
+- Types in `{domain}/type.ts`: `Find{Entities}Query`, `Create{Entity}Payload` / `Upsert{Entity}Payload`, `{Action}{Entity}Response`, entity nouns, `{Entity}Summary` / `{Entity}Detail`, `{X}Item` for list elements.
 
-`get`, not `find`, and that is not a contradiction of the server's repository rule. The verb states what happens when there is nothing to read ([naming-convention.md § Verbs](../../core/naming-convention.md#verbs)): a repository returns `null`, so it is `find`; a request for a missing resource comes back 404 and the client throws, so it is `get`. Same rule, opposite behaviour, opposite verb.
+The single read is `get<Entity>` and the list read is `find<Entities>`, and that split is behaviour, not layer. The verb states what happens when there is nothing to read ([verb-convention.md § Verbs](../../core/verb-convention.md#verbs)): a request for a missing resource comes back 404 and the client throws, so it is `get`; a list request that matches nothing comes back with an empty array and throws nothing, so it is `find` — the same word the repository and the service use for it.
 
 Use the **same suffixes as the backend** so the wire types read identically on both sides. When they differ, someone has to hold a translation table in their head to review a change that spans both.
 

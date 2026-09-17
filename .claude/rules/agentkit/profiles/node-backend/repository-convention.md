@@ -6,7 +6,7 @@ agentkit:
   id: node-backend/repository-convention
   layer: profile
   profile: node-backend
-  requires: [core/naming-convention, core/typescript]
+  requires: [core/naming-convention, core/verb-convention, core/vocabulary-convention, core/typescript]
   since: 0.1.0
   generated: true
 ---
@@ -16,7 +16,7 @@ agentkit:
 
 # Repository Convention
 
-Ensure every repository reads the same way. Vocabulary is fixed by [naming-convention.md](../../core/naming-convention.md); this file applies it to data access.
+Ensure every repository reads the same way. Vocabulary is fixed by [vocabulary-convention.md](../../core/vocabulary-convention.md) and [verb-convention.md](../../core/verb-convention.md); this file applies it to data access.
 
 ## Guiding principle
 
@@ -121,13 +121,13 @@ Where the deployment has separate read and write connections, the repository dec
 
 ### Banned
 
-`get` is banned here for one reason: it promises to throw when nothing matches, and this layer never does — it returns `null` and lets the service decide ([§ Errors & Logging](#errors--logging)). The client-side rules use `get` for the same reason inverted, because a request for a missing resource does throw. One rule, two layers, opposite answers.
+`get` is banned here for one reason: it promises to throw when nothing matches, and this layer never does — it returns `null` and lets the service decide ([§ Errors & Logging](#errors--logging)). That is a statement about behaviour, not about the layer: wherever a read does throw on a miss, `get` is the right word there too.
 
 | Do not use                                          | Use instead                                                                                                                                                                             |
 | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `get…`, `list…`, `fetch…`, `load…`                  | `find<Entity>` / `find<Entities>` — a repository never throws for a miss, and `get` promises that it does ([naming-convention.md § Verbs](../../core/naming-convention.md#verbs))       |
+| `get…`, `list…`, `fetch…`, `load…`                  | `find<Entity>` / `find<Entities>` — a repository never throws for a miss, and `get` promises that it does ([verb-convention.md § Verbs](../../core/verb-convention.md#verbs))           |
 | `save…`, `insert…`, `add…`                          | `create<Entity>` or `upsert<Entity>`                                                                                                                                                    |
-| `remove…`, `destroy…`, `purge…`                     | `delete<Entity>` for a hard delete; a domain verb (`archive…`) for soft state — [naming-convention.md § Delete, remove, destroy](../../core/naming-convention.md#delete-remove-destroy) |
+| `remove…`, `destroy…`, `purge…`                     | `delete<Entity>` for a hard delete; a domain verb (`archive…`) for soft state — [verb-convention.md § Verbs](../../core/verb-convention.md#verbs)                                       |
 | `exists…`                                           | `find<Entity>` then check `null`, or `count<Noun>`                                                                                                                                      |
 | suffixes `By<Field>`, `And`, `In`, `With<Relation>` | the key lives in the **parameter name**; several conditions → a filters object                                                                                                          |
 | suffixes `OrNull`, `OrThrow`, `OrFail`              | always `\| null`; throwing is the service's job                                                                                                                                         |

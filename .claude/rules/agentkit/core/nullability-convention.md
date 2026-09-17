@@ -5,7 +5,7 @@ description: >
 agentkit:
   id: core/nullability-convention
   layer: core
-  requires: [core/naming-convention]
+  requires: [core/naming-convention, core/verb-convention]
   since: 0.1.2
   generated: true
 ---
@@ -19,7 +19,7 @@ Which columns may be `NULL` is decided once, while the table is being designed, 
 
 The half that is left is not caught by types once the value lives in a store: `NULL` is not a value, so it falls out of equality, length, `NOT IN`, aggregates and unique checks without raising anything, and the first symptom is a wrong number rather than an error.
 
-The read verb that reports absence is in [naming-convention.md](./naming-convention.md#verbs); this rule is about whether the absence should exist in the schema at all.
+The read verb that reports absence is in [verb-convention.md](./verb-convention.md#verbs); this rule is about whether the absence should exist in the schema at all.
 
 ## Scope
 

@@ -6,7 +6,7 @@ agentkit:
   id: node-backend/service-convention
   layer: profile
   profile: node-backend
-  requires: [core/naming-convention, core/typescript, node-backend/repository-convention]
+  requires: [core/naming-convention, core/verb-convention, core/typescript, node-backend/repository-convention]
   since: 0.1.0
   generated: true
 ---
@@ -16,7 +16,7 @@ agentkit:
 
 # Service Convention
 
-The layer between routes and repositories: business logic, error decisions, and the shape the wire sees. Verb vocabulary comes from [naming-convention.md § Verbs](../../core/naming-convention.md#verbs); this file says what a service adds on top of it.
+The layer between routes and repositories: business logic, error decisions, and the shape the wire sees. Verb vocabulary comes from [verb-convention.md § Verbs](../../core/verb-convention.md#verbs); this file says what a service adds on top of it.
 
 ## Scope
 
@@ -32,7 +32,7 @@ The reason is testability, not tidiness: a service method is callable from a uni
 
 ```ts
 // CORRECT — the handler is wiring
-fastify.get('/routines', { schema: { querystring: getRoutinesSchema } }, async (request, reply) => {
+fastify.get('/routines', { schema: { querystring: findRoutinesSchema } }, async (request, reply) => {
   const routines = await fastify.routinesService.findRoutines(request.query);
 
   return ApiResponse.paginated(reply, routines);

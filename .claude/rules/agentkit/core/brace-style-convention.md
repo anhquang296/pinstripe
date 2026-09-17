@@ -51,7 +51,7 @@ const productIds = products.map((product) => {
   return product.id;
 });
 
-const getRoutines = (query: GetRoutinesQuery = {}) => {
+const findRoutines = (query: FindRoutinesQuery = {}) => {
   return request<PaginatedResponse<Routine>>(ROUTINES_PATH, { method: 'GET', query });
 };
 
@@ -60,7 +60,7 @@ const getRoutines = (query: GetRoutinesQuery = {}) => {
 
 // WRONG — implicit return
 const productIds = products.map((product) => product.id);
-const getRoutines = (query: GetRoutinesQuery = {}) => request(ROUTINES_PATH, { method: 'GET', query });
+const findRoutines = (query: FindRoutinesQuery = {}) => request(ROUTINES_PATH, { method: 'GET', query });
 ```
 
 The block also makes "this returns nothing" explicit, which is load-bearing more often than it looks. `useEffect(() => doSomething())` hands React whatever `doSomething` returns as its cleanup function — a promise, if it is async — and React does not want it. `useEffect(() => { doSomething(); })` returns nothing, which is what was meant.

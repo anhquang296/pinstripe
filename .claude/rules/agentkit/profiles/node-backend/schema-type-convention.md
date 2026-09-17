@@ -6,7 +6,7 @@ agentkit:
   id: node-backend/schema-type-convention
   layer: profile
   profile: node-backend
-  requires: [core/naming-convention, core/typescript]
+  requires: [core/naming-convention, core/vocabulary-convention, core/typescript]
   since: 0.1.0
   generated: true
 ---
@@ -16,7 +16,7 @@ agentkit:
 
 # Schema & Type Convention
 
-Ensure consistency for the schemas that describe requests and responses, and for the types derived from them. Suffix vocabulary comes from [naming-convention.md](../../core/naming-convention.md#type-and-interface-suffixes).
+Ensure consistency for the schemas that describe requests and responses, and for the types derived from them. Suffix vocabulary comes from [vocabulary-convention.md](../../core/vocabulary-convention.md#type-and-interface-suffixes).
 
 Examples use TypeBox (`Type.Object`, `Static<typeof …>`). With Zod the rules are identical — `z.object`, `z.infer<typeof …>`.
 
@@ -36,15 +36,15 @@ Schemas are plain variables — declare them in **camelCase** with a `Schema` su
 
 - Entity / response-noun schema: `{noun}Schema` → `routineSchema`, `productSchema`
 - Route params schema: `{entity}ParamsSchema` → `routineParamsSchema`
-- Action DTO schema (querystring or body): `{action}{Entity|Entities}Schema` → `getRoutinesSchema`, `upsertRoutineSchema`. Never embed `Body` / `Query` in the schema name — the route wiring already says which position it occupies.
+- Action DTO schema (querystring or body): `{action}{Entity|Entities}Schema` → `findRoutinesSchema`, `upsertRoutineSchema`. Never embed `Body` / `Query` in the schema name — the route wiring already says which position it occupies.
 - Response schema of an action whose reply is not a plain entity: `{action}{Entity}ResponseSchema`, derived type `{Action}{Entity}Response`. `…Result` is reserved for values that never cross the wire — anything a route replies with is a `Response`.
-- List reads use the `get` action (`getRoutinesSchema`, never `listRoutinesSchema`). Repositories use `find`, services use `get` / `find`, the wire uses `get` — the layers differ on purpose.
+- List reads use the `find` action (`findRoutinesSchema`, never `getRoutinesSchema` or `listRoutinesSchema`) — a list read never misses, so it is `find` here exactly as it is in the repository and the service ([verb-convention.md § Verbs](../../core/verb-convention.md#verbs)). The action is the behaviour, never the layer.
 
 ```ts
 // CORRECT
 export const routineSchema = Type.Object({ ... });
 export const routineParamsSchema = Type.Object({ id: Type.String() });
-export const getRoutinesSchema = Type.Object({ ... });
+export const findRoutinesSchema = Type.Object({ ... });
 export const upsertRoutineSchema = Type.Object({ ... });
 
 // WRONG — PascalCase schema variable
@@ -52,7 +52,7 @@ export const RoutineSchema = Type.Object({ ... });
 
 // WRONG — Body/Query baked into the name
 export const UpdateSettingsBodySchema = Type.Object({ ... });
-export const GetRoutinesQuerySchema = Type.Object({ ... });
+export const FindRoutinesQuerySchema = Type.Object({ ... });
 ```
 
 ## Derived Type Naming
@@ -68,11 +68,11 @@ Only derive a type when something **outside the routes** actually consumes it �
 ```ts
 // CORRECT
 export type Routine = Static<typeof routineSchema>;
-export type GetRoutinesQuery = Static<typeof getRoutinesSchema>;
+export type FindRoutinesQuery = Static<typeof findRoutinesSchema>;
 export type UpsertRoutinePayload = Static<typeof upsertRoutineSchema>;
 
 // WRONG — suffix does not match the HTTP position
-export type GetRoutinesPayload = Static<typeof getRoutinesSchema>;
+export type FindRoutinesPayload = Static<typeof findRoutinesSchema>;
 export type UpsertRoutineBody = Static<typeof upsertRoutineSchema>;
 
 // WRONG — deriving a type nothing consumes
@@ -136,16 +136,16 @@ All `export const {name}Schema` declarations first, then a single block of `expo
 ```ts
 // CORRECT
 export const routineSchema = Type.Object({ ... });
-export const getRoutinesSchema = Type.Object({ ... });
+export const findRoutinesSchema = Type.Object({ ... });
 
 export type Routine = Static<typeof routineSchema>;
-export type GetRoutinesQuery = Static<typeof getRoutinesSchema>;
+export type FindRoutinesQuery = Static<typeof findRoutinesSchema>;
 
 // WRONG — schema and type interleaved pairwise
 export const routineSchema = Type.Object({ ... });
 export type Routine = Static<typeof routineSchema>;
-export const getRoutinesSchema = Type.Object({ ... });
-export type GetRoutinesQuery = Static<typeof getRoutinesSchema>;
+export const findRoutinesSchema = Type.Object({ ... });
+export type FindRoutinesQuery = Static<typeof findRoutinesSchema>;
 ```
 
 ## NEVER Do

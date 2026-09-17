@@ -6,7 +6,7 @@ agentkit:
   id: react/component-convention
   layer: profile
   profile: react
-  requires: [core/naming-convention, core/logging-convention]
+  requires: [core/naming-convention, core/vocabulary-convention, core/logging-convention]
   since: 0.1.0
   generated: true
 ---
@@ -16,7 +16,7 @@ agentkit:
 
 # React Component Convention
 
-File naming, single export, props, folder structure, handler naming. Vocabulary comes from [naming-convention.md](../../core/naming-convention.md).
+File naming, single export, props, folder structure, handler naming. Vocabulary comes from [vocabulary-convention.md](../../core/vocabulary-convention.md); how a name is assembled is in [naming-convention.md](../../core/naming-convention.md).
 
 ## Scope
 

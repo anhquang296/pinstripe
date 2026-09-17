@@ -58,7 +58,7 @@ A domain module then reads as a sentence, and an optional piece needs no branch:
 
 ```ts
 // CORRECT
-export const getRoutines = (query: GetRoutinesQuery = {}) => {
+export const findRoutines = (query: FindRoutinesQuery = {}) => {
   return Request<PaginatedResponse<Routine>>(Endpoint(ROUTINES_PATH), Method('GET'), Params(query));
 };
 
