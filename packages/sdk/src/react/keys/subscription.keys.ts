@@ -1,11 +1,11 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { GetSubscriptionsQuery } from '@type/contracts.types';
+import type { FindSubscriptionsQuery } from '@type/contracts.types';
 
 export function createSubscriptionQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.SUBSCRIPTION, {
-    subscriptions: (query?: GetSubscriptionsQuery) => {
+    subscriptions: (query?: FindSubscriptionsQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {

@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateInvoicePayload,
-  GetInvoicesQuery,
+  FindInvoicesQuery,
   GetUpcomingInvoiceQuery,
   InvoiceResponse,
   ListResponse,
@@ -23,7 +23,7 @@ export class InvoicesResource {
   }
 
   list(
-    query: GetInvoicesQuery = {},
+    query: FindInvoicesQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<InvoiceResponse>> {
     return this._transport.request({

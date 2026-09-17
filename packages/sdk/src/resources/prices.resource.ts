@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreatePricePayload,
-  GetPricesQuery,
+  FindPricesQuery,
   ListResponse,
   PriceResponse,
   UpdatePricePayload,
@@ -19,7 +19,10 @@ export class PricesResource {
     this._transport = transport;
   }
 
-  list(query: GetPricesQuery = {}, options?: RequestOptions): Promise<ListResponse<PriceResponse>> {
+  list(
+    query: FindPricesQuery = {},
+    options?: RequestOptions,
+  ): Promise<ListResponse<PriceResponse>> {
     return this._transport.request({
       path: PRICES_PATH,
       method: HttpMethodEnum.GET,

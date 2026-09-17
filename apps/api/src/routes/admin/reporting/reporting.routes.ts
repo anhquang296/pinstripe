@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
-  getReconciliationReportSchema,
-  getRevenueSummarySchema,
+  aggregateReconciliationReportSchema,
+  aggregateRevenueSummarySchema,
   reconciliationReportSchema,
   revenueSummarySchema,
 } from '@pinstripe/core/contracts';
@@ -10,9 +10,14 @@ import { ApiResponse } from '@utils/api-response';
 export const reportingRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/revenue',
-    { schema: { querystring: getRevenueSummarySchema, response: { 200: revenueSummarySchema } } },
+    {
+      schema: {
+        querystring: aggregateRevenueSummarySchema,
+        response: { 200: revenueSummarySchema },
+      },
+    },
     async (request, reply) => {
-      const summary = await fastify.reportingService.getRevenueSummary(request.query);
+      const summary = await fastify.reportingService.aggregateRevenueSummary(request.query);
 
       return ApiResponse.success(reply, summary);
     },
@@ -22,12 +27,14 @@ export const reportingRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/reconciliation',
     {
       schema: {
-        querystring: getReconciliationReportSchema,
+        querystring: aggregateReconciliationReportSchema,
         response: { 200: reconciliationReportSchema },
       },
     },
     async (request, reply) => {
-      const report = await fastify.reconciliationService.getReconciliationReport(request.query);
+      const report = await fastify.reconciliationService.aggregateReconciliationReport(
+        request.query,
+      );
 
       return ApiResponse.success(reply, report);
     },

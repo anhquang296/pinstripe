@@ -1,4 +1,4 @@
-import type { ApiErrorBody } from '@pinstripe/core/contracts';
+import type { ApiErrorResponse } from '@pinstripe/core/contracts';
 import type { ErrorType } from '@pinstripe/core/errors';
 import { AppError, ErrorTypeEnum } from '@pinstripe/core/errors';
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
@@ -10,7 +10,7 @@ function buildErrorBody(
   requestId: string,
   code?: string,
   param?: string,
-): ApiErrorBody {
+): ApiErrorResponse {
   return { error: { type, code, param, message, requestId } };
 }
 

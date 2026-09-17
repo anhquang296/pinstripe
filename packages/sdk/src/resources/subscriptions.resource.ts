@@ -4,7 +4,7 @@ import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CancelSubscriptionPayload,
   CreateSubscriptionPayload,
-  GetSubscriptionsQuery,
+  FindSubscriptionsQuery,
   ListResponse,
   SubscriptionResponse,
   UpdateSubscriptionPayload,
@@ -21,7 +21,7 @@ export class SubscriptionsResource {
   }
 
   list(
-    query: GetSubscriptionsQuery = {},
+    query: FindSubscriptionsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<SubscriptionResponse>> {
     return this._transport.request({

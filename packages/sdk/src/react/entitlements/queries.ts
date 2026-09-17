@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetEntitlementsQuery } from '@type/contracts.types';
+import type { FindEntitlementsQuery } from '@type/contracts.types';
 
 export function useEntitlementsQuery(
-  query?: GetEntitlementsQuery,
+  query?: FindEntitlementsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

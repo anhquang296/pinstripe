@@ -136,7 +136,7 @@ export const cancelSubscriptionSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getSubscriptionsSchema = Type.Object(
+export const findSubscriptionsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -152,4 +152,4 @@ export type SubscriptionItemResponse = Static<typeof subscriptionItemSchema>;
 export type CreateSubscriptionPayload = Static<typeof createSubscriptionSchema>;
 export type UpdateSubscriptionPayload = Static<typeof updateSubscriptionSchema>;
 export type CancelSubscriptionPayload = Static<typeof cancelSubscriptionSchema>;
-export type GetSubscriptionsQuery = Static<typeof getSubscriptionsSchema>;
+export type FindSubscriptionsQuery = Static<typeof findSubscriptionsSchema>;

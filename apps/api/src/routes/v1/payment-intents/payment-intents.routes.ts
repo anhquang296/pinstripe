@@ -3,7 +3,7 @@ import {
   cancelPaymentIntentSchema,
   confirmPaymentIntentSchema,
   createPaymentIntentSchema,
-  getPaymentIntentsSchema,
+  findPaymentIntentsSchema,
   ListResponseSchema,
   paymentIntentParamsSchema,
   paymentIntentSchema,
@@ -25,7 +25,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/',
     {
       schema: {
-        querystring: getPaymentIntentsSchema,
+        querystring: findPaymentIntentsSchema,
         response: { 200: ListResponseSchema(paymentIntentSchema) },
       },
     },

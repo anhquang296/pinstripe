@@ -8,7 +8,7 @@ import { PriceTypeEnum } from '@contracts/prices.types';
 import type {
   CancelSubscriptionPayload,
   CreateSubscriptionPayload,
-  GetSubscriptionsQuery,
+  FindSubscriptionsQuery,
   SubscriptionItemResponse,
   SubscriptionResponse,
   SubscriptionStatus,
@@ -122,7 +122,7 @@ export class SubscriptionService {
   }
 
   async findSubscriptions(
-    query: GetSubscriptionsQuery,
+    query: FindSubscriptionsQuery,
   ): Promise<ListResponse<SubscriptionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.subscriptionRepository.findSubscriptions(

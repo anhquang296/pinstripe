@@ -2,7 +2,7 @@ import type { RequestOptions } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
-  GetLedgerTransactionsQuery,
+  FindLedgerTransactionsQuery,
   LedgerTransactionResponse,
   ListResponse,
   PostLedgerTransactionPayload,
@@ -20,7 +20,7 @@ export class LedgerTransactionsResource {
   }
 
   list(
-    query: GetLedgerTransactionsQuery = {},
+    query: FindLedgerTransactionsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<LedgerTransactionResponse>> {
     return this._transport.request({

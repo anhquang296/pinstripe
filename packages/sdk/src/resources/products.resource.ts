@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateProductPayload,
-  GetProductsQuery,
+  FindProductsQuery,
   ListResponse,
   ProductResponse,
   UpdateProductPayload,
@@ -20,7 +20,7 @@ export class ProductsResource {
   }
 
   list(
-    query: GetProductsQuery = {},
+    query: FindProductsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<ProductResponse>> {
     return this._transport.request({

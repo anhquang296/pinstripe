@@ -44,7 +44,7 @@ export const createApiKeySchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getApiKeysSchema = Type.Object(
+export const findApiKeysSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -55,7 +55,7 @@ export const getApiKeysSchema = Type.Object(
 
 export type ApiKeyResponse = Static<typeof apiKeySchema>;
 export type CreateApiKeyPayload = Static<typeof createApiKeySchema>;
-export type GetApiKeysQuery = Static<typeof getApiKeysSchema>;
+export type FindApiKeysQuery = Static<typeof findApiKeysSchema>;
 
 export interface RequestAuth {
   apiKeyId: string;

@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createRefundSchema,
-  getRefundsSchema,
+  findRefundsSchema,
   ListResponseSchema,
   refundSchema,
 } from '@pinstripe/core/contracts';
@@ -23,7 +23,7 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
-        querystring: getRefundsSchema,
+        querystring: findRefundsSchema,
         response: { 200: ListResponseSchema(refundSchema) },
       },
     },

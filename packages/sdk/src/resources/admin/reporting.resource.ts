@@ -2,8 +2,8 @@ import type { RequestOptions } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
-  GetReconciliationReportQuery,
-  GetRevenueSummaryQuery,
+  AggregateReconciliationReportQuery,
+  AggregateRevenueSummaryQuery,
   ReconciliationReportResponse,
   RevenueSummaryResponse,
 } from '@type/contracts.types';
@@ -18,7 +18,7 @@ export class ReportingResource {
   }
 
   retrieveRevenueSummary(
-    query: GetRevenueSummaryQuery = {},
+    query: AggregateRevenueSummaryQuery = {},
     options?: RequestOptions,
   ): Promise<RevenueSummaryResponse> {
     return this._transport.request({
@@ -30,7 +30,7 @@ export class ReportingResource {
   }
 
   retrieveReconciliationReport(
-    query: GetReconciliationReportQuery,
+    query: AggregateReconciliationReportQuery,
     options?: RequestOptions,
   ): Promise<ReconciliationReportResponse> {
     return this._transport.request({

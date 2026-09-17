@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateWebhookEndpointPayload,
-  GetWebhookEndpointsQuery,
+  FindWebhookEndpointsQuery,
   ListResponse,
   UpdateWebhookEndpointPayload,
   WebhookEndpointResponse,
@@ -20,7 +20,7 @@ export class WebhookEndpointsResource {
   }
 
   list(
-    query: GetWebhookEndpointsQuery = {},
+    query: FindWebhookEndpointsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<WebhookEndpointResponse>> {
     return this._transport.request({

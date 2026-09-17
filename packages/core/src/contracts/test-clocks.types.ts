@@ -35,7 +35,7 @@ export const advanceTestClockSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getTestClocksSchema = Type.Object(
+export const findTestClocksSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -47,4 +47,4 @@ export const getTestClocksSchema = Type.Object(
 export type TestClockResponse = Static<typeof testClockSchema>;
 export type CreateTestClockPayload = Static<typeof createTestClockSchema>;
 export type AdvanceTestClockPayload = Static<typeof advanceTestClockSchema>;
-export type GetTestClocksQuery = Static<typeof getTestClocksSchema>;
+export type FindTestClocksQuery = Static<typeof findTestClocksSchema>;

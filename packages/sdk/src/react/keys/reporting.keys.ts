@@ -1,11 +1,14 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { GetReconciliationReportQuery, GetRevenueSummaryQuery } from '@type/contracts.types';
+import type {
+  AggregateReconciliationReportQuery,
+  AggregateRevenueSummaryQuery,
+} from '@type/contracts.types';
 
 export function createReportingQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.REPORTING, {
-    revenue: (query?: GetRevenueSummaryQuery) => {
+    revenue: (query?: AggregateRevenueSummaryQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {
@@ -13,7 +16,7 @@ export function createReportingQueries(client: PinstripeClient) {
         },
       };
     },
-    reconciliation: (query: GetReconciliationReportQuery) => {
+    reconciliation: (query: AggregateReconciliationReportQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {

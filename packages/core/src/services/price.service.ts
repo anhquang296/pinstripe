@@ -4,7 +4,7 @@ import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
   BillingScheme,
   CreatePricePayload,
-  GetPricesQuery,
+  FindPricesQuery,
   PriceResponse,
   UpdatePricePayload,
   UsageType,
@@ -192,7 +192,7 @@ export class PriceService {
     );
   }
 
-  async findPrices(query: GetPricesQuery): Promise<ListResponse<PriceResponse>> {
+  async findPrices(query: FindPricesQuery): Promise<ListResponse<PriceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);

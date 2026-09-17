@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetPaymentIntentsQuery, GetRefundsQuery } from '@type/contracts.types';
+import type { FindPaymentIntentsQuery, FindRefundsQuery } from '@type/contracts.types';
 
 export function usePaymentIntentsQuery(
-  query?: GetPaymentIntentsQuery,
+  query?: FindPaymentIntentsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();
@@ -17,7 +17,7 @@ export function usePaymentIntentsQuery(
 }
 
 export function useRefundsQuery(
-  query?: GetRefundsQuery,
+  query?: FindRefundsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createInvoiceSchema,
-  getInvoicesSchema,
+  findInvoicesSchema,
   getUpcomingInvoiceSchema,
   invoiceParamsSchema,
   invoiceSchema,
@@ -44,7 +44,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
-        querystring: getInvoicesSchema,
+        querystring: findInvoicesSchema,
         response: { 200: ListResponseSchema(invoiceSchema) },
       },
     },

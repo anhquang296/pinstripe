@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
-  getWebhookDeliveriesSchema,
+  findWebhookDeliveriesSchema,
   ListResponseSchema,
   webhookDeliverySchema,
 } from '@pinstripe/core/contracts';
@@ -11,7 +11,7 @@ export const webhookDeliveriesRoutes: FastifyPluginAsyncTypebox = async (fastify
     '/',
     {
       schema: {
-        querystring: getWebhookDeliveriesSchema,
+        querystring: findWebhookDeliveriesSchema,
         response: { 200: ListResponseSchema(webhookDeliverySchema) },
       },
     },

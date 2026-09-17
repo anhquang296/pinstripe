@@ -1,8 +1,8 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createMeterSchema,
-  getMeterEventSummariesSchema,
-  getMetersSchema,
+  findMetersSchema,
+  getMeterEventSummarySchema,
   ListResponseSchema,
   meterEventSummarySchema,
   meterParamsSchema,
@@ -26,7 +26,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/',
     {
-      schema: { querystring: getMetersSchema, response: { 200: ListResponseSchema(meterSchema) } },
+      schema: { querystring: findMetersSchema, response: { 200: ListResponseSchema(meterSchema) } },
     },
     async (request, reply) => {
       const meters = await fastify.meterService.findMeters(request.query);
@@ -66,7 +66,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     {
       schema: {
         params: meterParamsSchema,
-        querystring: getMeterEventSummariesSchema,
+        querystring: getMeterEventSummarySchema,
         response: { 200: meterEventSummarySchema },
       },
     },

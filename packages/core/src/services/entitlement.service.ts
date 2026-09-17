@@ -1,5 +1,5 @@
 import { MAX_ITEMS_PER_SUBSCRIPTION } from '@constants/subscription';
-import type { EntitlementResponse, GetEntitlementsQuery } from '@contracts/entitlements.types';
+import type { EntitlementResponse, FindEntitlementsQuery } from '@contracts/entitlements.types';
 import type { EntitlementStatus } from '@contracts/entitlements.types';
 import { EntitlementStatusEnum } from '@contracts/entitlements.types';
 import type { ListResponse } from '@contracts/pagination.types';
@@ -95,7 +95,7 @@ export class EntitlementService {
     return status;
   }
 
-  async findEntitlements(query: GetEntitlementsQuery): Promise<ListResponse<EntitlementResponse>> {
+  async findEntitlements(query: FindEntitlementsQuery): Promise<ListResponse<EntitlementResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const entitlementRows = await this.fastify.entitlementRepository.findEntitlements(
       { customerId: query.customerId, productId: query.productId },

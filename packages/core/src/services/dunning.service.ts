@@ -23,7 +23,7 @@ export enum DunningOutcomeEnum {
 
 export type DunningOutcome = `${DunningOutcomeEnum}`;
 
-export interface DunningOptions {
+export interface DunningServiceConfig {
   batchSize: number;
   retryDelayDays: readonly number[];
 }
@@ -36,7 +36,7 @@ export type DunningRunResult = Record<DunningOutcome, number> & {
 export class DunningService {
   constructor(
     private readonly fastify: FastifyInstance,
-    private readonly options: DunningOptions,
+    private readonly config: DunningServiceConfig,
   ) {}
 
   async runDunningShard(job: DunningRunShardJob): Promise<DunningRunResult> {
@@ -48,7 +48,7 @@ export class DunningService {
         shardCount: job.shardCount,
         shardIndex: job.shardIndex,
       },
-      this.options.batchSize,
+      this.config.batchSize,
     );
 
     const dunningRun: DunningRunResult = {
@@ -111,7 +111,7 @@ export class DunningService {
     }
 
     const attemptCount = invoice.attemptCount + 1;
-    const nextDelayDays = this.options.retryDelayDays[attemptCount];
+    const nextDelayDays = this.config.retryDelayDays[attemptCount];
 
     if (_.isNil(nextDelayDays)) {
       await this.abandonInvoice(invoice, runAt, attemptCount);

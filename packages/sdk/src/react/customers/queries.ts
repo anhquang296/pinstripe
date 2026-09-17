@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetCustomersQuery } from '@type/contracts.types';
+import type { FindCustomersQuery } from '@type/contracts.types';
 
 export function useCustomersQuery(
-  query?: GetCustomersQuery,
+  query?: FindCustomersQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

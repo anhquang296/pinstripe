@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   EntitlementResponse,
-  GetEntitlementsQuery,
+  FindEntitlementsQuery,
   ListResponse,
 } from '@type/contracts.types';
 
@@ -17,7 +17,7 @@ export class EntitlementsResource {
   }
 
   list(
-    query: GetEntitlementsQuery = {},
+    query: FindEntitlementsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<EntitlementResponse>> {
     return this._transport.request({

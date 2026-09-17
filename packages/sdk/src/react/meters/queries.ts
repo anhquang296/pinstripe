@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetMeterEventSummariesQuery, GetMetersQuery } from '@type/contracts.types';
+import type { FindMetersQuery, GetMeterEventSummaryQuery } from '@type/contracts.types';
 
 export function useMetersQuery(
-  query?: GetMetersQuery,
+  query?: FindMetersQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();
@@ -24,7 +24,7 @@ export function useMeterQuery(meterId: string, { enabled = true }: QueryProps = 
 
 export function useMeterEventSummaryQuery(
   meterId: string,
-  query: GetMeterEventSummariesQuery,
+  query: GetMeterEventSummaryQuery,
   { enabled = true }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

@@ -1,11 +1,11 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { GetLedgerAccountsQuery, GetLedgerTransactionsQuery } from '@type/contracts.types';
+import type { FindLedgerAccountsQuery, FindLedgerTransactionsQuery } from '@type/contracts.types';
 
 export function createLedgerQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.LEDGER, {
-    accounts: (query?: GetLedgerAccountsQuery) => {
+    accounts: (query?: FindLedgerAccountsQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {
@@ -13,7 +13,7 @@ export function createLedgerQueries(client: PinstripeClient) {
         },
       };
     },
-    transactions: (query?: GetLedgerTransactionsQuery) => {
+    transactions: (query?: FindLedgerTransactionsQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {

@@ -2,7 +2,7 @@ import type { RequestOptions } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
-  GetWebhookDeliveriesQuery,
+  FindWebhookDeliveriesQuery,
   ListResponse,
   WebhookDeliveryResponse,
 } from '@type/contracts.types';
@@ -17,7 +17,7 @@ export class WebhookDeliveriesResource {
   }
 
   list(
-    query: GetWebhookDeliveriesQuery = {},
+    query: FindWebhookDeliveriesQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<WebhookDeliveryResponse>> {
     return this._transport.request({

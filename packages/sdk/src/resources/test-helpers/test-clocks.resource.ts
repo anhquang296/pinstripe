@@ -4,7 +4,7 @@ import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   AdvanceTestClockPayload,
   CreateTestClockPayload,
-  GetTestClocksQuery,
+  FindTestClocksQuery,
   ListResponse,
   TestClockResponse,
 } from '@type/contracts.types';
@@ -20,7 +20,7 @@ export class TestClocksResource {
   }
 
   list(
-    query: GetTestClocksQuery = {},
+    query: FindTestClocksQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<TestClockResponse>> {
     return this._transport.request({

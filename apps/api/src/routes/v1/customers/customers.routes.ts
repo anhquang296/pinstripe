@@ -4,7 +4,7 @@ import {
   customerParamsSchema,
   customerSchema,
   deletedCustomerSchema,
-  getCustomersSchema,
+  findCustomersSchema,
   ListResponseSchema,
   updateCustomerSchema,
 } from '@pinstripe/core/contracts';
@@ -29,7 +29,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
-        querystring: getCustomersSchema,
+        querystring: findCustomersSchema,
         response: { 200: ListResponseSchema(customerSchema) },
       },
     },

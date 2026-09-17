@@ -151,7 +151,7 @@ export const reverseLedgerTransactionSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getLedgerTransactionsSchema = Type.Object(
+export const findLedgerTransactionsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -162,7 +162,7 @@ export const getLedgerTransactionsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getLedgerAccountsSchema = Type.Object(
+export const findLedgerAccountsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 100 })),
     startingAfter: Type.Optional(Type.String()),
@@ -178,5 +178,5 @@ export type LedgerPostingResponse = Static<typeof ledgerPostingSchema>;
 export type LedgerTransactionResponse = Static<typeof ledgerTransactionSchema>;
 export type PostLedgerTransactionPayload = Static<typeof postLedgerTransactionSchema>;
 export type ReverseLedgerTransactionPayload = Static<typeof reverseLedgerTransactionSchema>;
-export type GetLedgerTransactionsQuery = Static<typeof getLedgerTransactionsSchema>;
-export type GetLedgerAccountsQuery = Static<typeof getLedgerAccountsSchema>;
+export type FindLedgerTransactionsQuery = Static<typeof findLedgerTransactionsSchema>;
+export type FindLedgerAccountsQuery = Static<typeof findLedgerAccountsSchema>;

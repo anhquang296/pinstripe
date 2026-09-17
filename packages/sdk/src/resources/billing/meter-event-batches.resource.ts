@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateMeterEventBatchPayload,
-  MeterEventBatchResultResponse,
+  CreateMeterEventBatchResponse,
 } from '@type/contracts.types';
 
 const METER_EVENT_BATCHES_PATH = '/v1/billing/meter_event_batches';
@@ -18,7 +18,7 @@ export class MeterEventBatchesResource {
   create(
     payload: CreateMeterEventBatchPayload,
     options?: RequestOptions,
-  ): Promise<MeterEventBatchResultResponse> {
+  ): Promise<CreateMeterEventBatchResponse> {
     return this._transport.request({
       path: METER_EVENT_BATCHES_PATH,
       method: HttpMethodEnum.POST,

@@ -1,7 +1,7 @@
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type {
-  GetLedgerAccountsQuery,
-  GetLedgerTransactionsQuery,
+  FindLedgerAccountsQuery,
+  FindLedgerTransactionsQuery,
   LedgerAccountCode,
   LedgerAccountResponse,
   LedgerPostingResponse,
@@ -128,7 +128,7 @@ export class LedgerService {
   }
 
   async findTransactions(
-    query: GetLedgerTransactionsQuery,
+    query: FindLedgerTransactionsQuery,
   ): Promise<ListResponse<LedgerTransactionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountId = await this.resolveAccountFilter(query);
@@ -172,7 +172,7 @@ export class LedgerService {
     throw new NotFoundError(`No such ledger account: ${id}`);
   }
 
-  async findAccounts(query: GetLedgerAccountsQuery): Promise<ListResponse<LedgerAccountResponse>> {
+  async findAccounts(query: FindLedgerAccountsQuery): Promise<ListResponse<LedgerAccountResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountRows = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
       { code: query.code, customerId: query.customerId },
@@ -378,7 +378,7 @@ export class LedgerService {
   }
 
   private async resolveAccountFilter(
-    query: GetLedgerTransactionsQuery,
+    query: FindLedgerTransactionsQuery,
   ): Promise<string | undefined> {
     if (query.accountId) {
       return query.accountId;

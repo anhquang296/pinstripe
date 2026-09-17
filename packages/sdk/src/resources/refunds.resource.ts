@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateRefundPayload,
-  GetRefundsQuery,
+  FindRefundsQuery,
   ListResponse,
   RefundResponse,
 } from '@type/contracts.types';
@@ -19,7 +19,7 @@ export class RefundsResource {
   }
 
   list(
-    query: GetRefundsQuery = {},
+    query: FindRefundsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<RefundResponse>> {
     return this._transport.request({

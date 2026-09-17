@@ -112,7 +112,7 @@ export const createRefundSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getPaymentIntentsSchema = Type.Object(
+export const findPaymentIntentsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -124,7 +124,7 @@ export const getPaymentIntentsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getRefundsSchema = Type.Object(
+export const findRefundsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -141,5 +141,5 @@ export type CreatePaymentIntentPayload = Static<typeof createPaymentIntentSchema
 export type ConfirmPaymentIntentPayload = Static<typeof confirmPaymentIntentSchema>;
 export type CancelPaymentIntentPayload = Static<typeof cancelPaymentIntentSchema>;
 export type CreateRefundPayload = Static<typeof createRefundSchema>;
-export type GetPaymentIntentsQuery = Static<typeof getPaymentIntentsSchema>;
-export type GetRefundsQuery = Static<typeof getRefundsSchema>;
+export type FindPaymentIntentsQuery = Static<typeof findPaymentIntentsSchema>;
+export type FindRefundsQuery = Static<typeof findRefundsSchema>;

@@ -2,7 +2,7 @@ import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types'
 import type {
   CreateCreditNotePayload,
   CreditNoteResponse,
-  GetCreditNotesQuery,
+  FindCreditNotesQuery,
 } from '@contracts/invoices.types';
 import { InvoiceStatusEnum, NumberSequenceEnum } from '@contracts/invoices.types';
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
@@ -97,7 +97,7 @@ export class CreditNoteService {
     throw new NotFoundError(`No such credit note: ${id}`);
   }
 
-  async findCreditNotes(query: GetCreditNotesQuery): Promise<ListResponse<CreditNoteResponse>> {
+  async findCreditNotes(query: FindCreditNotesQuery): Promise<ListResponse<CreditNoteResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);

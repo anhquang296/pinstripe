@@ -1,7 +1,7 @@
 import { PostingDirectionEnum } from '@contracts/ledger.types';
 import { PaymentIntentStatusEnum } from '@contracts/payments.types';
 import type {
-  GetReconciliationReportQuery,
+  AggregateReconciliationReportQuery,
   ReconciliationReportResponse,
 } from '@contracts/reporting.types';
 import { ReconciliationOutcomeEnum } from '@contracts/reporting.types';
@@ -23,8 +23,8 @@ interface ProcessorMovement {
 export class ReconciliationService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async getReconciliationReport(
-    query: GetReconciliationReportQuery,
+  async aggregateReconciliationReport(
+    query: AggregateReconciliationReportQuery,
   ): Promise<ReconciliationReportResponse> {
     const windowStart = new Date(query.windowStart);
     const windowEnd = new Date(query.windowEnd);

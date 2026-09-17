@@ -3,8 +3,8 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateMeterPayload,
-  GetMeterEventSummariesQuery,
-  GetMetersQuery,
+  FindMetersQuery,
+  GetMeterEventSummaryQuery,
   ListResponse,
   MeterEventSummaryResponse,
   MeterResponse,
@@ -21,7 +21,10 @@ export class MetersResource {
     this._transport = transport;
   }
 
-  list(query: GetMetersQuery = {}, options?: RequestOptions): Promise<ListResponse<MeterResponse>> {
+  list(
+    query: FindMetersQuery = {},
+    options?: RequestOptions,
+  ): Promise<ListResponse<MeterResponse>> {
     return this._transport.request({
       path: METERS_PATH,
       method: HttpMethodEnum.GET,
@@ -62,7 +65,7 @@ export class MetersResource {
 
   retrieveEventSummary(
     meterId: string,
-    query: GetMeterEventSummariesQuery,
+    query: GetMeterEventSummaryQuery,
     options?: RequestOptions,
   ): Promise<MeterEventSummaryResponse> {
     return this._transport.request({

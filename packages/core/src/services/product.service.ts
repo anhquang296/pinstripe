@@ -3,7 +3,7 @@ import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
   CreateProductPayload,
-  GetProductsQuery,
+  FindProductsQuery,
   ProductResponse,
   UpdateProductPayload,
 } from '@contracts/products.types';
@@ -103,7 +103,7 @@ export class ProductService {
     return ProductService.buildProduct(updatedProduct);
   }
 
-  async findProducts(query: GetProductsQuery): Promise<ListResponse<ProductResponse>> {
+  async findProducts(query: FindProductsQuery): Promise<ListResponse<ProductResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);

@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetPricesQuery } from '@type/contracts.types';
+import type { FindPricesQuery } from '@type/contracts.types';
 
 export function usePricesQuery(
-  query?: GetPricesQuery,
+  query?: FindPricesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

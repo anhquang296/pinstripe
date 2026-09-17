@@ -125,7 +125,7 @@ export const createCreditNoteSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getInvoicesSchema = Type.Object(
+export const findInvoicesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -137,7 +137,7 @@ export const getInvoicesSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getCreditNotesSchema = Type.Object(
+export const findCreditNotesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -154,5 +154,5 @@ export type CreateInvoicePayload = Static<typeof createInvoiceSchema>;
 export type VoidInvoicePayload = Static<typeof voidInvoiceSchema>;
 export type PayInvoicePayload = Static<typeof payInvoiceSchema>;
 export type CreateCreditNotePayload = Static<typeof createCreditNoteSchema>;
-export type GetInvoicesQuery = Static<typeof getInvoicesSchema>;
-export type GetCreditNotesQuery = Static<typeof getCreditNotesSchema>;
+export type FindInvoicesQuery = Static<typeof findInvoicesSchema>;
+export type FindCreditNotesQuery = Static<typeof findCreditNotesSchema>;

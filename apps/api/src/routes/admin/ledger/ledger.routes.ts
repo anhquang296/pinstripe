@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
-  getLedgerAccountsSchema,
-  getLedgerTransactionsSchema,
+  findLedgerAccountsSchema,
+  findLedgerTransactionsSchema,
   ledgerAccountParamsSchema,
   ledgerAccountSchema,
   ledgerTransactionParamsSchema,
@@ -18,7 +18,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/accounts',
     {
       schema: {
-        querystring: getLedgerAccountsSchema,
+        querystring: findLedgerAccountsSchema,
         response: { 200: ListResponseSchema(ledgerAccountSchema) },
       },
     },
@@ -43,7 +43,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/transactions',
     {
       schema: {
-        querystring: getLedgerTransactionsSchema,
+        querystring: findLedgerTransactionsSchema,
         response: { 200: ListResponseSchema(ledgerTransactionSchema) },
       },
     },

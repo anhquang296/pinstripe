@@ -20,6 +20,7 @@ export function base({ ignores = [], tsconfigRootDir } = {}) {
         '*.config.js',
         '*.config.mjs',
         '*.config.ts',
+        '**/*.bundled_*.mjs',
         ...ignores,
       ],
     },

@@ -5,7 +5,7 @@ import type {
   CreateCustomerPayload,
   CustomerResponse,
   DeletedCustomerResponse,
-  GetCustomersQuery,
+  FindCustomersQuery,
   ListResponse,
   UpdateCustomerPayload,
 } from '@type/contracts.types';
@@ -21,7 +21,7 @@ export class CustomersResource {
   }
 
   list(
-    query: GetCustomersQuery = {},
+    query: FindCustomersQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<CustomerResponse>> {
     return this._transport.request({

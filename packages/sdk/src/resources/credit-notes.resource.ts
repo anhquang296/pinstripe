@@ -4,7 +4,7 @@ import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateCreditNotePayload,
   CreditNoteResponse,
-  GetCreditNotesQuery,
+  FindCreditNotesQuery,
   ListResponse,
 } from '@type/contracts.types';
 import { buildPath } from '@utils/build-path';
@@ -19,7 +19,7 @@ export class CreditNotesResource {
   }
 
   list(
-    query: GetCreditNotesQuery = {},
+    query: FindCreditNotesQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<CreditNoteResponse>> {
     return this._transport.request({

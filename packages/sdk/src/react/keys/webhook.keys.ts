@@ -1,11 +1,11 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { GetWebhookDeliveriesQuery, GetWebhookEndpointsQuery } from '@type/contracts.types';
+import type { FindWebhookDeliveriesQuery, FindWebhookEndpointsQuery } from '@type/contracts.types';
 
 export function createWebhookQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.WEBHOOK, {
-    endpoints: (query?: GetWebhookEndpointsQuery) => {
+    endpoints: (query?: FindWebhookEndpointsQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {
@@ -13,7 +13,7 @@ export function createWebhookQueries(client: PinstripeClient) {
         },
       };
     },
-    deliveries: (query?: GetWebhookDeliveriesQuery) => {
+    deliveries: (query?: FindWebhookDeliveriesQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {

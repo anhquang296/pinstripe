@@ -2,7 +2,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   advanceTestClockSchema,
   createTestClockSchema,
-  getTestClocksSchema,
+  findTestClocksSchema,
   ListResponseSchema,
   testClockParamsSchema,
   testClockSchema,
@@ -24,7 +24,7 @@ export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
-        querystring: getTestClocksSchema,
+        querystring: findTestClocksSchema,
         response: { 200: ListResponseSchema(testClockSchema) },
       },
     },

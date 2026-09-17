@@ -20,7 +20,7 @@ export const entitlementSchema = Type.Object({
   updatedAt: Type.String(),
 });
 
-export const getEntitlementsSchema = Type.Object(
+export const findEntitlementsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -32,4 +32,4 @@ export const getEntitlementsSchema = Type.Object(
 );
 
 export type EntitlementResponse = Static<typeof entitlementSchema>;
-export type GetEntitlementsQuery = Static<typeof getEntitlementsSchema>;
+export type FindEntitlementsQuery = Static<typeof findEntitlementsSchema>;

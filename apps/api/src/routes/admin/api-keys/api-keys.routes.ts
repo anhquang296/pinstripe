@@ -3,7 +3,7 @@ import {
   apiKeyParamsSchema,
   apiKeySchema,
   createApiKeySchema,
-  getApiKeysSchema,
+  findApiKeysSchema,
   ListResponseSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
@@ -23,7 +23,7 @@ export const apiKeysRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
-        querystring: getApiKeysSchema,
+        querystring: findApiKeysSchema,
         response: { 200: ListResponseSchema(apiKeySchema) },
       },
     },

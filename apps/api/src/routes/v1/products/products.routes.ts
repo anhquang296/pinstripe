@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createProductSchema,
-  getProductsSchema,
+  findProductsSchema,
   ListResponseSchema,
   productParamsSchema,
   productSchema,
@@ -28,7 +28,7 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
-        querystring: getProductsSchema,
+        querystring: findProductsSchema,
         response: { 200: ListResponseSchema(productSchema) },
       },
     },

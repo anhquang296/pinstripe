@@ -1,11 +1,11 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { GetMeterEventSummariesQuery, GetMetersQuery } from '@type/contracts.types';
+import type { FindMetersQuery, GetMeterEventSummaryQuery } from '@type/contracts.types';
 
 export function createMeterQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.METER, {
-    meters: (query?: GetMetersQuery) => {
+    meters: (query?: FindMetersQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {
@@ -21,7 +21,7 @@ export function createMeterQueries(client: PinstripeClient) {
         },
       };
     },
-    eventSummary: (meterId: string, query: GetMeterEventSummariesQuery) => {
+    eventSummary: (meterId: string, query: GetMeterEventSummaryQuery) => {
       return {
         queryKey: [meterId, query],
         queryFn: () => {

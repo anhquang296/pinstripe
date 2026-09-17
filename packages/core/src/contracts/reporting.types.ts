@@ -49,7 +49,7 @@ export const reconciliationReportSchema = Type.Object({
   ),
 });
 
-export const getRevenueSummarySchema = Type.Object(
+export const aggregateRevenueSummarySchema = Type.Object(
   {
     currency: Type.Optional(Type.Unsafe<Currency>(Type.Enum(CurrencyEnum))),
     windowStart: Type.Optional(Type.String({ format: 'date-time' })),
@@ -58,7 +58,7 @@ export const getRevenueSummarySchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getReconciliationReportSchema = Type.Object(
+export const aggregateReconciliationReportSchema = Type.Object(
   {
     windowStart: Type.String({ format: 'date-time' }),
     windowEnd: Type.String({ format: 'date-time' }),
@@ -68,5 +68,5 @@ export const getReconciliationReportSchema = Type.Object(
 
 export type RevenueSummaryResponse = Static<typeof revenueSummarySchema>;
 export type ReconciliationReportResponse = Static<typeof reconciliationReportSchema>;
-export type GetRevenueSummaryQuery = Static<typeof getRevenueSummarySchema>;
-export type GetReconciliationReportQuery = Static<typeof getReconciliationReportSchema>;
+export type AggregateRevenueSummaryQuery = Static<typeof aggregateRevenueSummarySchema>;
+export type AggregateReconciliationReportQuery = Static<typeof aggregateReconciliationReportSchema>;

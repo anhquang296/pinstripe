@@ -52,7 +52,7 @@ export const updateMeterSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getMetersSchema = Type.Object(
+export const findMetersSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -94,7 +94,7 @@ export const createMeterEventBatchSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const meterEventBatchResultSchema = Type.Object({
+export const createMeterEventBatchResponseSchema = Type.Object({
   object: Type.Literal('meter_event_batch'),
   accepted: Type.Integer(),
   duplicates: Type.Integer(),
@@ -111,7 +111,7 @@ export const meterEventSummarySchema = Type.Object({
   windowEnd: Type.String(),
 });
 
-export const getMeterEventSummariesSchema = Type.Object(
+export const getMeterEventSummarySchema = Type.Object(
   {
     customerId: Type.String({ minLength: 1 }),
     windowStart: Type.String({ format: 'date-time' }),
@@ -124,11 +124,11 @@ export const getMeterEventSummariesSchema = Type.Object(
 
 export type MeterResponse = Static<typeof meterSchema>;
 export type MeterEventResponse = Static<typeof meterEventSchema>;
-export type MeterEventBatchResultResponse = Static<typeof meterEventBatchResultSchema>;
+export type CreateMeterEventBatchResponse = Static<typeof createMeterEventBatchResponseSchema>;
 export type MeterEventSummaryResponse = Static<typeof meterEventSummarySchema>;
 export type CreateMeterPayload = Static<typeof createMeterSchema>;
 export type UpdateMeterPayload = Static<typeof updateMeterSchema>;
-export type GetMetersQuery = Static<typeof getMetersSchema>;
+export type FindMetersQuery = Static<typeof findMetersSchema>;
 export type CreateMeterEventPayload = Static<typeof createMeterEventSchema>;
 export type CreateMeterEventBatchPayload = Static<typeof createMeterEventBatchSchema>;
-export type GetMeterEventSummariesQuery = Static<typeof getMeterEventSummariesSchema>;
+export type GetMeterEventSummaryQuery = Static<typeof getMeterEventSummarySchema>;

@@ -1,8 +1,8 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
+  createMeterEventBatchResponseSchema,
   createMeterEventBatchSchema,
   createMeterEventSchema,
-  meterEventBatchResultSchema,
   meterEventSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
@@ -23,7 +23,7 @@ export const meterEventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     {
       schema: {
         body: createMeterEventBatchSchema,
-        response: { 202: meterEventBatchResultSchema },
+        response: { 202: createMeterEventBatchResponseSchema },
       },
     },
     async (request, reply) => {

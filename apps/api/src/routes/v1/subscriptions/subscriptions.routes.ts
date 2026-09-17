@@ -2,7 +2,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   cancelSubscriptionSchema,
   createSubscriptionSchema,
-  getSubscriptionsSchema,
+  findSubscriptionsSchema,
   ListResponseSchema,
   subscriptionParamsSchema,
   subscriptionSchema,
@@ -25,7 +25,7 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/',
     {
       schema: {
-        querystring: getSubscriptionsSchema,
+        querystring: findSubscriptionsSchema,
         response: { 200: ListResponseSchema(subscriptionSchema) },
       },
     },

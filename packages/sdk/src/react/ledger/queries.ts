@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetLedgerAccountsQuery, GetLedgerTransactionsQuery } from '@type/contracts.types';
+import type { FindLedgerAccountsQuery, FindLedgerTransactionsQuery } from '@type/contracts.types';
 
 export function useLedgerAccountsQuery(
-  query?: GetLedgerAccountsQuery,
+  query?: FindLedgerAccountsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();
@@ -17,7 +17,7 @@ export function useLedgerAccountsQuery(
 }
 
 export function useLedgerTransactionsQuery(
-  query?: GetLedgerTransactionsQuery,
+  query?: FindLedgerTransactionsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

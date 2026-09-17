@@ -7,7 +7,7 @@ import type {
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import { isRetryableMethod, isRetryableStatus, resolveBackoffMs } from '@client/retry';
 import { PinstripeConnectionError, PinstripeError } from '@errors/pinstripe.error';
-import type { ApiErrorBody } from '@type/contracts.types';
+import type { ApiErrorResponse } from '@type/contracts.types';
 import { buildQuery } from '@utils/build-query';
 
 const MUTATING_METHODS: HttpMethod[] = [
@@ -183,7 +183,7 @@ export class PinstripeTransport {
 
   private async _buildError(response: Response): Promise<Error> {
     const body = await readJsonBody(response);
-    const envelope = body as ApiErrorBody | null;
+    const envelope = body as ApiErrorResponse | null;
     const apiError = envelope?.error;
 
     if (apiError) {

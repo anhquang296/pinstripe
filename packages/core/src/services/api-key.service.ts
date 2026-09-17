@@ -5,7 +5,7 @@ import type {
   ApiKeyScope,
   ApiKeyType,
   CreateApiKeyPayload,
-  GetApiKeysQuery,
+  FindApiKeysQuery,
   RequestAuth,
 } from '@contracts/api-keys.types';
 import { ApiKeyTypeEnum } from '@contracts/api-keys.types';
@@ -60,7 +60,7 @@ export class ApiKeyService {
     throw new NotFoundError('Api key could not be created');
   }
 
-  async findApiKeys(query: GetApiKeysQuery): Promise<ListResponse<ApiKeyResponse>> {
+  async findApiKeys(query: FindApiKeysQuery): Promise<ListResponse<ApiKeyResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);

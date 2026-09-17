@@ -11,7 +11,7 @@ import {
   meterFormDefaultValues,
   meterFormResolver,
 } from '@forms/meter-form';
-import type { GetMeterEventSummariesQuery } from '@pinstripe/sdk';
+import type { GetMeterEventSummaryQuery } from '@pinstripe/sdk';
 import {
   useCreateMeterEventMutation,
   useCreateMeterMutation,
@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 
 const USAGE_WINDOW_DAYS = 30;
 
-function buildUsageWindow(customerId: string): GetMeterEventSummariesQuery {
+function buildUsageWindow(customerId: string): GetMeterEventSummaryQuery {
   const now = Date.now();
 
   return {
@@ -39,7 +39,7 @@ export default function MetersPage() {
   const [selectedMeterId, setSelectedMeterId] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [eventValue, setEventValue] = useState('1');
-  const [usageWindow, setUsageWindow] = useState<GetMeterEventSummariesQuery>(() => {
+  const [usageWindow, setUsageWindow] = useState<GetMeterEventSummaryQuery>(() => {
     return buildUsageWindow('');
   });
 

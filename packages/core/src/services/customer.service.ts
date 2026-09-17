@@ -2,7 +2,7 @@ import type {
   CreateCustomerPayload,
   CustomerResponse,
   DeletedCustomerResponse,
-  GetCustomersQuery,
+  FindCustomersQuery,
   UpdateCustomerPayload,
 } from '@contracts/customers.types';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
@@ -154,7 +154,7 @@ export class CustomerService {
     return { object: 'customer', id, deleted: true };
   }
 
-  async findCustomers(query: GetCustomersQuery): Promise<ListResponse<CustomerResponse>> {
+  async findCustomers(query: FindCustomersQuery): Promise<ListResponse<CustomerResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);

@@ -1,5 +1,8 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
-import type { GetRevenueSummaryQuery, RevenueSummaryResponse } from '@contracts/reporting.types';
+import type {
+  AggregateRevenueSummaryQuery,
+  RevenueSummaryResponse,
+} from '@contracts/reporting.types';
 import { CurrencyEnum } from '@utils/currency';
 import { buildMonthlyAmount } from '@utils/recurring-amount';
 import type { FastifyInstance } from 'fastify';
@@ -12,7 +15,9 @@ const CHURN_PRECISION = 4;
 export class ReportingService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async getRevenueSummary(query: GetRevenueSummaryQuery): Promise<RevenueSummaryResponse> {
+  async aggregateRevenueSummary(
+    query: AggregateRevenueSummaryQuery,
+  ): Promise<RevenueSummaryResponse> {
     const currency = query.currency ?? CurrencyEnum.VND;
     const now = this.fastify.clock.now();
     const windowEnd = query.windowEnd ? new Date(query.windowEnd) : now;

@@ -1,3 +1,5 @@
+import '@plugins/fastify.augmentation';
+
 export * from '@services/api-key.service';
 export * from '@services/billing-run.service';
 export * from '@services/credit-note.service';

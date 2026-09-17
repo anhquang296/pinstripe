@@ -2,7 +2,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createCreditNoteSchema,
   creditNoteSchema,
-  getCreditNotesSchema,
+  findCreditNotesSchema,
   ListResponseSchema,
 } from '@pinstripe/core/contracts';
 import { Type } from '@sinclair/typebox';
@@ -23,7 +23,7 @@ export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
-        querystring: getCreditNotesSchema,
+        querystring: findCreditNotesSchema,
         response: { 200: ListResponseSchema(creditNoteSchema) },
       },
     },

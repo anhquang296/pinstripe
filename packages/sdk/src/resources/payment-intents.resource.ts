@@ -5,7 +5,7 @@ import type {
   CancelPaymentIntentPayload,
   ConfirmPaymentIntentPayload,
   CreatePaymentIntentPayload,
-  GetPaymentIntentsQuery,
+  FindPaymentIntentsQuery,
   ListResponse,
   PaymentIntentResponse,
 } from '@type/contracts.types';
@@ -21,7 +21,7 @@ export class PaymentIntentsResource {
   }
 
   list(
-    query: GetPaymentIntentsQuery = {},
+    query: FindPaymentIntentsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<PaymentIntentResponse>> {
     return this._transport.request({

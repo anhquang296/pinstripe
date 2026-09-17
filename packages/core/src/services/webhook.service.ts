@@ -4,8 +4,8 @@ import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
   CreateWebhookEndpointPayload,
-  GetWebhookDeliveriesQuery,
-  GetWebhookEndpointsQuery,
+  FindWebhookDeliveriesQuery,
+  FindWebhookEndpointsQuery,
   PinstripeEvent,
   UpdateWebhookEndpointPayload,
   WebhookDeliveryResponse,
@@ -92,7 +92,7 @@ export class WebhookService {
   }
 
   async findWebhookEndpoints(
-    query: GetWebhookEndpointsQuery,
+    query: FindWebhookEndpointsQuery,
   ): Promise<ListResponse<WebhookEndpointResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveEndpointCursor(query.startingAfter);
@@ -113,7 +113,7 @@ export class WebhookService {
   }
 
   async findWebhookDeliveries(
-    query: GetWebhookDeliveriesQuery,
+    query: FindWebhookDeliveriesQuery,
   ): Promise<ListResponse<WebhookDeliveryResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.webhookRepository.findWebhookDeliveries(

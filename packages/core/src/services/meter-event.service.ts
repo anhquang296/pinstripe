@@ -1,9 +1,9 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import type {
   CreateMeterEventBatchPayload,
+  CreateMeterEventBatchResponse,
   CreateMeterEventPayload,
-  GetMeterEventSummariesQuery,
-  MeterEventBatchResultResponse,
+  GetMeterEventSummaryQuery,
   MeterEventResponse,
   MeterEventSummaryResponse,
 } from '@contracts/meters.types';
@@ -44,7 +44,7 @@ export class MeterEventService {
 
   async ingestMeterEventBatch(
     payload: CreateMeterEventBatchPayload,
-  ): Promise<MeterEventBatchResultResponse> {
+  ): Promise<CreateMeterEventBatchResponse> {
     const receivedAt = this.fastify.clock.now();
     const eventNames = _.uniq(_.map(payload.events, 'eventName'));
     const meters = await Promise.all(
@@ -82,7 +82,7 @@ export class MeterEventService {
 
   async getMeterEventSummary(
     meterId: string,
-    query: GetMeterEventSummariesQuery,
+    query: GetMeterEventSummaryQuery,
   ): Promise<MeterEventSummaryResponse> {
     const meter = await this.getMeter(meterId);
 

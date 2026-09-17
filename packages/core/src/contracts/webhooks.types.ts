@@ -69,7 +69,7 @@ export const updateWebhookEndpointSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getWebhookEndpointsSchema = Type.Object(
+export const findWebhookEndpointsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -79,7 +79,7 @@ export const getWebhookEndpointsSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getWebhookDeliveriesSchema = Type.Object(
+export const findWebhookDeliveriesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -102,5 +102,5 @@ export type WebhookEndpointResponse = Static<typeof webhookEndpointSchema>;
 export type WebhookDeliveryResponse = Static<typeof webhookDeliverySchema>;
 export type CreateWebhookEndpointPayload = Static<typeof createWebhookEndpointSchema>;
 export type UpdateWebhookEndpointPayload = Static<typeof updateWebhookEndpointSchema>;
-export type GetWebhookEndpointsQuery = Static<typeof getWebhookEndpointsSchema>;
-export type GetWebhookDeliveriesQuery = Static<typeof getWebhookDeliveriesSchema>;
+export type FindWebhookEndpointsQuery = Static<typeof findWebhookEndpointsSchema>;
+export type FindWebhookDeliveriesQuery = Static<typeof findWebhookDeliveriesSchema>;

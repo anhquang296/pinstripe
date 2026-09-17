@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetSubscriptionsQuery } from '@type/contracts.types';
+import type { FindSubscriptionsQuery } from '@type/contracts.types';
 
 export function useSubscriptionsQuery(
-  query?: GetSubscriptionsQuery,
+  query?: FindSubscriptionsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

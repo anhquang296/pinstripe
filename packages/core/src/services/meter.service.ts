@@ -1,7 +1,7 @@
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type {
   CreateMeterPayload,
-  GetMetersQuery,
+  FindMetersQuery,
   MeterResponse,
   UpdateMeterPayload,
 } from '@contracts/meters.types';
@@ -64,7 +64,7 @@ export class MeterService {
     throw new NotFoundError(`No such meter: ${id}`);
   }
 
-  async findMeters(query: GetMetersQuery): Promise<ListResponse<MeterResponse>> {
+  async findMeters(query: FindMetersQuery): Promise<ListResponse<MeterResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const meterRows = await this.fastify.meterRepository.findMeters(
       {

@@ -7,7 +7,7 @@ import type {
   CancelPaymentIntentPayload,
   ConfirmPaymentIntentPayload,
   CreatePaymentIntentPayload,
-  GetPaymentIntentsQuery,
+  FindPaymentIntentsQuery,
   PaymentIntentResponse,
   PaymentIntentStatus,
 } from '@contracts/payments.types';
@@ -190,7 +190,7 @@ export class PaymentService {
   }
 
   async findPaymentIntents(
-    query: GetPaymentIntentsQuery,
+    query: FindPaymentIntentsQuery,
   ): Promise<ListResponse<PaymentIntentResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);

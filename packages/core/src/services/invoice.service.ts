@@ -2,7 +2,7 @@ import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type {
   CreateInvoicePayload,
-  GetInvoicesQuery,
+  FindInvoicesQuery,
   InvoiceResponse,
   InvoiceStatus,
   PayInvoicePayload,
@@ -35,14 +35,14 @@ export interface EnsuredInvoice {
   isCreated: boolean;
 }
 
-export interface InvoiceOptions {
+export interface InvoiceServiceConfig {
   dueDays: number;
 }
 
 export class InvoiceService {
   constructor(
     private readonly fastify: FastifyInstance,
-    private readonly options: InvoiceOptions,
+    private readonly config: InvoiceServiceConfig,
   ) {}
 
   async createInvoice(payload: CreateInvoicePayload): Promise<InvoiceResponse> {
@@ -199,7 +199,7 @@ export class InvoiceService {
     now: Date,
     tx: DatabaseTransaction,
   ): Promise<Invoice> {
-    const dueAt = new Date(now.getTime() + this.options.dueDays * MILLISECONDS_PER_DAY);
+    const dueAt = new Date(now.getTime() + this.config.dueDays * MILLISECONDS_PER_DAY);
     const lineItems = _.map(rated.lineItems, (lineItem): NewInvoiceLineItem => {
       return {
         id: generateGid(ObjectPrefixEnum.INVOICE_LINE_ITEM),
@@ -358,7 +358,7 @@ export class InvoiceService {
     return this.buildInvoice(invoice);
   }
 
-  async findInvoices(query: GetInvoicesQuery): Promise<ListResponse<InvoiceResponse>> {
+  async findInvoices(query: FindInvoicesQuery): Promise<ListResponse<InvoiceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);

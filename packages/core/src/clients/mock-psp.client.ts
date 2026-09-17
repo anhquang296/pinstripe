@@ -28,7 +28,7 @@ export type MockPspConfig = {
   referencePrefix?: string;
 };
 
-export interface PspChargeRequest {
+export interface PspChargePayload {
   paymentMethod: string;
   amount: number;
   currency: Currency;
@@ -42,7 +42,7 @@ export interface PspChargeResult {
   failureMessage: string | null;
 }
 
-export interface PspRefundRequest {
+export interface PspRefundPayload {
   reference: string;
   amount: number;
   currency: Currency;
@@ -89,8 +89,8 @@ export class MockPspClient {
     this._referencesByIdempotencyKey = new Map();
   }
 
-  async createCharge(request: PspChargeRequest): Promise<PspChargeResult> {
-    const replayedReference = this._referencesByIdempotencyKey.get(request.idempotencyKey);
+  async createCharge(payload: PspChargePayload): Promise<PspChargeResult> {
+    const replayedReference = this._referencesByIdempotencyKey.get(payload.idempotencyKey);
 
     if (replayedReference) {
       this._logger.info(
@@ -106,7 +106,7 @@ export class MockPspClient {
       };
     }
 
-    const failureCode = FAILURE_BY_PAYMENT_METHOD[request.paymentMethod];
+    const failureCode = FAILURE_BY_PAYMENT_METHOD[payload.paymentMethod];
 
     if (failureCode) {
       this._logger.info(
@@ -126,47 +126,47 @@ export class MockPspClient {
 
     this._chargesByReference.set(reference, {
       reference,
-      amount: request.amount,
-      currency: request.currency,
+      amount: payload.amount,
+      currency: payload.currency,
       refunded: 0,
     });
-    this._referencesByIdempotencyKey.set(request.idempotencyKey, reference);
+    this._referencesByIdempotencyKey.set(payload.idempotencyKey, reference);
 
     this._logger.info({ reference }, '[MockPspClient] createCharge() approved');
 
     return { isApproved: true, reference, failureCode: null, failureMessage: null };
   }
 
-  async createRefund(request: PspRefundRequest): Promise<PspRefundResult> {
-    const replayedReference = this._referencesByIdempotencyKey.get(request.idempotencyKey);
+  async createRefund(payload: PspRefundPayload): Promise<PspRefundResult> {
+    const replayedReference = this._referencesByIdempotencyKey.get(payload.idempotencyKey);
 
     if (replayedReference) {
       return { reference: replayedReference };
     }
 
-    const charge = this._chargesByReference.get(request.reference);
+    const charge = this._chargesByReference.get(payload.reference);
 
     if (charge) {
       const refundable = charge.amount - charge.refunded;
 
-      if (request.amount > refundable) {
-        throw new MockPspRefundTooLargeError(request.reference, refundable);
+      if (payload.amount > refundable) {
+        throw new MockPspRefundTooLargeError(payload.reference, refundable);
       }
 
       const reference = this.buildReference();
 
-      charge.refunded += request.amount;
-      this._referencesByIdempotencyKey.set(request.idempotencyKey, reference);
+      charge.refunded += payload.amount;
+      this._referencesByIdempotencyKey.set(payload.idempotencyKey, reference);
 
       this._logger.info(
-        { reference, chargeReference: request.reference },
+        { reference, chargeReference: payload.reference },
         '[MockPspClient] createRefund() completed',
       );
 
       return { reference };
     }
 
-    throw new MockPspChargeNotFoundError(request.reference);
+    throw new MockPspChargeNotFoundError(payload.reference);
   }
 
   private buildReference(): string {

@@ -146,7 +146,7 @@ export const updatePriceSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getPricesSchema = Type.Object(
+export const findPricesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -161,4 +161,4 @@ export const getPricesSchema = Type.Object(
 export type PriceResponse = Static<typeof priceSchema>;
 export type CreatePricePayload = Static<typeof createPriceSchema>;
 export type UpdatePricePayload = Static<typeof updatePriceSchema>;
-export type GetPricesQuery = Static<typeof getPricesSchema>;
+export type FindPricesQuery = Static<typeof findPricesSchema>;

@@ -40,7 +40,7 @@ export const updateProductSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getProductsSchema = Type.Object(
+export const findProductsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -53,4 +53,4 @@ export const getProductsSchema = Type.Object(
 export type ProductResponse = Static<typeof productSchema>;
 export type CreateProductPayload = Static<typeof createProductSchema>;
 export type UpdateProductPayload = Static<typeof updateProductSchema>;
-export type GetProductsQuery = Static<typeof getProductsSchema>;
+export type FindProductsQuery = Static<typeof findProductsSchema>;

@@ -2,7 +2,7 @@ import type { ErrorType } from '@errors/app.error';
 
 export type { ErrorType } from '@errors/app.error';
 
-export interface ApiErrorBody {
+export interface ApiErrorResponse {
   error: {
     type: ErrorType;
     code?: string;

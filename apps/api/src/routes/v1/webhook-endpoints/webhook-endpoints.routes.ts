@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createWebhookEndpointSchema,
-  getWebhookEndpointsSchema,
+  findWebhookEndpointsSchema,
   ListResponseSchema,
   updateWebhookEndpointSchema,
   webhookEndpointParamsSchema,
@@ -28,7 +28,7 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
     '/',
     {
       schema: {
-        querystring: getWebhookEndpointsSchema,
+        querystring: findWebhookEndpointsSchema,
         response: { 200: ListResponseSchema(webhookEndpointSchema) },
       },
     },

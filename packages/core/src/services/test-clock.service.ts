@@ -4,7 +4,7 @@ import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
   AdvanceTestClockPayload,
   CreateTestClockPayload,
-  GetTestClocksQuery,
+  FindTestClocksQuery,
   TestClockResponse,
 } from '@contracts/test-clocks.types';
 import { TestClockStatusEnum } from '@contracts/test-clocks.types';
@@ -47,7 +47,7 @@ export class TestClockService {
     throw new NotFoundError(`No such test clock: ${id}`);
   }
 
-  async findTestClocks(query: GetTestClocksQuery): Promise<ListResponse<TestClockResponse>> {
+  async findTestClocks(query: FindTestClocksQuery): Promise<ListResponse<TestClockResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.testClockRepository.findTestClocks(
       {

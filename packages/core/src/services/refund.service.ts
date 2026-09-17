@@ -4,7 +4,7 @@ import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
   CreateRefundPayload,
-  GetRefundsQuery,
+  FindRefundsQuery,
   RefundResponse,
 } from '@contracts/payments.types';
 import { PaymentIntentStatusEnum } from '@contracts/payments.types';
@@ -97,7 +97,7 @@ export class RefundService {
     throw new NotFoundError(`No such refund: ${id}`);
   }
 
-  async findRefunds(query: GetRefundsQuery): Promise<ListResponse<RefundResponse>> {
+  async findRefunds(query: FindRefundsQuery): Promise<ListResponse<RefundResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);

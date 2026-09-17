@@ -1,10 +1,10 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { GetWebhookDeliveriesQuery, GetWebhookEndpointsQuery } from '@type/contracts.types';
+import type { FindWebhookDeliveriesQuery, FindWebhookEndpointsQuery } from '@type/contracts.types';
 
 export function useWebhookEndpointsQuery(
-  query?: GetWebhookEndpointsQuery,
+  query?: FindWebhookEndpointsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();
@@ -17,7 +17,7 @@ export function useWebhookEndpointsQuery(
 }
 
 export function useWebhookDeliveriesQuery(
-  query?: GetWebhookDeliveriesQuery,
+  query?: FindWebhookDeliveriesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
   const queries = usePinstripeQueries();

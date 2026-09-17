@@ -4,7 +4,7 @@ import type { FastifyInstance } from 'fastify';
 
 const BILLABLE_STATUSES = [SubscriptionStatusEnum.ACTIVE, SubscriptionStatusEnum.PAST_DUE] as const;
 
-export interface BillingRunOptions {
+export interface BillingRunServiceConfig {
   batchSize: number;
 }
 
@@ -16,7 +16,7 @@ export interface BillingRunResult {
 export class BillingRunService {
   constructor(
     private readonly fastify: FastifyInstance,
-    private readonly options: BillingRunOptions,
+    private readonly config: BillingRunServiceConfig,
   ) {}
 
   async runBillingShard(job: BillingRunShardJob): Promise<BillingRunResult> {
@@ -28,7 +28,7 @@ export class BillingRunService {
         shardCount: job.shardCount,
         shardIndex: job.shardIndex,
       },
-      this.options.batchSize,
+      this.config.batchSize,
     );
 
     let drafted = 0;

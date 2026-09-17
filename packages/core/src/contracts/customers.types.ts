@@ -81,7 +81,7 @@ export const updateCustomerSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const getCustomersSchema = Type.Object(
+export const findCustomersSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     startingAfter: Type.Optional(Type.String()),
@@ -101,4 +101,4 @@ export type CustomerResponse = Static<typeof customerSchema>;
 export type DeletedCustomerResponse = Static<typeof deletedCustomerSchema>;
 export type CreateCustomerPayload = Static<typeof createCustomerSchema>;
 export type UpdateCustomerPayload = Static<typeof updateCustomerSchema>;
-export type GetCustomersQuery = Static<typeof getCustomersSchema>;
+export type FindCustomersQuery = Static<typeof findCustomersSchema>;
