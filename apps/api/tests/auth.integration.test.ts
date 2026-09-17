@@ -1,4 +1,4 @@
-import { ApiKeyScopeEnum } from '@pinstripe/core/contracts';
+import { ApiKeyScopeEnum, PINSTRIPE_API_VERSION } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -285,6 +285,39 @@ describe('a key cannot reach the other mode by id', () => {
 
     expect(updated.statusCode).toBe(404);
     expect(pricedOnLiveProduct.statusCode).toBe(404);
+  });
+});
+
+describe('platform envelope', () => {
+  it('stamps every response with the api version', async () => {
+    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+
+    const response = await fastify.inject({
+      method: 'GET',
+      url: '/v1/ping',
+      headers: buildAuthHeaders(apiKey.token),
+    });
+
+    expect(response.headers['pinstripe-version']).toBe(PINSTRIPE_API_VERSION);
+  });
+
+  it('reports the remaining request budget on every response', async () => {
+    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+
+    const first = await fastify.inject({
+      method: 'GET',
+      url: '/v1/ping',
+      headers: buildAuthHeaders(apiKey.token),
+    });
+    const second = await fastify.inject({
+      method: 'GET',
+      url: '/v1/ping',
+      headers: buildAuthHeaders(apiKey.token),
+    });
+
+    expect(Number(first.headers['ratelimit-remaining'])).toBeGreaterThan(
+      Number(second.headers['ratelimit-remaining']),
+    );
   });
 });
 

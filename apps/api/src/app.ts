@@ -1,6 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { corePlugin } from '@pinstripe/core/plugins';
 import { apiKeyPlugin } from '@plugins/api-key.plugin';
+import { apiVersionPlugin } from '@plugins/api-version.plugin';
 import { errorHandlerPlugin } from '@plugins/error-handler.plugin';
 import { apiRoutes } from '@routes/routes';
 import type { FastifyInstance } from 'fastify';
@@ -17,6 +18,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await fastify.register(corePlugin);
   await fastify.register(apiKeyPlugin);
+  await fastify.register(apiVersionPlugin);
 
   await fastify.register(errorHandlerPlugin);
   await fastify.register(apiRoutes);

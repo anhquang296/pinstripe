@@ -9,17 +9,20 @@ import type {
   PinstripeEvent,
   UpdateWebhookEndpointPayload,
   WebhookDeliveryResponse,
+  WebhookDeliveryStatus,
   WebhookEndpointResponse,
 } from '@contracts/webhooks.types';
 import { WebhookDeliveryStatusEnum, WebhookEndpointStatusEnum } from '@contracts/webhooks.types';
 import type { WebhookDelivery, WebhookEndpoint } from '@database/schemas';
-import { NotFoundError } from '@errors/app.error';
+import { ConflictError, NotFoundError, TooManyRequestsError } from '@errors/app.error';
 import type { DomainEventDispatchJob } from '@queues/domain-event.queue';
 import { QueueNameEnum } from '@queues/queue-name';
 import type { WebhookDeliveryJob } from '@queues/webhook.queue';
 import { buildWebhookDeliveryJob, WEBHOOK_DELIVERY_JOB } from '@queues/webhook.queue';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
+import { consumeRateLimit } from '@utils/rate-limit';
+import { RedisNamespaceEnum } from '@utils/redis-key-factory';
 import { buildWebhookSignature } from '@utils/webhook-signature';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
@@ -184,6 +187,16 @@ export class WebhookService {
     return deliveries.length;
   }
 
+  private async removeQueuedDelivery(deliveryId: string): Promise<void> {
+    const queued = await this.fastify.queues
+      .resolve(QueueNameEnum.WEBHOOK)
+      .getJob(`webhook-delivery-${deliveryId}`);
+
+    if (queued) {
+      await queued.remove();
+    }
+  }
+
   private async dispatchWebhookDelivery(deliveryId: string): Promise<Job<WebhookDeliveryJob>> {
     const { webhookMaxAttempts, webhookBackoffMs } = this.fastify.workflowSchedules;
 
@@ -202,6 +215,9 @@ export class WebhookService {
 
     if (delivery) {
       const endpoint = await this.getWebhookEndpointEntity(delivery.endpointId);
+
+      await this.assertEndpointWithinRateLimit(endpoint.id);
+
       const body = JSON.stringify(delivery.payload);
 
       return {
@@ -214,19 +230,86 @@ export class WebhookService {
     throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
   }
 
+  private async assertEndpointWithinRateLimit(endpointId: string): Promise<void> {
+    const { webhookEndpointRateLimit, webhookEndpointRateWindowSeconds } =
+      this.fastify.workflowSchedules;
+
+    const key = this.fastify.redisKeyFactory.build(
+      RedisNamespaceEnum.WEBHOOK_RATE_LIMIT,
+      endpointId,
+    );
+
+    const { isAllowed, resetSeconds } = await consumeRateLimit(this.fastify.redis, key, {
+      limit: webhookEndpointRateLimit,
+      windowSeconds: webhookEndpointRateWindowSeconds,
+    });
+
+    if (isAllowed) {
+      return;
+    }
+
+    throw new TooManyRequestsError(
+      `Webhook endpoint ${endpointId} is over its delivery rate limit; retry in ${resetSeconds} seconds`,
+    );
+  }
+
   async recordDeliveryResult(
     deliveryId: string,
     result: { responseStatus: number | null; error: string | null; attemptCount: number },
   ): Promise<void> {
     const isSucceeded = result.error === null;
+    const isExhausted = result.attemptCount >= this.fastify.workflowSchedules.webhookMaxAttempts;
 
     await this.fastify.webhookRepository.updateWebhookDelivery(deliveryId, {
-      status: isSucceeded ? WebhookDeliveryStatusEnum.SUCCEEDED : WebhookDeliveryStatusEnum.FAILED,
+      status: WebhookService.resolveDeliveryStatus(isSucceeded, isExhausted),
       attemptCount: result.attemptCount,
       responseStatus: result.responseStatus,
       lastError: result.error,
       deliveredAt: isSucceeded ? this.fastify.clock.now() : null,
     });
+  }
+
+  async replayWebhookDelivery(
+    deliveryId: string,
+    livemode: boolean,
+  ): Promise<WebhookDeliveryResponse> {
+    const delivery = await this.fastify.webhookRepository.findWebhookDelivery(deliveryId);
+
+    if (!delivery || delivery.livemode !== livemode) {
+      throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
+    }
+
+    if (delivery.status === WebhookDeliveryStatusEnum.PENDING) {
+      throw new ConflictError(`Webhook delivery ${deliveryId} is still being attempted`);
+    }
+
+    const replayed = await this.fastify.webhookRepository.updateWebhookDelivery(deliveryId, {
+      status: WebhookDeliveryStatusEnum.PENDING,
+      attemptCount: 0,
+      responseStatus: null,
+      lastError: null,
+      deliveredAt: null,
+    });
+
+    if (!replayed) {
+      throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
+    }
+
+    await this.removeQueuedDelivery(deliveryId);
+    await this.dispatchWebhookDelivery(deliveryId);
+
+    return WebhookService.buildDelivery(replayed);
+  }
+
+  private static resolveDeliveryStatus(
+    isSucceeded: boolean,
+    isExhausted: boolean,
+  ): WebhookDeliveryStatus {
+    if (isSucceeded) {
+      return WebhookDeliveryStatusEnum.SUCCEEDED;
+    }
+
+    return isExhausted ? WebhookDeliveryStatusEnum.EXHAUSTED : WebhookDeliveryStatusEnum.FAILED;
   }
 
   private async getWebhookEndpointEntity(id: string): Promise<WebhookEndpoint> {

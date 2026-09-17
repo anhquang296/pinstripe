@@ -20,13 +20,12 @@ pnpm install
 cp .env.example .env
 ```
 
-Fill in the five secrets, each at least 16 characters:
+Fill in the four secrets, each at least 16 characters:
 
 - `SECRET_API_KEY`
 - `ADMIN_API_KEY`
 - `SYSTEM_API_KEY`
 - `MANAGEMENT_API_KEY`
-- `WEBHOOK_SIGNING_SECRET`
 
 Generate one with:
 

@@ -2,6 +2,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   findWebhookDeliveriesSchema,
   ListResponseSchema,
+  webhookDeliveryParamsSchema,
   webhookDeliverySchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
@@ -23,6 +24,19 @@ export const webhookDeliveriesRoutes: FastifyPluginAsyncTypebox = async (fastify
       );
 
       return ApiResponse.success(reply, deliveries);
+    },
+  );
+
+  fastify.post(
+    '/:webhookDeliveryId/replay',
+    { schema: { params: webhookDeliveryParamsSchema, response: { 200: webhookDeliverySchema } } },
+    async (request, reply) => {
+      const delivery = await fastify.webhookService.replayWebhookDelivery(
+        request.params.webhookDeliveryId,
+        readLivemode(request),
+      );
+
+      return ApiResponse.success(reply, delivery);
     },
   );
 };

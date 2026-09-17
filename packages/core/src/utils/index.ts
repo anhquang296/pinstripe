@@ -3,6 +3,7 @@ export * from '@utils/clock';
 export * from '@utils/currency';
 export * from '@utils/gid-factory';
 export * from '@utils/money';
+export * from '@utils/rate-limit';
 export * from '@utils/rating';
 export * from '@utils/recurring-amount';
 export * from '@utils/redis-key-factory';

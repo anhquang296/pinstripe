@@ -3,6 +3,8 @@ export enum RedisNamespaceEnum {
   METER_DEDUP = 'meter-dedup',
   ENTITLEMENT = 'entitlement',
   BILLING_RUN_LOCK = 'billing-run-lock',
+  API_RATE_LIMIT = 'api-rate-limit',
+  WEBHOOK_RATE_LIMIT = 'webhook-rate-limit',
 }
 export type RedisNamespace = `${RedisNamespaceEnum}`;
 

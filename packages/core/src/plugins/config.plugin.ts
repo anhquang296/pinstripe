@@ -25,6 +25,10 @@ export interface WorkflowSchedules {
   webhookMaxAttempts: number;
   webhookBackoffMs: number;
   webhookTimeoutMs: number;
+  webhookEndpointRateLimit: number;
+  webhookEndpointRateWindowSeconds: number;
+  apiRateLimit: number;
+  apiRateWindowSeconds: number;
 }
 
 export const configPlugin = fp(async (fastify) => {
@@ -51,5 +55,9 @@ export const configPlugin = fp(async (fastify) => {
     webhookMaxAttempts: config.WEBHOOK_MAX_ATTEMPTS,
     webhookBackoffMs: config.WEBHOOK_BACKOFF_MS,
     webhookTimeoutMs: config.WEBHOOK_TIMEOUT_MS,
+    webhookEndpointRateLimit: config.WEBHOOK_ENDPOINT_RATE_LIMIT,
+    webhookEndpointRateWindowSeconds: config.WEBHOOK_ENDPOINT_RATE_WINDOW_SECONDS,
+    apiRateLimit: config.API_RATE_LIMIT,
+    apiRateWindowSeconds: config.API_RATE_WINDOW_SECONDS,
   });
 });

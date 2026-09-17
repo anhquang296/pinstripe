@@ -43,7 +43,6 @@ export const envSchema = Type.Object({
   ADMIN_API_KEY: Type.String({ minLength: 16 }),
   SYSTEM_API_KEY: Type.String({ minLength: 16 }),
   MANAGEMENT_API_KEY: Type.String({ minLength: 16 }),
-  WEBHOOK_SIGNING_SECRET: Type.String({ minLength: 16 }),
 
   WORKFLOW_NAME: Optional(Type.String({ minLength: 1 })),
   WORKER_PORT: Default(Type.Integer({ minimum: 1, maximum: 65535 }), 3001),
@@ -70,6 +69,10 @@ export const envSchema = Type.Object({
   WEBHOOK_MAX_ATTEMPTS: Default(Type.Integer({ minimum: 1 }), 5),
   WEBHOOK_BACKOFF_MS: Default(Type.Integer({ minimum: 100 }), 2_000),
   WEBHOOK_TIMEOUT_MS: Default(Type.Integer({ minimum: 100 }), 5_000),
+  WEBHOOK_ENDPOINT_RATE_LIMIT: Default(Type.Integer({ minimum: 1 }), 60),
+  WEBHOOK_ENDPOINT_RATE_WINDOW_SECONDS: Default(Type.Integer({ minimum: 1 }), 60),
+  API_RATE_LIMIT: Default(Type.Integer({ minimum: 1 }), 1000),
+  API_RATE_WINDOW_SECONDS: Default(Type.Integer({ minimum: 1 }), 60),
 });
 
 export type Env = Static<typeof envSchema>;

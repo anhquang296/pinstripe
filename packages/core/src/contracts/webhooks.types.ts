@@ -13,6 +13,7 @@ export enum WebhookDeliveryStatusEnum {
   PENDING = 'pending',
   SUCCEEDED = 'succeeded',
   FAILED = 'failed',
+  EXHAUSTED = 'exhausted',
 }
 export type WebhookDeliveryStatus = `${WebhookDeliveryStatusEnum}`;
 
@@ -78,6 +79,10 @@ export const findWebhookEndpointsSchema = Type.Object(
   },
   { additionalProperties: false },
 );
+
+export const webhookDeliveryParamsSchema = Type.Object({
+  webhookDeliveryId: Type.String(),
+});
 
 export const findWebhookDeliveriesSchema = Type.Object(
   {
