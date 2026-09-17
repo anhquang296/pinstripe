@@ -31,7 +31,8 @@ export class PriceService {
   async createPrice(payload: CreatePricePayload, livemode: boolean): Promise<PriceResponse> {
     const product = await this.fastify.productService.getProduct(payload.productId, livemode);
 
-    const billingScheme = payload.billingScheme ?? BillingSchemeEnum.PER_UNIT;
+    const { billingScheme = BillingSchemeEnum.PER_UNIT } = payload;
+
     const usageType = payload.recurring
       ? (payload.recurring.usageType ?? UsageTypeEnum.LICENSED)
       : null;

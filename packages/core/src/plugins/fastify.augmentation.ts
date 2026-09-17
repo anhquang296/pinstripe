@@ -31,6 +31,7 @@ import type { CustomerService } from '@services/customer.service';
 import type { DunningService } from '@services/dunning.service';
 import type { EntitlementService } from '@services/entitlement.service';
 import type { EventService } from '@services/event.service';
+import type { ExpansionService } from '@services/expansion.service';
 import type { IdempotencyService } from '@services/idempotency.service';
 import type { InvoiceService } from '@services/invoice.service';
 import type { LedgerService } from '@services/ledger.service';
@@ -88,6 +89,7 @@ declare module 'fastify' {
     apiKeyService: ApiKeyService;
     customerService: CustomerService;
     eventService: EventService;
+    expansionService: ExpansionService;
     idempotencyService: IdempotencyService;
     entitlementService: EntitlementService;
     priceService: PriceService;

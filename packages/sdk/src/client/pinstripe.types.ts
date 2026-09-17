@@ -21,6 +21,7 @@ export type PinstripeConfig = {
 };
 
 export interface RequestOptions {
+  expand?: string[];
   idempotencyKey?: string;
   signal?: AbortSignal;
   maxRetries?: number;

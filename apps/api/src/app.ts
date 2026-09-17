@@ -4,6 +4,7 @@ import { apiKeyPlugin } from '@plugins/api-key.plugin';
 import { apiVersionPlugin } from '@plugins/api-version.plugin';
 import { errorHandlerPlugin } from '@plugins/error-handler.plugin';
 import { apiRoutes } from '@routes/routes';
+import { parseQuerystring } from '@utils/querystring';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 
@@ -14,6 +15,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       return `req_${Math.random().toString(36).slice(2, 14)}`;
     },
     ajv: { customOptions: { removeAdditional: false } },
+    querystringParser: parseQuerystring,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   await fastify.register(corePlugin);

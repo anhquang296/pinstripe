@@ -142,7 +142,7 @@ export class ProductService {
     return undefined;
   }
 
-  private static buildProduct(entity: Product): ProductResponse {
+  static buildProduct(entity: Product): ProductResponse {
     return {
       object: 'product',
       id: entity.id,

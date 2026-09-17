@@ -555,7 +555,7 @@ export class SubscriptionService {
     }
   }
 
-  private static buildSubscription(
+  static buildSubscription(
     entity: Subscription,
     subscriptionItems: readonly (SubscriptionItem | NewSubscriptionItem)[],
   ): SubscriptionResponse {

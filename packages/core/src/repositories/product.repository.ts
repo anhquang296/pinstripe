@@ -3,10 +3,11 @@ import type { Database, DatabaseClient, DatabaseTransaction } from '@database/da
 import type { NewProduct, Product } from '@database/schemas';
 import { products } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 export interface ProductFilters {
   livemode?: boolean;
+  ids?: readonly string[];
   active?: boolean;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -36,6 +37,7 @@ export class ProductRepository {
     const where = and(
       isNull(products.deletedAt),
       filters.livemode === undefined ? undefined : eq(products.livemode, filters.livemode),
+      filters.ids ? inArray(products.id, [...filters.ids]) : undefined,
       filters.active === undefined ? undefined : eq(products.active, filters.active),
       filters.beforeAt
         ? sql`(${products.createdAt}, ${products.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`

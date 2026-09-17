@@ -35,6 +35,7 @@ export interface SubscriptionItemFilters {
 
 export interface SubscriptionFilters {
   livemode?: boolean;
+  ids?: readonly string[];
   customerId?: string;
   status?: SubscriptionStatus;
   statusNe?: SubscriptionStatus;
@@ -70,6 +71,7 @@ export class SubscriptionRepository {
   ): Promise<Subscription[]> {
     const where = and(
       filters.livemode === undefined ? undefined : eq(subscriptions.livemode, filters.livemode),
+      filters.ids ? inArray(subscriptions.id, [...filters.ids]) : undefined,
       filters.customerId ? eq(subscriptions.customerId, filters.customerId) : undefined,
       filters.status ? eq(subscriptions.status, filters.status) : undefined,
       filters.statusNe ? ne(subscriptions.status, filters.statusNe) : undefined,

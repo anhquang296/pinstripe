@@ -39,12 +39,13 @@ export class PinstripeTransport {
 
   async request<T>(config: RequestConfig): Promise<T> {
     const { path, method, query, payload, options = {} } = config;
-    const { idempotencyKey: explicitKey, signal, maxRetries = this._maxRetries } = options;
+    const { expand, idempotencyKey: explicitKey, signal, maxRetries = this._maxRetries } = options;
 
     const idempotencyKey = this._resolveIdempotencyKey(method, explicitKey);
     const canRetry = isRetryableMethod(method, Boolean(idempotencyKey));
+    const requestQuery = expand ? { ...query, expand } : query;
 
-    const url = this._buildUrl(path, query);
+    const url = this._buildUrl(path, requestQuery);
     const init = this._buildInit(method, payload, idempotencyKey);
 
     let attempt = 0;

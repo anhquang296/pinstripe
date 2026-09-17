@@ -64,6 +64,7 @@ export const subscriptionSchema = Type.Object({
   object: Type.Literal('subscription'),
   id: Type.String(),
   customerId: Type.String(),
+  customer: Type.Optional(Type.Unknown()),
   status: Type.Unsafe<SubscriptionStatus>(Type.Enum(SubscriptionStatusEnum)),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   collectionMethod: Type.Unsafe<CollectionMethod>(Type.Enum(CollectionMethodEnum)),

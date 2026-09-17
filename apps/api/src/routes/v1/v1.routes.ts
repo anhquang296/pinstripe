@@ -1,4 +1,5 @@
 import { verifyApiRequest } from '@hooks/verify-api-request';
+import { expandPlugin } from '@plugins/expand.plugin';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { rateLimitPlugin } from '@plugins/rate-limit.plugin';
 import { creditNotesRoutes } from '@routes/v1/credit-notes/credit-notes.routes';
@@ -25,6 +26,7 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
 
   await fastify.register(rateLimitPlugin);
   await fastify.register(idempotencyPlugin);
+  await fastify.register(expandPlugin);
 
   await fastify.register(customersRoutes, { prefix: '/customers' });
   await fastify.register(productsRoutes, { prefix: '/products' });

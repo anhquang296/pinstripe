@@ -7,6 +7,7 @@ export * from '@services/customer.service';
 export * from '@services/dunning.service';
 export * from '@services/entitlement.service';
 export * from '@services/event.service';
+export * from '@services/expansion.service';
 export * from '@services/idempotency.service';
 export * from '@services/invoice.service';
 export * from '@services/ledger.service';

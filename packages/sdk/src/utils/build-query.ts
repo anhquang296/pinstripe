@@ -12,7 +12,7 @@ export function buildQuery(query: Record<string, unknown> | undefined): string {
 
     if (Array.isArray(value)) {
       for (const member of value) {
-        search.append(key, String(member));
+        search.append(`${key}[]`, String(member));
       }
 
       continue;

@@ -3,10 +3,11 @@ import type { Database, DatabaseClient, DatabaseTransaction } from '@database/da
 import type { Customer, NewCustomer } from '@database/schemas';
 import { customers } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 export interface CustomerFilters {
   livemode?: boolean;
+  ids?: readonly string[];
   email?: string;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -36,6 +37,7 @@ export class CustomerRepository {
     const where = and(
       isNull(customers.deletedAt),
       filters.livemode === undefined ? undefined : eq(customers.livemode, filters.livemode),
+      filters.ids ? inArray(customers.id, [...filters.ids]) : undefined,
       filters.email ? eq(customers.email, filters.email) : undefined,
       filters.beforeAt
         ? sql`(${customers.createdAt}, ${customers.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`

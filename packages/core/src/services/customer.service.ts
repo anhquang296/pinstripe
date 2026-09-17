@@ -24,6 +24,7 @@ export class CustomerService {
     livemode: boolean,
   ): Promise<CustomerResponse> {
     const now = this.fastify.clock.now();
+
     const id = generateGid(ObjectPrefixEnum.CUSTOMER);
 
     const createdCustomer = await this.writeCustomer(id, payload, now, livemode);
@@ -141,6 +142,7 @@ export class CustomerService {
 
     await this.fastify.database.master.transaction(async (tx) => {
       await this.fastify.customerRepository.archiveCustomer(id, this.fastify.clock.now(), tx);
+
       await this.fastify.outboxService.recordEvents(
         [
           {
@@ -163,12 +165,15 @@ export class CustomerService {
     livemode: boolean,
   ): Promise<ListResponse<CustomerResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
+
     const rows = await this.fastify.customerRepository.findCustomers(
       { livemode, email: query.email, beforeAt, afterAt },
       limit + 1,
     );
+
     const hasMore = rows.length > limit;
 
     return {
@@ -193,7 +198,7 @@ export class CustomerService {
     return undefined;
   }
 
-  private static buildCustomer(entity: Customer): CustomerResponse {
+  static buildCustomer(entity: Customer): CustomerResponse {
     return {
       object: 'customer',
       id: entity.id,

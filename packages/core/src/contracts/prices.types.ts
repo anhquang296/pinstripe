@@ -52,6 +52,7 @@ export const priceSchema = Type.Object({
   object: Type.Literal('price'),
   id: Type.String(),
   productId: Type.String(),
+  product: Type.Optional(Type.Unknown()),
   lookupKey: Type.Union([Type.String(), Type.Null()]),
   version: Type.Integer(),
   effectiveAt: Type.String(),

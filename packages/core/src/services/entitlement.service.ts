@@ -29,7 +29,9 @@ export class EntitlementService {
 
   async handleSubscriptionChanged(subscriptionId: string): Promise<void> {
     const subscription = await this.getSubscription(subscriptionId);
+
     const status = ENTITLEMENT_BY_SUBSCRIPTION_STATUS[subscription.status];
+
     const now = this.fastify.clock.now();
 
     if (status === EntitlementStatusEnum.REVOKED) {
@@ -39,6 +41,7 @@ export class EntitlementService {
       );
 
       await this.fastify.entitlementRepository.revokeEntitlements(subscriptionId, status, now);
+
       await this.invalidateCache(subscription.customerId, _.map(revokedEntitlements, 'productId'));
 
       return;
@@ -48,7 +51,9 @@ export class EntitlementService {
       subscriptionIds: [subscriptionId],
       deletedAtIsNull: true,
     });
+
     const priceIds = _.map(subscriptionItems, 'priceId');
+
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: priceIds },
       MAX_ITEMS_PER_SUBSCRIPTION,
@@ -78,6 +83,7 @@ export class EntitlementService {
       customerId,
       productId,
     );
+
     const cached = await this.fastify.redis.get(cacheKey);
 
     if (cached) {
@@ -88,6 +94,7 @@ export class EntitlementService {
       { customerId: customerId, productId: productId, status: EntitlementStatusEnum.ACTIVE },
       1,
     );
+
     const status = entitlement ? entitlement.status : EntitlementStatusEnum.REVOKED;
 
     await this.fastify.redis.set(cacheKey, status, 'EX', ENTITLEMENT_CACHE_TTL_SECONDS);
@@ -100,10 +107,12 @@ export class EntitlementService {
     livemode: boolean,
   ): Promise<ListResponse<EntitlementResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const entitlementRows = await this.fastify.entitlementRepository.findEntitlements(
       { livemode, customerId: query.customerId, productId: query.productId },
       limit + 1,
     );
+
     const hasMore = entitlementRows.length > limit;
 
     return {
