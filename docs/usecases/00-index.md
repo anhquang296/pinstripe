@@ -30,12 +30,11 @@ khách_, hoặc _một hệ thống bên ngoài gọi `POST /v1/subscriptions`_.
 
 Vài thao tác cũng chưa có trên UI, buộc phải dùng curl — mỗi use case nói rõ chỗ nào:
 
-| Việc                                | Vì sao                                                                                               |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Tạo price                           | trang `/prices` chỉ đọc, api layer không có hàm POST — [UC-01](./01-onboard-customer-and-catalog.md) |
-| Chọn tiền tệ cho khách              | form customer thiếu input, luôn gửi `VND` — [UC-01](./01-onboard-customer-and-catalog.md)            |
-| Gắn test clock vào khách            | không có field trên form — [UC-11](./11-simulate-a-billing-cycle.md)                                 |
-| Đăng ký nhiều event webhook một lần | UI chỉ cho chọn một — [UC-09](./09-receive-webhooks.md)                                              |
+| Việc                                | Vì sao                                                                                    |
+| ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| Chọn tiền tệ cho khách              | form customer thiếu input, luôn gửi `VND` — [UC-01](./01-onboard-customer-and-catalog.md) |
+| Gắn test clock vào khách            | không có field trên form — [UC-11](./11-simulate-a-billing-cycle.md)                      |
+| Đăng ký nhiều event webhook một lần | UI chỉ cho chọn một — [UC-09](./09-receive-webhooks.md)                                   |
 
 ## Thứ tự đọc
 

@@ -159,9 +159,10 @@ Ba gói là ba product, nên entitlement phân biệt được. Chi tiết ở
 
 ## Step by step — dựng catalog Go / Plus / Pro rồi tăng giá
 
-Chạy được trên môi trường dev đã `pnpm docker:up`, `pnpm db:migrate` và `pnpm dev`. Bắt buộc dùng
-curl: admin-ui tạo được product nhưng **không có form tạo price**
-([UC-01](../usecases/01-onboard-customer-and-catalog.md)).
+Chạy được trên môi trường dev đã `pnpm docker:up`, `pnpm db:migrate` và `pnpm dev`. Cùng các bước
+này làm được trên `/prices` của admin-ui — trang đó tạo price (per_unit, tiered, metered) và tắt
+`active` được ([UC-01](../usecases/01-onboard-customer-and-catalog.md)); curl ở đây là để thấy
+nguyên payload và nguyên phản hồi, nhất là bước 3.
 
 ```bash
 set -a && . ./.env && set +a
@@ -271,7 +272,9 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
   "chọn giá đang có hiệu lực tại thời điểm T" thì phía gọi phải tự làm.
 - **`POST` cùng `lookup_key` luôn thành công và tạo version mới.** Không có xác nhận, không có 409.
   Một script chạy lại hai lần để lại hai version — trừ khi gửi kèm `Idempotency-Key` giống hệt.
-- **Không có UI tạo price.** Trang `/prices` chỉ đọc; `/products` tạo được nhưng không sửa được.
+- **UI không sửa được price, và đó là cố ý.** `/prices` tạo price và bật/tắt `active` được; sửa số
+  tiền thì không có đường nào, vì `updatePriceSchema` chỉ nhận `active` / `nickname` / `metadata`.
+  `/products` vẫn tạo được nhưng không sửa được.
 - **`tax_behavior` chưa ai đọc.** Cột có từ phase 1, thuế chưa nằm trong phase nào —
   [PITFALLS §6](../PITFALLS.md).
 - **`unit_amount` nullable đúng nghĩa.** Nó là `null` cho price `tiered` — đừng đọc nó mà không kiểm

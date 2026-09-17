@@ -46,6 +46,7 @@ export {
 } from '@react/pinstripe.provider';
 export type { PinstripeQuerySubject } from '@react/pinstripe-query-subject';
 export { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+export { useCreatePriceMutation, useUpdatePriceMutation } from '@react/prices/mutations';
 export { usePriceQuery, usePricesQuery } from '@react/prices/queries';
 export { useCreateProductMutation, useUpdateProductMutation } from '@react/products/mutations';
 export { useProductQuery, useProductsQuery } from '@react/products/queries';

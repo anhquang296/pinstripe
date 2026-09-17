@@ -97,12 +97,13 @@ thì phải gọi API.
 
 Điều này quan trọng vì subscription bắt buộc price cùng currency với khách — [UC-02](./02-subscribe-to-plan.md).
 
-**2. Không có UI tạo price.** `/prices` là trang chỉ đọc: không form, không action, và
-[api/prices/request.ts](../../apps/admin-ui/src/api/prices/request.ts) chỉ có `getPrices` +
-`getPrice`. Còn `/products` thì tạo được nhưng không sửa được (`useUpdateProductMutation` tồn tại mà
-không trang nào gọi).
+**2. `/products` tạo được nhưng không sửa được** (`useUpdateProductMutation` tồn tại mà không trang
+nào gọi).
 
-Nên **bước tạo price luôn phải làm bằng curl**. Đó là lý do mục dưới đây không chỉ là tiện lợi.
+`/prices` thì đã đủ: [PriceForm](../../apps/admin-ui/src/components/PriceForm/index.tsx) tạo được cả
+ba dạng — per_unit, tiered, metered — và mỗi hàng có nút bật/tắt `active`. Cái nó **không** có là
+đường sửa số tiền, và đó là thiết kế chứ không phải thiếu sót: giá đã phát hành là bất biến, tăng
+giá là tạo price mới cùng `lookupKey` ([technique 05](../technique/05-product-and-price.md)).
 
 ## Tự chạy thử
 
@@ -110,7 +111,9 @@ Nên **bước tạo price luôn phải làm bằng curl**. Đó là lý do mụ
 
 1. `/customers` → điền email + tên → **Tạo customer**. Hàng mới hiện ngay ở bảng dưới.
 2. `/products` → điền tên → **Tạo product**.
-3. `/prices` → chưa thấy gì, vì chưa tạo được price ở đây. Sang phần curl.
+3. `/prices` → chọn product, điền lookup key + đơn giá, chọn chu kỳ → **Tạo price**. Submit lại đúng
+   lookup key đó với số tiền khác thì ra `v2`, và `v1` vẫn nằm nguyên trong bảng. Bấm **Ngừng bán**
+   ở `v1` để nó rụng khỏi dropdown của `/subscriptions` mà hợp đồng cũ không bị đụng.
 
 ### Bằng curl
 

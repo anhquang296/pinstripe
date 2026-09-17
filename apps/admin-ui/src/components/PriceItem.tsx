@@ -1,25 +1,23 @@
+import Button from '@components/ui/Button';
+import { formatPriceAmount } from '@lib/price';
 import type { PriceResponse } from '@pinstripe/core/contracts';
-import { size, toUpper } from 'lodash-es';
 
 interface PriceItemProps {
   price: PriceResponse;
+  onToggleActive: (priceId: string, active: boolean) => void;
 }
 
-function formatAmount(price: PriceResponse): string {
-  if (price.billingScheme === 'tiered') {
-    return `${size(price.tiers)} tier (${price.tiersMode})`;
-  }
+export default function PriceItem({ price, onToggleActive }: PriceItemProps) {
+  const handleOnToggleActive = () => {
+    onToggleActive(price.id, !price.active);
+  };
 
-  return `${(price.unitAmount ?? 0).toLocaleString('vi-VN')} ${toUpper(price.currency)}`;
-}
-
-export default function PriceItem({ price }: PriceItemProps) {
   return (
     <tr className="border-t border-slate-100">
       <td className="px-4 py-3 font-mono text-xs text-slate-500">{price.id}</td>
       <td className="px-4 py-3">{price.lookupKey ?? '—'}</td>
       <td className="px-4 py-3">v{price.version}</td>
-      <td className="px-4 py-3">{formatAmount(price)}</td>
+      <td className="px-4 py-3">{formatPriceAmount(price)}</td>
       <td className="px-4 py-3 text-slate-600">
         {price.recurring
           ? `mỗi ${price.recurring.intervalCount} ${price.recurring.interval}`
@@ -27,6 +25,22 @@ export default function PriceItem({ price }: PriceItemProps) {
       </td>
       <td className="px-4 py-3 text-slate-500">
         {new Date(price.effectiveAt).toLocaleDateString('vi-VN')}
+      </td>
+      <td className="px-4 py-3">
+        <span
+          className={
+            price.active
+              ? 'rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700'
+              : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600'
+          }
+        >
+          {price.active ? 'active' : 'archived'}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <Button variant="ghost" onClick={handleOnToggleActive}>
+          {price.active ? 'Ngừng bán' : 'Mở bán lại'}
+        </Button>
       </td>
     </tr>
   );

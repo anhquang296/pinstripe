@@ -6,6 +6,7 @@ import {
   subscriptionFormDefaultValues,
   subscriptionFormResolver,
 } from '@forms/subscription-form';
+import { formatPriceAmount } from '@lib/price';
 import {
   useCancelSubscriptionMutation,
   useCreateSubscriptionMutation,
@@ -64,7 +65,7 @@ export default function SubscriptionsPage() {
       ...map(recurringPrices, (price) => {
         return {
           value: price.id,
-          label: `${price.lookupKey ?? price.id} · ${price.billingScheme} · ${toUpper(price.currency)}`,
+          label: `${price.lookupKey ?? price.id} · v${price.version} · ${formatPriceAmount(price)}`,
         };
       }),
     ];
