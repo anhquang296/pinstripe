@@ -1,8 +1,4 @@
 ---
-paths:
-  - "**/*.routes.ts"
-  - "**/routes/**"
-  - "**/hooks/**"
 description: >
   How routes are grouped and guarded — one submodule per caller with its own prefix and auth hook,
   a schema on every route, handlers that only wire.

@@ -1,7 +1,7 @@
 ---
 description: >
   How an agent creates and changes files — the file tools write, the shell reads, and why a
-  heredoc costs you the conventions and the formatter.
+  heredoc costs you the formatter.
 agentkit:
   id: core/agent-tooling-convention
   layer: core
@@ -14,7 +14,7 @@ agentkit:
 
 # Agent Tooling Convention
 
-The conventions in this directory reach an agent as a side effect of touching a file with a file tool. A file written through a shell redirection is written by an agent that never loaded them — and nothing anywhere reports that. The code simply comes out in a house style the project does not have, the formatter never runs on it, and the first sign of trouble is a review.
+The formatter in this project runs as a side effect of touching a file with a file tool. A file written through a shell redirection is never formatted, and nothing anywhere reports that. It lands unformatted, diverges from every file around it, and the first sign of trouble is a review.
 
 ## Scope
 
@@ -31,7 +31,7 @@ Does **not** apply to:
 Create and modify files with the editor tools your harness provides — `Write`, `Edit`, and their equivalents. Never author file contents with a shell redirection, a heredoc, or an in-place stream edit.
 
 ```bash
-# WRONG — the conventions governing this path never load, and the formatter never runs
+# WRONG — the formatter never runs, and nothing says so
 cat > src/routines/routines.service.ts <<'EOF'
 export class RoutinesService {}
 EOF
@@ -45,7 +45,7 @@ sed -i '' 's/foo/bar/' src/routines/routines.service.ts
 sed -n '1,80p' src/routines/routines.service.ts
 ```
 
-The mechanism is worth stating plainly, because it is invisible and it does not fail loudly: the rules load when a file tool touches a path their globs match. A shell command is not a file tool. Writing through one skips the rules, skips the formatter, and leaves no trace that either was skipped.
+The mechanism is worth stating plainly, because it is invisible and it does not fail loudly: the formatter fires on the file-tool event. A shell command is not a file tool, so writing through one skips it and leaves no trace that it was skipped.
 
 This holds however small the edit is. A one-character `sed -i` on a source file is the case where reaching for the shell is most tempting and the loss is exactly the same.
 
@@ -55,18 +55,15 @@ Nothing here discourages the shell. Reading a file, searching a tree, listing a 
 
 The division is about **authorship**: if the bytes going into the file were composed by the agent, a file tool writes them. If the file is being inspected, or produced by a program that owns its own output, the shell is correct.
 
-## Know the rule before you write
+## The rules are already loaded
 
-A rule that applies everywhere is already in context. A rule scoped to part of the tree is not — it loads when a matching file is touched, which has not happened yet if this is the first file you are writing there.
+Every rule in this directory loads at the start of the session, whatever you are about to touch. There is no lookup step, no rule waiting to be fetched, and no part of the tree where the conventions are different — so nothing here asks you to pause and go and read something before you write.
 
-Before authoring a file in an area you have not worked in this session, find the rules that govern its path and read them. The index at the root of this directory lists every rule and the paths it covers; where the kit's CLI is installed, `agentkit rules --for <path>` answers the same question directly.
-
-Inferring the convention from neighbouring files reproduces whatever those files got wrong, which is the failure this whole directory exists to prevent. See [rule-maintenance.md](./rule-maintenance.md) for who owns which of these files.
+What it does ask is that you not fill the gap from the code instead. Inferring a convention from neighbouring files reproduces whatever those files got wrong, which is the failure this whole directory exists to prevent. See [rule-maintenance.md](./rule-maintenance.md) for who owns which of these files.
 
 ## NEVER Do
 
 - Author a file's contents with a shell redirection (`>`, `>>`), a heredoc, `tee`, or `dd` — use the file tool.
 - Edit a file in place with `sed -i`, `perl -i` or an equivalent, however small the change.
 - Treat "it is only one line" or "the shell is quicker here" as a reason to bypass the file tool.
-- Write a file in an unfamiliar part of the tree without first reading the rules whose paths cover it.
-- Infer a convention from the surrounding code when a rule for that path exists and has not been read.
+- Infer a convention from the surrounding code when a rule already in context covers it.

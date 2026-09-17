@@ -1,14 +1,17 @@
-<!-- agentkit:start v0.2.1 -->
+<!-- agentkit:start v0.3.0 -->
 ## Coding conventions
 
-Repo-wide conventions live in `.claude/rules/agentkit/` and are loaded alongside this file. The core rules are
-in your context already — they load every session. The rest are scoped to paths and load when you
-touch a matching file **with a file tool**.
+Repo-wide conventions live in `.claude/rules/agentkit/` and are loaded alongside this file. Every one of them
+is in your context already — none is scoped to a path, so there is nothing to go and fetch before
+you write.
 
-That last part is the whole mechanism, and it fails silently: a file authored through a shell
-redirection or a heredoc loads no rules and is never formatted. Write and edit files with the file
-tools; keep the shell for reading, searching and running things. Before writing in an area you have
-not touched this session, `agentkit rules --for <path>` lists what governs it.
+They are a floor, not a gate: follow them while you work, and do not stop to re-read or re-check a
+rule you already have. Where a rule and the surrounding code disagree, the rule wins and the code is
+what needs fixing.
+
+One mechanism still fails silently: a file authored through a shell redirection or a heredoc is never
+formatted, because the formatter hangs off the file-tool event. Write and edit files with the file
+tools; keep the shell for reading, searching and running things.
 
 Project-specific conventions that do not belong in the shared kit live in `.claude/rules/local/` and are
 loaded the same way.

@@ -1,9 +1,4 @@
 ---
-paths:
-  - "**/*.schema.ts"
-  - "**/*.repository.ts"
-  - "**/database/**"
-  - "**/db/**"
 description: >
   Drizzle schema and query rules — table and column naming, inferred types, read/write split, soft
   deletes, and building a where from conditional terms.

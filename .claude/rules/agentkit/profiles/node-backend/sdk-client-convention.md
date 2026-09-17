@@ -1,7 +1,4 @@
 ---
-paths:
-  - "**/*.client.ts"
-  - "**/clients/**"
 description: >
   How a third-party SDK wrapper is shaped — named after the SDK, `(config, logger)`, no env, no
   I/O in the constructor, its own error class.

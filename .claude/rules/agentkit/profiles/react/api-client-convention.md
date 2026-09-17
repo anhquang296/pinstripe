@@ -1,8 +1,4 @@
 ---
-paths:
-  - "**/api/**"
-  - "**/api-v1/**"
-  - "**/request.ts"
 description: >
   The frontend's HTTP layer — one client in one file, a folder per domain, stateless request
   functions, and the response envelope kept visible.

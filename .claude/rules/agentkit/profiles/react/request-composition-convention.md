@@ -1,8 +1,4 @@
 ---
-paths:
-  - "**/api/**"
-  - "**/api-v1/**"
-  - "**/request.ts"
 description: >
   Requests composed from a closed set of setters — `Request<T>(Endpoint(…), Method(…),
   Params(…))`, empty values dropped, one error class at the boundary, refresh once and retry once.

@@ -1,11 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.js"
-  - "**/*.jsx"
-  - "**/*.mjs"
-  - "**/*.cjs"
 description: >
   Reach for lodash first — `_.get` over optional chaining at any depth, `_.map` / `_.filter` /
   `_.reject` over the native methods, and a chain when several run in sequence.

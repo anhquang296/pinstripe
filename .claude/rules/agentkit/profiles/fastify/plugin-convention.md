@@ -1,8 +1,4 @@
 ---
-paths:
-  - "**/*.plugin.ts"
-  - "**/plugins/**"
-  - "**/app.ts"
 description: >
   What a Fastify plugin is allowed to contain — config in, a decorated client out, registered in
   one ordered list that is the source of truth.

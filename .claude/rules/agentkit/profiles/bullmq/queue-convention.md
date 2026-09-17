@@ -1,9 +1,4 @@
 ---
-paths:
-  - "**/*.queue.ts"
-  - "**/queues/**"
-  - "**/workflows/**"
-  - "**/*.processor.ts"
 description: >
   The queue contract shared by producer and consumer, and how a worker process is named, started
   and shut down.

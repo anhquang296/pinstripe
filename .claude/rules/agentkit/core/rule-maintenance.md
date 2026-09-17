@@ -57,22 +57,34 @@ Write rules as instructions to an agent, not as observations about the codebase:
 
 A rule that names something no longer in the codebase is worse than no rule: it is confidently wrong, and an agent has no way to tell. The same applies in reverse — a convention introduced in code without a rule will be undone by the next agent that touches the file.
 
-## Which layer decides when a rule loads
+## Every rule loads every session
 
-The layer is not just about who opts in; it decides how the rule reaches an agent at all.
+There is no `paths` frontmatter and no path scoping. A rule a project selects is in the agent's
+context from the first message, whatever file it goes on to touch. Declaring `paths` is rejected
+outright, in both layers.
 
-| Layer     | `paths` frontmatter | When it loads                                                     |
-| --------- | ------------------- | ----------------------------------------------------------------- |
-| `core`    | must be absent      | every session, in every project — it is in context before you start |
-| `profile` | must be present     | when a file tool touches a path its globs match                     |
+| Layer     | Who gets it                              | When it loads                          |
+| --------- | ---------------------------------------- | -------------------------------------- |
+| `core`    | every project, unconditionally           | every session                          |
+| `profile` | projects that opt the profile in         | every session, once opted in           |
 
-This is enforced, not conventional: a core rule that declares `paths` and a profile rule that omits
-them are both rejected. Core applies everywhere, so gating it contradicts itself; a profile is already
-opted into per project, so its globs are the second filter rather than the only one.
+So the layer decides **who** a rule reaches, never **when**. Scoping was the alternative and it lost
+on the thing that matters: a rule that arrives only once a matching file is touched arrives after the
+agent has already decided how to write it, and arrives not at all when the file is authored any way
+the harness does not count as a file tool. A rule that is not there at the moment of writing is not a
+rule.
 
-The cost is real and worth stating — every core rule is paid for in context on every session, so a
-rule only belongs in core if it governs code an agent could write at any moment. A rule that applies
-to one kind of file belongs in a profile, where its globs keep it out of the way until it is needed.
+What that buys is paid for in context, every session, by every project that selects the rule — so the
+budget, not the glob, is now the thing to be disciplined about:
+
+- A rule belongs in the kit only if it governs code an agent could plausibly write. A rule for a
+  situation that comes up twice a year is costing every session for the two it earns.
+- A rule earns its length in the cases it changes. Cut the second example that makes the same point,
+  and the paragraph that restates the `## NEVER Do` list in prose.
+- Two overlapping rules are heavier than one general rule with two examples — see
+  [§ Keep rules small and linked](#keep-rules-small-and-linked).
+- A profile nobody in this project uses is dead weight in every session of it. Do not opt into a
+  profile speculatively, and `eject` a rule the project has outgrown.
 
 ## Keep rules small and linked
 
@@ -94,4 +106,6 @@ Cross-link rather than repeat. A core rule links only to other core rules; a pro
 - Add a rule without a `## Scope` section saying where it does **not** apply.
 - Rename something in code without updating every rule, doc and skill that cites the old name in the same change.
 - Link from a core rule to a profile rule.
+- Declare `paths` frontmatter on a rule, in either layer — every rule loads every session.
+- Add a rule, or opt into a profile, that the project will not actually use — it is paid for in context every session.
 - Put project-specific vocabulary, paths or exception lists into a kit rule — that is what `.claude/rules/local/` is for.

@@ -1,9 +1,4 @@
 ---
-paths:
-  - "**/reactquery/**"
-  - "**/react-query-keys/**"
-  - "**/queries.ts"
-  - "**/mutations.ts"
 description: >
   Server state through React Query — keys from a factory, `use{Entity}Query` /
   `use{Action}{Entity}Mutation`, invalidate then toast.

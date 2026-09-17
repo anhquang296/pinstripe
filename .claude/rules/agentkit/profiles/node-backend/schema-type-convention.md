@@ -1,7 +1,4 @@
 ---
-paths:
-  - "**/*.types.ts"
-  - "**/*.schema.ts"
 description: >
   Naming and layout for request/response schemas and the types derived from them — camelCase
   schemas, suffix matching HTTP position, no intermediate fragments.

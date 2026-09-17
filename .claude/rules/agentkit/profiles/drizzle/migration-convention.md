@@ -1,7 +1,4 @@
 ---
-paths:
-  - "**/migrations/**"
-  - "**/drizzle.config.*"
 description: >
   The migration journal invariant — what a generated migration consists of, and why discarding one
   halfway breaks every test run.

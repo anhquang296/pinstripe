@@ -1,7 +1,4 @@
 ---
-paths:
-  - "**/*.service.ts"
-  - "**/services/**"
 description: >
   What a service owns — the verb that states the read's outcome, throwing what the repository
   returned as null, and the response envelope boundary.

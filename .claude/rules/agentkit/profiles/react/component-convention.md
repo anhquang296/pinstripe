@@ -1,7 +1,4 @@
 ---
-paths:
-  - "**/*.tsx"
-  - "**/*.jsx"
 description: >
   How a React component file is shaped — PascalCase file, one default export, `{Component}Props`,
   `on*` props paired with `handleOn*` handlers, and when a file becomes a folder.

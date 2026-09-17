@@ -1,9 +1,4 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/tsconfig*.json"
-  - "**/package.json"
 description: >
   Why a shared workspace package must stay built, and how apps are allowed to reach into it.
 agentkit:

@@ -1,7 +1,4 @@
 ---
-paths:
-  - "**/*.repository.ts"
-  - "**/repositories/**"
 description: >
   How a repository is shaped — one aggregate per class, a closed verb set, filters whose field
   names carry their operator, and raw entities out.

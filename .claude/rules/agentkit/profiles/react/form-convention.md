@@ -1,9 +1,4 @@
 ---
-paths:
-  - "**/*-form.ts"
-  - "**/forms/**"
-  - "**/*Form.tsx"
-  - "**/*Form/**"
 description: >
   React Hook Form + Zod — one config file per form, `useForm` in the page, the whole form object
   passed down, and a real `<form>` element.
