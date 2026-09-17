@@ -20,8 +20,11 @@ BRANCH_PREFIX="${BRANCH_PREFIX:-overnight/phase-}"
 ROADMAP="docs/ROADMAP-V2.md"
 
 DEADLINE_HOURS="${DEADLINE_HOURS:-8}"
-BUDGET_PER_ROUND="${BUDGET_PER_ROUND:-15}"
-MAX_REPAIR="${MAX_REPAIR:-2}"
+# 0 = không đặt trần. Với token subscription thì `total_cost_usd` chỉ là ước lượng quy đổi,
+# không phải tiền bị trừ — một cái trần ở đây chỉ cắt ngang agent giữa chừng chứ không tiết
+# kiệm được gì. Thứ thật sự chặn là usage limit của gói và DEADLINE_HOURS bên dưới.
+BUDGET_PER_ROUND="${BUDGET_PER_ROUND:-0}"
+MAX_REPAIR="${MAX_REPAIR:-3}"
 GATE_TIMEOUT="${GATE_TIMEOUT:-1800}"
 MODEL="${MODEL:-opus}"
 FALLBACK_MODEL="${FALLBACK_MODEL:-sonnet}"
@@ -138,6 +141,7 @@ gate() {
     kill -KILL -"$pid" 2>/dev/null || kill -KILL "$pid" 2>/dev/null
   ) >/dev/null 2>&1 &
   local watcher=$!
+  disown "$watcher" 2>/dev/null || true
 
   local rc=0
   wait "$pid" || rc=$?
@@ -152,9 +156,18 @@ gate() {
 
 # ----------------------------------------------------------------------- claude
 
-# run_claude <prompt> <json_out>  → 0 nếu CLI chạy xong, 1 nếu lỗi
+# run_claude <prompt> <json_out>
+#   0 = chạy xong bình thường
+#   1 = hỏng thật, không cứu được
+#   2 = rate limit, nên ngủ rồi thử lại
+#   3 = hết đà (ngân sách / số lượt), việc dở vẫn còn — cho vòng tiếp đi tiếp
 run_claude() {
   local prompt="$1" json_out="$2"
+  local budget_args=()
+
+  if [[ "$BUDGET_PER_ROUND" != "0" ]]; then
+    budget_args=(--max-budget-usd "$BUDGET_PER_ROUND")
+  fi
 
   set +e
   claude -p "$prompt" \
@@ -162,29 +175,37 @@ run_claude() {
     --fallback-model "$FALLBACK_MODEL" \
     --permission-mode bypassPermissions \
     --disallowedTools "Bash(git push:*) Bash(gh:*) WebFetch WebSearch" \
-    --max-budget-usd "$BUDGET_PER_ROUND" \
+    "${budget_args[@]}" \
     --output-format json \
     >"$json_out" 2>>"$RUN_DIR/run.log"
   local code=$?
   set -e
 
-  if [[ $code -ne 0 ]]; then
-    log "  claude thoát với mã $code"
-    return 1
-  fi
-
   if ! jq -e . "$json_out" >/dev/null 2>&1; then
-    log "  claude trả về JSON không đọc được"
+    log "  claude thoát mã $code và không trả JSON đọc được"
     return 1
   fi
 
-  local cost
+  local subtype cost
+  subtype="$(jq -r '.subtype // "?"' "$json_out")"
   cost="$(jq -r '.total_cost_usd // 0' "$json_out")"
-  log "  claude xong: is_error=$(jq -r '.is_error // false' "$json_out") subtype=$(jq -r '.subtype // "?"' "$json_out") cost=\$$cost"
+  log "  claude xong: is_error=$(jq -r '.is_error // false' "$json_out") subtype=$subtype turns=$(jq -r '.num_turns // 0' "$json_out") cost=\$$cost"
+
+  case "$subtype" in
+    error_max_budget_usd | error_max_turns)
+      log "  hết đà ($subtype) — việc dở còn trong working tree, sẽ cho đi tiếp"
+      return 3
+      ;;
+  esac
 
   if jq -r '.result // ""' "$json_out" | grep -qiE 'usage limit|rate limit|too many requests'; then
     log "  phát hiện rate limit / usage limit"
     return 2
+  fi
+
+  if [[ $code -ne 0 ]]; then
+    log "  claude thoát với mã $code"
+    return 1
   fi
 
   return 0
@@ -228,6 +249,36 @@ Tự quyết định mọi thứ, không hỏi lại.
 PROMPT
 }
 
+# Việc dở phải được cất vào branch ngay, không bao giờ để nằm trong working tree:
+# một `git checkout` sau đó sẽ mang nó sang branch khác, và đó là cách mất việc.
+# --no-verify ở đây là cố ý — code nửa chừng thường không qua lint, và gate vẫn
+# chạy đầy đủ trước khi phase được coi là xong.
+commit_wip() {
+  local n="$1" round="$2"
+
+  if [[ -z "$(git status --porcelain)" ]]; then
+    return 0
+  fi
+
+  git add -A
+  git commit -q --no-verify -m "wip: phase $n vòng $round, bị cắt giữa chừng"
+  log "  đã cất việc dở vào $(git rev-parse --short HEAD)"
+}
+
+build_continue_prompt() {
+  local n="$1" title="$2"
+  cat <<PROMPT
+Bạn đang làm dở "## Phase ${n} — ${title}" (xem ${ROADMAP}) và bị cắt giữa chừng vì hết đà.
+Việc đã làm nằm trong các commit 'wip:' trên branch hiện tại — đọc \`git log\` và \`git show\` để
+biết mình đang ở đâu, đừng làm lại từ đầu.
+
+Làm nốt phần còn thiếu, rồi đưa gate về xanh:
+  pnpm lint && pnpm turbo run typecheck --force && pnpm turbo run test --force && pnpm test:integration
+
+Commit lên branch hiện tại. Không git push, không đổi branch, không --no-verify.
+PROMPT
+}
+
 build_repair_prompt() {
   local n="$1" gate_log="$2"
   cat <<PROMPT
@@ -256,21 +307,33 @@ run_phase() {
   log "=== Phase $n — $title  (base: $base) ==="
 
   if git show-ref --verify --quiet "refs/heads/$branch"; then
-    log "  branch $branch đã có — bỏ qua phase này"
-    return 0
+    log "  branch $branch đã có — chạy tiếp trên đó thay vì bỏ qua"
+    git checkout -q "$branch"
+  else
+    git checkout -q -b "$branch" "$base"
   fi
 
-  git checkout -q -b "$branch" "$base"
   local before
-  before="$(git rev-parse HEAD)"
+  before="$(git rev-parse "$base")"
 
   local round=0
   local gate_log="$RUN_DIR/phase-$n.gate.log"
 
+  local ran_out=false
+
+  # Branch đã có commit sẵn nghĩa là một lần chạy trước bỏ dở giữa chừng.
+  # Đừng bảo agent làm lại từ đầu — chỉ ra chỗ nó đang đứng.
+  if [[ "$(git rev-parse HEAD)" != "$before" ]]; then
+    ran_out=true
+    log "  đang chạy tiếp: branch có sẵn $(git rev-list --count "$base..$branch") commit"
+  fi
+
   while :; do
     local prompt
-    if [[ $round -eq 0 ]]; then
+    if [[ $round -eq 0 ]] && ! $ran_out; then
       prompt="$(build_prompt "$n" "$title" "$branch")"
+    elif $ran_out; then
+      prompt="$(build_continue_prompt "$n" "$title")"
     else
       prompt="$(build_repair_prompt "$n" "$gate_log")"
     fi
@@ -293,14 +356,26 @@ run_phase() {
       log "  CẢNH BÁO: agent đã rời sang '$now_branch', đã kéo về $branch"
     fi
 
+    ran_out=false
+    if [[ $rc -eq 3 ]]; then
+      ran_out=true
+      commit_wip "$n" "$round"
+    fi
+
     # Kiểm chứng khách quan #2: có commit nào không?
     local after
     after="$(git rev-parse HEAD)"
     if [[ "$after" == "$before" ]]; then
       log "  không có commit nào sau vòng $round"
-      if [[ $rc -ne 0 || $round -ge $MAX_REPAIR ]]; then
+      if [[ $rc -eq 1 || $round -ge $MAX_REPAIR ]]; then
         return 1
       fi
+      round=$(( round + 1 ))
+      continue
+    fi
+
+    # Hết đà giữa chừng thì chưa cần chạy gate — cho nó làm tiếp đã.
+    if $ran_out && [[ $round -lt $MAX_REPAIR ]]; then
       round=$(( round + 1 ))
       continue
     fi
@@ -434,13 +509,22 @@ main() {
       base="${BRANCH_PREFIX}${n}"
       done_count=$(( done_count + 1 ))
     else
-      log "NEED_HUMAN ở phase $n — không mở PR, branch ${BRANCH_PREFIX}${n} còn ở local"
-      printf 'NEED_HUMAN phase %s\nxem %s\n' "$n" "$RUN_DIR/phase-$n.gate.log" > "$RUN_DIR/STOP"
+      commit_wip "$n" "cuối"
+      log "NEED_HUMAN ở phase $n — không mở PR, việc dở đã cất vào branch ${BRANCH_PREFIX}${n}"
+      printf 'NEED_HUMAN phase %s\nbranch %s%s\nxem %s\n' \
+        "$n" "$BRANCH_PREFIX" "$n" "$RUN_DIR/phase-$n.gate.log" > "$RUN_DIR/STOP"
       break
     fi
   done
 
-  git checkout -q "$BASE_BRANCH"
+  # Chỉ quay về base khi tree đã sạch. `git checkout` với tree bẩn sẽ mang nguyên
+  # đống thay đổi sang branch kia, và khi đó việc của agent đứng trên master.
+  if [[ -n "$(git status --porcelain)" ]]; then
+    log "CẢNH BÁO: tree vẫn bẩn, ở lại $(git rev-parse --abbrev-ref HEAD) thay vì quay về $BASE_BRANCH"
+  else
+    git checkout -q "$BASE_BRANCH"
+  fi
+
   log "xong: $done_count phase thành PR. gh pr list --state open"
 }
 
