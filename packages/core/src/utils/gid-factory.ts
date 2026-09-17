@@ -32,6 +32,8 @@ export enum ObjectPrefixEnum {
   ENTITLEMENT = 'ent',
   TEST_CLOCK = 'clock',
   TAX_RATE = 'txr',
+  TAX_ID = 'txi',
+  INVOICE_LINE_TAX_AMOUNT = 'iltx',
   REQUEST = 'req',
   API_KEY = 'ak',
 }

@@ -1,8 +1,11 @@
 import type { BillingReason, InvoiceStatus, NumberSequence } from '@contracts/invoices.types';
 import type { CollectionMethod } from '@contracts/subscriptions.types';
+import type { AuthorityStatus, AutomaticTaxStatus, TaxType } from '@contracts/taxes.types';
+import { AuthorityStatusEnum, AutomaticTaxStatusEnum } from '@contracts/taxes.types';
 import { customers } from '@database/schemas/customers.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
+import { taxRates } from '@database/schemas/taxes.schema';
 import type { Currency } from '@utils/currency';
 import type { LineItemType } from '@utils/rating';
 import { sql } from 'drizzle-orm';
@@ -23,12 +26,6 @@ import {
 export interface InvoiceLineDiscountAmount {
   discountId: string;
   amount: number;
-}
-
-export interface InvoiceLineTaxAmount {
-  taxRateId: string;
-  amount: number;
-  isInclusive: boolean;
 }
 
 export const numberSequences = pgTable(
@@ -75,6 +72,17 @@ export const invoices = pgTable(
     endingBalance: bigint('ending_balance', { mode: 'number' }).notNull().default(0),
     amountDue: bigint('amount_due', { mode: 'number' }).notNull().default(0),
     amountPaid: bigint('amount_paid', { mode: 'number' }).notNull().default(0),
+    defaultTaxRates: jsonb('default_tax_rates').$type<string[]>().notNull().default([]),
+    automaticTaxEnabled: boolean('automatic_tax_enabled').notNull().default(false),
+    automaticTaxStatus: text('automatic_tax_status')
+      .$type<AutomaticTaxStatus>()
+      .notNull()
+      .default(AutomaticTaxStatusEnum.NOT_COLLECTING),
+    authorityInvoiceNumber: text('authority_invoice_number'),
+    authorityStatus: text('authority_status')
+      .$type<AuthorityStatus>()
+      .notNull()
+      .default(AuthorityStatusEnum.NOT_SUBMITTED),
     dueAt: timestamp('due_at', { withTimezone: true }),
     attemptCount: integer('attempt_count').notNull().default(0),
     nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
@@ -125,7 +133,6 @@ export const invoiceLineItems = pgTable(
       .$type<InvoiceLineDiscountAmount[]>()
       .notNull()
       .default([]),
-    taxAmounts: jsonb('tax_amounts').$type<InvoiceLineTaxAmount[]>().notNull().default([]),
     periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
     periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
     prorationFactor: doublePrecision('proration_factor').notNull(),
@@ -133,6 +140,41 @@ export const invoiceLineItems = pgTable(
   },
   (table) => {
     return [index('invoice_line_items_invoice_id_idx').on(table.invoiceId)];
+  },
+);
+
+export const invoiceLineItemTaxAmounts = pgTable(
+  'invoice_line_item_tax_amounts',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    invoiceId: text('invoice_id')
+      .notNull()
+      .references(() => {
+        return invoices.id;
+      }),
+    invoiceLineItemId: text('invoice_line_item_id')
+      .notNull()
+      .references(() => {
+        return invoiceLineItems.id;
+      }),
+    taxRateId: text('tax_rate_id')
+      .notNull()
+      .references(() => {
+        return taxRates.id;
+      }),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    taxableAmount: bigint('taxable_amount', { mode: 'number' }).notNull(),
+    isInclusive: boolean('is_inclusive').notNull(),
+    percentage: doublePrecision('percentage').notNull(),
+    taxType: text('tax_type').$type<TaxType>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      index('invoice_line_item_tax_amounts_invoice_id_idx').on(table.invoiceId),
+      index('invoice_line_item_tax_amounts_line_item_id_idx').on(table.invoiceLineItemId),
+    ];
   },
 );
 
@@ -192,6 +234,7 @@ export const invoiceItems = pgTable(
     unitAmount: bigint('unit_amount', { mode: 'number' }),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     discountable: boolean('discountable').notNull().default(true),
+    taxRates: jsonb('tax_rates').$type<string[]>().notNull().default([]),
     periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
     periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
@@ -236,6 +279,8 @@ export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
 export type NewInvoiceLineItem = typeof invoiceLineItems.$inferInsert;
+export type InvoiceLineItemTaxAmount = typeof invoiceLineItemTaxAmounts.$inferSelect;
+export type NewInvoiceLineItemTaxAmount = typeof invoiceLineItemTaxAmounts.$inferInsert;
 export type CreditNote = typeof creditNotes.$inferSelect;
 export type NewCreditNote = typeof creditNotes.$inferInsert;
 export type InvoiceItem = typeof invoiceItems.$inferSelect;

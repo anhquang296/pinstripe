@@ -2,6 +2,8 @@ import type {
   CustomerBalanceTransactionType,
   CustomerResponse as CustomerContract,
 } from '@contracts/customers.types';
+import type { TaxExempt } from '@contracts/taxes.types';
+import { TaxExemptEnum } from '@contracts/taxes.types';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
 import {
@@ -26,6 +28,7 @@ export const customers = pgTable(
     description: text('description').notNull().default(''),
     phone: text('phone').notNull().default(''),
     taxId: text('tax_id'),
+    taxExempt: text('tax_exempt').$type<TaxExempt>().notNull().default(TaxExemptEnum.NONE),
     address: jsonb('address').$type<NonNullable<CustomerContract['address']>>(),
     currency: text('currency').$type<Currency>().notNull(),
     testClockId: text('test_clock_id'),

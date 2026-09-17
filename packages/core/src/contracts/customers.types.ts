@@ -1,3 +1,5 @@
+import type { TaxExempt } from '@contracts/taxes.types';
+import { TaxExemptEnum } from '@contracts/taxes.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
@@ -21,6 +23,7 @@ export const customerSchema = Type.Object({
   description: Type.String(),
   phone: Type.String(),
   taxId: Type.Union([Type.String(), Type.Null()]),
+  taxExempt: Type.Unsafe<TaxExempt>(Type.Enum(TaxExemptEnum)),
   address: Type.Union([
     Type.Object({
       line1: Type.Optional(Type.String()),
@@ -51,6 +54,7 @@ export const createCustomerSchema = Type.Object(
     description: Type.Optional(Type.String()),
     phone: Type.Optional(Type.String()),
     taxId: Type.Optional(Type.String()),
+    taxExempt: Type.Optional(Type.Unsafe<TaxExempt>(Type.Enum(TaxExemptEnum))),
     address: Type.Optional(
       Type.Object({
         line1: Type.Optional(Type.String()),
@@ -75,6 +79,7 @@ export const updateCustomerSchema = Type.Object(
     description: Type.Optional(Type.String()),
     phone: Type.Optional(Type.String()),
     taxId: Type.Optional(Type.String()),
+    taxExempt: Type.Optional(Type.Unsafe<TaxExempt>(Type.Enum(TaxExemptEnum))),
     address: Type.Optional(
       Type.Object({
         line1: Type.Optional(Type.String()),

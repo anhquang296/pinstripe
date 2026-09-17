@@ -1,5 +1,7 @@
 import type { CollectionMethod } from '@contracts/subscriptions.types';
 import { CollectionMethodEnum } from '@contracts/subscriptions.types';
+import type { AuthorityStatus, AutomaticTaxStatus, TaxType } from '@contracts/taxes.types';
+import { AuthorityStatusEnum, AutomaticTaxStatusEnum, TaxTypeEnum } from '@contracts/taxes.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
@@ -70,6 +72,13 @@ export const invoiceSchema = Type.Object({
   endingBalance: Type.Integer(),
   amountDue: Type.Integer(),
   amountPaid: Type.Integer(),
+  defaultTaxRates: Type.Array(Type.String()),
+  automaticTax: Type.Object({
+    enabled: Type.Boolean(),
+    status: Type.Unsafe<AutomaticTaxStatus>(Type.Enum(AutomaticTaxStatusEnum)),
+  }),
+  authorityInvoiceNumber: Type.Union([Type.String(), Type.Null()]),
+  authorityStatus: Type.Unsafe<AuthorityStatus>(Type.Enum(AuthorityStatusEnum)),
   amountCredited: Type.Integer(),
   amountRefunded: Type.Integer(),
   amountRemaining: Type.Integer(),
@@ -94,7 +103,10 @@ export const invoiceSchema = Type.Object({
         Type.Object({
           taxRateId: Type.String(),
           amount: Type.Integer(),
+          taxableAmount: Type.Integer(),
           isInclusive: Type.Boolean(),
+          percentage: Type.Number(),
+          taxType: Type.Unsafe<TaxType>(Type.Enum(TaxTypeEnum)),
         }),
       ),
       periodStart: Type.String(),
@@ -136,6 +148,8 @@ export const createInvoiceSchema = Type.Object(
     collectionMethod: Type.Optional(Type.Unsafe<CollectionMethod>(Type.Enum(CollectionMethodEnum))),
     autoAdvance: Type.Optional(Type.Boolean()),
     daysUntilDue: Type.Optional(Type.Integer({ minimum: 0, maximum: 365 })),
+    defaultTaxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
+    automaticTax: Type.Optional(Type.Object({ enabled: Type.Boolean() })),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
   },
   { additionalProperties: false },
@@ -156,6 +170,7 @@ export const invoiceItemSchema = Type.Object({
   unitAmount: Type.Union([Type.Integer(), Type.Null()]),
   amount: Type.Integer(),
   discountable: Type.Boolean(),
+  taxRates: Type.Array(Type.String()),
   periodStart: Type.String(),
   periodEnd: Type.String(),
   metadata: Type.Record(Type.String(), Type.String()),
@@ -185,6 +200,7 @@ export const createInvoiceItemSchema = Type.Object(
     unitAmount: Type.Optional(Type.Integer()),
     amount: Type.Optional(Type.Integer()),
     discountable: Type.Optional(Type.Boolean()),
+    taxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
     periodStart: Type.Optional(Type.String({ format: 'date-time' })),
     periodEnd: Type.Optional(Type.String({ format: 'date-time' })),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
@@ -199,6 +215,7 @@ export const updateInvoiceItemSchema = Type.Object(
     unitAmount: Type.Optional(Type.Integer()),
     amount: Type.Optional(Type.Integer()),
     discountable: Type.Optional(Type.Boolean()),
+    taxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
   },
   { additionalProperties: false },

@@ -34,6 +34,7 @@ export const subscriptions = pgTable(
     chargedThroughDate: timestamp('charged_through_date', { withTimezone: true }),
     trialStart: timestamp('trial_start', { withTimezone: true }),
     trialEnd: timestamp('trial_end', { withTimezone: true }),
+    defaultTaxRates: jsonb('default_tax_rates').$type<string[]>().notNull().default([]),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
     canceledAt: timestamp('canceled_at', { withTimezone: true }),
     endedAt: timestamp('ended_at', { withTimezone: true }),
@@ -74,6 +75,7 @@ export const subscriptionItems = pgTable(
         return prices.id;
       }),
     quantity: integer('quantity').notNull().default(1),
+    taxRates: jsonb('tax_rates').$type<string[]>().notNull().default([]),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
