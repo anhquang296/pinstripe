@@ -101,6 +101,7 @@ lúc tạo) và `manual` không có producer; cột là `text` nên thêm member
 
 ## Đọc tiếp
 
+- [technique 06 — Proration](../technique/06-proration.md) — cơ chế: cửa sổ tính tiền, ba behavior, ví dụ có số
 - [technique 05 — Product và price](../technique/05-product-and-price.md) — vì sao subscription trỏ price
 - [flow 05 — Metering và rating](../flows/05-metering-and-rating.md) — cửa sổ tính tiền và loại dòng
 - [ADR 0008](./0008-phase-5-rating.md) — engine rating gốc, nơi `isCredit` ra đời
