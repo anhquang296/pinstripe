@@ -143,7 +143,7 @@ private client: SESv2Client;
 
 ## Config Shape
 
-Options passed **straight through** to the SDK keep the SDK's own type under a dedicated key. Values the client derives, converts, or defaults are flat fields.
+Fields passed **straight through** to the SDK keep the SDK's own type under a dedicated key. Values the client derives, converts, or defaults are flat fields.
 
 ```ts
 // CORRECT — pass-through keeps the vendor type

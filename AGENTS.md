@@ -1,4 +1,4 @@
-<!-- agentkit:start v0.5.0 -->
+<!-- agentkit:start v0.5.1 -->
 ## Coding conventions
 
 The rules below are the source of truth for how code here is written, and every one of them applies

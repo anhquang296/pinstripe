@@ -41,6 +41,7 @@ One word per concept, in every layer — repository, service, request function, 
 | `<entityNoun>` — when the argument **is** a domain entity, not a DTO (`handleOrderCreated(order)`)          | `payload`, `data`                                      |
 | `filters` (`= {}`) — a multi-condition read (`findRoutines(filters, limit)`)                                | `where`, `criteria`, `options`, `params`, `conditions` |
 | `query` — an HTTP querystring DTO (`FindRoutinesQuery`)                                                     | `params`, `options`, `searchParams`, `qs`              |
+| `options` (`= {}`) — per-call tuning for one operation (`send(payload, options)`)                           | `opts`, `config`, `settings`, `flags`                  |
 | `params` — route / path params only                                                                         | `pathParams`, `routeParams`                            |
 | `id` — when the method or receiver already names the entity (`findRoutine(id)`)                             | `routineId`, `key`                                     |
 | `<entity>Id` — when it points at a _different_ entity, or is a column / filter field                        | `id`, `<entity>ID`, `<entity>Key`                      |
@@ -56,20 +57,23 @@ The key belongs in the **parameter name**, not the method name — `getRoutine(i
 
 ## Type and interface suffixes
 
-| Suffix                 | Meaning                                                                  | Over                                  |
-| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------- |
-| `…Payload`             | any write DTO we define — HTTP body, data-layer write, mutation argument | `…Body`, `…Dto`, `…Input`, `…Request` |
-| `…Query`               | HTTP querystring DTO                                                     | `…Params`, `…Options`                 |
-| `…Filters`             | read filters — exactly one per data-access class                         | `…Where`, `…Criteria`                 |
-| `…Totals` / `…Bucket`  | aggregate result rows                                                    | `…Stats`, `…Metrics`, `…Point`        |
-| `…Response`            | anything that crosses the wire to a client                               | `…Res`, `…Result`, `…Output`          |
-| `…Result`              | internal operation outcome that does **not** cross the wire              | `…Response`                           |
-| `…Item`                | one element of a list inside a response                                  | `…Row`, `…Entry`, `…Element`          |
-| `…Summary` / `…Detail` | coarse vs fine view of the same entity                                   | `…Overview`, `…Full`                  |
-| `…Config` (a `type`)   | a client's constructor config — `S3Config`                               | `…Options`, `…Settings`               |
-| `…Settings`            | user-facing stored settings (a domain noun, not a constructor arg)       | `…Config`, `…Preferences`             |
+| Suffix                 | Meaning                                                                      | Over                                  |
+| ---------------------- | ---------------------------------------------------------------------------- | ------------------------------------- |
+| `…Payload`             | any write DTO we define — HTTP body, data-layer write, mutation argument     | `…Body`, `…Dto`, `…Input`, `…Request` |
+| `…Query`               | HTTP querystring DTO                                                         | `…Params`, `…Options`                 |
+| `…Filters`             | read filters — exactly one per data-access class                             | `…Where`, `…Criteria`                 |
+| `…Totals` / `…Bucket`  | aggregate result rows                                                        | `…Stats`, `…Metrics`, `…Point`        |
+| `…Response`            | anything that crosses the wire to a client                                   | `…Res`, `…Result`, `…Output`          |
+| `…Result`              | internal operation outcome that does **not** cross the wire                  | `…Response`                           |
+| `…Item`                | one element of a list inside a response                                      | `…Row`, `…Entry`, `…Element`          |
+| `…Summary` / `…Detail` | coarse vs fine view of the same entity                                       | `…Overview`, `…Full`                  |
+| `…Config` (a `type`)   | what a client is **constructed** with, fixed for its life — `S3Config`       | `…Options`, `…Settings`               |
+| `…Options` (a `type`)  | per-call tuning for **one** operation, every field optional — `RetryOptions` | `…Config`, `…Opts`, `…Flags`          |
+| `…Settings`            | user-facing stored settings (a domain noun, not a constructor arg)           | `…Config`, `…Preferences`             |
 
-The two tables are one vocabulary seen from two sides: the parameter `payload` carries a `…Payload`, `query` carries a `…Query`, `filters` carries a `…Filters`. Where the argument and its type disagree — a parameter named `data` typed `CreateRoutinePayload` — one of them is wrong, and it is the argument.
+`…Config` and `…Options` are not interchangeable, and the test is when the value is supplied: a `…Config` is handed to a constructor once and the object keeps it, so its fields are required and a change means building a new client; an `…Options` is handed to a single call, so every field is optional and the next call may pass something else. A type whose fields are all optional but which is read in the constructor is a `…Config` with bad defaults, not an `…Options`.
+
+The two tables are one vocabulary seen from two sides: the parameter `payload` carries a `…Payload`, `query` carries a `…Query`, `filters` carries a `…Filters`, `options` carries an `…Options`. Where the argument and its type disagree — a parameter named `data` typed `CreateRoutinePayload` — one of them is wrong, and it is the argument.
 
 Error class names are the same idea applied to a condition rather than a shape: an `AppError` subclass named after what went wrong, `{Vendor}{Condition}Error` inside a client. See [typescript.md](./typescript.md#errors-are-classes-not-strings).
 
@@ -78,7 +82,8 @@ Error class names are the same idea applied to a condition rather than a shape: 
 - Use `input`, `data`, `dto` or `body` for a write DTO — it is `payload` in every layer.
 - Use `params` for anything but route / path params, or `query` for anything but a querystring DTO.
 - Name a parameter one thing and type it another — the type suffix and the parameter word are the same vocabulary.
-- Suffix a type `…Res`, `…Dto`, `…Where`, `…Criteria`, `…Options` or `…Overview`.
+- Suffix a type `…Res`, `…Dto`, `…Where`, `…Criteria`, `…Opts` or `…Overview`.
+- Call a constructor argument `…Options`, or a per-call argument `…Config` — the split is when the value is supplied, not how optional its fields look.
 - Use `…Response` for an internal result, or `…Result` for something that crosses the wire.
 - Introduce a second word for a concept this file already names — extend the table instead.
 - Put a project's own domain nouns in this file — they belong in `.claude/rules/local/`.
