@@ -6,6 +6,7 @@ import { DomainEventWorkflow } from '@workflows/domain-event.workflow';
 import { DunningWorkflow } from '@workflows/dunning.workflow';
 import { LedgerWorkflow } from '@workflows/ledger.workflow';
 import { OutboxWorkflow } from '@workflows/outbox.workflow';
+import { TaxWorkflow } from '@workflows/tax.workflow';
 import { WebhookWorkflow } from '@workflows/webhook.workflow';
 import type { WorkflowConstructor } from '@workflows/workflow';
 
@@ -45,3 +46,4 @@ workflowRegistry.add(WorkflowNameEnum.LEDGER, LedgerWorkflow);
 workflowRegistry.add(WorkflowNameEnum.BILLING, BillingWorkflow);
 workflowRegistry.add(WorkflowNameEnum.WEBHOOK, WebhookWorkflow);
 workflowRegistry.add(WorkflowNameEnum.DUNNING, DunningWorkflow);
+workflowRegistry.add(WorkflowNameEnum.TAX, TaxWorkflow);
