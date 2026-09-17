@@ -57,11 +57,11 @@ export class MeterEventService {
     const events = _.map(payload.events, (event) => {
       const meter = metersByEventName[event.eventName];
 
-      if (!meter) {
-        throw new NotFoundError(`No active meter listens for event ${event.eventName}`);
+      if (meter) {
+        return this.buildMeterEvent(meter, event, receivedAt);
       }
 
-      return this.buildMeterEvent(meter, event, receivedAt);
+      throw new NotFoundError(`No active meter listens for event ${event.eventName}`);
     });
     const unknownEvents = await this.rejectKnownEvents(events);
     const insertedIds = await this.fastify.meterEventRepository.createMeterEvents(unknownEvents);
@@ -84,11 +84,7 @@ export class MeterEventService {
     meterId: string,
     query: GetMeterEventSummariesQuery,
   ): Promise<MeterEventSummaryResponse> {
-    const meter = await this.fastify.meterRepository.findMeter(meterId);
-
-    if (!meter) {
-      throw new NotFoundError(`No such meter: ${meterId}`);
-    }
+    const meter = await this.getMeter(meterId);
 
     const windowStart = new Date(query.windowStart);
     const windowEnd = new Date(query.windowEnd);
@@ -119,6 +115,16 @@ export class MeterEventService {
       windowStart: windowStart.toISOString(),
       windowEnd: windowEnd.toISOString(),
     };
+  }
+
+  private async getMeter(meterId: string): Promise<Meter> {
+    const meter = await this.fastify.meterRepository.findMeter(meterId);
+
+    if (meter) {
+      return meter;
+    }
+
+    throw new NotFoundError(`No such meter: ${meterId}`);
   }
 
   private buildMeterEvent(

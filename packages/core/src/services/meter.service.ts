@@ -57,11 +57,11 @@ export class MeterService {
       updatedAt: this.fastify.clock.now(),
     });
 
-    if (!updatedMeter) {
-      throw new NotFoundError(`No such meter: ${id}`);
+    if (updatedMeter) {
+      return MeterService.buildMeter(updatedMeter);
     }
 
-    return MeterService.buildMeter(updatedMeter);
+    throw new NotFoundError(`No such meter: ${id}`);
   }
 
   async findMeters(query: GetMetersQuery): Promise<ListResponse<MeterResponse>> {
@@ -105,23 +105,23 @@ export class MeterService {
           tx,
         );
 
-        if (!meter) {
-          throw new NotFoundError(`Meter ${id} could not be created`);
+        if (meter) {
+          await this.fastify.outboxService.recordEvents(
+            [
+              {
+                aggregateType: AggregateTypeEnum.METER,
+                aggregateId: meter.id,
+                eventType: DomainEventTypeEnum.METER_CREATED,
+                payload: { id: meter.id, eventName: meter.eventName },
+              },
+            ],
+            tx,
+          );
+
+          return meter;
         }
 
-        await this.fastify.outboxService.recordEvents(
-          [
-            {
-              aggregateType: AggregateTypeEnum.METER,
-              aggregateId: meter.id,
-              eventType: DomainEventTypeEnum.METER_CREATED,
-              payload: { id: meter.id, eventName: meter.eventName },
-            },
-          ],
-          tx,
-        );
-
-        return meter;
+        throw new NotFoundError(`Meter ${id} could not be created`);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -136,17 +136,17 @@ export class MeterService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
-    }
+    if (id) {
+      const meter = await this.fastify.meterRepository.findMeter(id);
 
-    const meter = await this.fastify.meterRepository.findMeter(id);
+      if (meter) {
+        return { createdAt: meter.createdAt, id: meter.id };
+      }
 
-    if (!meter) {
       throw new NotFoundError(`No such meter: ${id}`);
     }
 
-    return { createdAt: meter.createdAt, id: meter.id };
+    return undefined;
   }
 
   private static buildMeter(meter: Meter): MeterResponse {

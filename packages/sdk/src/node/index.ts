@@ -5,4 +5,4 @@ export {
   WEBHOOK_SIGNATURE_HEADER,
 } from '@node/webhook-signature';
 export { webhooks } from '@node/webhooks.resource';
-export type { PinstripeEvent } from '@type/event.types';
+export type { PinstripeEvent } from '@type/contracts.types';

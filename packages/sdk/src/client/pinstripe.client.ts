@@ -16,8 +16,6 @@ import { SubscriptionsResource } from '@resources/subscriptions.resource';
 import { WebhookDeliveriesResource } from '@resources/webhook-deliveries.resource';
 import { WebhookEndpointsResource } from '@resources/webhook-endpoints.resource';
 
-const DEFAULT_BASE_URL = '';
-
 export class PinstripeClient {
   readonly customers: CustomersResource;
   readonly products: ProductsResource;
@@ -69,6 +67,8 @@ export class PinstripeClient {
 }
 
 function buildTransportConfig(pinstripeConfig: PinstripeConfig): TransportConfig {
+  const DEFAULT_BASE_URL = '';
+
   const {
     baseUrl = DEFAULT_BASE_URL,
     apiKey,

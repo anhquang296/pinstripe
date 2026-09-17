@@ -76,12 +76,11 @@ React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/forms/` (`
 
 Next.js 15 App Router, port 3100. Không có provider client nào, không TanStack Query, không cache.
 
-[lib/billing-api.ts](../../apps/portal-ui/src/lib/billing-api.ts):
+[lib/pinstripe.ts](../../apps/portal-ui/src/lib/pinstripe.ts) dựng đúng một `PinstripeClient` bằng `createPinstripeClient` từ `@pinstripe/sdk/node`. Không có HTTP client viết tay — xem [sdk-convention](../../.claude/rules/local/sdk-convention.md).
 
-- `fetch` chạy **trên server**, đọc `PINSTRIPE_API_URL` và `PINSTRIPE_SECRET_API_KEY` từ `process.env` — [billing-api.ts:22-27](../../apps/portal-ui/src/lib/billing-api.ts). API key không bao giờ tới trình duyệt.
-- `cache: 'no-store'` — luôn lấy dữ liệu mới.
-- Lỗi thành `PortalApiError` giữ `statusCode`; **không** đọc vỏ lỗi của API, nên message chỉ là `Billing API answered <status>`.
-- Ba hàm: `getCustomer`, `getSubscriptions`, `getInvoices`, mỗi danh sách `limit=20`, không phân trang.
+- Client chạy **trên server**; `createPinstripeClient` đọc `PINSTRIPE_API_URL` và `PINSTRIPE_SECRET_API_KEY` từ `process.env`. API key không bao giờ tới trình duyệt.
+- Lỗi là `PinstripeError` của SDK, giữ `statusCode` / `type` / `requestId` đọc từ vỏ lỗi của API.
+- Trang gọi ba method: `customers.retrieve`, `subscriptions.list`, `invoices.list`, mỗi danh sách `limit=20`, không phân trang.
 
 ### Lỗ hổng cần biết
 

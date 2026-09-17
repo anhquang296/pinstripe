@@ -1,24 +1,16 @@
+import type { ApiErrorBody } from '@pinstripe/core/contracts';
+import type { ErrorType } from '@pinstripe/core/errors';
 import { AppError, ErrorTypeEnum } from '@pinstripe/core/errors';
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
-interface StripeShapedError {
-  error: {
-    type: string;
-    code?: string;
-    param?: string;
-    message: string;
-    requestId: string;
-  };
-}
-
 function buildErrorBody(
-  type: string,
+  type: ErrorType,
   message: string,
   requestId: string,
   code?: string,
   param?: string,
-): StripeShapedError {
+): ApiErrorBody {
   return { error: { type, code, param, message, requestId } };
 }
 

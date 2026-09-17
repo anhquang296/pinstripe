@@ -1,3 +1,4 @@
+import type { AggregateType, DomainEventType } from '@contracts/events.types';
 import { QueueNameEnum } from '@queues/queue-name';
 
 export const DOMAIN_EVENT_QUEUE = QueueNameEnum.DOMAIN_EVENT;
@@ -5,8 +6,8 @@ export const DOMAIN_EVENT_DISPATCH_JOB = 'DomainEventDispatch';
 
 export interface DomainEventDispatchJob {
   eventId: string;
-  eventType: string;
-  aggregateType: string;
+  eventType: DomainEventType;
+  aggregateType: AggregateType;
   aggregateId: string;
   payload: Record<string, unknown>;
   occurredAt: string;

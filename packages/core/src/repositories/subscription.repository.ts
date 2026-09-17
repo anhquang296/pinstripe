@@ -24,6 +24,7 @@ import {
   or,
   sql,
 } from 'drizzle-orm';
+import _ from 'lodash';
 
 export interface SubscriptionItemFilters {
   subscriptionIds?: readonly string[];
@@ -100,7 +101,7 @@ export class SubscriptionRepository {
   ): Promise<SubscriptionItem[]> {
     const subscriptionIds = filters.subscriptionIds;
 
-    if (subscriptionIds && subscriptionIds.length === 0) {
+    if (subscriptionIds && _.isEmpty(subscriptionIds)) {
       return [];
     }
 
@@ -135,7 +136,7 @@ export class SubscriptionRepository {
     ids: readonly string[],
     executor?: DatabaseTransaction,
   ): Promise<void> {
-    if (ids.length === 0) {
+    if (_.isEmpty(ids)) {
       return;
     }
 
@@ -151,7 +152,7 @@ export class SubscriptionRepository {
     ids: readonly string[],
     executor?: DatabaseTransaction,
   ): Promise<void> {
-    if (ids.length === 0) {
+    if (_.isEmpty(ids)) {
       return;
     }
 

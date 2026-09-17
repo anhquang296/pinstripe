@@ -73,14 +73,14 @@ export class RefundService {
         tx,
       );
 
-      if (!refund) {
-        throw new NotFoundError(`Refund ${id} could not be created`);
+      if (refund) {
+        await this.postRefund(refund, tx);
+        await this.recordRefundEvent(refund, tx);
+
+        return refund;
       }
 
-      await this.postRefund(refund, tx);
-      await this.recordRefundEvent(refund, tx);
-
-      return refund;
+      throw new NotFoundError(`Refund ${id} could not be created`);
     });
 
     return RefundService.buildRefund(createdRefund);
@@ -172,17 +172,17 @@ export class RefundService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
-    }
+    if (id) {
+      const refund = await this.fastify.refundRepository.findRefund(id);
 
-    const refund = await this.fastify.refundRepository.findRefund(id);
+      if (refund) {
+        return { createdAt: refund.createdAt, id: refund.id };
+      }
 
-    if (!refund) {
       throw new NotFoundError(`No such refund: ${id}`);
     }
 
-    return { createdAt: refund.createdAt, id: refund.id };
+    return undefined;
   }
 
   private static buildRefund(entity: Refund): RefundResponse {

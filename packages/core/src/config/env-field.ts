@@ -1,10 +1,6 @@
 import type { TOptionalWithFlag, TSchema } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 
-export function Required<T extends TSchema>(schema: T): T {
-  return schema;
-}
-
 export function Default<T extends TSchema, V>(schema: T, value: V): T {
   return Type.Unsafe<V>({ ...schema, default: value }) as unknown as T;
 }

@@ -16,7 +16,11 @@ export class WebhookDeliveryProcessor {
     const { deliveryId } = job.data;
     const attempt = await this.fastify.webhookService.resolveDeliveryAttempt(deliveryId);
     const attemptCount = job.attemptsMade + 1;
-    const outcome = await this.postToEndpoint(attempt.endpointUrl, attempt.body, attempt.signature);
+    const outcome = await this.handleEndpointPost(
+      attempt.endpointUrl,
+      attempt.body,
+      attempt.signature,
+    );
 
     await this.fastify.webhookService.recordDeliveryResult(deliveryId, {
       responseStatus: outcome.responseStatus,
@@ -36,7 +40,7 @@ export class WebhookDeliveryProcessor {
     throw new WebhookDeliveryFailedError(deliveryId, outcome.error);
   }
 
-  private async postToEndpoint(
+  private async handleEndpointPost(
     url: string,
     body: string,
     signature: string,

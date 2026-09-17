@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 
-import { MILLISECONDS_PER_HOUR } from '@constants/time';
 import { IdempotencyStatusEnum } from '@contracts/idempotency.types';
 import type { IdempotencyKey } from '@database/schemas';
 import { IdempotencyConflictError, IdempotencyInProgressError } from '@errors/idempotency.error';
@@ -36,6 +35,8 @@ export class IdempotencyService {
   ) {}
 
   async beginRequest(payload: BeginIdempotentRequestPayload): Promise<IdempotentRequestTicket> {
+    const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
+
     const requestHash = IdempotencyService.buildRequestHash(payload);
 
     const now = this.fastify.clock.now();
@@ -63,16 +64,16 @@ export class IdempotencyService {
       payload.route,
     );
 
-    if (!existingIdempotencyKey) {
-      throw new IdempotencyInProgressError(
-        `Idempotency key ${payload.key} is being processed concurrently`,
-      );
+    if (existingIdempotencyKey) {
+      return {
+        id: existingIdempotencyKey.id,
+        replay: this.resolveReplay(existingIdempotencyKey, requestHash),
+      };
     }
 
-    return {
-      id: existingIdempotencyKey.id,
-      replay: this.resolveReplay(existingIdempotencyKey, requestHash),
-    };
+    throw new IdempotencyInProgressError(
+      `Idempotency key ${payload.key} is being processed concurrently`,
+    );
   }
 
   async completeRequest(id: string, statusCode: number, body: unknown): Promise<void> {

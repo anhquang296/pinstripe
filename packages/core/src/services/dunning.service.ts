@@ -14,19 +14,24 @@ const REUSABLE_INTENT_STATUSES = [
   PaymentIntentStatusEnum.REQUIRES_CONFIRMATION,
 ] as const;
 
+export enum DunningOutcomeEnum {
+  COLLECTED = 'collected',
+  RETRIED = 'retried',
+  ABANDONED = 'abandoned',
+  SETTLED = 'settled',
+}
+
+export type DunningOutcome = `${DunningOutcomeEnum}`;
+
 export interface DunningOptions {
   batchSize: number;
   retryDelayDays: readonly number[];
 }
 
-export interface DunningRunResult {
+export type DunningRunResult = Record<DunningOutcome, number> & {
   scanned: number;
-  collected: number;
-  retried: number;
-  abandoned: number;
-  settled: number;
   failed: number;
-}
+};
 
 export class DunningService {
   constructor(
@@ -48,10 +53,10 @@ export class DunningService {
 
     const dunningRun: DunningRunResult = {
       scanned: due.length,
-      collected: 0,
-      retried: 0,
-      abandoned: 0,
-      settled: 0,
+      [DunningOutcomeEnum.COLLECTED]: 0,
+      [DunningOutcomeEnum.RETRIED]: 0,
+      [DunningOutcomeEnum.ABANDONED]: 0,
+      [DunningOutcomeEnum.SETTLED]: 0,
       failed: 0,
     };
 
@@ -65,7 +70,7 @@ export class DunningService {
 
         this.fastify.log.error(
           { error, invoiceId: invoice.id },
-          '[DunningService] collectInvoice() error',
+          '[DunningService] runDunningShard() error',
         );
       }
     }
@@ -78,10 +83,7 @@ export class DunningService {
     return dunningRun;
   }
 
-  private async collectInvoice(
-    invoice: Invoice,
-    runAt: Date,
-  ): Promise<'collected' | 'retried' | 'abandoned' | 'settled'> {
+  private async collectInvoice(invoice: Invoice, runAt: Date): Promise<DunningOutcome> {
     const owed = await this.fastify.invoiceService.getInvoice(invoice.id);
 
     if (owed.amountRemaining <= 0) {
@@ -90,7 +92,7 @@ export class DunningService {
         updatedAt: runAt,
       });
 
-      return 'settled';
+      return DunningOutcomeEnum.SETTLED;
     }
 
     const paymentMethod = await this.resolvePaymentMethod(invoice.customerId);
@@ -105,7 +107,7 @@ export class DunningService {
         updatedAt: runAt,
       });
 
-      return 'collected';
+      return DunningOutcomeEnum.COLLECTED;
     }
 
     const attemptCount = invoice.attemptCount + 1;
@@ -114,7 +116,7 @@ export class DunningService {
     if (_.isNil(nextDelayDays)) {
       await this.abandonInvoice(invoice, runAt, attemptCount);
 
-      return 'abandoned';
+      return DunningOutcomeEnum.ABANDONED;
     }
 
     await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
@@ -128,7 +130,7 @@ export class DunningService {
       '[DunningService] collectInvoice() scheduled another attempt',
     );
 
-    return 'retried';
+    return DunningOutcomeEnum.RETRIED;
   }
 
   private async resolveCollectionIntentId(
@@ -171,21 +173,19 @@ export class DunningService {
         tx,
       );
 
-      if (!abandoned) {
-        return;
+      if (abandoned) {
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.INVOICE,
+              aggregateId: invoice.id,
+              eventType: DomainEventTypeEnum.INVOICE_MARKED_UNCOLLECTIBLE,
+              payload: { id: invoice.id, number: invoice.number, attemptCount },
+            },
+          ],
+          tx,
+        );
       }
-
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.INVOICE,
-            aggregateId: invoice.id,
-            eventType: DomainEventTypeEnum.INVOICE_MARKED_UNCOLLECTIBLE,
-            payload: { id: invoice.id, number: invoice.number, attemptCount },
-          },
-        ],
-        tx,
-      );
     });
 
     this.fastify.log.warn(

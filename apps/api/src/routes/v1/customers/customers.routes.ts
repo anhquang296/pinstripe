@@ -3,11 +3,11 @@ import {
   createCustomerSchema,
   customerParamsSchema,
   customerSchema,
+  deletedCustomerSchema,
   getCustomersSchema,
   ListResponseSchema,
   updateCustomerSchema,
 } from '@pinstripe/core/contracts';
-import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 
 export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
@@ -70,13 +70,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     {
       schema: {
         params: customerParamsSchema,
-        response: {
-          200: Type.Object({
-            object: Type.Literal('customer'),
-            id: Type.String(),
-            deleted: Type.Literal(true),
-          }),
-        },
+        response: { 200: deletedCustomerSchema },
       },
     },
     async (request, reply) => {

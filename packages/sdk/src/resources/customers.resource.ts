@@ -4,6 +4,7 @@ import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   CreateCustomerPayload,
   CustomerResponse,
+  DeletedCustomerResponse,
   GetCustomersQuery,
   ListResponse,
   UpdateCustomerPayload,
@@ -11,12 +12,6 @@ import type {
 import { buildPath } from '@utils/build-path';
 
 const CUSTOMERS_PATH = '/v1/customers';
-
-export interface DeletedCustomerResponse {
-  object: 'customer';
-  id: string;
-  deleted: true;
-}
 
 export class CustomersResource {
   private _transport: PinstripeTransport;

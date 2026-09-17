@@ -1,3 +1,4 @@
+import type { DomainEventType } from '@contracts/events.types';
 import { DomainEventTypeEnum } from '@contracts/events.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
@@ -88,6 +89,14 @@ export const getWebhookDeliveriesSchema = Type.Object(
   },
   { additionalProperties: false },
 );
+
+export type PinstripeEvent<T = unknown> = {
+  id: string;
+  object: 'event';
+  type: DomainEventType;
+  createdAt: string;
+  data: { object: T };
+};
 
 export type WebhookEndpointResponse = Static<typeof webhookEndpointSchema>;
 export type WebhookDeliveryResponse = Static<typeof webhookDeliverySchema>;

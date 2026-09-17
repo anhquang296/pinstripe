@@ -4,6 +4,7 @@
     "types": ["vite/client"],
     "paths": {
       "@components/*": ["./src/components/*"],
+      "@constants/*": ["./src/constants/*"],
       "@lib/*": ["./src/lib/*"],
       "@pages/*": ["./src/pages/*"],
       "@forms/*": ["./src/forms/*"]

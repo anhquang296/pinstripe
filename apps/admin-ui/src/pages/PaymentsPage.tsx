@@ -1,5 +1,6 @@
 import PaymentIntentItem from '@components/PaymentIntentItem';
 import TextField from '@components/ui/TextField';
+import { PAGE_LIMIT } from '@constants/pagination';
 import {
   useCreateRefundMutation,
   usePaymentIntentsQuery,
@@ -8,7 +9,6 @@ import {
 import { map, toUpper } from 'lodash-es';
 import { useCallback, useState } from 'react';
 
-const PAGE_LIMIT = 20;
 const DEFAULT_REFUND_AMOUNT = '100000';
 
 export default function PaymentsPage() {

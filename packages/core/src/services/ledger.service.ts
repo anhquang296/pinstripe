@@ -28,6 +28,8 @@ import _ from 'lodash';
 
 const SINGLE_ROW_LIMIT = 1;
 
+type PostedLedgerPosting = NewLedgerPosting & { createdAt: Date };
+
 export class LedgerService {
   constructor(private readonly fastify: FastifyInstance) {}
 
@@ -111,14 +113,14 @@ export class LedgerService {
   async getTransaction(id: string): Promise<LedgerTransactionResponse> {
     const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
 
-    if (!transaction) {
-      throw new NotFoundError(`No such ledger transaction: ${id}`);
+    if (transaction) {
+      const postings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([id]);
+      const accountCodesById = await this.resolveAccountCodes(postings);
+
+      return LedgerService.buildTransaction(transaction, postings, accountCodesById);
     }
 
-    const postings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([id]);
-    const accountCodesById = await this.resolveAccountCodes(postings);
-
-    return LedgerService.buildTransaction(transaction, postings, accountCodesById);
+    throw new NotFoundError(`No such ledger transaction: ${id}`);
   }
 
   async findTransactions(
@@ -186,11 +188,7 @@ export class LedgerService {
     id: string,
     payload: ReverseLedgerTransactionPayload,
   ): Promise<LedgerTransactionResponse> {
-    const original = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
-
-    if (!original) {
-      throw new NotFoundError(`No such ledger transaction: ${id}`);
-    }
+    const original = await this.getTransactionRow(id);
 
     if (original.reversedByTransactionId) {
       throw new ConflictError(
@@ -203,7 +201,7 @@ export class LedgerService {
     ]);
     const now = this.fastify.clock.now();
     const reversalId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
-    const postings: NewLedgerPosting[] = _.map(originalPostings, (posting) => {
+    const postings: PostedLedgerPosting[] = _.map(originalPostings, (posting) => {
       return {
         id: generateGid(ObjectPrefixEnum.LEDGER_POSTING),
         transactionId: reversalId,
@@ -263,31 +261,31 @@ export class LedgerService {
           tx,
         );
 
-      if (!createdTransaction) {
-        throw new NotFoundError(`Ledger transaction ${transaction.id} could not be posted`);
-      }
+      if (createdTransaction) {
+        if (reversedTransactionId) {
+          await this.fastify.ledgerTransactionRepository.linkLedgerReversal(
+            reversedTransactionId,
+            createdTransaction.id,
+            tx,
+          );
+        }
 
-      if (reversedTransactionId) {
-        await this.fastify.ledgerTransactionRepository.linkLedgerReversal(
-          reversedTransactionId,
-          createdTransaction.id,
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.LEDGER_TRANSACTION,
+              aggregateId: createdTransaction.id,
+              eventType,
+              payload: { id: createdTransaction.id, currency: createdTransaction.currency },
+            },
+          ],
           tx,
         );
+
+        return createdTransaction;
       }
 
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.LEDGER_TRANSACTION,
-            aggregateId: createdTransaction.id,
-            eventType,
-            payload: { id: createdTransaction.id, currency: createdTransaction.currency },
-          },
-        ],
-        tx,
-      );
-
-      return createdTransaction;
+      throw new NotFoundError(`Ledger transaction ${transaction.id} could not be posted`);
     };
 
     try {
@@ -312,8 +310,8 @@ export class LedgerService {
     transactionId: string,
     payload: PostLedgerTransactionPayload,
     now: Date,
-  ): Promise<NewLedgerPosting[]> {
-    const postings: NewLedgerPosting[] = [];
+  ): Promise<PostedLedgerPosting[]> {
+    const postings: PostedLedgerPosting[] = [];
 
     for (const entry of payload.entries) {
       const account = await this.resolveEntryAccount(entry, payload.currency);
@@ -352,11 +350,21 @@ export class LedgerService {
       throw new NotFoundError(`No such ledger account: ${entry.accountId}`);
     }
 
-    if (!entry.accountCode) {
-      throw new BadRequestError('Each ledger entry needs either an accountId or an accountCode');
+    if (entry.accountCode) {
+      return this.ensureAccount(entry.accountCode, currency, entry.customerId);
     }
 
-    return this.ensureAccount(entry.accountCode, currency, entry.customerId);
+    throw new BadRequestError('Each ledger entry needs either an accountId or an accountCode');
+  }
+
+  private async getTransactionRow(id: string): Promise<LedgerTransaction> {
+    const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
+
+    if (transaction) {
+      return transaction;
+    }
+
+    throw new NotFoundError(`No such ledger transaction: ${id}`);
   }
 
   private async resolveAccountFilter(
@@ -366,30 +374,30 @@ export class LedgerService {
       return query.accountId;
     }
 
-    if (!query.customerId) {
-      return undefined;
+    if (query.customerId) {
+      const [account] = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
+        { customerId: query.customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
+        SINGLE_ROW_LIMIT,
+      );
+
+      return account?.id;
     }
 
-    const [account] = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
-      { customerId: query.customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
-      SINGLE_ROW_LIMIT,
-    );
-
-    return account?.id;
+    return undefined;
   }
 
   private async resolveCursor(id: string | undefined) {
-    if (!id) {
-      return undefined;
-    }
+    if (id) {
+      const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
 
-    const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
+      if (transaction) {
+        return { createdAt: transaction.createdAt, id: transaction.id };
+      }
 
-    if (!transaction) {
       throw new NotFoundError(`No such ledger transaction: ${id}`);
     }
 
-    return { createdAt: transaction.createdAt, id: transaction.id };
+    return undefined;
   }
 
   private async findAccount(
@@ -424,7 +432,7 @@ export class LedgerService {
 
   private static buildTransaction(
     entity: LedgerTransaction,
-    postings: readonly (LedgerPosting | NewLedgerPosting)[],
+    postings: readonly PostedLedgerPosting[],
     accountCodesById: Record<string, LedgerAccountCode>,
   ): LedgerTransactionResponse {
     return {
@@ -445,24 +453,24 @@ export class LedgerService {
   }
 
   private static buildPosting(
-    posting: LedgerPosting | NewLedgerPosting,
+    posting: PostedLedgerPosting,
     accountCode: LedgerAccountCode | undefined,
   ): LedgerPostingResponse {
-    if (!accountCode) {
-      throw new NotFoundError(`No such ledger account: ${posting.accountId}`);
+    if (accountCode) {
+      return {
+        object: 'ledger_posting',
+        id: posting.id,
+        transactionId: posting.transactionId,
+        accountId: posting.accountId,
+        accountCode,
+        direction: posting.direction,
+        amount: posting.amount,
+        currency: posting.currency,
+        createdAt: posting.createdAt.toISOString(),
+      };
     }
 
-    return {
-      object: 'ledger_posting',
-      id: posting.id,
-      transactionId: posting.transactionId,
-      accountId: posting.accountId,
-      accountCode,
-      direction: posting.direction,
-      amount: posting.amount,
-      currency: posting.currency,
-      createdAt: (posting.createdAt ?? new Date()).toISOString(),
-    };
+    throw new NotFoundError(`No such ledger account: ${posting.accountId}`);
   }
 
   private static buildAccount(account: LedgerAccountWithBalance): LedgerAccountResponse {

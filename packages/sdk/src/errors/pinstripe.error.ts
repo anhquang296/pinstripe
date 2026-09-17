@@ -1,16 +1,8 @@
-export interface ApiErrorBody {
-  error: {
-    type: string;
-    code?: string;
-    param?: string;
-    message: string;
-    requestId: string;
-  };
-}
+import type { ErrorType } from '@type/contracts.types';
 
 export class PinstripeError extends Error {
   readonly statusCode: number;
-  readonly type: string;
+  readonly type: ErrorType;
   readonly requestId: string;
   readonly code: string | null;
   readonly param: string | null;
@@ -18,7 +10,7 @@ export class PinstripeError extends Error {
   constructor(
     message: string,
     statusCode: number,
-    type: string,
+    type: ErrorType,
     requestId: string,
     code: string | null = null,
     param: string | null = null,

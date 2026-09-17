@@ -93,29 +93,24 @@ export class SubscriptionService {
         tx,
       );
 
-      if (!subscription) {
-        throw new NotFoundError(`Subscription ${subscriptionId} could not be created`);
+      if (subscription) {
+        await this.recordSubscriptionEvent(
+          subscription,
+          DomainEventTypeEnum.SUBSCRIPTION_CREATED,
+          tx,
+        );
+
+        return subscription;
       }
 
-      await this.recordSubscriptionEvent(
-        subscription,
-        DomainEventTypeEnum.SUBSCRIPTION_CREATED,
-        tx,
-      );
-
-      return subscription;
+      throw new NotFoundError(`Subscription ${subscriptionId} could not be created`);
     });
 
     return SubscriptionService.buildSubscription(createdSubscription, subscriptionItems);
   }
 
   async getSubscription(id: string): Promise<SubscriptionResponse> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
-
-    if (!subscription) {
-      throw new NotFoundError(`No such subscription: ${id}`);
-    }
-
+    const subscription = await this.getSubscriptionRow(id);
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [id],
       deletedAtIsNull: true,
@@ -161,11 +156,7 @@ export class SubscriptionService {
     id: string,
     payload: UpdateSubscriptionPayload,
   ): Promise<SubscriptionResponse> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
-
-    if (!subscription) {
-      throw new NotFoundError(`No such subscription: ${id}`);
-    }
+    const subscription = await this.getSubscriptionRow(id);
 
     if (subscription.status === SubscriptionStatusEnum.CANCELED) {
       throw new ConflictError(`Subscription ${id} is canceled and can no longer be updated`);
@@ -228,13 +219,13 @@ export class SubscriptionService {
         tx,
       );
 
-      if (!next) {
-        throw new NotFoundError(`No such subscription: ${id}`);
+      if (next) {
+        await this.recordSubscriptionEvent(next, DomainEventTypeEnum.SUBSCRIPTION_UPDATED, tx);
+
+        return next;
       }
 
-      await this.recordSubscriptionEvent(next, DomainEventTypeEnum.SUBSCRIPTION_UPDATED, tx);
-
-      return next;
+      throw new NotFoundError(`No such subscription: ${id}`);
     });
 
     return this.getSubscription(updatedSubscription.id);
@@ -244,11 +235,7 @@ export class SubscriptionService {
     id: string,
     payload: CancelSubscriptionPayload,
   ): Promise<SubscriptionResponse> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
-
-    if (!subscription) {
-      throw new NotFoundError(`No such subscription: ${id}`);
-    }
+    const subscription = await this.getSubscriptionRow(id);
 
     if (subscription.status === SubscriptionStatusEnum.CANCELED) {
       throw new ConflictError(`Subscription ${id} is already canceled`);
@@ -264,13 +251,13 @@ export class SubscriptionService {
           tx,
         );
 
-        if (!next) {
-          throw new NotFoundError(`No such subscription: ${id}`);
+        if (next) {
+          await this.recordSubscriptionEvent(next, DomainEventTypeEnum.SUBSCRIPTION_UPDATED, tx);
+
+          return next;
         }
 
-        await this.recordSubscriptionEvent(next, DomainEventTypeEnum.SUBSCRIPTION_UPDATED, tx);
-
-        return next;
+        throw new NotFoundError(`No such subscription: ${id}`);
       });
 
       return this.getSubscription(marked.id);
@@ -291,13 +278,13 @@ export class SubscriptionService {
         tx,
       );
 
-      if (!next) {
-        throw new NotFoundError(`No such subscription: ${id}`);
+      if (next) {
+        await this.recordSubscriptionEvent(next, DomainEventTypeEnum.SUBSCRIPTION_CANCELED, tx);
+
+        return next;
       }
 
-      await this.recordSubscriptionEvent(next, DomainEventTypeEnum.SUBSCRIPTION_CANCELED, tx);
-
-      return next;
+      throw new NotFoundError(`No such subscription: ${id}`);
     });
 
     return this.getSubscription(canceled.id);
@@ -394,13 +381,13 @@ export class SubscriptionService {
         tx,
       );
 
-      if (!next) {
-        throw new NotFoundError(`No such subscription: ${subscription.id}`);
+      if (next) {
+        await this.recordSubscriptionEvent(next, eventType, tx);
+
+        return next;
       }
 
-      await this.recordSubscriptionEvent(next, eventType, tx);
-
-      return next;
+      throw new NotFoundError(`No such subscription: ${subscription.id}`);
     });
   }
 
@@ -426,18 +413,28 @@ export class SubscriptionService {
     );
   }
 
-  private async resolveNow(testClockId: string | null): Promise<Date> {
-    if (!testClockId) {
-      return this.fastify.clock.now();
+  private async getSubscriptionRow(id: string): Promise<Subscription> {
+    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
+
+    if (subscription) {
+      return subscription;
     }
 
-    const clock = await this.fastify.testClockRepository.findTestClock(testClockId);
+    throw new NotFoundError(`No such subscription: ${id}`);
+  }
 
-    if (!clock) {
+  private async resolveNow(testClockId: string | null): Promise<Date> {
+    if (testClockId) {
+      const testClock = await this.fastify.testClockRepository.findTestClock(testClockId);
+
+      if (testClock) {
+        return testClock.frozenTime;
+      }
+
       throw new NotFoundError(`No such test clock: ${testClockId}`);
     }
 
-    return clock.frozenTime;
+    return this.fastify.clock.now();
   }
 
   private async resolvePrices(priceIds: readonly string[]): Promise<Price[]> {
@@ -456,17 +453,13 @@ export class SubscriptionService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
+    if (id) {
+      const subscription = await this.getSubscriptionRow(id);
+
+      return { createdAt: subscription.createdAt, id: subscription.id };
     }
 
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
-
-    if (!subscription) {
-      throw new NotFoundError(`No such subscription: ${id}`);
-    }
-
-    return { createdAt: subscription.createdAt, id: subscription.id };
+    return undefined;
   }
 
   private static resolveTrialEnd(payload: CreateSubscriptionPayload, now: Date): Date | null {
@@ -519,25 +512,27 @@ export class SubscriptionService {
 
     const [firstPrice] = prices;
 
-    if (!firstPrice) {
-      throw new BadRequestError('A subscription needs at least one price', { param: 'items' });
+    if (firstPrice) {
+      const mismatchedPrice = _.find(prices, (price) => {
+        return (
+          price.recurringInterval !== firstPrice.recurringInterval ||
+          price.recurringIntervalCount !== firstPrice.recurringIntervalCount
+        );
+      });
+
+      if (mismatchedPrice) {
+        throw new BadRequestError(
+          'Every price on a subscription must share the same billing period',
+          {
+            param: 'items',
+          },
+        );
+      }
+
+      return;
     }
 
-    const mismatchedPrice = _.find(prices, (price) => {
-      return (
-        price.recurringInterval !== firstPrice.recurringInterval ||
-        price.recurringIntervalCount !== firstPrice.recurringIntervalCount
-      );
-    });
-
-    if (mismatchedPrice) {
-      throw new BadRequestError(
-        'Every price on a subscription must share the same billing period',
-        {
-          param: 'items',
-        },
-      );
-    }
+    throw new BadRequestError('A subscription needs at least one price', { param: 'items' });
   }
 
   private static assertTransition(from: SubscriptionStatus, to: SubscriptionStatus): void {

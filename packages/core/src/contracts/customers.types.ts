@@ -90,7 +90,14 @@ export const getCustomersSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const deletedCustomerSchema = Type.Object({
+  object: Type.Literal('customer'),
+  id: Type.String(),
+  deleted: Type.Literal(true),
+});
+
 export type CustomerResponse = Static<typeof customerSchema>;
+export type DeletedCustomerResponse = Static<typeof deletedCustomerSchema>;
 export type CreateCustomerPayload = Static<typeof createCustomerSchema>;
 export type UpdateCustomerPayload = Static<typeof updateCustomerSchema>;
 export type GetCustomersQuery = Static<typeof getCustomersSchema>;

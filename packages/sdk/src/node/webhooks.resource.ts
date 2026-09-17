@@ -1,7 +1,7 @@
 import { PinstripeSignatureVerificationError } from '@errors/pinstripe.error';
 import type { WebhookVerificationOptions } from '@node/webhook-signature';
 import { isWebhookSignatureValid } from '@node/webhook-signature';
-import type { PinstripeEvent } from '@type/event.types';
+import type { PinstripeEvent } from '@type/contracts.types';
 
 export const webhooks = {
   isSignatureValid(

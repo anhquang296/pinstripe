@@ -1,7 +1,5 @@
 import InvoiceItem from '@components/InvoiceItem';
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
+import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
 import { toast } from '@lib/toast';
 import type { PaymentIntentResponse } from '@pinstripe/sdk';
 import {
@@ -14,11 +12,12 @@ import {
   useSubscriptionsQuery,
   useVoidInvoiceMutation,
 } from '@pinstripe/sdk/react';
-import { map, toUpper } from 'lodash-es';
+import { get, map } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 
-const PAGE_LIMIT = 20;
-const OPTION_LIMIT = 100;
+import CreditNoteCard from './CreditNoteCard';
+import InvoiceDraftPanel from './InvoiceDraftPanel';
+
 const DEFAULT_CREDIT_AMOUNT = '100000';
 const APPROVED_PAYMENT_METHOD = 'pm_card_ok';
 const DECLINED_PAYMENT_METHOD = 'pm_card_declined';
@@ -134,6 +133,7 @@ export default function InvoicesPage() {
     [createCreditNote, creditAmount],
   );
 
+  const creditNoteRows = get(creditNotes, 'data', []);
   const isBusy = isFinalizing || isCharging || isVoiding || isCrediting;
 
   return (
@@ -146,24 +146,15 @@ export default function InvoicesPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
-        <SelectField
-          label="Subscription"
-          options={subscriptionOptions}
-          value={selectedSubscriptionId}
-          onChange={handleOnSubscriptionChange}
-        />
-        <Button onClick={handleOnDraft} disabled={isCreating || !selectedSubscriptionId}>
-          Tạo hóa đơn nháp
-        </Button>
-        <TextField
-          label="Số tiền credit note"
-          type="number"
-          className="w-40"
-          value={creditAmount}
-          onChange={handleOnCreditAmountChange}
-        />
-      </div>
+      <InvoiceDraftPanel
+        subscriptionOptions={subscriptionOptions}
+        selectedSubscriptionId={selectedSubscriptionId}
+        creditAmount={creditAmount}
+        isCreating={isCreating}
+        onSubscriptionChange={handleOnSubscriptionChange}
+        onCreditAmountChange={handleOnCreditAmountChange}
+        onDraft={handleOnDraft}
+      />
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
         <table className="w-full min-w-[64rem] text-left text-sm">
@@ -200,37 +191,7 @@ export default function InvoicesPage() {
         {error ? <p className="px-4 py-3 text-red-600">{error.message}</p> : null}
       </div>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Credit notes</h2>
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Số</th>
-                <th className="px-4 py-3">Hóa đơn</th>
-                <th className="px-4 py-3">Lý do</th>
-                <th className="px-4 py-3 text-right">Số tiền</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(creditNotes?.data, (creditNote) => {
-                return (
-                  <tr key={creditNote.id} className="border-t border-slate-100">
-                    <td className="px-4 py-3 font-mono text-xs">{creditNote.number}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                      {creditNote.invoiceId}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">{creditNote.reason}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">
-                      {creditNote.amount.toLocaleString('vi-VN')} {toUpper(creditNote.currency)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <CreditNoteCard creditNotes={creditNoteRows} />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import type { LedgerAccountRepository } from '@repositories/ledger-account.repos
 import type { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
 import type { MeterRepository } from '@repositories/meter.repository';
 import type { MeterEventRepository } from '@repositories/meter-event.repository';
+import type { NumberSequenceRepository } from '@repositories/number-sequence.repository';
 import type { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import type { PaymentIntentRepository } from '@repositories/payment-intent.repository';
 import type { PriceRepository } from '@repositories/price.repository';
@@ -72,6 +73,7 @@ declare module 'fastify' {
     meterRepository: MeterRepository;
     outboxEventRepository: OutboxEventRepository;
     invoiceRepository: InvoiceRepository;
+    numberSequenceRepository: NumberSequenceRepository;
     creditNoteRepository: CreditNoteRepository;
     paymentIntentRepository: PaymentIntentRepository;
     refundRepository: RefundRepository;

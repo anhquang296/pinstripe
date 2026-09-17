@@ -8,6 +8,7 @@ export * from '@repositories/ledger-account.repository';
 export * from '@repositories/ledger-transaction.repository';
 export * from '@repositories/meter.repository';
 export * from '@repositories/meter-event.repository';
+export * from '@repositories/number-sequence.repository';
 export * from '@repositories/outbox-event.repository';
 export * from '@repositories/payment-intent.repository';
 export * from '@repositories/price.repository';

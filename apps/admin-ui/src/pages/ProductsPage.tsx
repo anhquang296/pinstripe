@@ -1,5 +1,6 @@
 import ProductForm from '@components/ProductForm';
 import ProductItem from '@components/ProductItem';
+import { PAGE_LIMIT } from '@constants/pagination';
 import type { ProductFormData } from '@forms/product-form';
 import {
   productFormDataToPayload,
@@ -9,8 +10,6 @@ import {
 import { useCreateProductMutation, useProductsQuery } from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
 import { useForm } from 'react-hook-form';
-
-const PAGE_LIMIT = 20;
 
 export default function ProductsPage() {
   const {

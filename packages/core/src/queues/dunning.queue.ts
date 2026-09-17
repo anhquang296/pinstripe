@@ -2,6 +2,7 @@ import { QueueNameEnum } from '@queues/queue-name';
 
 export const DUNNING_QUEUE = QueueNameEnum.DUNNING;
 export const DUNNING_RUN_SHARD_JOB = 'DunningRunShard';
+export const DUNNING_RUN_DISPATCH_JOB = 'DunningRunDispatch';
 
 export interface DunningRunShardJob {
   shardIndex: number;

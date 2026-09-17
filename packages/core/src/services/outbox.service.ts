@@ -1,3 +1,4 @@
+import type { AggregateType, DomainEventType } from '@contracts/events.types';
 import type { DatabaseTransaction } from '@database/database.client';
 import type { NewOutboxEvent } from '@database/schemas';
 import type { DomainEventDispatchJob } from '@queues/domain-event.queue';
@@ -10,9 +11,9 @@ import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
 export interface RecordEventPayload {
-  aggregateType: string;
+  aggregateType: AggregateType;
   aggregateId: string;
-  eventType: string;
+  eventType: DomainEventType;
   payload: Record<string, unknown>;
 }
 

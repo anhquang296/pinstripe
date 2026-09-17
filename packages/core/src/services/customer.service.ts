@@ -1,6 +1,7 @@
 import type {
   CreateCustomerPayload,
   CustomerResponse,
+  DeletedCustomerResponse,
   GetCustomersQuery,
   UpdateCustomerPayload,
 } from '@contracts/customers.types';
@@ -14,12 +15,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
-
-export interface DeletedCustomerResponse {
-  object: 'customer';
-  id: string;
-  deleted: true;
-}
 
 export class CustomerService {
   constructor(private readonly fastify: FastifyInstance) {}
@@ -58,23 +53,23 @@ export class CustomerService {
           tx,
         );
 
-        if (!customer) {
-          throw new NotFoundError(`Customer ${id} could not be created`);
+        if (customer) {
+          await this.fastify.outboxService.recordEvents(
+            [
+              {
+                aggregateType: AggregateTypeEnum.CUSTOMER,
+                aggregateId: customer.id,
+                eventType: DomainEventTypeEnum.CUSTOMER_CREATED,
+                payload: { id: customer.id },
+              },
+            ],
+            tx,
+          );
+
+          return customer;
         }
 
-        await this.fastify.outboxService.recordEvents(
-          [
-            {
-              aggregateType: AggregateTypeEnum.CUSTOMER,
-              aggregateId: customer.id,
-              eventType: DomainEventTypeEnum.CUSTOMER_CREATED,
-              payload: { id: customer.id },
-            },
-          ],
-          tx,
-        );
-
-        return customer;
+        throw new NotFoundError(`Customer ${id} could not be created`);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -108,23 +103,23 @@ export class CustomerService {
         tx,
       );
 
-      if (!customer) {
-        throw new NotFoundError(`No such customer: ${id}`);
+      if (customer) {
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.CUSTOMER,
+              aggregateId: customer.id,
+              eventType: DomainEventTypeEnum.CUSTOMER_UPDATED,
+              payload: { id: customer.id },
+            },
+          ],
+          tx,
+        );
+
+        return customer;
       }
 
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.CUSTOMER,
-            aggregateId: customer.id,
-            eventType: DomainEventTypeEnum.CUSTOMER_UPDATED,
-            payload: { id: customer.id },
-          },
-        ],
-        tx,
-      );
-
-      return customer;
+      throw new NotFoundError(`No such customer: ${id}`);
     });
 
     return CustomerService.buildCustomer(updatedCustomer);
@@ -170,17 +165,17 @@ export class CustomerService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
-    }
+    if (id) {
+      const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    const customer = await this.fastify.customerRepository.findCustomer(id);
+      if (customer) {
+        return { createdAt: customer.createdAt, id: customer.id };
+      }
 
-    if (!customer) {
       throw new NotFoundError(`No such customer: ${id}`);
     }
 
-    return { createdAt: customer.createdAt, id: customer.id };
+    return undefined;
   }
 
   private static buildCustomer(entity: Customer): CustomerResponse {

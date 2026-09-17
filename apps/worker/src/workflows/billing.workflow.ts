@@ -1,6 +1,7 @@
 import type { BillingRunShardJob } from '@pinstripe/core/queues';
 import {
   BILLING_QUEUE,
+  BILLING_RUN_DISPATCH_JOB,
   BILLING_RUN_SHARD_JOB,
   buildBillingRunShardJob,
   QueueNameEnum,
@@ -13,7 +14,6 @@ import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
 const BILLING_SCHEDULER_ID = 'billing-run-scheduler';
-const BILLING_DISPATCH_JOB = 'BillingRunDispatch';
 
 export class BillingWorkflow implements Workflow {
   private readonly worker: Worker<BillingRunShardJob>;
@@ -24,7 +24,7 @@ export class BillingWorkflow implements Workflow {
     this.worker = new Worker<BillingRunShardJob>(
       BILLING_QUEUE,
       async (job: Job<BillingRunShardJob>) => {
-        if (job.name === BILLING_DISPATCH_JOB) {
+        if (job.name === BILLING_RUN_DISPATCH_JOB) {
           await this.dispatchShards();
 
           return;
@@ -52,7 +52,7 @@ export class BillingWorkflow implements Workflow {
       .upsertJobScheduler(
         BILLING_SCHEDULER_ID,
         { every: billingRunIntervalMs },
-        { name: BILLING_DISPATCH_JOB, data: {} },
+        { name: BILLING_RUN_DISPATCH_JOB, data: {} },
       );
   }
 

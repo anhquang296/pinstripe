@@ -6,36 +6,40 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
 import postgres from 'postgres';
 
-export interface DatabaseClientConfig {
+export type DatabaseConfig = {
   url: string;
   poolMax: number;
-}
+};
 
 export type Database = PostgresJsDatabase<typeof schemas>;
 export type DatabaseTransaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 export class DatabaseClient {
-  readonly master: Database;
+  private _master: Database;
+  private _sql: Sql;
+  private _logger: Logger;
 
-  private readonly sql: Sql;
+  constructor(databaseConfig: DatabaseConfig, logger: Logger) {
+    const { url, poolMax } = databaseConfig;
 
-  constructor(
-    config: DatabaseClientConfig,
-    private readonly logger: Logger,
-  ) {
-    this.sql = postgres(config.url, { max: config.poolMax, onnotice: () => {} });
-    this.master = drizzle(this.sql, { schema: schemas });
+    this._sql = postgres(url, { max: poolMax, onnotice: () => {} });
+    this._master = drizzle(this._sql, { schema: schemas });
+    this._logger = logger;
+  }
+
+  get master(): Database {
+    return this._master;
   }
 
   async connect(): Promise<void> {
-    await this.master.execute(sql`select 1`);
+    await this._master.execute(sql`select 1`);
 
-    this.logger.info('[DatabaseClient] connect() database connection established');
+    this._logger.info('[DatabaseClient] connect() database connection established');
   }
 
   async close(): Promise<void> {
-    await this.sql.end({ timeout: 5 });
+    await this._sql.end({ timeout: 5 });
 
-    this.logger.info('[DatabaseClient] close() database connection closed');
+    this._logger.info('[DatabaseClient] close() database connection closed');
   }
 }

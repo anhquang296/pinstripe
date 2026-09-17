@@ -145,17 +145,17 @@ delivery mới** cho cùng event. Khách nhận webhook trùng.
 
 Những thứ sau đã khai báo nhưng chưa ai gọi. Sửa một cái là phải sửa cả cụm, không vá lẻ.
 
-| Thứ                                                                                 | Tình trạng                                                                                                                                                                                     |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `advanceSubscriptions`                                                              | chỉ được gọi từ [test-clock.service.ts:96](../packages/core/src/services/test-clock.service.ts) — **subscription không gắn test clock không bao giờ được roll kỳ tự động**                     |
-| `WEBHOOK_SIGNING_SECRET`                                                            | `Required(minLength 16)` ở [env.schema.ts:46](../packages/core/src/config/env.schema.ts), thiếu là không boot — nhưng **không code nào đọc**. Webhook đi ra ký bằng `secret` của từng endpoint |
-| `isWebhookSignatureValid`                                                           | chỉ dùng trong test. Chưa route nào verify chữ ký vào, vì `/api/v1/system/*` mới có `/ping`                                                                                                    |
-| `deleteExpiredRequests`                                                             | không caller — xem [mục 5](#5-idempotency-bảo-vệ-đến-đâu)                                                                                                                                      |
-| `RedisNamespaceEnum.BILLING_RUN_LOCK`                                               | khai báo, không dùng                                                                                                                                                                           |
-| `NotificationQueue`                                                                 | một cái tên. Dunning thử thu lại nhưng không báo gì cho khách                                                                                                                                  |
-| `deferred_revenue`, `tax_payable`, `rounding_difference`, `customer_credit_balance` | tài khoản đã khai, chưa bút toán nào dùng                                                                                                                                                      |
-| `taxBehavior` trên price                                                            | có từ phase 1, **chưa ai đọc**. Thuế và hoá đơn điện tử chưa nằm trong phase nào                                                                                                               |
-| `resolvePrice` / `findEffectivePrice`                                               | không route, không caller. Subscription và rating resolve theo `price_id`, nên `effective_at` chưa quyết định gì — [technique 05](technique/05-product-and-price.md)                           |
+| Thứ                                                                                 | Tình trạng                                                                                                                                                                                          |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `advanceSubscriptions`                                                              | chỉ được gọi từ [test-clock.service.ts:96](../packages/core/src/services/test-clock.service.ts) — **subscription không gắn test clock không bao giờ được roll kỳ tự động**                          |
+| `WEBHOOK_SIGNING_SECRET`                                                            | `Type.String({ minLength: 16 })` ở [env.schema.ts](../packages/core/src/config/env.schema.ts), thiếu là không boot — nhưng **không code nào đọc**. Webhook đi ra ký bằng `secret` của từng endpoint |
+| `isWebhookSignatureValid`                                                           | chỉ dùng trong test. Chưa route nào verify chữ ký vào, vì `/api/v1/system/*` mới có `/ping`                                                                                                         |
+| `deleteExpiredRequests`                                                             | không caller — xem [mục 5](#5-idempotency-bảo-vệ-đến-đâu)                                                                                                                                           |
+| `RedisNamespaceEnum.BILLING_RUN_LOCK`                                               | khai báo, không dùng                                                                                                                                                                                |
+| `NotificationQueue`                                                                 | một cái tên. Dunning thử thu lại nhưng không báo gì cho khách                                                                                                                                       |
+| `deferred_revenue`, `tax_payable`, `rounding_difference`, `customer_credit_balance` | tài khoản đã khai, chưa bút toán nào dùng                                                                                                                                                           |
+| `taxBehavior` trên price                                                            | có từ phase 1, **chưa ai đọc**. Thuế và hoá đơn điện tử chưa nằm trong phase nào                                                                                                                    |
+| `resolvePrice` / `findEffectivePrice`                                               | không route, không caller. Subscription và rating resolve theo `price_id`, nên `effective_at` chưa quyết định gì — [technique 05](technique/05-product-and-price.md)                                |
 
 Hai khoảng trống về hành vi:
 
@@ -214,7 +214,7 @@ Những chỗ **chưa** an toàn:
   (Lưu ý: [flows/07](flows/07-payments-and-refunds.md) viết rằng dunning dùng lại cùng một intent.
   Code không như vậy.)
 
-- **`claimNextNumber` xếp hàng mọi lần finalize.** Là `UPDATE ... RETURNING` trên **một hàng**
+- **`claimNumberSequence` xếp hàng mọi lần finalize.** Là `UPDATE ... RETURNING` trên **một hàng**
   `number_sequences` bên trong transaction finalize —
   [invoice.repository.ts:97-108](../packages/core/src/repositories/invoice.repository.ts). Dãy số
   liên tục là yêu cầu kế toán, nhưng đây là điểm nghẽn phải biết trước khi đo tải. Rollback thì trả

@@ -1,3 +1,4 @@
+import type { AggregateType, DomainEventType } from '@contracts/events.types';
 import { OutboxStatusEnum } from '@contracts/events.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewOutboxEvent, OutboxEvent } from '@database/schemas';
@@ -8,9 +9,9 @@ import _ from 'lodash';
 interface ClaimedOutboxEventRow {
   [column: string]: unknown;
   id: string;
-  aggregateType: string;
+  aggregateType: AggregateType;
   aggregateId: string;
-  eventType: string;
+  eventType: DomainEventType;
   payload: Record<string, unknown>;
   attemptCount: number;
   occurredAt: string | Date;
@@ -18,9 +19,9 @@ interface ClaimedOutboxEventRow {
 
 export interface ClaimedOutboxEvent {
   id: string;
-  aggregateType: string;
+  aggregateType: AggregateType;
   aggregateId: string;
-  eventType: string;
+  eventType: DomainEventType;
   payload: Record<string, unknown>;
   attemptCount: number;
   occurredAt: Date;
@@ -37,7 +38,7 @@ export class OutboxEventRepository {
     payloads: readonly NewOutboxEvent[],
     executor?: DatabaseTransaction,
   ): Promise<void> {
-    if (payloads.length === 0) {
+    if (_.isEmpty(payloads)) {
       return;
     }
 
@@ -91,7 +92,7 @@ export class OutboxEventRepository {
   }
 
   async publishOutboxEvents(ids: readonly string[], publishedAt: Date): Promise<void> {
-    if (ids.length === 0) {
+    if (_.isEmpty(ids)) {
       return;
     }
 

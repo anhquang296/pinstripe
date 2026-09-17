@@ -1,5 +1,6 @@
 import SubscriptionForm from '@components/SubscriptionForm';
 import SubscriptionItem from '@components/SubscriptionItem';
+import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
 import type { SubscriptionFormData } from '@forms/subscription-form';
 import {
   subscriptionFormDataToPayload,
@@ -18,9 +19,6 @@ import {
 import { filter, map, toUpper } from 'lodash-es';
 import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-
-const PAGE_LIMIT = 20;
-const OPTION_LIMIT = 100;
 
 export default function SubscriptionsPage() {
   const { data: subscriptions, error: subscriptionsError } = useSubscriptionsQuery(

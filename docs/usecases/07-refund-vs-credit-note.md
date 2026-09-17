@@ -48,7 +48,7 @@ sequenceDiagram
     IP->>CS: POST /v1/credit_notes
     CS->>CS: chặn nếu invoice là draft
     CS->>CS: amount <= total - amountPaid - đã credit
-    CS->>CS: claimNextNumber(CREDIT_NOTE) → CN-000001
+    CS->>CS: claimNumberSequence(CREDIT_NOTE) → CN-000001
     CS->>L: Nợ revenue / Có accounts_receivable
     CS->>CS: nếu xoá hết phần còn lại → invoice = paid + outbox(invoice.paid)
     end
@@ -74,7 +74,7 @@ sequenceDiagram
 | 4   | API [request.ts:22-24](../../apps/admin-ui/src/api/credit-notes/request.ts)                     | `POST /v1/credit_notes`                                                                                                      | —                                                                                         |
 | 5   | Service [credit-note.service.ts:28-32](../../packages/core/src/services/credit-note.service.ts) | hoá đơn `draft` → 409 "still a draft and should be edited rather than credited"                                              | —                                                                                         |
 | 6   | Service [credit-note.service.ts:34-42](../../packages/core/src/services/credit-note.service.ts) | `creditable = total − amountPaid − đã credit`; vượt → 400 với thông điệp nói rõ "money already paid is returned by a refund" | lỗi tự dạy công cụ đúng                                                                   |
-| 7   | Service [credit-note.service.ts:48-55](../../packages/core/src/services/credit-note.service.ts) | `claimNextNumber(CREDIT_NOTE)` → `CN-000001`                                                                                 | dãy số riêng, độc lập với `INV-`                                                          |
+| 7   | Service [credit-note.service.ts:48-55](../../packages/core/src/services/credit-note.service.ts) | `claimNumberSequence(CREDIT_NOTE)` → `CN-000001`                                                                             | dãy số riêng, độc lập với `INV-`                                                          |
 | 8   | Service [postCredit:147-169](../../packages/core/src/services/credit-note.service.ts)           | Nợ `revenue` / Có `accounts_receivable`                                                                                      | `/ledger` có giao dịch mới                                                                |
 | 9   | Service [credit-note.service.ts:79-81](../../packages/core/src/services/credit-note.service.ts) | credit **vừa đúng** phần còn lại → `settleInvoice`                                                                           | hoá đơn thành `paid` **mà không có đồng nào vào**                                         |
 | 10  | Hook [mutations.ts:116](../../apps/admin-ui/src/reactquery/invoices/mutations.ts)               | toast in `creditNote.number`                                                                                                 | `Đã tạo CN-000001.`                                                                       |

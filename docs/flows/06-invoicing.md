@@ -67,7 +67,7 @@ Hoá đơn `subscription_update` được tạo, phát hành và post sổ cái 
 | 2   | [invoice.service.ts:123-127](../../packages/core/src/services/invoice.service.ts) | `subscription.currentPeriodStart` phải còn khớp `invoice.periodStart`, lệch → `ConflictError` |
 | 3   | [invoice.service.ts:129](../../packages/core/src/services/invoice.service.ts)     | `ratingService.rateUpcomingInvoice` — tính tiền **tại thời điểm này**                         |
 | 4   | [invoice.service.ts:131](../../packages/core/src/services/invoice.service.ts)     | `dueAt = now + INVOICE_DUE_DAYS`                                                              |
-| 5   | [invoice.service.ts:149-156](../../packages/core/src/services/invoice.service.ts) | `claimNextNumber(INVOICE)` trong transaction — cấp số từ `number_sequences`                   |
+| 5   | [invoice.service.ts:149-156](../../packages/core/src/services/invoice.service.ts) | `claimNumberSequence(INVOICE)` trong transaction — cấp số từ `number_sequences`               |
 | 6   | [invoice.service.ts:158](../../packages/core/src/services/invoice.service.ts)     | INSERT `invoice_line_items` — bản chụp bất biến của kết quả rating                            |
 | 7   | [invoice.service.ts:160-173](../../packages/core/src/services/invoice.service.ts) | UPDATE: `number = INV-000123`, `status = open`, `subtotal`/`total`, `nextAttemptAt = dueAt`   |
 | 8   | [postReceivable:336-362](../../packages/core/src/services/invoice.service.ts)     | bút toán: **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue`                        |
@@ -75,7 +75,7 @@ Hoá đơn `subscription_update` được tạo, phát hành và post sổ cái 
 
 Bước 2 chặn một lỗi cụ thể: subscription đã sang kỳ mới trong lúc hoá đơn còn nháp thì rating sẽ trả về số của kỳ **mới**, dán nhầm vào hoá đơn của kỳ **cũ**.
 
-Số hoá đơn cấp bằng `claimNextNumber` bên trong transaction — [invoice.service.ts:511-513](../../packages/core/src/services/invoice.service.ts) định dạng `INV-` + 6 chữ số. Bảng `number_sequences` bảo đảm dãy số liên tục, không nhảy cóc (yêu cầu kế toán ở nhiều nơi).
+Số hoá đơn cấp bằng `claimNumberSequence` bên trong transaction — [invoice.service.ts:511-513](../../packages/core/src/services/invoice.service.ts) định dạng `INV-` + 6 chữ số. Bảng `number_sequences` bảo đảm dãy số liên tục, không nhảy cóc (yêu cầu kế toán ở nhiều nơi).
 
 Sau finalize, migration `0011_invoice_immutability` khoá các cột tiền ở tầng DB — muốn sửa thì void hoặc ghi credit note, không UPDATE.
 
@@ -126,12 +126,12 @@ Chúng được tính lại mỗi lần đọc, không lưu — nên không bao 
 
 ## Bảng DB
 
-| Bảng                 | Điểm cần nhớ                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------------ |
-| `number_sequences`   | một hàng cho mỗi loại (`invoice`, `credit_note`); `claimNextNumber` chạy trong transaction |
-| `invoices`           | `number` nullable tới khi finalize; `due_at`, `next_attempt_at` phục vụ dunning            |
-| `invoice_line_items` | bản chụp; sửa giá về sau không đổi hoá đơn cũ                                              |
-| `credit_notes`       | chỉ ghi thêm, không sửa                                                                    |
+| Bảng                 | Điểm cần nhớ                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| `number_sequences`   | một hàng cho mỗi loại (`invoice`, `credit_note`); `claimNumberSequence` chạy trong transaction |
+| `invoices`           | `number` nullable tới khi finalize; `due_at`, `next_attempt_at` phục vụ dunning                |
+| `invoice_line_items` | bản chụp; sửa giá về sau không đổi hoá đơn cũ                                                  |
+| `credit_notes`       | chỉ ghi thêm, không sửa                                                                        |
 
 ## Đọc tiếp
 

@@ -2,6 +2,7 @@ import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
 import TextField from '@components/ui/TextField';
 import WebhookEndpointItem from '@components/WebhookEndpointItem';
+import { PAGE_LIMIT } from '@constants/pagination';
 import type { WebhookEndpointStatus } from '@pinstripe/core/contracts';
 import { DomainEventTypeEnum, WebhookDeliveryStatusEnum } from '@pinstripe/core/contracts';
 import {
@@ -13,7 +14,6 @@ import {
 import { map, values } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 
-const PAGE_LIMIT = 20;
 const DEFAULT_URL = 'http://localhost:4100/hooks';
 
 const DELIVERY_STATUS_CLASSES: Record<string, string> = {

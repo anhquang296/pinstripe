@@ -146,27 +146,27 @@ export class MockPspClient {
 
     const charge = this._chargesByReference.get(request.reference);
 
-    if (!charge) {
-      throw new MockPspChargeNotFoundError(request.reference);
+    if (charge) {
+      const refundable = charge.amount - charge.refunded;
+
+      if (request.amount > refundable) {
+        throw new MockPspRefundTooLargeError(request.reference, refundable);
+      }
+
+      const reference = this.buildReference();
+
+      charge.refunded += request.amount;
+      this._referencesByIdempotencyKey.set(request.idempotencyKey, reference);
+
+      this._logger.info(
+        { reference, chargeReference: request.reference },
+        '[MockPspClient] createRefund() completed',
+      );
+
+      return { reference };
     }
 
-    const refundable = charge.amount - charge.refunded;
-
-    if (request.amount > refundable) {
-      throw new MockPspRefundTooLargeError(request.reference, refundable);
-    }
-
-    const reference = this.buildReference();
-
-    charge.refunded += request.amount;
-    this._referencesByIdempotencyKey.set(request.idempotencyKey, reference);
-
-    this._logger.info(
-      { reference, chargeReference: request.reference },
-      '[MockPspClient] createRefund() completed',
-    );
-
-    return { reference };
+    throw new MockPspChargeNotFoundError(request.reference);
   }
 
   private buildReference(): string {

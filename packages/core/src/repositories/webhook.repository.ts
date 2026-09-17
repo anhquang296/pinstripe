@@ -10,6 +10,7 @@ import type {
 import { webhookDeliveries, webhookEndpoints } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
+import _ from 'lodash';
 
 export interface WebhookEndpointFilters {
   status?: WebhookEndpointStatus;
@@ -119,7 +120,7 @@ export class WebhookRepository {
     payload: readonly NewWebhookDelivery[],
     executor?: DatabaseTransaction,
   ): Promise<WebhookDelivery[]> {
-    if (payload.length === 0) {
+    if (_.isEmpty(payload)) {
       return [];
     }
 

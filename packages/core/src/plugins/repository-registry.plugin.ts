@@ -7,6 +7,7 @@ import { LedgerAccountRepository } from '@repositories/ledger-account.repository
 import { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
 import { MeterRepository } from '@repositories/meter.repository';
 import { MeterEventRepository } from '@repositories/meter-event.repository';
+import { NumberSequenceRepository } from '@repositories/number-sequence.repository';
 import { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import { PaymentIntentRepository } from '@repositories/payment-intent.repository';
 import { PriceRepository } from '@repositories/price.repository';
@@ -36,6 +37,7 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('testClockRepository', new TestClockRepository(fastify.database));
   fastify.decorate('invoiceRepository', new InvoiceRepository(fastify.database));
   fastify.decorate('creditNoteRepository', new CreditNoteRepository(fastify.database));
+  fastify.decorate('numberSequenceRepository', new NumberSequenceRepository(fastify.database));
   fastify.decorate('paymentIntentRepository', new PaymentIntentRepository(fastify.database));
   fastify.decorate('refundRepository', new RefundRepository(fastify.database));
   fastify.decorate('webhookRepository', new WebhookRepository(fastify.database));

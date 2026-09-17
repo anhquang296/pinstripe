@@ -2,6 +2,7 @@ import type { DunningRunShardJob } from '@pinstripe/core/queues';
 import {
   buildDunningRunShardJob,
   DUNNING_QUEUE,
+  DUNNING_RUN_DISPATCH_JOB,
   DUNNING_RUN_SHARD_JOB,
   QueueNameEnum,
 } from '@pinstripe/core/queues';
@@ -13,7 +14,6 @@ import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
 const DUNNING_SCHEDULER_ID = 'dunning-run-scheduler';
-const DUNNING_DISPATCH_JOB = 'DunningRunDispatch';
 
 export class DunningWorkflow implements Workflow {
   private readonly worker: Worker<DunningRunShardJob>;
@@ -24,7 +24,7 @@ export class DunningWorkflow implements Workflow {
     this.worker = new Worker<DunningRunShardJob>(
       DUNNING_QUEUE,
       async (job: Job<DunningRunShardJob>) => {
-        if (job.name === DUNNING_DISPATCH_JOB) {
+        if (job.name === DUNNING_RUN_DISPATCH_JOB) {
           await this.dispatchShards();
 
           return;
@@ -52,7 +52,7 @@ export class DunningWorkflow implements Workflow {
       .upsertJobScheduler(
         DUNNING_SCHEDULER_ID,
         { every: dunningIntervalMs },
-        { name: DUNNING_DISPATCH_JOB, data: {} },
+        { name: DUNNING_RUN_DISPATCH_JOB, data: {} },
       );
   }
 

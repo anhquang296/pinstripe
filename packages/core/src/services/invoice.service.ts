@@ -91,13 +91,13 @@ export class InvoiceService {
           tx,
         );
 
-        if (!invoice) {
-          throw new NotFoundError(`Invoice ${id} could not be created`);
+        if (invoice) {
+          await this.recordInvoiceEvent(invoice, DomainEventTypeEnum.INVOICE_CREATED, tx);
+
+          return { invoice, isCreated: true };
         }
 
-        await this.recordInvoiceEvent(invoice, DomainEventTypeEnum.INVOICE_CREATED, tx);
-
-        return { invoice, isCreated: true };
+        throw new NotFoundError(`Invoice ${id} could not be created`);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -175,20 +175,20 @@ export class InvoiceService {
       tx,
     );
 
-    if (!invoice) {
-      throw new NotFoundError(`Invoice ${id} could not be created`);
+    if (invoice) {
+      await this.recordInvoiceEvent(invoice, DomainEventTypeEnum.INVOICE_CREATED, tx);
+
+      const finalizedInvoice = await this.writeFinalizedInvoice(invoice, rated, now, tx);
+
+      await this.fastify.subscriptionRepository.markSubscriptionItemsInvoiced(
+        _.map(rated.lineItems, 'subscriptionItemId'),
+        tx,
+      );
+
+      return finalizedInvoice;
     }
 
-    await this.recordInvoiceEvent(invoice, DomainEventTypeEnum.INVOICE_CREATED, tx);
-
-    const finalizedInvoice = await this.writeFinalizedInvoice(invoice, rated, now, tx);
-
-    await this.fastify.subscriptionRepository.markSubscriptionItemsInvoiced(
-      _.map(rated.lineItems, 'subscriptionItemId'),
-      tx,
-    );
-
-    return finalizedInvoice;
+    throw new NotFoundError(`Invoice ${id} could not be created`);
   }
 
   private async writeFinalizedInvoice(
@@ -214,7 +214,7 @@ export class InvoiceService {
       };
     });
 
-    const sequenceValue = await this.fastify.invoiceRepository.claimNextNumber(
+    const sequenceValue = await this.fastify.numberSequenceRepository.claimNumberSequence(
       NumberSequenceEnum.INVOICE,
       tx,
     );
@@ -240,14 +240,14 @@ export class InvoiceService {
       tx,
     );
 
-    if (!updatedInvoice) {
-      throw new NotFoundError(`No such invoice: ${invoice.id}`);
+    if (updatedInvoice) {
+      await this.postReceivable(updatedInvoice, tx);
+      await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_FINALIZED, tx);
+
+      return updatedInvoice;
     }
 
-    await this.postReceivable(updatedInvoice, tx);
-    await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_FINALIZED, tx);
-
-    return updatedInvoice;
+    throw new NotFoundError(`No such invoice: ${invoice.id}`);
   }
 
   async payInvoice(
@@ -288,17 +288,17 @@ export class InvoiceService {
         tx,
       );
 
-      if (!updatedInvoice) {
-        throw new NotFoundError(`No such invoice: ${invoice.id}`);
+      if (updatedInvoice) {
+        await this.postCashReceipt(updatedInvoice, amount, settlementReference, tx);
+
+        if (isSettled) {
+          await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_PAID, tx);
+        }
+
+        return updatedInvoice;
       }
 
-      await this.postCashReceipt(updatedInvoice, amount, settlementReference, tx);
-
-      if (isSettled) {
-        await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_PAID, tx);
-      }
-
-      return updatedInvoice;
+      throw new NotFoundError(`No such invoice: ${invoice.id}`);
     });
 
     return this.buildInvoice(paidInvoice);
@@ -329,21 +329,21 @@ export class InvoiceService {
         tx,
       );
 
-      if (!updatedInvoice) {
-        throw new NotFoundError(`No such invoice: ${invoice.id}`);
+      if (updatedInvoice) {
+        if (invoice.status === InvoiceStatusEnum.OPEN) {
+          await this.reverseReceivable(updatedInvoice, tx);
+        }
+
+        if (invoice.billingReason === BillingReasonEnum.SUBSCRIPTION_UPDATE) {
+          await this.reopenInvoicedItems(invoice.id, tx);
+        }
+
+        await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_VOIDED, tx);
+
+        return updatedInvoice;
       }
 
-      if (invoice.status === InvoiceStatusEnum.OPEN) {
-        await this.reverseReceivable(updatedInvoice, tx);
-      }
-
-      if (invoice.billingReason === BillingReasonEnum.SUBSCRIPTION_UPDATE) {
-        await this.reopenInvoicedItems(invoice.id, tx);
-      }
-
-      await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_VOIDED, tx);
-
-      return updatedInvoice;
+      throw new NotFoundError(`No such invoice: ${invoice.id}`);
     });
 
     return this.buildInvoice(voidedInvoice);
@@ -380,11 +380,15 @@ export class InvoiceService {
       url: '/v1/invoices',
       hasMore: rows.length > limit,
       data: _.map(page, (invoice) => {
+        const lineItems = _.get(lineItemsByInvoiceId, invoice.id, []);
+        const amountCredited = _.get(creditedByInvoiceId, invoice.id, 0);
+        const amountRefunded = _.get(refundedByInvoiceId, invoice.id, 0);
+
         return InvoiceService.buildInvoiceWithLineItems(
           invoice,
-          lineItemsByInvoiceId[invoice.id] ?? [],
-          creditedByInvoiceId[invoice.id] ?? 0,
-          refundedByInvoiceId[invoice.id] ?? 0,
+          lineItems,
+          amountCredited,
+          amountRefunded,
         );
       }),
     };
@@ -552,13 +556,13 @@ export class InvoiceService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
+    if (id) {
+      const invoice = await this.getInvoiceEntity(id);
+
+      return { createdAt: invoice.createdAt, id: invoice.id };
     }
 
-    const invoice = await this.getInvoiceEntity(id);
-
-    return { createdAt: invoice.createdAt, id: invoice.id };
+    return undefined;
   }
 
   private async resolveLineItems(
@@ -574,11 +578,14 @@ export class InvoiceService {
     const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
     const refundedByInvoiceId = await this.resolveRefundedAmounts([invoice.id]);
 
+    const amountCredited = _.get(creditedByInvoiceId, invoice.id, 0);
+    const amountRefunded = _.get(refundedByInvoiceId, invoice.id, 0);
+
     return InvoiceService.buildInvoiceWithLineItems(
       invoice,
       lineItems,
-      creditedByInvoiceId[invoice.id] ?? 0,
-      refundedByInvoiceId[invoice.id] ?? 0,
+      amountCredited,
+      amountRefunded,
     );
   }
 

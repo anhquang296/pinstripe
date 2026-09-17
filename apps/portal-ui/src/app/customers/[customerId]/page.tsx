@@ -1,6 +1,11 @@
-import { getInvoices, getSubscriptions } from '@lib/billing-api';
 import { pinstripe } from '@lib/pinstripe';
 import { map, toUpper } from 'lodash-es';
+
+interface CustomerPortalPageProps {
+  params: Promise<{ customerId: string }>;
+}
+
+const PAGE_LIMIT = 20;
 
 const STATUS_CLASSES: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-600',
@@ -18,17 +23,13 @@ function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('vi-VN');
 }
 
-export default async function CustomerPortalPage({
-  params,
-}: {
-  params: Promise<{ customerId: string }>;
-}) {
+export default async function CustomerPortalPage({ params }: CustomerPortalPageProps) {
   const { customerId } = await params;
 
   const [customer, subscriptions, invoices] = await Promise.all([
     pinstripe.customers.retrieve(customerId),
-    getSubscriptions(customerId),
-    getInvoices(customerId),
+    pinstripe.subscriptions.list({ customerId, limit: PAGE_LIMIT }),
+    pinstripe.invoices.list({ customerId, limit: PAGE_LIMIT }),
   ]);
 
   return (

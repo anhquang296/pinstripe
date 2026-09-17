@@ -10,6 +10,7 @@ import type {
 import { paymentAttempts, paymentIntents } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import _ from 'lodash';
 
 export interface PaymentIntentFilters {
   invoiceId?: string;
@@ -63,7 +64,7 @@ export class PaymentIntentRepository {
   }
 
   async findPaymentAttempts(paymentIntentIds: readonly string[]): Promise<PaymentAttempt[]> {
-    if (paymentIntentIds.length === 0) {
+    if (_.isEmpty(paymentIntentIds)) {
       return [];
     }
 

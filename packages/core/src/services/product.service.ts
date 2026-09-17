@@ -36,23 +36,23 @@ export class ProductService {
         tx,
       );
 
-      if (!product) {
-        throw new NotFoundError(`Product ${id} could not be created`);
+      if (product) {
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.PRODUCT,
+              aggregateId: product.id,
+              eventType: DomainEventTypeEnum.PRODUCT_CREATED,
+              payload: { id: product.id },
+            },
+          ],
+          tx,
+        );
+
+        return product;
       }
 
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.PRODUCT,
-            aggregateId: product.id,
-            eventType: DomainEventTypeEnum.PRODUCT_CREATED,
-            payload: { id: product.id },
-          },
-        ],
-        tx,
-      );
-
-      return product;
+      throw new NotFoundError(`Product ${id} could not be created`);
     });
 
     return ProductService.buildProduct(createdProduct);
@@ -78,23 +78,23 @@ export class ProductService {
         tx,
       );
 
-      if (!product) {
-        throw new NotFoundError(`No such product: ${id}`);
+      if (product) {
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.PRODUCT,
+              aggregateId: product.id,
+              eventType: DomainEventTypeEnum.PRODUCT_UPDATED,
+              payload: { id: product.id },
+            },
+          ],
+          tx,
+        );
+
+        return product;
       }
 
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.PRODUCT,
-            aggregateId: product.id,
-            eventType: DomainEventTypeEnum.PRODUCT_UPDATED,
-            payload: { id: product.id },
-          },
-        ],
-        tx,
-      );
-
-      return product;
+      throw new NotFoundError(`No such product: ${id}`);
     });
 
     return ProductService.buildProduct(updatedProduct);
@@ -119,17 +119,17 @@ export class ProductService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
-    }
+    if (id) {
+      const product = await this.fastify.productRepository.findProduct(id);
 
-    const product = await this.fastify.productRepository.findProduct(id);
+      if (product) {
+        return { createdAt: product.createdAt, id: product.id };
+      }
 
-    if (!product) {
       throw new NotFoundError(`No such product: ${id}`);
     }
 
-    return { createdAt: product.createdAt, id: product.id };
+    return undefined;
   }
 
   private static buildProduct(entity: Product): ProductResponse {

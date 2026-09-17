@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "files": {
     ".claude/rules/agentkit/00-index.md": "d8e4314712b4a2fe6b886274dbd677494601ae2c3f64c676186510b35a044d52",
     ".claude/rules/agentkit/core/agent-tooling-convention.md": "17f8ed35b8d15e2abc2cbae42a053b3a123db41110bc8ecd6c48f2d25b39c5d1",

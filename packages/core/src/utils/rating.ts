@@ -94,33 +94,33 @@ export function resolveBillingWindow(
 export function transformQuantity(price: RatingPrice, quantity: number): number {
   const transform = price.transformQuantity;
 
-  if (!transform) {
-    return quantity;
+  if (transform) {
+    const divided = quantity / transform.divideBy;
+
+    if (transform.round === RoundingModeEnum.DOWN) {
+      return Math.floor(divided);
+    }
+
+    return Math.ceil(divided);
   }
 
-  const divided = quantity / transform.divideBy;
-
-  if (transform.round === RoundingModeEnum.DOWN) {
-    return Math.floor(divided);
-  }
-
-  return Math.ceil(divided);
+  return quantity;
 }
 
 function toTierFloor(tiers: readonly PriceTier[], index: number): number {
   const previous = tiers[index - 1];
 
-  if (!previous) {
-    return 0;
+  if (previous) {
+    const upTo = previous.upTo;
+
+    if (_.isNil(upTo)) {
+      throw new BadRequestError('Tiered price has an unbounded tier before its last tier');
+    }
+
+    return upTo;
   }
 
-  const upTo = previous.upTo;
-
-  if (_.isNil(upTo)) {
-    throw new BadRequestError('Tiered price has an unbounded tier before its last tier');
-  }
-
-  return upTo;
+  return 0;
 }
 
 function rateGraduatedTiers(
@@ -151,14 +151,14 @@ function rateVolumeTiers(tiers: readonly PriceTier[], quantity: number, currency
     return _.isNil(candidate.upTo) || quantity <= candidate.upTo;
   });
 
-  if (!tier) {
-    throw new BadRequestError('Tiered price has no tier covering the rated quantity');
+  if (tier) {
+    const flatAmount = Money.of(tier.flatAmount ?? 0, currency);
+    const unitAmount = Money.of(tier.unitAmount ?? 0, currency);
+
+    return flatAmount.add(unitAmount.multiply(quantity, RATING_ROUNDING_POLICY));
   }
 
-  const flatAmount = Money.of(tier.flatAmount ?? 0, currency);
-  const unitAmount = Money.of(tier.unitAmount ?? 0, currency);
-
-  return flatAmount.add(unitAmount.multiply(quantity, RATING_ROUNDING_POLICY));
+  throw new BadRequestError('Tiered price has no tier covering the rated quantity');
 }
 
 export function ratePrice(price: RatingPrice, quantity: number): Money {
@@ -195,19 +195,19 @@ export function resolveProrationFactor(line: RatingLine): number {
   const usageStart = line.usageStart;
   const usageEnd = line.usageEnd;
 
-  if (!usageStart || !usageEnd) {
-    return 1;
+  if (usageStart && usageEnd) {
+    const periodMs = line.periodEnd.getTime() - line.periodStart.getTime();
+
+    if (periodMs <= 0) {
+      throw new BadRequestError('Rating period must end after it starts');
+    }
+
+    const usedMs = usageEnd.getTime() - usageStart.getTime();
+
+    return _.clamp(usedMs / periodMs, 0, 1);
   }
 
-  const periodMs = line.periodEnd.getTime() - line.periodStart.getTime();
-
-  if (periodMs <= 0) {
-    throw new BadRequestError('Rating period must end after it starts');
-  }
-
-  const usedMs = usageEnd.getTime() - usageStart.getTime();
-
-  return _.clamp(usedMs / periodMs, 0, 1);
+  return 1;
 }
 
 export function rateLine(line: RatingLine): RatedLineItem {

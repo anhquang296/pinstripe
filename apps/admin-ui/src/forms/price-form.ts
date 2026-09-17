@@ -137,10 +137,6 @@ export const priceFormDefaultValues: PriceFormData = {
   tiers: [],
 };
 
-export function toNullableNumber(value: string): number | null {
-  return value === '' ? null : Number(value);
-}
-
 function toOptionalNumber(value: number | null): number | undefined {
   return value === null ? undefined : value;
 }

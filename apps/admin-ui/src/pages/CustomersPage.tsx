@@ -1,5 +1,6 @@
 import CustomerForm from '@components/CustomerForm';
 import CustomerItem from '@components/CustomerItem';
+import { PAGE_LIMIT } from '@constants/pagination';
 import type { CustomerFormData } from '@forms/customer-form';
 import {
   customerFormDataToPayload,
@@ -9,8 +10,6 @@ import {
 import { useCreateCustomerMutation, useCustomersQuery } from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
 import { useForm } from 'react-hook-form';
-
-const PAGE_LIMIT = 20;
 
 export default function CustomersPage() {
   const {

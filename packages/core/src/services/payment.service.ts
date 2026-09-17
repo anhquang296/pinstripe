@@ -75,11 +75,11 @@ export class PaymentService {
       updatedAt: now,
     });
 
-    if (!createdPaymentIntent) {
-      throw new NotFoundError(`Payment intent ${id} could not be created`);
+    if (createdPaymentIntent) {
+      return this.buildPaymentIntent(createdPaymentIntent);
     }
 
-    return this.buildPaymentIntent(createdPaymentIntent);
+    throw new NotFoundError(`Payment intent ${id} could not be created`);
   }
 
   async confirmPaymentIntent(
@@ -121,30 +121,30 @@ export class PaymentService {
         tx,
       );
 
-      if (!updatedPaymentIntent) {
-        throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
+      if (updatedPaymentIntent) {
+        await this.fastify.paymentIntentRepository.createPaymentAttempt(
+          {
+            id: generateGid(ObjectPrefixEnum.CHARGE),
+            paymentIntentId: paymentIntent.id,
+            paymentMethod,
+            outcome: PaymentAttemptOutcomeEnum.SUCCEEDED,
+            pspReference: charge.reference,
+            failureCode: null,
+            createdAt: now,
+          },
+          tx,
+        );
+
+        await this.recordPaymentEvent(
+          updatedPaymentIntent,
+          DomainEventTypeEnum.PAYMENT_INTENT_SUCCEEDED,
+          tx,
+        );
+
+        return updatedPaymentIntent;
       }
 
-      await this.fastify.paymentIntentRepository.createPaymentAttempt(
-        {
-          id: generateGid(ObjectPrefixEnum.CHARGE),
-          paymentIntentId: paymentIntent.id,
-          paymentMethod,
-          outcome: PaymentAttemptOutcomeEnum.SUCCEEDED,
-          pspReference: charge.reference,
-          failureCode: null,
-          createdAt: now,
-        },
-        tx,
-      );
-
-      await this.recordPaymentEvent(
-        updatedPaymentIntent,
-        DomainEventTypeEnum.PAYMENT_INTENT_SUCCEEDED,
-        tx,
-      );
-
-      return updatedPaymentIntent;
+      throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
     });
 
     await this.fastify.invoiceService.payInvoice(
@@ -174,11 +174,11 @@ export class PaymentService {
       },
     );
 
-    if (!canceledPaymentIntent) {
-      throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
+    if (canceledPaymentIntent) {
+      return this.buildPaymentIntent(canceledPaymentIntent);
     }
 
-    return this.buildPaymentIntent(canceledPaymentIntent);
+    throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
   }
 
   async getPaymentIntent(id: string): Promise<PaymentIntentResponse> {
@@ -211,10 +211,9 @@ export class PaymentService {
       url: '/v1/payment_intents',
       hasMore: rows.length > limit,
       data: _.map(page, (paymentIntent) => {
-        return PaymentService.buildPaymentIntentWithAttempts(
-          paymentIntent,
-          attemptsByIntentId[paymentIntent.id] ?? [],
-        );
+        const attempts = _.get(attemptsByIntentId, paymentIntent.id, []);
+
+        return PaymentService.buildPaymentIntentWithAttempts(paymentIntent, attempts);
       }),
     };
   }
@@ -238,30 +237,30 @@ export class PaymentService {
         tx,
       );
 
-      if (!updatedPaymentIntent) {
-        throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
+      if (updatedPaymentIntent) {
+        await this.fastify.paymentIntentRepository.createPaymentAttempt(
+          {
+            id: generateGid(ObjectPrefixEnum.CHARGE),
+            paymentIntentId: paymentIntent.id,
+            paymentMethod,
+            outcome: PaymentAttemptOutcomeEnum.DECLINED,
+            pspReference: null,
+            failureCode,
+            createdAt: context.now,
+          },
+          tx,
+        );
+
+        await this.recordPaymentEvent(
+          updatedPaymentIntent,
+          DomainEventTypeEnum.PAYMENT_INTENT_FAILED,
+          tx,
+        );
+
+        return updatedPaymentIntent;
       }
 
-      await this.fastify.paymentIntentRepository.createPaymentAttempt(
-        {
-          id: generateGid(ObjectPrefixEnum.CHARGE),
-          paymentIntentId: paymentIntent.id,
-          paymentMethod,
-          outcome: PaymentAttemptOutcomeEnum.DECLINED,
-          pspReference: null,
-          failureCode,
-          createdAt: context.now,
-        },
-        tx,
-      );
-
-      await this.recordPaymentEvent(
-        updatedPaymentIntent,
-        DomainEventTypeEnum.PAYMENT_INTENT_FAILED,
-        tx,
-      );
-
-      return updatedPaymentIntent;
+      throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
     });
 
     return this.buildPaymentIntent(declinedPaymentIntent);
@@ -317,13 +316,13 @@ export class PaymentService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
+    if (id) {
+      const paymentIntent = await this.getPaymentIntentEntity(id);
+
+      return { createdAt: paymentIntent.createdAt, id: paymentIntent.id };
     }
 
-    const paymentIntent = await this.getPaymentIntentEntity(id);
-
-    return { createdAt: paymentIntent.createdAt, id: paymentIntent.id };
+    return undefined;
   }
 
   private async resolveAttempts(

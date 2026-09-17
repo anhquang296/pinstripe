@@ -1,9 +1,9 @@
+import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@pinstripe/sdk/react';
 import { isNil, map, toUpper } from 'lodash-es';
 import { useMemo } from 'react';
 
 const WINDOW_DAYS = 30;
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const EXCEPTION_LIMIT = 20;
 
 const OUTCOME_CLASSES: Record<string, string> = {

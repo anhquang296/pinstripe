@@ -30,11 +30,11 @@ export class TestClockService {
       updatedAt: now,
     });
 
-    if (!createdTestClock) {
-      throw new NotFoundError('Test clock could not be created');
+    if (createdTestClock) {
+      return TestClockService.buildTestClock(createdTestClock);
     }
 
-    return TestClockService.buildTestClock(createdTestClock);
+    throw new NotFoundError('Test clock could not be created');
   }
 
   async getTestClock(id: string): Promise<TestClockResponse> {
@@ -67,11 +67,7 @@ export class TestClockService {
   }
 
   async advanceTestClock(id: string, payload: AdvanceTestClockPayload): Promise<TestClockResponse> {
-    const clock = await this.fastify.testClockRepository.findTestClock(id);
-
-    if (!clock) {
-      throw new NotFoundError(`No such test clock: ${id}`);
-    }
+    const clock = await this.getTestClockRow(id);
 
     if (clock.status === TestClockStatusEnum.ADVANCING) {
       throw new ConflictError(`Test clock ${id} is already advancing`);
@@ -109,40 +105,50 @@ export class TestClockService {
         tx,
       );
 
-      if (!next) {
-        throw new NotFoundError(`No such test clock: ${id}`);
+      if (next) {
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.TEST_CLOCK,
+              aggregateId: id,
+              eventType: DomainEventTypeEnum.TEST_CLOCK_ADVANCED,
+              payload: { id, frozenTime: target.toISOString() },
+            },
+          ],
+          tx,
+        );
+
+        return next;
       }
 
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.TEST_CLOCK,
-            aggregateId: id,
-            eventType: DomainEventTypeEnum.TEST_CLOCK_ADVANCED,
-            payload: { id, frozenTime: target.toISOString() },
-          },
-        ],
-        tx,
-      );
-
-      return next;
+      throw new NotFoundError(`No such test clock: ${id}`);
     });
 
     return TestClockService.buildTestClock(advanced);
   }
 
-  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
+  private async getTestClockRow(id: string): Promise<TestClock> {
+    const testClock = await this.fastify.testClockRepository.findTestClock(id);
+
+    if (testClock) {
+      return testClock;
     }
 
-    const clock = await this.fastify.testClockRepository.findTestClock(id);
+    throw new NotFoundError(`No such test clock: ${id}`);
+  }
 
-    if (!clock) {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
+    if (id) {
+      const testClock = await this.fastify.testClockRepository.findTestClock(id);
+
+      if (testClock) {
+        return { createdAt: testClock.createdAt, id: testClock.id };
+      }
+
       throw new NotFoundError(`No such test clock: ${id}`);
     }
 
-    return { createdAt: clock.createdAt, id: clock.id };
+    return undefined;
   }
 
   private static buildTestClock(entity: TestClock): TestClockResponse {

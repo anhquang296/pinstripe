@@ -4,6 +4,7 @@ import type { NewRefund, Refund } from '@database/schemas';
 import { refunds } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import _ from 'lodash';
 
 export interface RefundFilters {
   invoiceId?: string;
@@ -55,7 +56,7 @@ export class RefundRepository {
   }
 
   async aggregateRefundedAmounts(invoiceIds: readonly string[]): Promise<InvoiceRefundedAmount[]> {
-    if (invoiceIds.length === 0) {
+    if (_.isEmpty(invoiceIds)) {
       return [];
     }
 

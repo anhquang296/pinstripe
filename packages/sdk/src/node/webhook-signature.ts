@@ -1,7 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const SIGNATURE_SCHEME = 'v1';
-const MILLISECONDS_PER_SECOND = 1000;
 
 export const WEBHOOK_SIGNATURE_HEADER = 'pinstripe-signature';
 export const DEFAULT_WEBHOOK_TOLERANCE_SECONDS = 300;
@@ -81,6 +80,8 @@ function isWithinTolerance(timestamp: string, toleranceSeconds: number): boolean
   if (!Number.isFinite(signedAtSeconds)) {
     return false;
   }
+
+  const MILLISECONDS_PER_SECOND = 1000;
 
   const nowSeconds = Math.floor(Date.now() / MILLISECONDS_PER_SECOND);
 

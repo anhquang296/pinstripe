@@ -529,7 +529,7 @@ và đóng lại [technique 05](technique/05-product-and-price.md).
 
 **Deliverables.** Search API trên Postgres FTS/trigram với một projection tìm kiếm cho mỗi resource —
 không bolt Elastic vào. Sinh OpenAPI từ schema TypeBox. Metrics và tracing. Load test hai nút thắt đã
-biết: `claimNextNumber` serialize trên một dòng, và webhook fan-out. Runbook cho bảng trạng thái kẹt.
+biết: `claimNumberSequence` serialize trên một dòng, và webhook fan-out. Runbook cho bảng trạng thái kẹt.
 
 **Công sức: M.**
 

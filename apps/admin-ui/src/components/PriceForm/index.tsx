@@ -2,7 +2,6 @@ import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
 import TextField from '@components/ui/TextField';
 import type { PriceFormData } from '@forms/price-form';
-import { toNullableNumber } from '@forms/price-form';
 import { BillingSchemeEnum, PriceTypeEnum, UsageTypeEnum } from '@pinstripe/core/contracts';
 import { get, map } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
@@ -16,6 +15,7 @@ import {
   TIERS_MODE_OPTIONS,
   USAGE_TYPE_OPTIONS,
 } from './constants';
+import { toNullableNumber } from './helpers';
 import PriceTierItem from './PriceTierItem';
 
 interface PriceFormOption {

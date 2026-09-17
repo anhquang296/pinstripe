@@ -6,6 +6,7 @@ import type {
   CreateWebhookEndpointPayload,
   GetWebhookDeliveriesQuery,
   GetWebhookEndpointsQuery,
+  PinstripeEvent,
   UpdateWebhookEndpointPayload,
   WebhookDeliveryResponse,
   WebhookEndpointResponse,
@@ -54,11 +55,11 @@ export class WebhookService {
       updatedAt: now,
     });
 
-    if (!createdEndpoint) {
-      throw new NotFoundError(`Webhook endpoint ${id} could not be created`);
+    if (createdEndpoint) {
+      return WebhookService.buildEndpoint(createdEndpoint, { hasSecret: true });
     }
 
-    return WebhookService.buildEndpoint(createdEndpoint, { hasSecret: true });
+    throw new NotFoundError(`Webhook endpoint ${id} could not be created`);
   }
 
   async updateWebhookEndpoint(
@@ -75,11 +76,11 @@ export class WebhookService {
       updatedAt: this.fastify.clock.now(),
     });
 
-    if (!updatedEndpoint) {
-      throw new NotFoundError(`No such webhook endpoint: ${id}`);
+    if (updatedEndpoint) {
+      return WebhookService.buildEndpoint(updatedEndpoint, { hasSecret: false });
     }
 
-    return WebhookService.buildEndpoint(updatedEndpoint, { hasSecret: false });
+    throw new NotFoundError(`No such webhook endpoint: ${id}`);
   }
 
   async getWebhookEndpoint(id: string): Promise<WebhookEndpointResponse> {
@@ -140,7 +141,7 @@ export class WebhookService {
     }
 
     const now = this.fastify.clock.now();
-    const payload = {
+    const payload: PinstripeEvent = {
       id: event.eventId,
       object: 'event',
       type: event.eventType,
@@ -190,18 +191,18 @@ export class WebhookService {
   async resolveDeliveryAttempt(deliveryId: string): Promise<WebhookDeliveryAttempt> {
     const delivery = await this.fastify.webhookRepository.findWebhookDelivery(deliveryId);
 
-    if (!delivery) {
-      throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
+    if (delivery) {
+      const endpoint = await this.getWebhookEndpointEntity(delivery.endpointId);
+      const body = JSON.stringify(delivery.payload);
+
+      return {
+        endpointUrl: endpoint.url,
+        body,
+        signature: buildWebhookSignature(body, endpoint.secret, this.fastify.clock.now()),
+      };
     }
 
-    const endpoint = await this.getWebhookEndpointEntity(delivery.endpointId);
-    const body = JSON.stringify(delivery.payload);
-
-    return {
-      endpointUrl: endpoint.url,
-      body,
-      signature: buildWebhookSignature(body, endpoint.secret, this.fastify.clock.now()),
-    };
+    throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
   }
 
   async recordDeliveryResult(
@@ -230,13 +231,13 @@ export class WebhookService {
   }
 
   private async resolveEndpointCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
+    if (id) {
+      const endpoint = await this.getWebhookEndpointEntity(id);
+
+      return { createdAt: endpoint.createdAt, id: endpoint.id };
     }
 
-    const endpoint = await this.getWebhookEndpointEntity(id);
-
-    return { createdAt: endpoint.createdAt, id: endpoint.id };
+    return undefined;
   }
 
   private static buildSecret(): string {

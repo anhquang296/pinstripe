@@ -6,11 +6,10 @@ import type {
 } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import { isRetryableMethod, isRetryableStatus, resolveBackoffMs } from '@client/retry';
-import type { ApiErrorBody } from '@errors/pinstripe.error';
 import { PinstripeConnectionError, PinstripeError } from '@errors/pinstripe.error';
+import type { ApiErrorBody } from '@type/contracts.types';
 import { buildQuery } from '@utils/build-query';
 
-const IDEMPOTENCY_KEY_HEADER = 'idempotency-key';
 const MUTATING_METHODS: HttpMethod[] = [
   HttpMethodEnum.POST,
   HttpMethodEnum.PUT,
@@ -128,6 +127,8 @@ export class PinstripeTransport {
     payload: unknown,
     idempotencyKey: string | null,
   ): RequestInit {
+    const IDEMPOTENCY_KEY_HEADER = 'idempotency-key';
+
     const headers: Record<string, string> = {};
 
     if (payload !== undefined) {

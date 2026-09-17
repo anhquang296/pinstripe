@@ -4,6 +4,7 @@ import type { CreditNote, NewCreditNote } from '@database/schemas';
 import { creditNotes } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import _ from 'lodash';
 
 export interface InvoiceCreditedAmount {
   invoiceId: string;
@@ -58,7 +59,7 @@ export class CreditNoteRepository {
   }
 
   async aggregateCreditedAmounts(invoiceIds: readonly string[]): Promise<InvoiceCreditedAmount[]> {
-    if (invoiceIds.length === 0) {
+    if (_.isEmpty(invoiceIds)) {
       return [];
     }
 

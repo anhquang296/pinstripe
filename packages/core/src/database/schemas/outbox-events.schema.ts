@@ -1,4 +1,4 @@
-import type { OutboxStatus } from '@contracts/events.types';
+import type { DomainEventType, OutboxStatus } from '@contracts/events.types';
 import { OutboxStatusEnum } from '@contracts/events.types';
 import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
@@ -8,7 +8,7 @@ export const outboxEvents = pgTable(
     id: text('id').primaryKey(),
     aggregateType: text('aggregate_type').notNull(),
     aggregateId: text('aggregate_id').notNull(),
-    eventType: text('event_type').notNull(),
+    eventType: text('event_type').$type<DomainEventType>().notNull(),
     payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
     status: text('status').$type<OutboxStatus>().notNull().default(OutboxStatusEnum.PENDING),
     attemptCount: integer('attempt_count').notNull().default(0),

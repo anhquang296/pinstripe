@@ -3,15 +3,15 @@ import type { MutationProps } from '@react/react-query.types';
 import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
+  CreatePaymentIntentPayload,
   CreateRefundPayload,
   PaymentIntentResponse,
   RefundResponse,
 } from '@type/contracts.types';
 
-export interface ChargeInvoiceVariables {
-  invoiceId: string;
-  paymentMethod: string;
-}
+export type ChargeInvoiceVariables = Pick<CreatePaymentIntentPayload, 'invoiceId'> & {
+  paymentMethod: NonNullable<CreatePaymentIntentPayload['paymentMethod']>;
+};
 
 function usePaymentInvalidation() {
   const queryClient = useQueryClient();

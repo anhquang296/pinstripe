@@ -2,8 +2,8 @@ import type { HttpMethod } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 
 export const DEFAULT_MAX_RETRIES = 2;
-export const DEFAULT_RETRY_BASE_MS = 500;
-export const DEFAULT_MAX_RETRY_DELAY_MS = 5_000;
+const DEFAULT_RETRY_BASE_MS = 500;
+const DEFAULT_MAX_RETRY_DELAY_MS = 5_000;
 export const DEFAULT_TIMEOUT_MS = 30_000;
 
 const RETRYABLE_STATUS_CODES = [408, 429, 500, 502, 503, 504];

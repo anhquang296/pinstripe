@@ -1,5 +1,6 @@
 import TestClockForm from '@components/TestClockForm';
 import TestClockItem from '@components/TestClockItem';
+import { PAGE_LIMIT } from '@constants/pagination';
 import type { TestClockFormData } from '@forms/test-clock-form';
 import {
   testClockFormDataToPayload,
@@ -14,8 +15,6 @@ import {
 import { map } from 'lodash-es';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
-
-const PAGE_LIMIT = 20;
 
 export default function TestClocksPage() {
   const [advanceTargets, setAdvanceTargets] = useState<Record<string, string>>({});

@@ -45,7 +45,7 @@ export class CreditNoteService {
     const id = generateGid(ObjectPrefixEnum.CREDIT_NOTE);
 
     const createdCreditNote = await this.fastify.database.master.transaction(async (tx) => {
-      const sequenceValue = await this.fastify.invoiceRepository.claimNextNumber(
+      const sequenceValue = await this.fastify.numberSequenceRepository.claimNumberSequence(
         NumberSequenceEnum.CREDIT_NOTE,
         tx,
       );
@@ -69,18 +69,18 @@ export class CreditNoteService {
         tx,
       );
 
-      if (!creditNote) {
-        throw new NotFoundError(`Credit note ${id} could not be created`);
+      if (creditNote) {
+        await this.postCredit(creditNote, tx);
+        await this.recordCreditNoteEvent(creditNote, tx);
+
+        if (creditable === payload.amount) {
+          await this.settleInvoice(invoice, now, tx);
+        }
+
+        return creditNote;
       }
 
-      await this.postCredit(creditNote, tx);
-      await this.recordCreditNoteEvent(creditNote, tx);
-
-      if (creditable === payload.amount) {
-        await this.settleInvoice(invoice, now, tx);
-      }
-
-      return creditNote;
+      throw new NotFoundError(`Credit note ${id} could not be created`);
     });
 
     return CreditNoteService.buildCreditNote(createdCreditNote);
@@ -201,17 +201,17 @@ export class CreditNoteService {
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
-    }
+    if (id) {
+      const creditNote = await this.fastify.creditNoteRepository.findCreditNote(id);
 
-    const creditNote = await this.fastify.creditNoteRepository.findCreditNote(id);
+      if (creditNote) {
+        return { createdAt: creditNote.createdAt, id: creditNote.id };
+      }
 
-    if (!creditNote) {
       throw new NotFoundError(`No such credit note: ${id}`);
     }
 
-    return { createdAt: creditNote.createdAt, id: creditNote.id };
+    return undefined;
   }
 
   private static formatNumber(prefix: string, value: number): string {

@@ -1,9 +1,10 @@
 import Button from '@components/ui/Button';
 import TextField from '@components/ui/TextField';
 import type { PriceFormData } from '@forms/price-form';
-import { toNullableNumber } from '@forms/price-form';
 import { get } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
+
+import { toNullableNumber } from './helpers';
 
 interface PriceTierItemProps {
   form: UseFormReturn<PriceFormData>;

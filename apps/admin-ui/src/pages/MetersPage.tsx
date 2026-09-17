@@ -3,6 +3,8 @@ import MeterItem from '@components/MeterItem';
 import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
 import TextField from '@components/ui/TextField';
+import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
+import { MILLISECONDS_PER_DAY } from '@constants/time';
 import type { MeterFormData } from '@forms/meter-form';
 import {
   meterFormDataToPayload,
@@ -21,10 +23,7 @@ import { find, map } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-const PAGE_LIMIT = 20;
-const OPTION_LIMIT = 100;
 const USAGE_WINDOW_DAYS = 30;
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function buildUsageWindow(customerId: string): GetMeterEventSummariesQuery {
   const now = Date.now();

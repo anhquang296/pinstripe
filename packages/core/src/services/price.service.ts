@@ -92,23 +92,23 @@ export class PriceService {
           tx,
         );
 
-        if (!price) {
-          throw new NotFoundError(`Price ${id} could not be created`);
+        if (price) {
+          await this.fastify.outboxService.recordEvents(
+            [
+              {
+                aggregateType: AggregateTypeEnum.PRICE,
+                aggregateId: price.id,
+                eventType: DomainEventTypeEnum.PRICE_CREATED,
+                payload: { id: price.id, productId: price.productId, version: price.version },
+              },
+            ],
+            tx,
+          );
+
+          return price;
         }
 
-        await this.fastify.outboxService.recordEvents(
-          [
-            {
-              aggregateType: AggregateTypeEnum.PRICE,
-              aggregateId: price.id,
-              eventType: DomainEventTypeEnum.PRICE_CREATED,
-              payload: { id: price.id, productId: price.productId, version: price.version },
-            },
-          ],
-          tx,
-        );
-
-        return price;
+        throw new NotFoundError(`Price ${id} could not be created`);
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -147,23 +147,23 @@ export class PriceService {
         tx,
       );
 
-      if (!price) {
-        throw new NotFoundError(`No such price: ${id}`);
+      if (price) {
+        await this.fastify.outboxService.recordEvents(
+          [
+            {
+              aggregateType: AggregateTypeEnum.PRICE,
+              aggregateId: price.id,
+              eventType: DomainEventTypeEnum.PRICE_UPDATED,
+              payload: { id: price.id },
+            },
+          ],
+          tx,
+        );
+
+        return price;
       }
 
-      await this.fastify.outboxService.recordEvents(
-        [
-          {
-            aggregateType: AggregateTypeEnum.PRICE,
-            aggregateId: price.id,
-            eventType: DomainEventTypeEnum.PRICE_UPDATED,
-            payload: { id: price.id },
-          },
-        ],
-        tx,
-      );
-
-      return price;
+      throw new NotFoundError(`No such price: ${id}`);
     });
 
     return PriceService.buildPrice(updatedPrice);
@@ -206,27 +206,27 @@ export class PriceService {
   }
 
   private async resolveNextVersion(lookupKey: string | undefined): Promise<number> {
-    if (!lookupKey) {
-      return 1;
+    if (lookupKey) {
+      const latestPrice = await this.fastify.priceRepository.findLatestPrice(lookupKey);
+
+      return latestPrice ? latestPrice.version + 1 : 1;
     }
 
-    const latest = await this.fastify.priceRepository.findLatestPrice(lookupKey);
-
-    return latest ? latest.version + 1 : 1;
+    return 1;
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
-    }
+    if (id) {
+      const price = await this.fastify.priceRepository.findPrice(id);
 
-    const price = await this.fastify.priceRepository.findPrice(id);
+      if (price) {
+        return { createdAt: price.createdAt, id: price.id };
+      }
 
-    if (!price) {
       throw new NotFoundError(`No such price: ${id}`);
     }
 
-    return { createdAt: price.createdAt, id: price.id };
+    return undefined;
   }
 
   private static assertPriceShape(

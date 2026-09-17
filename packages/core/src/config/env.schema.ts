@@ -1,4 +1,4 @@
-import { Default, Optional, Required } from '@config/env-field';
+import { Default, Optional } from '@config/env-field';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
@@ -28,7 +28,7 @@ export const envSchema = Type.Object({
   API_PORT: Default(Type.Integer({ minimum: 1, maximum: 65535 }), 3000),
   API_HOST: Default(Type.String({ minLength: 1 }), '0.0.0.0'),
 
-  DATABASE_URL: Required(Type.String({ minLength: 1 })),
+  DATABASE_URL: Type.String({ minLength: 1 }),
   DATABASE_POOL_MAX: Default(Type.Integer({ minimum: 1 }), 10),
 
   REDIS_HOST: Default(Type.String({ minLength: 1 }), 'localhost'),
@@ -39,11 +39,11 @@ export const envSchema = Type.Object({
   SMTP_HOST: Optional(Type.String({ minLength: 1 })),
   SMTP_PORT: Optional(Type.Integer({ minimum: 1, maximum: 65535 })),
 
-  SECRET_API_KEY: Required(Type.String({ minLength: 16 })),
-  ADMIN_API_KEY: Required(Type.String({ minLength: 16 })),
-  SYSTEM_API_KEY: Required(Type.String({ minLength: 16 })),
-  MANAGEMENT_API_KEY: Required(Type.String({ minLength: 16 })),
-  WEBHOOK_SIGNING_SECRET: Required(Type.String({ minLength: 16 })),
+  SECRET_API_KEY: Type.String({ minLength: 16 }),
+  ADMIN_API_KEY: Type.String({ minLength: 16 }),
+  SYSTEM_API_KEY: Type.String({ minLength: 16 }),
+  MANAGEMENT_API_KEY: Type.String({ minLength: 16 }),
+  WEBHOOK_SIGNING_SECRET: Type.String({ minLength: 16 }),
 
   WORKFLOW_NAME: Optional(Type.String({ minLength: 1 })),
   WORKER_PORT: Default(Type.Integer({ minimum: 1, maximum: 65535 }), 3001),
@@ -75,15 +75,13 @@ export const envSchema = Type.Object({
 export type Env = Static<typeof envSchema>;
 
 export function loadEnv(source: NodeJS.ProcessEnv): Env {
-  const withoutEmpty = Object.fromEntries(
-    Object.entries(source).filter(([, value]) => {
-      return value !== undefined && value !== '';
-    }),
-  );
+  const withoutEmpty = _.omitBy(source, (value) => {
+    return value === undefined || value === '';
+  });
   const candidate = Value.Default(envSchema, Value.Convert(envSchema, withoutEmpty));
   const errors = [...Value.Errors(envSchema, candidate)];
 
-  if (errors.length > 0) {
+  if (!_.isEmpty(errors)) {
     const reason = _(errors)
       .map((error) => {
         return `${error.path || '/'} ${error.message}`;
