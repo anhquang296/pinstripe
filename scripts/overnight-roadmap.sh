@@ -11,7 +11,23 @@
 
 set -Eeuo pipefail
 
-REPO_ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
+# Script này sống trong chính repo mà nó checkout branch, nên nó phải tự dọn ra ngoài trước.
+# bash đọc script lazily theo byte offset: một `git checkout` thay file này giữa chừng thì bash
+# đọc tiếp ở offset cũ trong nội dung mới và thực thi một đoạn lệch hàng, báo lỗi ở chỗ vô can.
+# Vì vậy: copy ra thư mục tạm, `exec` bản copy, và từ đó git muốn làm gì với repo cũng được.
+if [[ "${OVERNIGHT_RELOCATED:-}" != "1" ]]; then
+  OVERNIGHT_REPO_ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
+  OVERNIGHT_RUNNER="$(mktemp "${TMPDIR:-/tmp}/overnight-roadmap.XXXXXX")"
+
+  cp "${BASH_SOURCE[0]}" "$OVERNIGHT_RUNNER"
+  export OVERNIGHT_RELOCATED=1 OVERNIGHT_REPO_ROOT OVERNIGHT_RUNNER
+
+  exec bash "$OVERNIGHT_RUNNER" "$@"
+fi
+
+trap 'rm -f "$OVERNIGHT_RUNNER"' EXIT
+
+REPO_ROOT="$OVERNIGHT_REPO_ROOT"
 cd "$REPO_ROOT"
 
 PHASES="${PHASES:-14 15 16 17 18 19 20}"
@@ -175,7 +191,7 @@ run_claude() {
     --fallback-model "$FALLBACK_MODEL" \
     --permission-mode bypassPermissions \
     --disallowedTools "Bash(git push:*) Bash(gh:*) WebFetch WebSearch" \
-    "${budget_args[@]}" \
+    ${budget_args[@]+"${budget_args[@]}"} \
     --output-format json \
     >"$json_out" 2>>"$RUN_DIR/run.log"
   local code=$?
