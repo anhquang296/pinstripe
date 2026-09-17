@@ -23,5 +23,7 @@ export * from '@repositories/promotion-code.repository';
 export * from '@repositories/refund.repository';
 export * from '@repositories/reporting.repository';
 export * from '@repositories/subscription.repository';
+export * from '@repositories/tax-id.repository';
+export * from '@repositories/tax-rate.repository';
 export * from '@repositories/test-clock.repository';
 export * from '@repositories/webhook.repository';
