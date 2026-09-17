@@ -89,18 +89,22 @@ export class CustomerService {
     }
   }
 
-  async getCustomer(id: string): Promise<CustomerResponse> {
+  async getCustomer(id: string, livemode: boolean): Promise<CustomerResponse> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    if (customer) {
+    if (customer && customer.livemode === livemode) {
       return CustomerService.buildCustomer(customer);
     }
 
     throw new NotFoundError(`No such customer: ${id}`);
   }
 
-  async updateCustomer(id: string, payload: UpdateCustomerPayload): Promise<CustomerResponse> {
-    await this.getCustomer(id);
+  async updateCustomer(
+    id: string,
+    payload: UpdateCustomerPayload,
+    livemode: boolean,
+  ): Promise<CustomerResponse> {
+    await this.getCustomer(id, livemode);
 
     const updatedCustomer = await this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.updateCustomer(
@@ -132,8 +136,8 @@ export class CustomerService {
     return CustomerService.buildCustomer(updatedCustomer);
   }
 
-  async deleteCustomer(id: string): Promise<DeletedCustomerResponse> {
-    const customer = await this.getCustomer(id);
+  async deleteCustomer(id: string, livemode: boolean): Promise<DeletedCustomerResponse> {
+    const customer = await this.getCustomer(id, livemode);
 
     await this.fastify.database.master.transaction(async (tx) => {
       await this.fastify.customerRepository.archiveCustomer(id, this.fastify.clock.now(), tx);

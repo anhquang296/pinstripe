@@ -3,6 +3,7 @@ import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { creditNotesRoutes } from '@routes/v1/credit-notes/credit-notes.routes';
 import { customersRoutes } from '@routes/v1/customers/customers.routes';
 import { entitlementsRoutes } from '@routes/v1/entitlements/entitlements.routes';
+import { eventsRoutes } from '@routes/v1/events/events.routes';
 import { invoicesRoutes } from '@routes/v1/invoices/invoices.routes';
 import { meterEventsRoutes } from '@routes/v1/meter-events/meter-events.routes';
 import { metersRoutes } from '@routes/v1/meters/meters.routes';
@@ -28,6 +29,7 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(pricesRoutes, { prefix: '/prices' });
   await fastify.register(subscriptionsRoutes, { prefix: '/subscriptions' });
   await fastify.register(entitlementsRoutes, { prefix: '/entitlements' });
+  await fastify.register(eventsRoutes, { prefix: '/events' });
   await fastify.register(invoicesRoutes, { prefix: '/invoices' });
   await fastify.register(creditNotesRoutes, { prefix: '/credit_notes' });
   await fastify.register(paymentIntentsRoutes, { prefix: '/payment_intents' });

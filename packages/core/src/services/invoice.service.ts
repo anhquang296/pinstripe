@@ -352,10 +352,14 @@ export class InvoiceService {
     return this.buildInvoice(voidedInvoice);
   }
 
-  async getInvoice(id: string): Promise<InvoiceResponse> {
+  async getInvoice(id: string, livemode: boolean): Promise<InvoiceResponse> {
     const invoice = await this.getInvoiceEntity(id);
 
-    return this.buildInvoice(invoice);
+    if (invoice.livemode === livemode) {
+      return this.buildInvoice(invoice);
+    }
+
+    throw new NotFoundError(`No such invoice: ${id}`);
   }
 
   async findInvoices(

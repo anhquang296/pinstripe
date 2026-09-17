@@ -87,10 +87,10 @@ export class RefundService {
     return RefundService.buildRefund(createdRefund);
   }
 
-  async getRefund(id: string): Promise<RefundResponse> {
+  async getRefund(id: string, livemode: boolean): Promise<RefundResponse> {
     const refund = await this.fastify.refundRepository.findRefund(id);
 
-    if (refund) {
+    if (refund && refund.livemode === livemode) {
       return RefundService.buildRefund(refund);
     }
 

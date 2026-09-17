@@ -3,6 +3,7 @@ export * from '@repositories/credit-note.repository';
 export * from '@repositories/cursor';
 export * from '@repositories/customer.repository';
 export * from '@repositories/entitlement.repository';
+export * from '@repositories/event.repository';
 export * from '@repositories/idempotency-key.repository';
 export * from '@repositories/invoice.repository';
 export * from '@repositories/ledger-account.repository';

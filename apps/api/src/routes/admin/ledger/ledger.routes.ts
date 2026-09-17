@@ -36,7 +36,10 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/accounts/:accountId',
     { schema: { params: ledgerAccountParamsSchema, response: { 200: ledgerAccountSchema } } },
     async (request, reply) => {
-      const account = await fastify.ledgerService.getAccount(request.params.accountId);
+      const account = await fastify.ledgerService.getAccount(
+        request.params.accountId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, account);
     },
@@ -66,7 +69,10 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { params: ledgerTransactionParamsSchema, response: { 200: ledgerTransactionSchema } },
     },
     async (request, reply) => {
-      const transaction = await fastify.ledgerService.getTransaction(request.params.transactionId);
+      const transaction = await fastify.ledgerService.getTransaction(
+        request.params.transactionId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, transaction);
     },

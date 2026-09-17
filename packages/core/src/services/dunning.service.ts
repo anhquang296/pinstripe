@@ -84,7 +84,7 @@ export class DunningService {
   }
 
   private async collectInvoice(invoice: Invoice, runAt: Date): Promise<DunningOutcome> {
-    const owed = await this.fastify.invoiceService.getInvoice(invoice.id);
+    const owed = await this.fastify.invoiceService.getInvoice(invoice.id, invoice.livemode);
 
     if (owed.amountRemaining <= 0) {
       await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
@@ -97,9 +97,11 @@ export class DunningService {
 
     const paymentMethod = await this.resolvePaymentMethod(invoice.customerId);
     const paymentIntentId = await this.resolveCollectionIntentId(invoice, paymentMethod);
-    const confirmed = await this.fastify.paymentService.confirmPaymentIntent(paymentIntentId, {
-      paymentMethod,
-    });
+    const confirmed = await this.fastify.paymentService.confirmPaymentIntent(
+      paymentIntentId,
+      { paymentMethod },
+      invoice.livemode,
+    );
 
     if (confirmed.status === PaymentIntentStatusEnum.SUCCEEDED) {
       await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
@@ -146,10 +148,10 @@ export class DunningService {
       return reusableIntent.id;
     }
 
-    const createdIntent = await this.fastify.paymentService.createPaymentIntent({
-      invoiceId: invoice.id,
-      paymentMethod,
-    });
+    const createdIntent = await this.fastify.paymentService.createPaymentIntent(
+      { invoiceId: invoice.id, paymentMethod },
+      invoice.livemode,
+    );
 
     return createdIntent.id;
   }

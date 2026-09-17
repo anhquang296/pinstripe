@@ -141,11 +141,15 @@ export class RatingService {
     const meterId = price.meterId;
 
     if (meterId) {
-      const summary = await this.fastify.meterEventService.getMeterEventSummary(meterId, {
-        customerId: subscription.customerId,
-        windowStart: windowStart.toISOString(),
-        windowEnd: windowEnd.toISOString(),
-      });
+      const summary = await this.fastify.meterEventService.getMeterEventSummary(
+        meterId,
+        {
+          customerId: subscription.customerId,
+          windowStart: windowStart.toISOString(),
+          windowEnd: windowEnd.toISOString(),
+        },
+        subscription.livemode,
+      );
 
       return summary.value;
     }

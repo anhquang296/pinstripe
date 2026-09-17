@@ -39,7 +39,10 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:meterId',
     { schema: { params: meterParamsSchema, response: { 200: meterSchema } } },
     async (request, reply) => {
-      const meter = await fastify.meterService.getMeter(request.params.meterId);
+      const meter = await fastify.meterService.getMeter(
+        request.params.meterId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, meter);
     },
@@ -55,7 +58,11 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const meter = await fastify.meterService.updateMeter(request.params.meterId, request.body);
+      const meter = await fastify.meterService.updateMeter(
+        request.params.meterId,
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, meter);
     },
@@ -74,6 +81,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const summary = await fastify.meterEventService.getMeterEventSummary(
         request.params.meterId,
         request.query,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, summary);

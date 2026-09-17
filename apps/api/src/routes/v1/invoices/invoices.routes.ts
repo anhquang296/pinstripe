@@ -63,7 +63,10 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:invoiceId',
     { schema: { params: invoiceParamsSchema, response: { 200: invoiceSchema } } },
     async (request, reply) => {
-      const invoice = await fastify.invoiceService.getInvoice(request.params.invoiceId);
+      const invoice = await fastify.invoiceService.getInvoice(
+        request.params.invoiceId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, invoice);
     },

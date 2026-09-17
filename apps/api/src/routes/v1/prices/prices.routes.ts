@@ -15,7 +15,7 @@ export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     { schema: { body: createPriceSchema, response: { 201: priceSchema } } },
     async (request, reply) => {
-      const price = await fastify.priceService.createPrice(request.body);
+      const price = await fastify.priceService.createPrice(request.body, readLivemode(request));
 
       return ApiResponse.created(reply, price);
     },
@@ -37,7 +37,10 @@ export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:priceId',
     { schema: { params: priceParamsSchema, response: { 200: priceSchema } } },
     async (request, reply) => {
-      const price = await fastify.priceService.getPrice(request.params.priceId);
+      const price = await fastify.priceService.getPrice(
+        request.params.priceId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, price);
     },
@@ -53,7 +56,11 @@ export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const price = await fastify.priceService.updatePrice(request.params.priceId, request.body);
+      const price = await fastify.priceService.updatePrice(
+        request.params.priceId,
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, price);
     },

@@ -54,16 +54,22 @@ export async function makeSubscription(
     { name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}` },
     TEST_LIVEMODE,
   );
-  const price = await fastify.priceService.createPrice({
-    productId: product.id,
-    currency: CurrencyEnum.VND,
-    unitAmount,
-    recurring: { interval: RecurringIntervalEnum.MONTH },
-  });
-  const subscription = await fastify.subscriptionService.createSubscription({
-    customerId: customer.id,
-    items: [{ priceId: price.id }],
-  });
+  const price = await fastify.priceService.createPrice(
+    {
+      productId: product.id,
+      currency: CurrencyEnum.VND,
+      unitAmount,
+      recurring: { interval: RecurringIntervalEnum.MONTH },
+    },
+    false,
+  );
+  const subscription = await fastify.subscriptionService.createSubscription(
+    {
+      customerId: customer.id,
+      items: [{ priceId: price.id }],
+    },
+    false,
+  );
 
   return {
     subscriptionId: subscription.id,

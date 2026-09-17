@@ -180,7 +180,7 @@ describe('LedgerService.reverseTransaction', () => {
       { customerId: customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
       1,
     );
-    const original = await fastify.ledgerService.getTransaction(transactionId);
+    const original = await fastify.ledgerService.getTransaction(transactionId, false);
 
     expect(before?.balance).toBe(250_000);
     expect(after?.balance).toBe(0);

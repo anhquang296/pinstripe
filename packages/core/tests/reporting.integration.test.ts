@@ -45,16 +45,22 @@ async function makeActiveSubscription(
     },
     false,
   );
-  const price = await fastify.priceService.createPrice({
-    productId: product.id,
-    currency: CurrencyEnum.VND,
-    unitAmount: amount,
-    recurring: { interval },
-  });
-  const subscription = await fastify.subscriptionService.createSubscription({
-    customerId: customer.id,
-    items: [{ priceId: price.id }],
-  });
+  const price = await fastify.priceService.createPrice(
+    {
+      productId: product.id,
+      currency: CurrencyEnum.VND,
+      unitAmount: amount,
+      recurring: { interval },
+    },
+    false,
+  );
+  const subscription = await fastify.subscriptionService.createSubscription(
+    {
+      customerId: customer.id,
+      items: [{ priceId: price.id }],
+    },
+    false,
+  );
 
   return { subscriptionId: subscription.id, customerId: customer.id };
 }
@@ -133,11 +139,14 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
     const windowStart = new Date(Date.now() - MILLISECONDS_PER_DAY);
 
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({
-      invoiceId: open.id,
-    });
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      {
+        invoiceId: open.id,
+      },
+      false,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
+    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
 
     const report = await fastify.reconciliationService.aggregateReconciliationReport(
       {
@@ -157,9 +166,12 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId: open.id });
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId: open.id },
+      false,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
+    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
 
     const refund = await fastify.refundService.createRefund({
       paymentIntentId: paymentIntent.id,
@@ -183,12 +195,15 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({
-      invoiceId: open.id,
-      amount: 120_000,
-    });
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      {
+        invoiceId: open.id,
+        amount: 120_000,
+      },
+      false,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
+    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
 
     const report = await fastify.reconciliationService.aggregateReconciliationReport(
       {

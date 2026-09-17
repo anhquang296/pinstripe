@@ -47,7 +47,10 @@ export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const creditNote = await fastify.creditNoteService.getCreditNote(request.params.creditNoteId);
+      const creditNote = await fastify.creditNoteService.getCreditNote(
+        request.params.creditNoteId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, creditNote);
     },

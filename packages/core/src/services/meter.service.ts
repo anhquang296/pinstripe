@@ -26,19 +26,19 @@ export class MeterService {
     return MeterService.buildMeter(createdMeter);
   }
 
-  async getMeter(id: string): Promise<MeterResponse> {
+  async getMeter(id: string, livemode: boolean): Promise<MeterResponse> {
     const meter = await this.fastify.meterRepository.findMeter(id);
 
-    if (meter) {
+    if (meter && meter.livemode === livemode) {
       return MeterService.buildMeter(meter);
     }
 
     throw new NotFoundError(`No such meter: ${id}`);
   }
 
-  async resolveMeter(eventName: string): Promise<Meter> {
+  async resolveMeter(eventName: string, livemode: boolean): Promise<Meter> {
     const [meter] = await this.fastify.meterRepository.findMeters(
-      { eventName, status: MeterStatusEnum.ACTIVE },
+      { livemode, eventName, status: MeterStatusEnum.ACTIVE },
       1,
     );
 
@@ -49,8 +49,12 @@ export class MeterService {
     throw new NotFoundError(`No active meter listens for event ${eventName}`);
   }
 
-  async updateMeter(id: string, payload: UpdateMeterPayload): Promise<MeterResponse> {
-    await this.getMeter(id);
+  async updateMeter(
+    id: string,
+    payload: UpdateMeterPayload,
+    livemode: boolean,
+  ): Promise<MeterResponse> {
+    await this.getMeter(id, livemode);
 
     const updatedMeter = await this.fastify.meterRepository.updateMeter(id, {
       ...payload,

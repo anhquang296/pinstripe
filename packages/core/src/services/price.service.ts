@@ -28,8 +28,8 @@ const DEFAULT_INTERVAL_COUNT = 1;
 export class PriceService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPrice(payload: CreatePricePayload): Promise<PriceResponse> {
-    const product = await this.fastify.productService.getProduct(payload.productId);
+  async createPrice(payload: CreatePricePayload, livemode: boolean): Promise<PriceResponse> {
+    const product = await this.fastify.productService.getProduct(payload.productId, livemode);
 
     const billingScheme = payload.billingScheme ?? BillingSchemeEnum.PER_UNIT;
     const usageType = payload.recurring
@@ -39,7 +39,7 @@ export class PriceService {
     PriceService.assertPriceShape(payload, billingScheme, usageType);
 
     if (payload.meterId) {
-      await this.fastify.meterService.getMeter(payload.meterId);
+      await this.fastify.meterService.getMeter(payload.meterId, livemode);
     }
 
     const now = this.fastify.clock.now();
@@ -132,18 +132,22 @@ export class PriceService {
     }
   }
 
-  async getPrice(id: string): Promise<PriceResponse> {
+  async getPrice(id: string, livemode: boolean): Promise<PriceResponse> {
     const price = await this.fastify.priceRepository.findPrice(id);
 
-    if (price) {
+    if (price && price.livemode === livemode) {
       return PriceService.buildPrice(price);
     }
 
     throw new NotFoundError(`No such price: ${id}`);
   }
 
-  async updatePrice(id: string, payload: UpdatePricePayload): Promise<PriceResponse> {
-    await this.getPrice(id);
+  async updatePrice(
+    id: string,
+    payload: UpdatePricePayload,
+    livemode: boolean,
+  ): Promise<PriceResponse> {
+    await this.getPrice(id, livemode);
 
     const updatedPrice = await this.fastify.database.master.transaction(async (tx) => {
       const price = await this.fastify.priceRepository.updatePrice(

@@ -29,8 +29,15 @@ const DEFAULT_PAYMENT_METHOD = 'pm_card_ok';
 export class PaymentService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPaymentIntent(payload: CreatePaymentIntentPayload): Promise<PaymentIntentResponse> {
+  async createPaymentIntent(
+    payload: CreatePaymentIntentPayload,
+    livemode: boolean,
+  ): Promise<PaymentIntentResponse> {
     const invoice = await this.getInvoice(payload.invoiceId);
+
+    if (invoice.livemode !== livemode) {
+      throw new NotFoundError(`No such invoice: ${payload.invoiceId}`);
+    }
 
     if (invoice.status !== InvoiceStatusEnum.OPEN) {
       throw new ConflictError(
@@ -86,8 +93,13 @@ export class PaymentService {
   async confirmPaymentIntent(
     id: string,
     payload: ConfirmPaymentIntentPayload,
+    livemode: boolean,
   ): Promise<PaymentIntentResponse> {
     const paymentIntent = await this.getPaymentIntentEntity(id);
+
+    if (paymentIntent.livemode !== livemode) {
+      throw new NotFoundError(`No such payment intent: ${id}`);
+    }
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.SUCCEEDED);
 
@@ -161,8 +173,13 @@ export class PaymentService {
   async cancelPaymentIntent(
     id: string,
     payload: CancelPaymentIntentPayload,
+    livemode: boolean,
   ): Promise<PaymentIntentResponse> {
     const paymentIntent = await this.getPaymentIntentEntity(id);
+
+    if (paymentIntent.livemode !== livemode) {
+      throw new NotFoundError(`No such payment intent: ${id}`);
+    }
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.CANCELED);
 
@@ -183,10 +200,14 @@ export class PaymentService {
     throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
   }
 
-  async getPaymentIntent(id: string): Promise<PaymentIntentResponse> {
+  async getPaymentIntent(id: string, livemode: boolean): Promise<PaymentIntentResponse> {
     const paymentIntent = await this.getPaymentIntentEntity(id);
 
-    return this.buildPaymentIntent(paymentIntent);
+    if (paymentIntent.livemode === livemode) {
+      return this.buildPaymentIntent(paymentIntent);
+    }
+
+    throw new NotFoundError(`No such payment intent: ${id}`);
   }
 
   async findPaymentIntents(
@@ -272,7 +293,10 @@ export class PaymentService {
   }
 
   private async resolveOwed(invoice: Invoice): Promise<number> {
-    const invoiceResponse = await this.fastify.invoiceService.getInvoice(invoice.id);
+    const invoiceResponse = await this.fastify.invoiceService.getInvoice(
+      invoice.id,
+      invoice.livemode,
+    );
 
     return invoiceResponse.amountRemaining;
   }

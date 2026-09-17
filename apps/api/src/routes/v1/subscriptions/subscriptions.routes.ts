@@ -16,7 +16,10 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/',
     { schema: { body: createSubscriptionSchema, response: { 201: subscriptionSchema } } },
     async (request, reply) => {
-      const subscription = await fastify.subscriptionService.createSubscription(request.body);
+      const subscription = await fastify.subscriptionService.createSubscription(
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.created(reply, subscription);
     },
@@ -46,6 +49,7 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     async (request, reply) => {
       const subscription = await fastify.subscriptionService.getSubscription(
         request.params.subscriptionId,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, subscription);

@@ -1,3 +1,6 @@
+import type { Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
+
 export enum OutboxStatusEnum {
   PENDING = 'pending',
   PUBLISHING = 'publishing',
@@ -49,3 +52,31 @@ export enum DomainEventTypeEnum {
   REFUND_CREATED = 'refund.created',
 }
 export type DomainEventType = `${DomainEventTypeEnum}`;
+
+export const eventSchema = Type.Object({
+  object: Type.Literal('event'),
+  id: Type.String(),
+  livemode: Type.Boolean(),
+  type: Type.Unsafe<DomainEventType>(Type.Enum(DomainEventTypeEnum)),
+  apiVersion: Type.String(),
+  data: Type.Object({ object: Type.Unknown() }),
+  requestId: Type.Union([Type.String(), Type.Null()]),
+  createdAt: Type.String(),
+});
+
+export const eventParamsSchema = Type.Object({
+  eventId: Type.String(),
+});
+
+export const findEventsSchema = Type.Object(
+  {
+    type: Type.Optional(Type.Unsafe<DomainEventType>(Type.Enum(DomainEventTypeEnum))),
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
+    startingAfter: Type.Optional(Type.String()),
+    endingBefore: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
+export type EventResponse = Static<typeof eventSchema>;
+export type FindEventsQuery = Static<typeof findEventsSchema>;

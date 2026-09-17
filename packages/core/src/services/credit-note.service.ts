@@ -87,10 +87,10 @@ export class CreditNoteService {
     return CreditNoteService.buildCreditNote(createdCreditNote);
   }
 
-  async getCreditNote(id: string): Promise<CreditNoteResponse> {
+  async getCreditNote(id: string, livemode: boolean): Promise<CreditNoteResponse> {
     const creditNote = await this.fastify.creditNoteRepository.findCreditNote(id);
 
-    if (creditNote) {
+    if (creditNote && creditNote.livemode === livemode) {
       return CreditNoteService.buildCreditNote(creditNote);
     }
 

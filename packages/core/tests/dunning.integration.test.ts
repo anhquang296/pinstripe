@@ -210,7 +210,7 @@ describe('WebhookService.createWebhookEndpoint', () => {
       false,
     );
 
-    const fetched = await fastify.webhookService.getWebhookEndpoint(created.id);
+    const fetched = await fastify.webhookService.getWebhookEndpoint(created.id, false);
 
     expect(created.secret).toMatch(/^whsec_[0-9a-f]{48}$/);
     expect(fetched.secret).toBeNull();

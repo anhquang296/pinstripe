@@ -4,6 +4,7 @@ import { CreditNoteService } from '@services/credit-note.service';
 import { CustomerService } from '@services/customer.service';
 import { DunningService } from '@services/dunning.service';
 import { EntitlementService } from '@services/entitlement.service';
+import { EventService } from '@services/event.service';
 import { IdempotencyService } from '@services/idempotency.service';
 import { InvoiceService } from '@services/invoice.service';
 import { LedgerService } from '@services/ledger.service';
@@ -30,6 +31,7 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('outboxService', new OutboxService(fastify));
   fastify.decorate('apiKeyService', new ApiKeyService(fastify));
   fastify.decorate('customerService', new CustomerService(fastify));
+  fastify.decorate('eventService', new EventService(fastify));
   fastify.decorate('productService', new ProductService(fastify));
   fastify.decorate('priceService', new PriceService(fastify));
   fastify.decorate('ledgerService', new LedgerService(fastify));

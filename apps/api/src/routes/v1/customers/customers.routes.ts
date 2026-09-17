@@ -47,7 +47,10 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:customerId',
     { schema: { params: customerParamsSchema, response: { 200: customerSchema } } },
     async (request, reply) => {
-      const customer = await fastify.customerService.getCustomer(request.params.customerId);
+      const customer = await fastify.customerService.getCustomer(
+        request.params.customerId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, customer);
     },
@@ -66,6 +69,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const customer = await fastify.customerService.updateCustomer(
         request.params.customerId,
         request.body,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, customer);
@@ -81,7 +85,10 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const deleted = await fastify.customerService.deleteCustomer(request.params.customerId);
+      const deleted = await fastify.customerService.deleteCustomer(
+        request.params.customerId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, deleted);
     },

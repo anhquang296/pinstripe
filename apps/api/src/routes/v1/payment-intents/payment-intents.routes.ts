@@ -16,7 +16,10 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/',
     { schema: { body: createPaymentIntentSchema, response: { 201: paymentIntentSchema } } },
     async (request, reply) => {
-      const paymentIntent = await fastify.paymentService.createPaymentIntent(request.body);
+      const paymentIntent = await fastify.paymentService.createPaymentIntent(
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.created(reply, paymentIntent);
     },
@@ -46,6 +49,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     async (request, reply) => {
       const paymentIntent = await fastify.paymentService.getPaymentIntent(
         request.params.paymentIntentId,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentIntent);
@@ -65,6 +69,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const paymentIntent = await fastify.paymentService.confirmPaymentIntent(
         request.params.paymentIntentId,
         request.body,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentIntent);
@@ -84,6 +89,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const paymentIntent = await fastify.paymentService.cancelPaymentIntent(
         request.params.paymentIntentId,
         request.body,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentIntent);

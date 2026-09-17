@@ -54,6 +54,13 @@ export class OutboxService {
 
     for (const event of claimedEvents) {
       try {
+        await this.fastify.eventService.recordEvent({
+          id: event.id,
+          livemode: event.livemode,
+          type: event.eventType,
+          data: event.payload,
+          occurredAt: event.occurredAt,
+        });
         await this.dispatchDomainEvent(event);
         published.push(event.id);
       } catch (error) {

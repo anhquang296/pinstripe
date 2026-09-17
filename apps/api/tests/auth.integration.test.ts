@@ -230,6 +230,64 @@ describe('a key never sees the other mode', () => {
   });
 });
 
+describe('a key cannot reach the other mode by id', () => {
+  it('returns 404 when a test key reads a live object it knows the id of', async () => {
+    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
+    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
+
+    const created = await fastify.inject({
+      method: 'POST',
+      url: '/v1/products',
+      headers: buildAuthHeaders(liveKey.token),
+      payload: { name: `Live secret ${Date.now()}` },
+    });
+    const productId = created.json().id;
+
+    const byOwner = await fastify.inject({
+      method: 'GET',
+      url: `/v1/products/${productId}`,
+      headers: buildAuthHeaders(liveKey.token),
+    });
+    const byStranger = await fastify.inject({
+      method: 'GET',
+      url: `/v1/products/${productId}`,
+      headers: buildAuthHeaders(testKey.token),
+    });
+
+    expect(byOwner.statusCode).toBe(200);
+    expect(byStranger.statusCode).toBe(404);
+  });
+
+  it('refuses a test key writing to a live object', async () => {
+    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
+    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
+
+    const created = await fastify.inject({
+      method: 'POST',
+      url: '/v1/products',
+      headers: buildAuthHeaders(liveKey.token),
+      payload: { name: `Live target ${Date.now()}` },
+    });
+    const productId = created.json().id;
+
+    const updated = await fastify.inject({
+      method: 'POST',
+      url: `/v1/products/${productId}`,
+      headers: buildAuthHeaders(testKey.token),
+      payload: { name: 'hijacked' },
+    });
+    const pricedOnLiveProduct = await fastify.inject({
+      method: 'POST',
+      url: '/v1/prices',
+      headers: buildAuthHeaders(testKey.token),
+      payload: { productId, currency: 'vnd', unitAmount: 1000 },
+    });
+
+    expect(updated.statusCode).toBe(404);
+    expect(pricedOnLiveProduct.statusCode).toBe(404);
+  });
+});
+
 describe('key lifecycle', () => {
   it('stops accepting a key once it is revoked', async () => {
     const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);

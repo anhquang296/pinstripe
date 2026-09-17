@@ -94,22 +94,31 @@ async function makeSwapScenario(): Promise<SwapScenario> {
     },
     false,
   );
-  const oldPrice = await fastify.priceService.createPrice({
-    productId: product.id,
-    currency: CurrencyEnum.VND,
-    unitAmount: BASE_AMOUNT,
-    recurring: { interval: RecurringIntervalEnum.MONTH },
-  });
-  const newPrice = await fastify.priceService.createPrice({
-    productId: product.id,
-    currency: CurrencyEnum.VND,
-    unitAmount: BASE_AMOUNT * 2,
-    recurring: { interval: RecurringIntervalEnum.MONTH },
-  });
-  const subscription = await fastify.subscriptionService.createSubscription({
-    customerId: customer.id,
-    items: [{ priceId: oldPrice.id }],
-  });
+  const oldPrice = await fastify.priceService.createPrice(
+    {
+      productId: product.id,
+      currency: CurrencyEnum.VND,
+      unitAmount: BASE_AMOUNT,
+      recurring: { interval: RecurringIntervalEnum.MONTH },
+    },
+    false,
+  );
+  const newPrice = await fastify.priceService.createPrice(
+    {
+      productId: product.id,
+      currency: CurrencyEnum.VND,
+      unitAmount: BASE_AMOUNT * 2,
+      recurring: { interval: RecurringIntervalEnum.MONTH },
+    },
+    false,
+  );
+  const subscription = await fastify.subscriptionService.createSubscription(
+    {
+      customerId: customer.id,
+      items: [{ priceId: oldPrice.id }],
+    },
+    false,
+  );
 
   return {
     subscriptionId: subscription.id,

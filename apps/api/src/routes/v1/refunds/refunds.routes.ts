@@ -44,7 +44,10 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const refund = await fastify.refundService.getRefund(request.params.refundId);
+      const refund = await fastify.refundService.getRefund(
+        request.params.refundId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, refund);
     },

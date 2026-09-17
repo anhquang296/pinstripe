@@ -46,7 +46,10 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:productId',
     { schema: { params: productParamsSchema, response: { 200: productSchema } } },
     async (request, reply) => {
-      const product = await fastify.productService.getProduct(request.params.productId);
+      const product = await fastify.productService.getProduct(
+        request.params.productId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, product);
     },
@@ -65,6 +68,7 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const product = await fastify.productService.updateProduct(
         request.params.productId,
         request.body,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, product);

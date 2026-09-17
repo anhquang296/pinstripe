@@ -85,10 +85,14 @@ export class WebhookService {
     throw new NotFoundError(`No such webhook endpoint: ${id}`);
   }
 
-  async getWebhookEndpoint(id: string): Promise<WebhookEndpointResponse> {
+  async getWebhookEndpoint(id: string, livemode: boolean): Promise<WebhookEndpointResponse> {
     const endpoint = await this.getWebhookEndpointEntity(id);
 
-    return WebhookService.buildEndpoint(endpoint, { hasSecret: false });
+    if (endpoint.livemode === livemode) {
+      return WebhookService.buildEndpoint(endpoint, { hasSecret: false });
+    }
+
+    throw new NotFoundError(`No such webhook endpoint: ${id}`);
   }
 
   async findWebhookEndpoints(

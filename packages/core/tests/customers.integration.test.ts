@@ -30,8 +30,8 @@ describe('CustomerService.deleteCustomer', () => {
       false,
     );
 
-    await fastify.customerService.deleteCustomer(customer.id);
-    const act = fastify.customerService.getCustomer(customer.id);
+    await fastify.customerService.deleteCustomer(customer.id, false);
+    const act = fastify.customerService.getCustomer(customer.id, false);
 
     await expect(act).rejects.toThrowError(NotFoundError);
   });
@@ -79,7 +79,11 @@ describe('CustomerService.updateCustomer', () => {
       false,
     );
 
-    const updated = await fastify.customerService.updateCustomer(customer.id, { name: 'Renamed' });
+    const updated = await fastify.customerService.updateCustomer(
+      customer.id,
+      { name: 'Renamed' },
+      false,
+    );
 
     expect(updated.name).toBe('Renamed');
   });

@@ -114,10 +114,10 @@ export class LedgerService {
     return LedgerService.buildTransaction(postedTransaction, postings, accountCodesById);
   }
 
-  async getTransaction(id: string): Promise<LedgerTransactionResponse> {
+  async getTransaction(id: string, livemode: boolean): Promise<LedgerTransactionResponse> {
     const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
 
-    if (transaction) {
+    if (transaction && transaction.livemode === livemode) {
       const postings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([id]);
       const accountCodesById = await this.resolveAccountCodes(postings);
 
@@ -164,10 +164,10 @@ export class LedgerService {
     };
   }
 
-  async getAccount(id: string): Promise<LedgerAccountResponse> {
+  async getAccount(id: string, livemode: boolean): Promise<LedgerAccountResponse> {
     const account = await this.fastify.ledgerAccountRepository.findLedgerAccount(id);
 
-    if (account) {
+    if (account && account.livemode === livemode) {
       return LedgerService.buildAccount(account);
     }
 

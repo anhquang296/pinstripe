@@ -8,6 +8,7 @@ import {
   testClockSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -39,7 +40,10 @@ export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:testClockId',
     { schema: { params: testClockParamsSchema, response: { 200: testClockSchema } } },
     async (request, reply) => {
-      const clock = await fastify.testClockService.getTestClock(request.params.testClockId);
+      const clock = await fastify.testClockService.getTestClock(
+        request.params.testClockId,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, clock);
     },

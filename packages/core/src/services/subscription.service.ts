@@ -40,8 +40,11 @@ export interface SubscriptionInterval {
 export class SubscriptionService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createSubscription(payload: CreateSubscriptionPayload): Promise<SubscriptionResponse> {
-    const customer = await this.fastify.customerService.getCustomer(payload.customerId);
+  async createSubscription(
+    payload: CreateSubscriptionPayload,
+    livemode: boolean,
+  ): Promise<SubscriptionResponse> {
+    const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
     const prices = await this.resolvePrices(_.map(payload.items, 'priceId'));
     const now = await this.resolveNow(customer.testClockId);
 
@@ -111,8 +114,13 @@ export class SubscriptionService {
     return SubscriptionService.buildSubscription(createdSubscription, subscriptionItems);
   }
 
-  async getSubscription(id: string): Promise<SubscriptionResponse> {
+  async getSubscription(id: string, livemode: boolean): Promise<SubscriptionResponse> {
     const subscription = await this.getSubscriptionRow(id);
+
+    if (subscription.livemode !== livemode) {
+      throw new NotFoundError(`No such subscription: ${id}`);
+    }
+
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [id],
       deletedAtIsNull: true,
@@ -233,7 +241,7 @@ export class SubscriptionService {
       throw new NotFoundError(`No such subscription: ${id}`);
     });
 
-    return this.getSubscription(updatedSubscription.id);
+    return this.getSubscription(updatedSubscription.id, updatedSubscription.livemode);
   }
 
   async cancelSubscription(
@@ -265,7 +273,7 @@ export class SubscriptionService {
         throw new NotFoundError(`No such subscription: ${id}`);
       });
 
-      return this.getSubscription(marked.id);
+      return this.getSubscription(marked.id, marked.livemode);
     }
 
     SubscriptionService.assertTransition(subscription.status, SubscriptionStatusEnum.CANCELED);
@@ -292,7 +300,7 @@ export class SubscriptionService {
       throw new NotFoundError(`No such subscription: ${id}`);
     });
 
-    return this.getSubscription(canceled.id);
+    return this.getSubscription(canceled.id, canceled.livemode);
   }
 
   async advanceSubscriptions(testClockId: string, now: Date): Promise<number> {

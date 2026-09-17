@@ -48,6 +48,7 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
     async (request, reply) => {
       const endpoint = await fastify.webhookService.getWebhookEndpoint(
         request.params.webhookEndpointId,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, endpoint);

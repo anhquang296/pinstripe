@@ -37,10 +37,10 @@ export class TestClockService {
     throw new NotFoundError('Test clock could not be created');
   }
 
-  async getTestClock(id: string): Promise<TestClockResponse> {
+  async getTestClock(id: string, livemode: boolean): Promise<TestClockResponse> {
     const clock = await this.fastify.testClockRepository.findTestClock(id);
 
-    if (clock) {
+    if (clock && clock.livemode === livemode) {
       return TestClockService.buildTestClock(clock);
     }
 

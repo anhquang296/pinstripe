@@ -60,18 +60,22 @@ export class ProductService {
     return ProductService.buildProduct(createdProduct);
   }
 
-  async getProduct(id: string): Promise<ProductResponse> {
+  async getProduct(id: string, livemode: boolean): Promise<ProductResponse> {
     const product = await this.fastify.productRepository.findProduct(id);
 
-    if (product) {
+    if (product && product.livemode === livemode) {
       return ProductService.buildProduct(product);
     }
 
     throw new NotFoundError(`No such product: ${id}`);
   }
 
-  async updateProduct(id: string, payload: UpdateProductPayload): Promise<ProductResponse> {
-    await this.getProduct(id);
+  async updateProduct(
+    id: string,
+    payload: UpdateProductPayload,
+    livemode: boolean,
+  ): Promise<ProductResponse> {
+    await this.getProduct(id, livemode);
 
     const updatedProduct = await this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.updateProduct(

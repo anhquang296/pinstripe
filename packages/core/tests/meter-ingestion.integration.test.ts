@@ -68,17 +68,24 @@ describe('MeterEventService.ingestMeterEventBatch', () => {
     let duplicates = 0;
 
     for (const batch of _.chunk(events, BATCH_SIZE)) {
-      const batchResult = await fastify.meterEventService.ingestMeterEventBatch({ events: batch });
+      const batchResult = await fastify.meterEventService.ingestMeterEventBatch(
+        { events: batch },
+        false,
+      );
 
       accepted += batchResult.accepted;
       duplicates += batchResult.duplicates;
     }
 
-    const summary = await fastify.meterEventService.getMeterEventSummary(meter.id, {
-      customerId: customer.id,
-      windowStart: new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString(),
-      windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
-    });
+    const summary = await fastify.meterEventService.getMeterEventSummary(
+      meter.id,
+      {
+        customerId: customer.id,
+        windowStart: new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString(),
+        windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
+      },
+      false,
+    );
 
     expect(duplicates).toBe(expectedDuplicates);
     expect(accepted).toBe(TOTAL_EVENTS - expectedDuplicates);
