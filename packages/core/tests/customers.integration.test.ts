@@ -53,11 +53,11 @@ describe('CustomerService.findCustomers', () => {
       );
     }
 
-    const firstPage = await fastify.customerService.findCustomers({ limit: 2 });
-    const secondPage = await fastify.customerService.findCustomers({
-      limit: 2,
-      startingAfter: firstPage.data[1]?.id,
-    });
+    const firstPage = await fastify.customerService.findCustomers({ limit: 2 }, false);
+    const secondPage = await fastify.customerService.findCustomers(
+      { limit: 2, startingAfter: firstPage.data[1]?.id },
+      false,
+    );
 
     expect(firstPage.data).toHaveLength(2);
     expect(firstPage.hasMore).toBe(true);

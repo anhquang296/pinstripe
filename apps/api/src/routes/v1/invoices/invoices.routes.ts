@@ -11,6 +11,7 @@ import {
   voidInvoiceSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -49,7 +50,10 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const invoices = await fastify.invoiceService.findInvoices(request.query);
+      const invoices = await fastify.invoiceService.findInvoices(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, invoices);
     },

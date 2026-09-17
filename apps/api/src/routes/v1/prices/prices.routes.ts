@@ -8,6 +8,7 @@ import {
   updatePriceSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -26,7 +27,7 @@ export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { querystring: findPricesSchema, response: { 200: ListResponseSchema(priceSchema) } },
     },
     async (request, reply) => {
-      const prices = await fastify.priceService.findPrices(request.query);
+      const prices = await fastify.priceService.findPrices(request.query, readLivemode(request));
 
       return ApiResponse.success(reply, prices);
     },

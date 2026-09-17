@@ -23,7 +23,10 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const accounts = await fastify.ledgerService.findAccounts(request.query);
+      const accounts = await fastify.ledgerService.findAccounts(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, accounts);
     },
@@ -48,7 +51,10 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const transactions = await fastify.ledgerService.findTransactions(request.query);
+      const transactions = await fastify.ledgerService.findTransactions(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, transactions);
     },

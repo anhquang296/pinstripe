@@ -12,6 +12,7 @@ export interface InvoiceCreditedAmount {
 }
 
 export interface CreditNoteFilters {
+  livemode?: boolean;
   invoiceId?: string;
   customerId?: string;
   beforeAt?: RowCursor;
@@ -40,6 +41,7 @@ export class CreditNoteRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<CreditNote[]> {
     const where = and(
+      filters.livemode === undefined ? undefined : eq(creditNotes.livemode, filters.livemode),
       filters.invoiceId ? eq(creditNotes.invoiceId, filters.invoiceId) : undefined,
       filters.customerId ? eq(creditNotes.customerId, filters.customerId) : undefined,
       filters.beforeAt

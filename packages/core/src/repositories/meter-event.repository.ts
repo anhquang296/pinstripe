@@ -9,6 +9,7 @@ import { and, desc, eq, gt, gte, lt, lte, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface MeterEventFilters {
+  livemode?: boolean;
   meterId?: string;
   customerId?: string;
   timestampFrom?: Date;
@@ -86,6 +87,7 @@ export class MeterEventRepository {
 
   private static buildWhere(filters: MeterEventFilters) {
     return and(
+      filters.livemode === undefined ? undefined : eq(meterEvents.livemode, filters.livemode),
       filters.meterId ? eq(meterEvents.meterId, filters.meterId) : undefined,
       filters.customerId ? eq(meterEvents.customerId, filters.customerId) : undefined,
       filters.timestampFrom ? gte(meterEvents.timestamp, filters.timestampFrom) : undefined,

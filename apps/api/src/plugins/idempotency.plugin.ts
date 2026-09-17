@@ -1,3 +1,4 @@
+import { readLivemode } from '@utils/request-auth';
 import fp from 'fastify-plugin';
 
 declare module 'fastify' {
@@ -8,7 +9,8 @@ declare module 'fastify' {
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const IDEMPOTENCY_HEADER = 'idempotency-key';
-const DEFAULT_SCOPE = 'default';
+const LIVE_SCOPE = 'live';
+const TEST_SCOPE = 'test';
 
 export const idempotencyPlugin = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request, reply) => {
@@ -19,7 +21,7 @@ export const idempotencyPlugin = fp(async (fastify) => {
     }
 
     const ticket = await fastify.idempotencyService.beginRequest({
-      scope: DEFAULT_SCOPE,
+      scope: readLivemode(request) ? LIVE_SCOPE : TEST_SCOPE,
       key,
       route: request.routeOptions.url ?? request.url,
       params: request.params,

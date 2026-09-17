@@ -6,6 +6,7 @@ import {
   revenueSummarySchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const reportingRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -17,7 +18,10 @@ export const reportingRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const summary = await fastify.reportingService.aggregateRevenueSummary(request.query);
+      const summary = await fastify.reportingService.aggregateRevenueSummary(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, summary);
     },
@@ -34,6 +38,7 @@ export const reportingRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     async (request, reply) => {
       const report = await fastify.reconciliationService.aggregateReconciliationReport(
         request.query,
+        readLivemode(request),
       );
 
       return ApiResponse.success(reply, report);

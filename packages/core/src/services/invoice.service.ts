@@ -358,12 +358,16 @@ export class InvoiceService {
     return this.buildInvoice(invoice);
   }
 
-  async findInvoices(query: FindInvoicesQuery): Promise<ListResponse<InvoiceResponse>> {
+  async findInvoices(
+    query: FindInvoicesQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<InvoiceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.invoiceRepository.findInvoices(
       {
+        livemode,
         customerId: query.customerId,
         subscriptionId: query.subscriptionId,
         status: query.status,

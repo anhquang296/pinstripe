@@ -30,7 +30,7 @@ PostgreSQL + BullMQ + Drizzle.
 | Phase | Nội dung                                                                      | Công sức | Nhóm             |
 | ----- | ----------------------------------------------------------------------------- | -------- | ---------------- |
 | 10    | Lưới test + sửa lỗi mất tiền / trùng tiền                                     | L        | Nền              |
-| 11    | API key trong DB + scopes + `livemode`                                        | M        | Nền — bẫy #4     |
+| 11    | API key trong DB + scopes + `livemode`                                        | L        | Nền — bẫy #4     |
 | 12    | Vỏ platform: `events`, `expand[]`, versioning, rate limit, webhook DLQ        | L        | Nền              |
 | 13    | Mô hình tổng hoá đơn + `InvoiceItem` + hoá đơn rời + tách bút toán            | XL       | Nền — bẫy #1     |
 | 14    | Giảm giá: Coupon, PromotionCode, Discount                                     | M        | Bề mặt           |
@@ -147,7 +147,8 @@ restricted key kiểm scope theo route hay theo resource — chọn theo route, 
 **Xong khi.** Một key `livemode = false` không nhìn thấy một object thật nào ở mọi route list/get, có
 route test chứng minh; và hai chế độ cùng giữ được `INV-000001`.
 
-**Công sức: M.**
+**Công sức: L.** Ước lượng ban đầu là M và nó sai: cột chạm 21 bảng, 24 điểm ghi, 14 filter, 15 list
+method và 15 route handler, cộng aggregate của reporting và reconciliation.
 
 ---
 

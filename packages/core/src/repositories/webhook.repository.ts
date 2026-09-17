@@ -20,6 +20,7 @@ export interface WebhookEndpointFilters {
 }
 
 export interface WebhookDeliveryFilters {
+  livemode?: boolean;
   endpointId?: string;
   status?: WebhookDeliveryStatus;
   beforeAt?: RowCursor;
@@ -100,6 +101,7 @@ export class WebhookRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<WebhookDelivery[]> {
     const where = and(
+      filters.livemode === undefined ? undefined : eq(webhookDeliveries.livemode, filters.livemode),
       filters.endpointId ? eq(webhookDeliveries.endpointId, filters.endpointId) : undefined,
       filters.status ? eq(webhookDeliveries.status, filters.status) : undefined,
       filters.beforeAt

@@ -34,7 +34,10 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const customers = await fastify.customerService.findCustomers(request.query);
+      const customers = await fastify.customerService.findCustomers(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, customers);
     },

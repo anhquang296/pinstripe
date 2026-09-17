@@ -33,7 +33,10 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
       },
     },
     async (request, reply) => {
-      const endpoints = await fastify.webhookService.findWebhookEndpoints(request.query);
+      const endpoints = await fastify.webhookService.findWebhookEndpoints(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, endpoints);
     },

@@ -83,9 +83,10 @@ describe('SubscriptionService.createSubscription', () => {
     });
 
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
-    const entitlements = await fastify.entitlementService.findEntitlements({
-      customerId: customer.id,
-    });
+    const entitlements = await fastify.entitlementService.findEntitlements(
+      { customerId: customer.id },
+      false,
+    );
 
     expect(entitlements.data).toHaveLength(1);
     expect(entitlements.data[0]?.status).toBe(EntitlementStatusEnum.ACTIVE);
@@ -167,9 +168,10 @@ describe('SubscriptionService.cancelSubscription', () => {
       cancelAtPeriodEnd: true,
     });
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
-    const entitlements = await fastify.entitlementService.findEntitlements({
-      customerId: customer.id,
-    });
+    const entitlements = await fastify.entitlementService.findEntitlements(
+      { customerId: customer.id },
+      false,
+    );
 
     expect(canceling.status).toBe(SubscriptionStatusEnum.ACTIVE);
     expect(canceling.cancelAtPeriodEnd).toBe(true);
@@ -181,7 +183,10 @@ describe('SubscriptionService.cancelSubscription', () => {
     });
     const ended = await fastify.subscriptionService.getSubscription(subscription.id);
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
-    const afterEnd = await fastify.entitlementService.findEntitlements({ customerId: customer.id });
+    const afterEnd = await fastify.entitlementService.findEntitlements(
+      { customerId: customer.id },
+      false,
+    );
 
     expect(ended.status).toBe(SubscriptionStatusEnum.CANCELED);
     expect(ended.endedAt).toBe('2026-02-01T00:00:00.000Z');
@@ -198,9 +203,10 @@ describe('SubscriptionService.cancelSubscription', () => {
 
     await fastify.subscriptionService.cancelSubscription(subscription.id, {});
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
-    const entitlements = await fastify.entitlementService.findEntitlements({
-      customerId: customer.id,
-    });
+    const entitlements = await fastify.entitlementService.findEntitlements(
+      { customerId: customer.id },
+      false,
+    );
 
     expect(entitlements.data[0]?.status).toBe(EntitlementStatusEnum.REVOKED);
   });
@@ -307,9 +313,10 @@ describe('SubscriptionService.updateSubscription proration', () => {
 
     await expect(act).rejects.toThrowError(BadRequestError);
 
-    const { data: invoices } = await fastify.invoiceService.findInvoices({
-      subscriptionId: subscription.id,
-    });
+    const { data: invoices } = await fastify.invoiceService.findInvoices(
+      { subscriptionId: subscription.id },
+      false,
+    );
 
     expect(invoices).toEqual([]);
   });

@@ -8,6 +8,7 @@ import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface InvoiceFilters {
+  livemode?: boolean;
   customerId?: string;
   subscriptionId?: string;
   status?: InvoiceStatus;
@@ -110,6 +111,7 @@ export class InvoiceRepository {
 
   private static buildWhere(filters: InvoiceFilters) {
     return and(
+      filters.livemode === undefined ? undefined : eq(invoices.livemode, filters.livemode),
       filters.customerId ? eq(invoices.customerId, filters.customerId) : undefined,
       filters.subscriptionId ? eq(invoices.subscriptionId, filters.subscriptionId) : undefined,
       filters.status ? eq(invoices.status, filters.status) : undefined,

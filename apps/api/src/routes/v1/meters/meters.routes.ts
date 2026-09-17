@@ -29,7 +29,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { querystring: findMetersSchema, response: { 200: ListResponseSchema(meterSchema) } },
     },
     async (request, reply) => {
-      const meters = await fastify.meterService.findMeters(request.query);
+      const meters = await fastify.meterService.findMeters(request.query, readLivemode(request));
 
       return ApiResponse.success(reply, meters);
     },

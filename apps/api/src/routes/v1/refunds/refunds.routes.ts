@@ -7,6 +7,7 @@ import {
 } from '@pinstripe/core/contracts';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -28,7 +29,7 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const refunds = await fastify.refundService.findRefunds(request.query);
+      const refunds = await fastify.refundService.findRefunds(request.query, readLivemode(request));
 
       return ApiResponse.success(reply, refunds);
     },

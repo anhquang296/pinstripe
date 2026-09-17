@@ -34,6 +34,7 @@ export interface SubscriptionItemFilters {
 }
 
 export interface SubscriptionFilters {
+  livemode?: boolean;
   customerId?: string;
   status?: SubscriptionStatus;
   statusNe?: SubscriptionStatus;
@@ -68,6 +69,7 @@ export class SubscriptionRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<Subscription[]> {
     const where = and(
+      filters.livemode === undefined ? undefined : eq(subscriptions.livemode, filters.livemode),
       filters.customerId ? eq(subscriptions.customerId, filters.customerId) : undefined,
       filters.status ? eq(subscriptions.status, filters.status) : undefined,
       filters.statusNe ? ne(subscriptions.status, filters.statusNe) : undefined,

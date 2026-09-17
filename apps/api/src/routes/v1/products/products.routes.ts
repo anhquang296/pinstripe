@@ -33,7 +33,10 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const products = await fastify.productService.findProducts(request.query);
+      const products = await fastify.productService.findProducts(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, products);
     },

@@ -95,10 +95,13 @@ export class EntitlementService {
     return status;
   }
 
-  async findEntitlements(query: FindEntitlementsQuery): Promise<ListResponse<EntitlementResponse>> {
+  async findEntitlements(
+    query: FindEntitlementsQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<EntitlementResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const entitlementRows = await this.fastify.entitlementRepository.findEntitlements(
-      { customerId: query.customerId, productId: query.productId },
+      { livemode, customerId: query.customerId, productId: query.productId },
       limit + 1,
     );
     const hasMore = entitlementRows.length > limit;

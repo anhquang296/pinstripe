@@ -13,6 +13,7 @@ import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface PaymentIntentFilters {
+  livemode?: boolean;
   invoiceId?: string;
   customerId?: string;
   status?: PaymentIntentStatus;
@@ -43,6 +44,7 @@ export class PaymentIntentRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<PaymentIntent[]> {
     const where = and(
+      filters.livemode === undefined ? undefined : eq(paymentIntents.livemode, filters.livemode),
       filters.invoiceId ? eq(paymentIntents.invoiceId, filters.invoiceId) : undefined,
       filters.customerId ? eq(paymentIntents.customerId, filters.customerId) : undefined,
       filters.status ? eq(paymentIntents.status, filters.status) : undefined,

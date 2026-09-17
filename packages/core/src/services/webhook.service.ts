@@ -93,12 +93,13 @@ export class WebhookService {
 
   async findWebhookEndpoints(
     query: FindWebhookEndpointsQuery,
+    livemode: boolean,
   ): Promise<ListResponse<WebhookEndpointResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveEndpointCursor(query.startingAfter);
     const afterAt = await this.resolveEndpointCursor(query.endingBefore);
     const rows = await this.fastify.webhookRepository.findWebhookEndpoints(
-      { status: query.status, beforeAt, afterAt },
+      { livemode, status: query.status, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -114,10 +115,11 @@ export class WebhookService {
 
   async findWebhookDeliveries(
     query: FindWebhookDeliveriesQuery,
+    livemode: boolean,
   ): Promise<ListResponse<WebhookDeliveryResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.webhookRepository.findWebhookDeliveries(
-      { endpointId: query.endpointId, status: query.status },
+      { livemode, endpointId: query.endpointId, status: query.status },
       limit + 1,
     );
 

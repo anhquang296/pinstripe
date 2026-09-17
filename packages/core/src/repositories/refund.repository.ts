@@ -7,6 +7,7 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface RefundFilters {
+  livemode?: boolean;
   invoiceId?: string;
   paymentIntentId?: string;
   beforeAt?: RowCursor;
@@ -37,6 +38,7 @@ export class RefundRepository {
 
   async findRefunds(filters: RefundFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Refund[]> {
     const where = and(
+      filters.livemode === undefined ? undefined : eq(refunds.livemode, filters.livemode),
       filters.invoiceId ? eq(refunds.invoiceId, filters.invoiceId) : undefined,
       filters.paymentIntentId ? eq(refunds.paymentIntentId, filters.paymentIntentId) : undefined,
       filters.beforeAt

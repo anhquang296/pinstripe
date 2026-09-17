@@ -7,6 +7,7 @@ import {
 } from '@pinstripe/core/contracts';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -28,7 +29,10 @@ export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const creditNotes = await fastify.creditNoteService.findCreditNotes(request.query);
+      const creditNotes = await fastify.creditNoteService.findCreditNotes(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, creditNotes);
     },

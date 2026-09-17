@@ -97,12 +97,21 @@ export class RefundService {
     throw new NotFoundError(`No such refund: ${id}`);
   }
 
-  async findRefunds(query: FindRefundsQuery): Promise<ListResponse<RefundResponse>> {
+  async findRefunds(
+    query: FindRefundsQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<RefundResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.refundRepository.findRefunds(
-      { invoiceId: query.invoiceId, paymentIntentId: query.paymentIntentId, beforeAt, afterAt },
+      {
+        livemode,
+        invoiceId: query.invoiceId,
+        paymentIntentId: query.paymentIntentId,
+        beforeAt,
+        afterAt,
+      },
       limit + 1,
     );
 

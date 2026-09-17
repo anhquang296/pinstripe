@@ -9,6 +9,7 @@ import {
   updateSubscriptionSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -30,7 +31,10 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const subscriptions = await fastify.subscriptionService.findSubscriptions(request.query);
+      const subscriptions = await fastify.subscriptionService.findSubscriptions(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, subscriptions);
     },

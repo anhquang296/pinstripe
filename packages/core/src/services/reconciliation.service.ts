@@ -25,11 +25,16 @@ export class ReconciliationService {
 
   async aggregateReconciliationReport(
     query: AggregateReconciliationReportQuery,
+    livemode: boolean,
   ): Promise<ReconciliationReportResponse> {
     const windowStart = new Date(query.windowStart);
     const windowEnd = new Date(query.windowEnd);
     const processorMovements = await this.resolveProcessorMovements(windowStart, windowEnd);
-    const ledgerAmountByExternalId = await this.resolveLedgerMovements(windowStart, windowEnd);
+    const ledgerAmountByExternalId = await this.resolveLedgerMovements(
+      windowStart,
+      windowEnd,
+      livemode,
+    );
     const exceptions: ReconciliationException[] = [];
 
     let matched = 0;
@@ -141,10 +146,12 @@ export class ReconciliationService {
   private async resolveLedgerMovements(
     windowStart: Date,
     windowEnd: Date,
+    livemode: boolean,
   ): Promise<Record<string, number>> {
     const movements = await this.fastify.reportingRepository.findCashMovements(
       windowStart,
       windowEnd,
+      livemode,
     );
 
     return _(movements)

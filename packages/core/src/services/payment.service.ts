@@ -191,12 +191,14 @@ export class PaymentService {
 
   async findPaymentIntents(
     query: FindPaymentIntentsQuery,
+    livemode: boolean,
   ): Promise<ListResponse<PaymentIntentResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.paymentIntentRepository.findPaymentIntents(
       {
+        livemode,
         invoiceId: query.invoiceId,
         customerId: query.customerId,
         status: query.status,

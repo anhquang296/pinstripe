@@ -154,12 +154,15 @@ export class CustomerService {
     return { object: 'customer', id, deleted: true };
   }
 
-  async findCustomers(query: FindCustomersQuery): Promise<ListResponse<CustomerResponse>> {
+  async findCustomers(
+    query: FindCustomersQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<CustomerResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.customerRepository.findCustomers(
-      { email: query.email, beforeAt, afterAt },
+      { livemode, email: query.email, beforeAt, afterAt },
       limit + 1,
     );
     const hasMore = rows.length > limit;

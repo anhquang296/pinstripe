@@ -97,12 +97,15 @@ export class CreditNoteService {
     throw new NotFoundError(`No such credit note: ${id}`);
   }
 
-  async findCreditNotes(query: FindCreditNotesQuery): Promise<ListResponse<CreditNoteResponse>> {
+  async findCreditNotes(
+    query: FindCreditNotesQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<CreditNoteResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.creditNoteRepository.findCreditNotes(
-      { invoiceId: query.invoiceId, customerId: query.customerId, beforeAt, afterAt },
+      { livemode, invoiceId: query.invoiceId, customerId: query.customerId, beforeAt, afterAt },
       limit + 1,
     );
 

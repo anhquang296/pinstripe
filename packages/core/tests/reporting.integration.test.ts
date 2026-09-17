@@ -61,11 +61,11 @@ async function makeActiveSubscription(
 
 describe('ReportingService.aggregateRevenueSummary', () => {
   it('counts a new monthly subscription into MRR and carries it into ARR', async () => {
-    const before = await fastify.reportingService.aggregateRevenueSummary({});
+    const before = await fastify.reportingService.aggregateRevenueSummary({}, false);
 
     await makeActiveSubscription(MONTHLY_AMOUNT);
 
-    const after = await fastify.reportingService.aggregateRevenueSummary({});
+    const after = await fastify.reportingService.aggregateRevenueSummary({}, false);
 
     expect(after.mrr - before.mrr).toBe(MONTHLY_AMOUNT);
     expect(after.arr).toBe(after.mrr * MONTHS_PER_YEAR);
@@ -74,29 +74,35 @@ describe('ReportingService.aggregateRevenueSummary', () => {
 
   it('normalises a yearly subscription down to a twelfth a month', async () => {
     const yearlyAmount = MONTHLY_AMOUNT * MONTHS_PER_YEAR;
-    const before = await fastify.reportingService.aggregateRevenueSummary({});
+    const before = await fastify.reportingService.aggregateRevenueSummary({}, false);
 
     await makeActiveSubscription(yearlyAmount, RecurringIntervalEnum.YEAR);
 
-    const after = await fastify.reportingService.aggregateRevenueSummary({});
+    const after = await fastify.reportingService.aggregateRevenueSummary({}, false);
 
     expect(after.mrr - before.mrr).toBe(MONTHLY_AMOUNT);
   });
 
   it('reports a churn rate between zero and one', async () => {
-    const summary = await fastify.reportingService.aggregateRevenueSummary({});
+    const summary = await fastify.reportingService.aggregateRevenueSummary({}, false);
 
     expect(summary.churnRate).toBeGreaterThanOrEqual(0);
     expect(summary.churnRate).toBeLessThanOrEqual(1);
   });
 
   it('keeps every currency to its own books', async () => {
-    const vnd = await fastify.reportingService.aggregateRevenueSummary({
-      currency: CurrencyEnum.VND,
-    });
-    const usd = await fastify.reportingService.aggregateRevenueSummary({
-      currency: CurrencyEnum.USD,
-    });
+    const vnd = await fastify.reportingService.aggregateRevenueSummary(
+      {
+        currency: CurrencyEnum.VND,
+      },
+      false,
+    );
+    const usd = await fastify.reportingService.aggregateRevenueSummary(
+      {
+        currency: CurrencyEnum.USD,
+      },
+      false,
+    );
 
     expect(vnd.currency).toBe(CurrencyEnum.VND);
     expect(usd.currency).toBe(CurrencyEnum.USD);
@@ -107,10 +113,13 @@ describe('ReportingService.aggregateRevenueSummary', () => {
     const windowEnd = new Date();
     const windowStart = new Date(windowEnd.getTime() - MILLISECONDS_PER_DAY);
 
-    const summary = await fastify.reportingService.aggregateRevenueSummary({
-      windowStart: windowStart.toISOString(),
-      windowEnd: windowEnd.toISOString(),
-    });
+    const summary = await fastify.reportingService.aggregateRevenueSummary(
+      {
+        windowStart: windowStart.toISOString(),
+        windowEnd: windowEnd.toISOString(),
+      },
+      false,
+    );
 
     expect(summary.windowStart).toBe(windowStart.toISOString());
     expect(summary.windowEnd).toBe(windowEnd.toISOString());
@@ -130,10 +139,13 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
 
-    const report = await fastify.reconciliationService.aggregateReconciliationReport({
-      windowStart: windowStart.toISOString(),
-      windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
-    });
+    const report = await fastify.reconciliationService.aggregateReconciliationReport(
+      {
+        windowStart: windowStart.toISOString(),
+        windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
+      },
+      false,
+    );
     const reference = `invoice_payment:${open.id}:${paymentIntent.amount}`;
     const exception = _.find(report.exceptions, { reference });
 
@@ -155,10 +167,13 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       reason: 'Đối soát',
     });
 
-    const report = await fastify.reconciliationService.aggregateReconciliationReport({
-      windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
-      windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
-    });
+    const report = await fastify.reconciliationService.aggregateReconciliationReport(
+      {
+        windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
+        windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
+      },
+      false,
+    );
     const exception = _.find(report.exceptions, { reference: `refund:${refund.id}` });
 
     expect(exception).toBeUndefined();
@@ -175,10 +190,13 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
 
-    const report = await fastify.reconciliationService.aggregateReconciliationReport({
-      windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
-      windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
-    });
+    const report = await fastify.reconciliationService.aggregateReconciliationReport(
+      {
+        windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
+        windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
+      },
+      false,
+    );
     const exception = _.find(report.exceptions, {
       reference: `payment_intent:${paymentIntent.id}`,
     });
@@ -214,10 +232,13 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       false,
     );
 
-    const report = await fastify.reconciliationService.aggregateReconciliationReport({
-      windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
-      windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
-    });
+    const report = await fastify.reconciliationService.aggregateReconciliationReport(
+      {
+        windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
+        windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
+      },
+      false,
+    );
     const exception = _.find(report.exceptions, { reference: strayReference });
 
     expect(exception?.outcome).toBe(ReconciliationOutcomeEnum.MISSING_IN_PROCESSOR);
@@ -226,10 +247,13 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
   });
 
   it('reports the difference between the two sides, not just a list', async () => {
-    const report = await fastify.reconciliationService.aggregateReconciliationReport({
-      windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
-      windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
-    });
+    const report = await fastify.reconciliationService.aggregateReconciliationReport(
+      {
+        windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
+        windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
+      },
+      false,
+    );
 
     expect(report.difference).toBe(report.processorTotal - report.ledgerTotal);
   });

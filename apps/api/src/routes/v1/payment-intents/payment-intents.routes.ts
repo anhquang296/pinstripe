@@ -9,6 +9,7 @@ import {
   paymentIntentSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -30,7 +31,10 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       },
     },
     async (request, reply) => {
-      const paymentIntents = await fastify.paymentService.findPaymentIntents(request.query);
+      const paymentIntents = await fastify.paymentService.findPaymentIntents(
+        request.query,
+        readLivemode(request),
+      );
 
       return ApiResponse.success(reply, paymentIntents);
     },

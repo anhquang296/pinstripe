@@ -55,7 +55,7 @@ async function readSubscriptionRow(subscriptionId: string) {
 }
 
 async function readProrationInvoice(subscriptionId: string) {
-  const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId });
+  const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId }, false);
   const prorationInvoice = _.find(invoices, {
     billingReason: BillingReasonEnum.SUBSCRIPTION_UPDATE,
   });
@@ -475,7 +475,7 @@ describe('InvoiceService.issueProrationInvoice', () => {
       prorationBehavior: ProrationBehaviorEnum.ALWAYS_INVOICE,
     });
 
-    const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId });
+    const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId }, false);
     const prorationInvoice = _.find(invoices, {
       billingReason: BillingReasonEnum.SUBSCRIPTION_UPDATE,
     });
@@ -509,7 +509,7 @@ describe('InvoiceService.issueProrationInvoice', () => {
       prorationBehavior: ProrationBehaviorEnum.NONE,
     });
 
-    const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId });
+    const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId }, false);
 
     expect(invoices).toEqual([]);
   });

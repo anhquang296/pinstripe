@@ -123,10 +123,12 @@ export class SubscriptionService {
 
   async findSubscriptions(
     query: FindSubscriptionsQuery,
+    livemode: boolean,
   ): Promise<ListResponse<SubscriptionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.subscriptionRepository.findSubscriptions(
       {
+        livemode,
         customerId: query.customerId,
         status: query.status,
         beforeAt: await this.resolveCursor(query.startingAfter),

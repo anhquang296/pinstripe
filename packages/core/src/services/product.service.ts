@@ -103,12 +103,15 @@ export class ProductService {
     return ProductService.buildProduct(updatedProduct);
   }
 
-  async findProducts(query: FindProductsQuery): Promise<ListResponse<ProductResponse>> {
+  async findProducts(
+    query: FindProductsQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<ProductResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.productRepository.findProducts(
-      { active: query.active, beforeAt, afterAt },
+      { livemode, active: query.active, beforeAt, afterAt },
       limit + 1,
     );
     const hasMore = rows.length > limit;

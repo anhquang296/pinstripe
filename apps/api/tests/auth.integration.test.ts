@@ -1,5 +1,6 @@
 import { ApiKeyScopeEnum } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
@@ -165,6 +166,67 @@ describe('livemode flows from the key onto what it creates', () => {
     });
 
     expect(response.statusCode).toBeGreaterThanOrEqual(400);
+  });
+});
+
+describe('a key never sees the other mode', () => {
+  it('keeps live and test products in separate lists', async () => {
+    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
+    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
+    const liveHeaders = buildAuthHeaders(liveKey.token);
+    const testHeaders = buildAuthHeaders(testKey.token);
+
+    const liveProduct = await fastify.inject({
+      method: 'POST',
+      url: '/v1/products',
+      headers: liveHeaders,
+      payload: { name: `Live ${Date.now()}` },
+    });
+    const testProduct = await fastify.inject({
+      method: 'POST',
+      url: '/v1/products',
+      headers: testHeaders,
+      payload: { name: `Test ${Date.now()}` },
+    });
+
+    const liveList = await fastify.inject({
+      method: 'GET',
+      url: '/v1/products?limit=100',
+      headers: liveHeaders,
+    });
+    const testList = await fastify.inject({
+      method: 'GET',
+      url: '/v1/products?limit=100',
+      headers: testHeaders,
+    });
+
+    const liveIds = _.map(liveList.json().data, 'id');
+    const testIds = _.map(testList.json().data, 'id');
+
+    expect(liveIds).toContain(liveProduct.json().id);
+    expect(liveIds).not.toContain(testProduct.json().id);
+    expect(testIds).toContain(testProduct.json().id);
+    expect(testIds).not.toContain(liveProduct.json().id);
+  });
+
+  it('reports every listed row as belonging to the calling key mode', async () => {
+    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
+
+    await fastify.inject({
+      method: 'POST',
+      url: '/v1/products',
+      headers: buildAuthHeaders(testKey.token),
+      payload: { name: `Test only ${Date.now()}` },
+    });
+
+    const listed = await fastify.inject({
+      method: 'GET',
+      url: '/v1/products?limit=100',
+      headers: buildAuthHeaders(testKey.token),
+    });
+    const modes = _.uniq(_.map(listed.json().data, 'livemode'));
+
+    expect(modes).toEqual([false]);
   });
 });
 

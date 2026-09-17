@@ -192,12 +192,16 @@ export class PriceService {
     );
   }
 
-  async findPrices(query: FindPricesQuery): Promise<ListResponse<PriceResponse>> {
+  async findPrices(
+    query: FindPricesQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<PriceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.priceRepository.findPrices(
       {
+        livemode,
         productId: query.productId,
         lookupKey: query.lookupKey,
         active: query.active,

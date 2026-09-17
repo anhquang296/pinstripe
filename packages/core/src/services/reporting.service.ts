@@ -17,6 +17,7 @@ export class ReportingService {
 
   async aggregateRevenueSummary(
     query: AggregateRevenueSummaryQuery,
+    livemode: boolean,
   ): Promise<RevenueSummaryResponse> {
     const currency = query.currency ?? CurrencyEnum.VND;
     const now = this.fastify.clock.now();
@@ -25,7 +26,10 @@ export class ReportingService {
       ? new Date(query.windowStart)
       : new Date(windowEnd.getTime() - DEFAULT_WINDOW_DAYS * MILLISECONDS_PER_DAY);
 
-    const commitments = await this.fastify.reportingRepository.findRecurringCommitments(currency);
+    const commitments = await this.fastify.reportingRepository.findRecurringCommitments(
+      currency,
+      livemode,
+    );
     const mrr = _.sumBy(commitments, (commitment) => {
       return buildMonthlyAmount(
         commitment.unitAmount * commitment.quantity,
@@ -34,26 +38,30 @@ export class ReportingService {
       );
     });
 
-    const counts = await this.fastify.reportingRepository.countSubscriptions(currency);
+    const counts = await this.fastify.reportingRepository.countSubscriptions(currency, livemode);
     const canceledInWindow = await this.fastify.reportingRepository.countCanceledSubscriptions(
       currency,
       windowStart,
       windowEnd,
+      livemode,
     );
     const invoiceTotals = await this.fastify.reportingRepository.aggregateInvoiceTotals(
       currency,
       windowStart,
       windowEnd,
+      livemode,
     );
     const refundedInWindow = await this.fastify.reportingRepository.aggregateRefundTotal(
       currency,
       windowStart,
       windowEnd,
+      livemode,
     );
     const collectedInWindow = await this.fastify.reportingRepository.aggregateCashMovement(
       currency,
       windowStart,
       windowEnd,
+      livemode,
     );
 
     return {

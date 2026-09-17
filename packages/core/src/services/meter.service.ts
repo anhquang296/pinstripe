@@ -64,10 +64,14 @@ export class MeterService {
     throw new NotFoundError(`No such meter: ${id}`);
   }
 
-  async findMeters(query: FindMetersQuery): Promise<ListResponse<MeterResponse>> {
+  async findMeters(
+    query: FindMetersQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<MeterResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const meterRows = await this.fastify.meterRepository.findMeters(
       {
+        livemode,
         status: query.status,
         beforeAt: await this.resolveCursor(query.startingAfter),
         afterAt: await this.resolveCursor(query.endingBefore),

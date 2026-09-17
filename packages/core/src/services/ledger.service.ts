@@ -129,11 +129,13 @@ export class LedgerService {
 
   async findTransactions(
     query: FindLedgerTransactionsQuery,
+    livemode: boolean,
   ): Promise<ListResponse<LedgerTransactionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountId = await this.resolveAccountFilter(query);
     const transactionRows = await this.fastify.ledgerTransactionRepository.findLedgerTransactions(
       {
+        livemode,
         accountId,
         beforeAt: await this.resolveCursor(query.startingAfter),
         afterAt: await this.resolveCursor(query.endingBefore),
@@ -172,10 +174,13 @@ export class LedgerService {
     throw new NotFoundError(`No such ledger account: ${id}`);
   }
 
-  async findAccounts(query: FindLedgerAccountsQuery): Promise<ListResponse<LedgerAccountResponse>> {
+  async findAccounts(
+    query: FindLedgerAccountsQuery,
+    livemode: boolean,
+  ): Promise<ListResponse<LedgerAccountResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountRows = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
-      { code: query.code, customerId: query.customerId },
+      { livemode, code: query.code, customerId: query.customerId },
       limit + 1,
     );
     const hasMore = accountRows.length > limit;
