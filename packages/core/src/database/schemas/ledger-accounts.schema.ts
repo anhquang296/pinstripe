@@ -5,12 +5,22 @@ import type {
 } from '@contracts/ledger.types';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { bigint, index, pgTable, pgView, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  bigint,
+  boolean,
+  index,
+  pgTable,
+  pgView,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 export const ledgerAccounts = pgTable(
   'ledger_accounts',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     code: text('code').$type<LedgerAccountCode>().notNull(),
     type: text('type').$type<LedgerAccountType>().notNull(),
     normalBalance: text('normal_balance').$type<PostingDirection>().notNull(),
@@ -21,10 +31,10 @@ export const ledgerAccounts = pgTable(
   (table) => {
     return [
       uniqueIndex('ledger_accounts_code_currency_customer_id_idx')
-        .on(table.code, table.currency, table.customerId)
+        .on(table.livemode, table.code, table.currency, table.customerId)
         .where(sql`customer_id is not null`),
       uniqueIndex('ledger_accounts_code_currency_idx')
-        .on(table.code, table.currency)
+        .on(table.livemode, table.code, table.currency)
         .where(sql`customer_id is null`),
       index('ledger_accounts_customer_id_idx').on(table.customerId),
     ];

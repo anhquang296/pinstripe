@@ -179,6 +179,7 @@ export class DunningService {
             {
               aggregateType: AggregateTypeEnum.INVOICE,
               aggregateId: invoice.id,
+              livemode: invoice.livemode,
               eventType: DomainEventTypeEnum.INVOICE_MARKED_UNCOLLECTIBLE,
               payload: { id: invoice.id, number: invoice.number, attemptCount },
             },

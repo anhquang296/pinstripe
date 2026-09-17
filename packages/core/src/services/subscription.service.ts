@@ -56,6 +56,7 @@ export class SubscriptionService {
     const subscriptionItems: NewSubscriptionItem[] = _.map(payload.items, (subscriptionItem) => {
       return {
         id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
+        livemode: customer.livemode,
         subscriptionId,
         priceId: subscriptionItem.priceId,
         quantity: subscriptionItem.quantity ?? 1,
@@ -71,6 +72,7 @@ export class SubscriptionService {
       const subscription = await this.fastify.subscriptionRepository.createSubscription(
         {
           id: subscriptionId,
+          livemode: customer.livemode,
           customerId: customer.id,
           status: trialEnd ? SubscriptionStatusEnum.TRIALING : SubscriptionStatusEnum.ACTIVE,
           currency: customer.currency,
@@ -176,6 +178,7 @@ export class SubscriptionService {
       ? _.map(payload.items, (subscriptionItem) => {
           return {
             id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
+            livemode: subscription.livemode,
             subscriptionId: id,
             priceId: subscriptionItem.priceId,
             quantity: subscriptionItem.quantity ?? 1,
@@ -401,6 +404,7 @@ export class SubscriptionService {
         {
           aggregateType: AggregateTypeEnum.SUBSCRIPTION,
           aggregateId: subscription.id,
+          livemode: subscription.livemode,
           eventType,
           payload: {
             id: subscription.id,

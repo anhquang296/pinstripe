@@ -15,6 +15,7 @@ export interface RecordEventPayload {
   aggregateId: string;
   eventType: DomainEventType;
   payload: Record<string, unknown>;
+  livemode: boolean;
 }
 
 export class OutboxService {
@@ -28,6 +29,7 @@ export class OutboxService {
     const outboxRows: NewOutboxEvent[] = _.map(events, (event) => {
       return {
         id: generateGid(ObjectPrefixEnum.EVENT),
+        livemode: event.livemode,
         aggregateType: event.aggregateType,
         aggregateId: event.aggregateId,
         eventType: event.eventType,
@@ -81,6 +83,7 @@ export class OutboxService {
   ): Promise<Job<DomainEventDispatchJob>> {
     const job = buildDomainEventDispatchJob({
       eventId: event.id,
+      livemode: event.livemode,
       aggregateType: event.aggregateType,
       aggregateId: event.aggregateId,
       eventType: event.eventType,

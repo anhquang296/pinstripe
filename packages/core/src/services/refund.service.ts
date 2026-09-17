@@ -60,6 +60,7 @@ export class RefundService {
       const refund = await this.fastify.refundRepository.createRefund(
         {
           id,
+          livemode: paymentIntent.livemode,
           paymentIntentId: paymentIntent.id,
           invoiceId: paymentIntent.invoiceId,
           customerId: paymentIntent.customerId,
@@ -138,6 +139,7 @@ export class RefundService {
           },
         ],
       },
+      refund.livemode,
       tx,
     );
   }
@@ -148,6 +150,7 @@ export class RefundService {
         {
           aggregateType: AggregateTypeEnum.REFUND,
           aggregateId: refund.id,
+          livemode: refund.livemode,
           eventType: DomainEventTypeEnum.REFUND_CREATED,
           payload: {
             id: refund.id,

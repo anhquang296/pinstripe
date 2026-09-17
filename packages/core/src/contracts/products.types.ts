@@ -4,6 +4,7 @@ import { Type } from '@sinclair/typebox';
 export const productSchema = Type.Object({
   object: Type.Literal('product'),
   id: Type.String(),
+  livemode: Type.Boolean(),
   name: Type.String(),
   description: Type.String(),
   active: Type.Boolean(),

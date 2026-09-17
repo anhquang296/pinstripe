@@ -35,14 +35,20 @@ async function buildScenario(): Promise<{
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-  });
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
+  const customer = await fastify.customerService.createCustomer(
+    {
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+      testClockId: clock.id,
+    },
+    false,
+  );
+  const product = await fastify.productService.createProduct(
+    {
+      name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+    },
+    false,
+  );
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -87,7 +93,7 @@ describe('SubscriptionService.createSubscription', () => {
 
   it('refuses a one time price', async () => {
     const { customer } = await buildScenario();
-    const product = await fastify.productService.createProduct({ name: 'One off setup' });
+    const product = await fastify.productService.createProduct({ name: 'One off setup' }, false);
     const oneTime = await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,

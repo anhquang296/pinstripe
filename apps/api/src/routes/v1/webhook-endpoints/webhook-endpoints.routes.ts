@@ -8,13 +8,17 @@ import {
   webhookEndpointSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createWebhookEndpointSchema, response: { 201: webhookEndpointSchema } } },
     async (request, reply) => {
-      const endpoint = await fastify.webhookService.createWebhookEndpoint(request.body);
+      const endpoint = await fastify.webhookService.createWebhookEndpoint(
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.created(reply, endpoint);
     },

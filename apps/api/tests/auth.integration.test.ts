@@ -128,6 +128,46 @@ describe('bootstrap keys from the environment', () => {
   });
 });
 
+describe('livemode flows from the key onto what it creates', () => {
+  it('stamps a product with the mode of the key that created it', async () => {
+    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
+    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
+
+    const liveResponse = await fastify.inject({
+      method: 'POST',
+      url: '/v1/products',
+      headers: buildAuthHeaders(liveKey.token),
+      payload: { name: 'Live plan' },
+    });
+    const testResponse = await fastify.inject({
+      method: 'POST',
+      url: '/v1/products',
+      headers: buildAuthHeaders(testKey.token),
+      payload: { name: 'Test plan' },
+    });
+
+    expect(liveResponse.json().livemode).toBe(true);
+    expect(testResponse.json().livemode).toBe(false);
+  });
+
+  it('refuses to attach a test clock to a live customer', async () => {
+    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
+    const clock = await fastify.testClockService.createTestClock({
+      name: 'guard clock',
+      frozenTime: new Date().toISOString(),
+    });
+
+    const response = await fastify.inject({
+      method: 'POST',
+      url: '/v1/customers',
+      headers: buildAuthHeaders(liveKey.token),
+      payload: { currency: 'vnd', testClockId: clock.id },
+    });
+
+    expect(response.statusCode).toBeGreaterThanOrEqual(400);
+  });
+});
+
 describe('key lifecycle', () => {
   it('stops accepting a key once it is revoked', async () => {
     const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);

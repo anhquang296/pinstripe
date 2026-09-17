@@ -20,9 +20,12 @@ afterAll(async () => {
 });
 
 async function createProduct(): Promise<ProductResponse> {
-  return fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
+  return fastify.productService.createProduct(
+    {
+      name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+    },
+    false,
+  );
 }
 
 describe('PriceService.createPrice', () => {
@@ -154,8 +157,8 @@ describe('prices table constraints', () => {
     const priceId = generateGid(ObjectPrefixEnum.PRICE);
 
     const act = fastify.database.master.execute(sql`
-      insert into prices (id, product_id, version, effective_at, currency, type, billing_scheme, tax_behavior, created_at, updated_at)
-      values (${priceId}, ${product.id}, 1, now(), 'vnd', 'one_time', 'per_unit', 'unspecified', now(), now())
+      insert into prices (id, livemode, product_id, version, effective_at, currency, type, billing_scheme, tax_behavior, created_at, updated_at)
+      values (${priceId}, false, ${product.id}, 1, now(), 'vnd', 'one_time', 'per_unit', 'unspecified', now(), now())
     `);
 
     await expect(act).rejects.toThrowError(/prices_per_unit_shape/);
@@ -166,8 +169,8 @@ describe('prices table constraints', () => {
     const priceId = generateGid(ObjectPrefixEnum.PRICE);
 
     const act = fastify.database.master.execute(sql`
-      insert into prices (id, product_id, version, effective_at, currency, type, billing_scheme, unit_amount, tax_behavior, created_at, updated_at)
-      values (${priceId}, ${product.id}, 1, now(), 'vnd', 'recurring', 'per_unit', 1000, 'unspecified', now(), now())
+      insert into prices (id, livemode, product_id, version, effective_at, currency, type, billing_scheme, unit_amount, tax_behavior, created_at, updated_at)
+      values (${priceId}, false, ${product.id}, 1, now(), 'vnd', 'recurring', 'per_unit', 1000, 'unspecified', now(), now())
     `);
 
     await expect(act).rejects.toThrowError(/prices_recurring_shape/);

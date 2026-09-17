@@ -22,10 +22,13 @@ function buildEmail(): string {
 
 describe('CustomerService.deleteCustomer', () => {
   it('hides the customer from every later read', async () => {
-    const customer = await fastify.customerService.createCustomer({
-      email: buildEmail(),
-      currency: CurrencyEnum.VND,
-    });
+    const customer = await fastify.customerService.createCustomer(
+      {
+        email: buildEmail(),
+        currency: CurrencyEnum.VND,
+      },
+      false,
+    );
 
     await fastify.customerService.deleteCustomer(customer.id);
     const act = fastify.customerService.getCustomer(customer.id);
@@ -40,10 +43,13 @@ describe('CustomerService.findCustomers', () => {
 
     for (let index = 0; index < 3; index += 1) {
       created.push(
-        await fastify.customerService.createCustomer({
-          email: buildEmail(),
-          currency: CurrencyEnum.VND,
-        }),
+        await fastify.customerService.createCustomer(
+          {
+            email: buildEmail(),
+            currency: CurrencyEnum.VND,
+          },
+          false,
+        ),
       );
     }
 
@@ -65,10 +71,13 @@ describe('CustomerService.findCustomers', () => {
 
 describe('CustomerService.updateCustomer', () => {
   it('records an outbox event in the same transaction as the write', async () => {
-    const customer = await fastify.customerService.createCustomer({
-      email: buildEmail(),
-      currency: CurrencyEnum.VND,
-    });
+    const customer = await fastify.customerService.createCustomer(
+      {
+        email: buildEmail(),
+        currency: CurrencyEnum.VND,
+      },
+      false,
+    );
 
     const updated = await fastify.customerService.updateCustomer(customer.id, { name: 'Renamed' });
 

@@ -111,6 +111,7 @@ export class TestClockService {
             {
               aggregateType: AggregateTypeEnum.TEST_CLOCK,
               aggregateId: id,
+              livemode: false,
               eventType: DomainEventTypeEnum.TEST_CLOCK_ADVANCED,
               payload: { id, frozenTime: target.toISOString() },
             },

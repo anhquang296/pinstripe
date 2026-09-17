@@ -19,11 +19,14 @@ import _ from 'lodash';
 export class CustomerService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createCustomer(payload: CreateCustomerPayload): Promise<CustomerResponse> {
+  async createCustomer(
+    payload: CreateCustomerPayload,
+    livemode: boolean,
+  ): Promise<CustomerResponse> {
     const now = this.fastify.clock.now();
     const id = generateGid(ObjectPrefixEnum.CUSTOMER);
 
-    const createdCustomer = await this.writeCustomer(id, payload, now);
+    const createdCustomer = await this.writeCustomer(id, payload, now, livemode);
 
     return CustomerService.buildCustomer(createdCustomer);
   }
@@ -32,12 +35,14 @@ export class CustomerService {
     id: string,
     payload: CreateCustomerPayload,
     now: Date,
+    livemode: boolean,
   ): Promise<Customer> {
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const customer = await this.fastify.customerRepository.createCustomer(
           {
             id,
+            livemode,
             email: payload.email ?? null,
             name: payload.name ?? '',
             description: payload.description ?? '',
@@ -59,6 +64,7 @@ export class CustomerService {
               {
                 aggregateType: AggregateTypeEnum.CUSTOMER,
                 aggregateId: customer.id,
+                livemode: customer.livemode,
                 eventType: DomainEventTypeEnum.CUSTOMER_CREATED,
                 payload: { id: customer.id },
               },
@@ -109,6 +115,7 @@ export class CustomerService {
             {
               aggregateType: AggregateTypeEnum.CUSTOMER,
               aggregateId: customer.id,
+              livemode: customer.livemode,
               eventType: DomainEventTypeEnum.CUSTOMER_UPDATED,
               payload: { id: customer.id },
             },
@@ -126,7 +133,7 @@ export class CustomerService {
   }
 
   async deleteCustomer(id: string): Promise<DeletedCustomerResponse> {
-    await this.getCustomer(id);
+    const customer = await this.getCustomer(id);
 
     await this.fastify.database.master.transaction(async (tx) => {
       await this.fastify.customerRepository.archiveCustomer(id, this.fastify.clock.now(), tx);
@@ -135,6 +142,7 @@ export class CustomerService {
           {
             aggregateType: AggregateTypeEnum.CUSTOMER,
             aggregateId: id,
+            livemode: customer.livemode,
             eventType: DomainEventTypeEnum.CUSTOMER_DELETED,
             payload: { id },
           },
@@ -182,6 +190,7 @@ export class CustomerService {
     return {
       object: 'customer',
       id: entity.id,
+      livemode: entity.livemode,
       email: entity.email,
       name: entity.name,
       description: entity.description,

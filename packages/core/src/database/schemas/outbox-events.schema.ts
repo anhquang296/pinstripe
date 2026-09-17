@@ -1,11 +1,12 @@
 import type { DomainEventType, OutboxStatus } from '@contracts/events.types';
 import { OutboxStatusEnum } from '@contracts/events.types';
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const outboxEvents = pgTable(
   'outbox_events',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     aggregateType: text('aggregate_type').notNull(),
     aggregateId: text('aggregate_id').notNull(),
     eventType: text('event_type').$type<DomainEventType>().notNull(),

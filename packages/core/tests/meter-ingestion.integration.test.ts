@@ -43,16 +43,22 @@ function buildEvents(meter: MeterResponse, customerId: string): CreateMeterEvent
 
 describe('MeterEventService.ingestMeterEventBatch', () => {
   it('drops every repeated identifier and still totals exactly what it accepted', async () => {
-    const meter = await fastify.meterService.createMeter({
-      displayName: 'Ingestion volume',
-      eventName: `ingest_volume_${generateGid(ObjectPrefixEnum.METER)}`,
-      aggregation: MeterAggregationEnum.SUM,
-      valueKey: 'tokens',
-    });
-    const customer = await fastify.customerService.createCustomer({
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-    });
+    const meter = await fastify.meterService.createMeter(
+      {
+        displayName: 'Ingestion volume',
+        eventName: `ingest_volume_${generateGid(ObjectPrefixEnum.METER)}`,
+        aggregation: MeterAggregationEnum.SUM,
+        valueKey: 'tokens',
+      },
+      false,
+    );
+    const customer = await fastify.customerService.createCustomer(
+      {
+        email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+        currency: CurrencyEnum.VND,
+      },
+      false,
+    );
     const events = buildEvents(meter, customer.id);
     const expectedDuplicates = _.filter(events, (_event, index) => {
       return index % DUPLICATE_RATE === 0 && index > 0;

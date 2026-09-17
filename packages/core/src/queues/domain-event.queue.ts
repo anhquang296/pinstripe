@@ -6,6 +6,7 @@ export const DOMAIN_EVENT_DISPATCH_JOB = 'DomainEventDispatch';
 
 export interface DomainEventDispatchJob {
   eventId: string;
+  livemode: boolean;
   eventType: DomainEventType;
   aggregateType: AggregateType;
   aggregateId: string;

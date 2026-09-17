@@ -33,6 +33,7 @@ async function readReceivable(customerId: string): Promise<number> {
   const account = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
     CurrencyEnum.VND,
+    false,
     customerId,
   );
 

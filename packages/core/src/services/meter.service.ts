@@ -19,9 +19,9 @@ import _ from 'lodash';
 export class MeterService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createMeter(payload: CreateMeterPayload): Promise<MeterResponse> {
+  async createMeter(payload: CreateMeterPayload, livemode: boolean): Promise<MeterResponse> {
     const now = this.fastify.clock.now();
-    const createdMeter = await this.writeMeter(payload, now);
+    const createdMeter = await this.writeMeter(payload, now, livemode);
 
     return MeterService.buildMeter(createdMeter);
   }
@@ -84,7 +84,11 @@ export class MeterService {
     };
   }
 
-  private async writeMeter(payload: CreateMeterPayload, now: Date): Promise<Meter> {
+  private async writeMeter(
+    payload: CreateMeterPayload,
+    now: Date,
+    livemode: boolean,
+  ): Promise<Meter> {
     const DEFAULT_VALUE_KEY = 'value';
     const id = generateGid(ObjectPrefixEnum.METER);
 
@@ -93,6 +97,7 @@ export class MeterService {
         const meter = await this.fastify.meterRepository.createMeter(
           {
             id,
+            livemode,
             displayName: payload.displayName,
             eventName: payload.eventName,
             aggregation: payload.aggregation,
@@ -111,6 +116,7 @@ export class MeterService {
               {
                 aggregateType: AggregateTypeEnum.METER,
                 aggregateId: meter.id,
+                livemode: meter.livemode,
                 eventType: DomainEventTypeEnum.METER_CREATED,
                 payload: { id: meter.id, eventName: meter.eventName },
               },

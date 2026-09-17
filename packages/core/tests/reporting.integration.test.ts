@@ -31,14 +31,20 @@ async function makeActiveSubscription(
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-  });
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
+  const customer = await fastify.customerService.createCustomer(
+    {
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+      testClockId: clock.id,
+    },
+    false,
+  );
+  const product = await fastify.productService.createProduct(
+    {
+      name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+    },
+    false,
+  );
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -181,26 +187,32 @@ describe('ReconciliationService.getReconciliationReport', () => {
   });
 
   it('flags a ledger cash movement the processor never reported', async () => {
-    const customer = await fastify.customerService.createCustomer({
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-    });
+    const customer = await fastify.customerService.createCustomer(
+      {
+        email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+        currency: CurrencyEnum.VND,
+      },
+      false,
+    );
     const strayReference = `bank_transfer:${generateGid(ObjectPrefixEnum.REQUEST)}`;
 
-    await fastify.ledgerService.postTransaction({
-      description: 'Tiền về thẳng tài khoản, chưa khớp cổng nào',
-      currency: CurrencyEnum.VND,
-      externalId: strayReference,
-      entries: [
-        { accountCode: 'cash', direction: 'debit', amount: 77_000 },
-        {
-          accountCode: 'accounts_receivable',
-          customerId: customer.id,
-          direction: 'credit',
-          amount: 77_000,
-        },
-      ],
-    });
+    await fastify.ledgerService.postTransaction(
+      {
+        description: 'Tiền về thẳng tài khoản, chưa khớp cổng nào',
+        currency: CurrencyEnum.VND,
+        externalId: strayReference,
+        entries: [
+          { accountCode: 'cash', direction: 'debit', amount: 77_000 },
+          {
+            accountCode: 'accounts_receivable',
+            customerId: customer.id,
+            direction: 'credit',
+            amount: 77_000,
+          },
+        ],
+      },
+      false,
+    );
 
     const report = await fastify.reconciliationService.getReconciliationReport({
       windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),

@@ -57,6 +57,7 @@ export class CreditNoteService {
       const creditNote = await this.fastify.creditNoteRepository.createCreditNote(
         {
           id,
+          livemode: invoice.livemode,
           number: CreditNoteService.formatNumber(CREDIT_NOTE_NUMBER_PREFIX, sequenceValue),
           invoiceId: invoice.id,
           customerId: invoice.customerId,
@@ -130,6 +131,7 @@ export class CreditNoteService {
         {
           aggregateType: AggregateTypeEnum.INVOICE,
           aggregateId: invoice.id,
+          livemode: invoice.livemode,
           eventType: DomainEventTypeEnum.INVOICE_PAID,
           payload: { id: invoice.id, number: invoice.number, total: invoice.total },
         },
@@ -164,6 +166,7 @@ export class CreditNoteService {
           },
         ],
       },
+      creditNote.livemode,
       tx,
     );
   }
@@ -177,6 +180,7 @@ export class CreditNoteService {
         {
           aggregateType: AggregateTypeEnum.CREDIT_NOTE,
           aggregateId: creditNote.id,
+          livemode: creditNote.livemode,
           eventType: DomainEventTypeEnum.CREDIT_NOTE_CREATED,
           payload: {
             id: creditNote.id,

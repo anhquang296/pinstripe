@@ -2,12 +2,22 @@ import type { PaymentAttemptOutcome, PaymentIntentStatus } from '@contracts/paym
 import { customers } from '@database/schemas/customers.schema';
 import { invoices } from '@database/schemas/invoices.schema';
 import type { Currency } from '@utils/currency';
-import { bigint, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  bigint,
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 export const paymentIntents = pgTable(
   'payment_intents',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     invoiceId: text('invoice_id')
       .notNull()
       .references(() => {
@@ -43,6 +53,7 @@ export const paymentAttempts = pgTable(
   'payment_attempts',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     paymentIntentId: text('payment_intent_id')
       .notNull()
       .references(() => {
@@ -63,6 +74,7 @@ export const refunds = pgTable(
   'refunds',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     paymentIntentId: text('payment_intent_id')
       .notNull()
       .references(() => {

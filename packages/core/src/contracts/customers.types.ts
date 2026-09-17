@@ -6,6 +6,7 @@ import { CurrencyEnum } from '@utils/currency';
 export const customerSchema = Type.Object({
   object: Type.Literal('customer'),
   id: Type.String(),
+  livemode: Type.Boolean(),
   email: Type.Union([Type.String(), Type.Null()]),
   name: Type.String(),
   description: Type.String(),

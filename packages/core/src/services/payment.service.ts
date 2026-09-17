@@ -59,6 +59,7 @@ export class PaymentService {
 
     const createdPaymentIntent = await this.fastify.paymentIntentRepository.createPaymentIntent({
       id,
+      livemode: invoice.livemode,
       invoiceId: invoice.id,
       customerId: invoice.customerId,
       status: paymentMethod
@@ -125,6 +126,7 @@ export class PaymentService {
         await this.fastify.paymentIntentRepository.createPaymentAttempt(
           {
             id: generateGid(ObjectPrefixEnum.CHARGE),
+            livemode: paymentIntent.livemode,
             paymentIntentId: paymentIntent.id,
             paymentMethod,
             outcome: PaymentAttemptOutcomeEnum.SUCCEEDED,
@@ -241,6 +243,7 @@ export class PaymentService {
         await this.fastify.paymentIntentRepository.createPaymentAttempt(
           {
             id: generateGid(ObjectPrefixEnum.CHARGE),
+            livemode: paymentIntent.livemode,
             paymentIntentId: paymentIntent.id,
             paymentMethod,
             outcome: PaymentAttemptOutcomeEnum.DECLINED,
@@ -282,6 +285,7 @@ export class PaymentService {
         {
           aggregateType: AggregateTypeEnum.PAYMENT_INTENT,
           aggregateId: paymentIntent.id,
+          livemode: paymentIntent.livemode,
           eventType,
           payload: {
             id: paymentIntent.id,

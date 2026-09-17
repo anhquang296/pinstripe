@@ -2,12 +2,13 @@ import type { EntitlementStatus } from '@contracts/entitlements.types';
 import { customers } from '@database/schemas/customers.schema';
 import { products } from '@database/schemas/products.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
-import { index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const entitlements = pgTable(
   'entitlements',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {

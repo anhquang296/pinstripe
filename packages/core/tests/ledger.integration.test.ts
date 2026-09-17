@@ -27,45 +27,51 @@ function buildCustomerId(): string {
 }
 
 async function postRevenueTransaction(customerId: string, amount: number): Promise<string> {
-  const transaction = await fastify.ledgerService.postTransaction({
-    description: 'Invoice finalized',
-    currency: CurrencyEnum.VND,
-    entries: [
-      {
-        accountCode: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
-        customerId,
-        direction: PostingDirectionEnum.DEBIT,
-        amount,
-      },
-      {
-        accountCode: LedgerAccountCodeEnum.REVENUE,
-        direction: PostingDirectionEnum.CREDIT,
-        amount,
-      },
-    ],
-  });
+  const transaction = await fastify.ledgerService.postTransaction(
+    {
+      description: 'Invoice finalized',
+      currency: CurrencyEnum.VND,
+      entries: [
+        {
+          accountCode: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
+          customerId,
+          direction: PostingDirectionEnum.DEBIT,
+          amount,
+        },
+        {
+          accountCode: LedgerAccountCodeEnum.REVENUE,
+          direction: PostingDirectionEnum.CREDIT,
+          amount,
+        },
+      ],
+    },
+    false,
+  );
 
   return transaction.id;
 }
 
 describe('LedgerService.postTransaction', () => {
   it('rejects a transaction whose debits do not equal its credits', async () => {
-    const act = fastify.ledgerService.postTransaction({
-      description: 'Unbalanced',
-      currency: CurrencyEnum.VND,
-      entries: [
-        {
-          accountCode: LedgerAccountCodeEnum.CASH,
-          direction: PostingDirectionEnum.DEBIT,
-          amount: 100,
-        },
-        {
-          accountCode: LedgerAccountCodeEnum.REVENUE,
-          direction: PostingDirectionEnum.CREDIT,
-          amount: 99,
-        },
-      ],
-    });
+    const act = fastify.ledgerService.postTransaction(
+      {
+        description: 'Unbalanced',
+        currency: CurrencyEnum.VND,
+        entries: [
+          {
+            accountCode: LedgerAccountCodeEnum.CASH,
+            direction: PostingDirectionEnum.DEBIT,
+            amount: 100,
+          },
+          {
+            accountCode: LedgerAccountCodeEnum.REVENUE,
+            direction: PostingDirectionEnum.CREDIT,
+            amount: 99,
+          },
+        ],
+      },
+      false,
+    );
 
     await expect(act).rejects.toThrowError(BadRequestError);
   });
@@ -84,19 +90,25 @@ describe('LedgerService.postTransaction', () => {
         amount: 500,
       },
     ];
-    await fastify.ledgerService.postTransaction({
-      description: 'First write',
-      currency: CurrencyEnum.VND,
-      externalId,
-      entries,
-    });
+    await fastify.ledgerService.postTransaction(
+      {
+        description: 'First write',
+        currency: CurrencyEnum.VND,
+        externalId,
+        entries,
+      },
+      false,
+    );
 
-    const act = fastify.ledgerService.postTransaction({
-      description: 'Retry of the same write',
-      currency: CurrencyEnum.VND,
-      externalId,
-      entries,
-    });
+    const act = fastify.ledgerService.postTransaction(
+      {
+        description: 'Retry of the same write',
+        currency: CurrencyEnum.VND,
+        externalId,
+        entries,
+      },
+      false,
+    );
 
     await expect(act).rejects.toThrowError(ConflictError);
   });
@@ -193,11 +205,13 @@ describe('LedgerService.ensureAccount', () => {
     const first = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
     const second = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 
@@ -208,6 +222,7 @@ describe('LedgerService.ensureAccount', () => {
     const act = fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
     );
 
     await expect(act).rejects.toThrowError(BadRequestError);

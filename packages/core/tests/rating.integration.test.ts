@@ -39,9 +39,12 @@ afterAll(async () => {
 });
 
 async function makeProduct(): Promise<string> {
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
+  const product = await fastify.productService.createProduct(
+    {
+      name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+    },
+    false,
+  );
 
   return product.id;
 }
@@ -51,23 +54,29 @@ async function makeCustomer(): Promise<{ customerId: string; clockId: string }> 
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-  });
+  const customer = await fastify.customerService.createCustomer(
+    {
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+      testClockId: clock.id,
+    },
+    false,
+  );
 
   return { customerId: customer.id, clockId: clock.id };
 }
 
 async function makeMeteredPrice(): Promise<{ priceId: string; eventName: string }> {
   const productId = await makeProduct();
-  const meter = await fastify.meterService.createMeter({
-    displayName: 'Swapped tokens',
-    eventName: `swapped_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
-    aggregation: MeterAggregationEnum.SUM,
-    valueKey: 'tokens',
-  });
+  const meter = await fastify.meterService.createMeter(
+    {
+      displayName: 'Swapped tokens',
+      eventName: `swapped_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
+      aggregation: MeterAggregationEnum.SUM,
+      valueKey: 'tokens',
+    },
+    false,
+  );
   const price = await fastify.priceService.createPrice({
     productId,
     currency: CurrencyEnum.VND,
@@ -92,11 +101,14 @@ async function makeSwapScenario(): Promise<SwapScenario> {
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: SWAP_PERIOD_START,
   });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-  });
+  const customer = await fastify.customerService.createCustomer(
+    {
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+      testClockId: clock.id,
+    },
+    false,
+  );
   const productId = await makeProduct();
   const oldPrice = await fastify.priceService.createPrice({
     productId,
@@ -148,12 +160,15 @@ describe('RatingService.rateUpcomingInvoice', () => {
   it('rates a metered subscription from the usage recorded inside the period', async () => {
     const { customerId } = await makeCustomer();
     const productId = await makeProduct();
-    const meter = await fastify.meterService.createMeter({
-      displayName: 'Rated tokens',
-      eventName: `rated_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
-      aggregation: MeterAggregationEnum.SUM,
-      valueKey: 'tokens',
-    });
+    const meter = await fastify.meterService.createMeter(
+      {
+        displayName: 'Rated tokens',
+        eventName: `rated_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
+        aggregation: MeterAggregationEnum.SUM,
+        valueKey: 'tokens',
+      },
+      false,
+    );
     const price = await fastify.priceService.createPrice({
       productId,
       currency: CurrencyEnum.VND,
@@ -182,12 +197,15 @@ describe('RatingService.rateUpcomingInvoice', () => {
   it('rates a metered subscription with no usage as zero', async () => {
     const { customerId } = await makeCustomer();
     const productId = await makeProduct();
-    const meter = await fastify.meterService.createMeter({
-      displayName: 'Idle tokens',
-      eventName: `idle_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
-      aggregation: MeterAggregationEnum.SUM,
-      valueKey: 'tokens',
-    });
+    const meter = await fastify.meterService.createMeter(
+      {
+        displayName: 'Idle tokens',
+        eventName: `idle_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
+        aggregation: MeterAggregationEnum.SUM,
+        valueKey: 'tokens',
+      },
+      false,
+    );
     const price = await fastify.priceService.createPrice({
       productId,
       currency: CurrencyEnum.VND,
@@ -229,11 +247,14 @@ describe('PriceService.createPrice metered shape', () => {
 
   it('rejects a licensed price that names a meter it will never read', async () => {
     const productId = await makeProduct();
-    const meter = await fastify.meterService.createMeter({
-      displayName: 'Unused meter',
-      eventName: `unused_${generateGid(ObjectPrefixEnum.METER)}`,
-      aggregation: MeterAggregationEnum.COUNT,
-    });
+    const meter = await fastify.meterService.createMeter(
+      {
+        displayName: 'Unused meter',
+        eventName: `unused_${generateGid(ObjectPrefixEnum.METER)}`,
+        aggregation: MeterAggregationEnum.COUNT,
+      },
+      false,
+    );
 
     const act = async () => {
       return fastify.priceService.createPrice({

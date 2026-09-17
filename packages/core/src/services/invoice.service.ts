@@ -70,6 +70,7 @@ export class InvoiceService {
         const invoice = await this.fastify.invoiceRepository.createInvoice(
           {
             id,
+            livemode: subscription.livemode,
             number: null,
             customerId: subscription.customerId,
             subscriptionId: subscription.id,
@@ -154,6 +155,7 @@ export class InvoiceService {
     const invoice = await this.fastify.invoiceRepository.createInvoice(
       {
         id,
+        livemode: subscription.livemode,
         number: null,
         customerId: subscription.customerId,
         subscriptionId: subscription.id,
@@ -201,6 +203,7 @@ export class InvoiceService {
     const lineItems = _.map(rated.lineItems, (lineItem): NewInvoiceLineItem => {
       return {
         id: generateGid(ObjectPrefixEnum.INVOICE_LINE_ITEM),
+        livemode: invoice.livemode,
         invoiceId: invoice.id,
         subscriptionItemId: lineItem.subscriptionItemId,
         priceId: lineItem.priceId,
@@ -441,6 +444,7 @@ export class InvoiceService {
           },
         ],
       },
+      invoice.livemode,
       tx,
     );
   }
@@ -470,6 +474,7 @@ export class InvoiceService {
           },
         ],
       },
+      invoice.livemode,
       tx,
     );
   }
@@ -498,6 +503,7 @@ export class InvoiceService {
           },
         ],
       },
+      invoice.livemode,
       tx,
     );
   }
@@ -512,6 +518,7 @@ export class InvoiceService {
         {
           aggregateType: AggregateTypeEnum.INVOICE,
           aggregateId: invoice.id,
+          livemode: invoice.livemode,
           eventType,
           payload: {
             id: invoice.id,

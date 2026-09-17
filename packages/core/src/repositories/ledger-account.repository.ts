@@ -9,6 +9,7 @@ import _ from 'lodash';
 
 export interface LedgerAccountFilters {
   ids?: readonly string[];
+  livemode?: boolean;
   code?: LedgerAccountCode;
   currency?: Currency;
   customerId?: string;
@@ -45,6 +46,7 @@ export class LedgerAccountRepository {
   ): Promise<LedgerAccountWithBalance[]> {
     const where = and(
       filters.ids ? inArray(ledgerAccounts.id, [...filters.ids]) : undefined,
+      filters.livemode === undefined ? undefined : eq(ledgerAccounts.livemode, filters.livemode),
       filters.code ? eq(ledgerAccounts.code, filters.code) : undefined,
       filters.currency ? eq(ledgerAccounts.currency, filters.currency) : undefined,
       filters.customerId ? eq(ledgerAccounts.customerId, filters.customerId) : undefined,

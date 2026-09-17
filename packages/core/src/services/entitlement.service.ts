@@ -57,6 +57,7 @@ export class EntitlementService {
     for (const price of prices) {
       await this.fastify.entitlementRepository.upsertEntitlement({
         id: generateGid(ObjectPrefixEnum.ENTITLEMENT),
+        livemode: subscription.livemode,
         customerId: subscription.customerId,
         subscriptionId,
         productId: price.productId,

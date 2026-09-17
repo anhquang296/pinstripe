@@ -29,7 +29,7 @@ export class PriceService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createPrice(payload: CreatePricePayload): Promise<PriceResponse> {
-    await this.fastify.productService.getProduct(payload.productId);
+    const product = await this.fastify.productService.getProduct(payload.productId);
 
     const billingScheme = payload.billingScheme ?? BillingSchemeEnum.PER_UNIT;
     const usageType = payload.recurring
@@ -46,7 +46,14 @@ export class PriceService {
     const id = generateGid(ObjectPrefixEnum.PRICE);
     const version = await this.resolveNextVersion(payload.lookupKey);
 
-    const createdPrice = await this.writePrice(id, payload, billingScheme, version, now);
+    const createdPrice = await this.writePrice(
+      id,
+      payload,
+      billingScheme,
+      version,
+      now,
+      product.livemode,
+    );
 
     return PriceService.buildPrice(createdPrice);
   }
@@ -57,12 +64,14 @@ export class PriceService {
     billingScheme: BillingScheme,
     version: number,
     now: Date,
+    livemode: boolean,
   ): Promise<Price> {
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const price = await this.fastify.priceRepository.createPrice(
           {
             id,
+            livemode,
             productId: payload.productId,
             lookupKey: payload.lookupKey ?? null,
             version,
@@ -98,6 +107,7 @@ export class PriceService {
               {
                 aggregateType: AggregateTypeEnum.PRICE,
                 aggregateId: price.id,
+                livemode: price.livemode,
                 eventType: DomainEventTypeEnum.PRICE_CREATED,
                 payload: { id: price.id, productId: price.productId, version: price.version },
               },
@@ -153,6 +163,7 @@ export class PriceService {
             {
               aggregateType: AggregateTypeEnum.PRICE,
               aggregateId: price.id,
+              livemode: price.livemode,
               eventType: DomainEventTypeEnum.PRICE_UPDATED,
               payload: { id: price.id },
             },

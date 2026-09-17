@@ -7,6 +7,8 @@ import type { FastifyInstance } from 'fastify';
 const DEFAULT_CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const DEFAULT_UNIT_AMOUNT = 500_000;
 
+export const TEST_LIVEMODE = false;
+
 export interface SubscriptionOverrides {
   unitAmount?: number;
   paymentMethod?: string;
@@ -39,15 +41,19 @@ export async function makeSubscription(
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime,
   });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-    metadata: paymentMethod ? { defaultPaymentMethod: paymentMethod } : undefined,
-  });
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
+  const customer = await fastify.customerService.createCustomer(
+    {
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+      testClockId: clock.id,
+      metadata: paymentMethod ? { defaultPaymentMethod: paymentMethod } : undefined,
+    },
+    TEST_LIVEMODE,
+  );
+  const product = await fastify.productService.createProduct(
+    { name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}` },
+    TEST_LIVEMODE,
+  );
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,

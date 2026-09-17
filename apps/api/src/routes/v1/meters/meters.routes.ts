@@ -10,13 +10,14 @@ import {
   updateMeterSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createMeterSchema, response: { 201: meterSchema } } },
     async (request, reply) => {
-      const meter = await fastify.meterService.createMeter(request.body);
+      const meter = await fastify.meterService.createMeter(request.body, readLivemode(request));
 
       return ApiResponse.created(reply, meter);
     },

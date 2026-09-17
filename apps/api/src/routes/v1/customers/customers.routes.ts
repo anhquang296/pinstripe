@@ -9,13 +9,17 @@ import {
   updateCustomerSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createCustomerSchema, response: { 201: customerSchema } } },
     async (request, reply) => {
-      const customer = await fastify.customerService.createCustomer(request.body);
+      const customer = await fastify.customerService.createCustomer(
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.created(reply, customer);
     },

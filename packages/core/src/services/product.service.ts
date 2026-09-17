@@ -17,7 +17,7 @@ import _ from 'lodash';
 export class ProductService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createProduct(payload: CreateProductPayload): Promise<ProductResponse> {
+  async createProduct(payload: CreateProductPayload, livemode: boolean): Promise<ProductResponse> {
     const now = this.fastify.clock.now();
     const id = generateGid(ObjectPrefixEnum.PRODUCT);
 
@@ -25,6 +25,7 @@ export class ProductService {
       const product = await this.fastify.productRepository.createProduct(
         {
           id,
+          livemode,
           name: payload.name,
           description: payload.description ?? '',
           active: payload.active ?? true,
@@ -42,6 +43,7 @@ export class ProductService {
             {
               aggregateType: AggregateTypeEnum.PRODUCT,
               aggregateId: product.id,
+              livemode: product.livemode,
               eventType: DomainEventTypeEnum.PRODUCT_CREATED,
               payload: { id: product.id },
             },
@@ -84,6 +86,7 @@ export class ProductService {
             {
               aggregateType: AggregateTypeEnum.PRODUCT,
               aggregateId: product.id,
+              livemode: product.livemode,
               eventType: DomainEventTypeEnum.PRODUCT_UPDATED,
               payload: { id: product.id },
             },
@@ -136,6 +139,7 @@ export class ProductService {
     return {
       object: 'product',
       id: entity.id,
+      livemode: entity.livemode,
       name: entity.name,
       description: entity.description,
       active: entity.active,

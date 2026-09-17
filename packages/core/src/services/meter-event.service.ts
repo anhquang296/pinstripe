@@ -138,6 +138,7 @@ export class MeterEventService {
 
     return {
       id: generateGid(ObjectPrefixEnum.METER_EVENT),
+      livemode: meter.livemode,
       identifier: payload.identifier ?? generateGid(ObjectPrefixEnum.METER_EVENT),
       meterId: meter.id,
       customerId: payload.customerId,

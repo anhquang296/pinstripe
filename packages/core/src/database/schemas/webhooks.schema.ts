@@ -1,10 +1,11 @@
 import type { WebhookDeliveryStatus, WebhookEndpointStatus } from '@contracts/webhooks.types';
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const webhookEndpoints = pgTable(
   'webhook_endpoints',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     url: text('url').notNull(),
     status: text('status').$type<WebhookEndpointStatus>().notNull(),
     enabledEvents: jsonb('enabled_events').$type<string[]>().notNull().default([]),
@@ -26,6 +27,7 @@ export const webhookDeliveries = pgTable(
   'webhook_deliveries',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     endpointId: text('endpoint_id')
       .notNull()
       .references(() => {

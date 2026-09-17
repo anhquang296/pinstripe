@@ -35,19 +35,25 @@ afterAll(async () => {
 });
 
 async function buildMeter(aggregation: MeterAggregationEnum): Promise<MeterResponse> {
-  return fastify.meterService.createMeter({
-    displayName: `Meter ${generateGid(ObjectPrefixEnum.METER)}`,
-    eventName: `api_request_${generateGid(ObjectPrefixEnum.METER)}`,
-    aggregation,
-    valueKey: 'tokens',
-  });
+  return fastify.meterService.createMeter(
+    {
+      displayName: `Meter ${generateGid(ObjectPrefixEnum.METER)}`,
+      eventName: `api_request_${generateGid(ObjectPrefixEnum.METER)}`,
+      aggregation,
+      valueKey: 'tokens',
+    },
+    false,
+  );
 }
 
 async function buildCustomer(): Promise<string> {
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-  });
+  const customer = await fastify.customerService.createCustomer(
+    {
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+    },
+    false,
+  );
 
   return customer.id;
 }
@@ -116,11 +122,14 @@ describe('MeterService.createMeter', () => {
   it('refuses a second meter listening for the same event name', async () => {
     const meter = await buildMeter(MeterAggregationEnum.COUNT);
 
-    const act = fastify.meterService.createMeter({
-      displayName: 'Duplicate listener',
-      eventName: meter.eventName,
-      aggregation: MeterAggregationEnum.COUNT,
-    });
+    const act = fastify.meterService.createMeter(
+      {
+        displayName: 'Duplicate listener',
+        eventName: meter.eventName,
+        aggregation: MeterAggregationEnum.COUNT,
+      },
+      false,
+    );
 
     await expect(act).rejects.toThrowError(ConflictError);
   });

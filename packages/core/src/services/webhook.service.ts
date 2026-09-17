@@ -40,11 +40,13 @@ export class WebhookService {
 
   async createWebhookEndpoint(
     payload: CreateWebhookEndpointPayload,
+    livemode: boolean,
   ): Promise<WebhookEndpointResponse> {
     const now = this.fastify.clock.now();
     const id = generateGid(ObjectPrefixEnum.WEBHOOK_ENDPOINT);
     const createdEndpoint = await this.fastify.webhookRepository.createWebhookEndpoint({
       id,
+      livemode,
       url: payload.url,
       status: WebhookEndpointStatusEnum.ENABLED,
       enabledEvents: [...payload.enabledEvents],
@@ -129,7 +131,7 @@ export class WebhookService {
 
   async handleDomainEvent(event: DomainEventDispatchJob): Promise<number> {
     const endpoints = await this.fastify.webhookRepository.findWebhookEndpoints(
-      { status: WebhookEndpointStatusEnum.ENABLED },
+      { status: WebhookEndpointStatusEnum.ENABLED, livemode: event.livemode },
       ENDPOINT_SCAN_LIMIT,
     );
     const subscribed = _.filter(endpoints, (endpoint) => {
@@ -152,6 +154,7 @@ export class WebhookService {
       _.map(subscribed, (endpoint) => {
         return {
           id: generateGid(ObjectPrefixEnum.WEBHOOK_DELIVERY),
+          livemode: event.livemode,
           endpointId: endpoint.id,
           eventId: event.eventId,
           eventType: event.eventType,

@@ -1,12 +1,23 @@
 import type { CustomerResponse as CustomerContract } from '@contracts/customers.types';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { bigint, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  bigint,
+  boolean,
+  check,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 export const customers = pgTable(
   'customers',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     email: text('email'),
     name: text('name').notNull().default(''),
     description: text('description').notNull().default(''),
@@ -24,8 +35,9 @@ export const customers = pgTable(
   (table) => {
     return [
       index('customers_created_at_id_idx').on(table.createdAt, table.id),
+      check('customers_test_clock_is_test_mode', sql`test_clock_id is null or livemode = false`),
       uniqueIndex('customers_email_idx')
-        .on(table.email)
+        .on(table.livemode, table.email)
         .where(sql`deleted_at is null and email is not null`),
     ];
   },

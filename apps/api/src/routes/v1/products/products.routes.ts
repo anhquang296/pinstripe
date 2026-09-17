@@ -8,13 +8,17 @@ import {
   updateProductSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createProductSchema, response: { 201: productSchema } } },
     async (request, reply) => {
-      const product = await fastify.productService.createProduct(request.body);
+      const product = await fastify.productService.createProduct(
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.created(reply, product);
     },

@@ -1,11 +1,12 @@
 import type { MeterAggregation, MeterStatus } from '@contracts/meters.types';
 import { sql } from 'drizzle-orm';
-import { index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const meters = pgTable(
   'meters',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     displayName: text('display_name').notNull(),
     eventName: text('event_name').notNull(),
     aggregation: text('aggregation').$type<MeterAggregation>().notNull(),
@@ -19,7 +20,7 @@ export const meters = pgTable(
   (table) => {
     return [
       uniqueIndex('meters_event_name_idx')
-        .on(table.eventName)
+        .on(table.livemode, table.eventName)
         .where(sql`deleted_at is null`),
       index('meters_created_at_id_idx').on(table.createdAt, table.id),
     ];

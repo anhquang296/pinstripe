@@ -44,6 +44,7 @@ describe('OutboxService.relayOutboxEvents', () => {
       {
         aggregateType: 'customer',
         aggregateId,
+        livemode: false,
         eventType: 'customer.created',
         payload: { id: aggregateId },
       },

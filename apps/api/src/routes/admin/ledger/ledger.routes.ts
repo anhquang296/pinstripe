@@ -11,6 +11,7 @@ import {
   reverseLedgerTransactionSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { readLivemode } from '@utils/request-auth';
 
 export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -69,7 +70,10 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/transactions',
     { schema: { body: postLedgerTransactionSchema, response: { 201: ledgerTransactionSchema } } },
     async (request, reply) => {
-      const transaction = await fastify.ledgerService.postTransaction(request.body);
+      const transaction = await fastify.ledgerService.postTransaction(
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.created(reply, transaction);
     },

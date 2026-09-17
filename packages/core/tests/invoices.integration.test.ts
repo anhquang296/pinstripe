@@ -80,14 +80,20 @@ async function makeSwapScenario(): Promise<SwapScenario> {
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
-  const customer = await fastify.customerService.createCustomer({
-    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-    currency: CurrencyEnum.VND,
-    testClockId: clock.id,
-  });
-  const product = await fastify.productService.createProduct({
-    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-  });
+  const customer = await fastify.customerService.createCustomer(
+    {
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+      testClockId: clock.id,
+    },
+    false,
+  );
+  const product = await fastify.productService.createProduct(
+    {
+      name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+    },
+    false,
+  );
   const oldPrice = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -150,6 +156,7 @@ describe('InvoiceService.finalizeInvoice', () => {
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 
@@ -202,6 +209,7 @@ describe('InvoiceService.payInvoice', () => {
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 
@@ -243,6 +251,7 @@ describe('InvoiceService.voidInvoice', () => {
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 
@@ -307,6 +316,7 @@ describe('CreditNoteService.createCreditNote', () => {
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 
@@ -352,6 +362,7 @@ describe('CreditNoteService.createCreditNote', () => {
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 
@@ -374,6 +385,7 @@ describe('CreditNoteService.createCreditNote', () => {
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 
@@ -514,6 +526,7 @@ describe('InvoiceService.issueProrationInvoice', () => {
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
       CurrencyEnum.VND,
+      false,
       customerId,
     );
 

@@ -1,6 +1,7 @@
 import { customers } from '@database/schemas/customers.schema';
 import { meters } from '@database/schemas/meters.schema';
 import {
+  boolean,
   doublePrecision,
   index,
   jsonb,
@@ -14,6 +15,7 @@ export const meterEvents = pgTable(
   'meter_events',
   {
     id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
     identifier: text('identifier').notNull(),
     meterId: text('meter_id')
       .notNull()
