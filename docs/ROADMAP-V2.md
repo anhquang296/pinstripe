@@ -241,7 +241,9 @@ hoá đơn (Stripe chọn cấp hoá đơn: `startingBalance`). Và chính sách
 khách được áp, cân đến từng đồng; bút toán của nó cân; reconciliation khớp nó — và tất cả diễn ra
 **không cần một subscription nào tồn tại**.
 
-**Công sức: XL.**
+**Công sức: XL.** Mô hình đã chốt ở [ADR 0014](adr/0014-invoice-totals-model.md), kèm hai chỗ chệch có
+chủ ý: `amountRemaining` ở lại dạng dẫn xuất, và `money.allocate` / `rounding_difference` hoãn sang
+phase 14/15 vì phase 13 chưa có gì để chia.
 
 ---
 

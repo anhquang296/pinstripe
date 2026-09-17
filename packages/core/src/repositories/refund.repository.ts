@@ -15,7 +15,7 @@ export interface RefundFilters {
 }
 
 export interface InvoiceRefundedAmount {
-  invoiceId: string;
+  invoiceId: string | null;
   refundedAmount: number;
 }
 

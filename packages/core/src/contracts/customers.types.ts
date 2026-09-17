@@ -3,6 +3,15 @@ import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
 import { CurrencyEnum } from '@utils/currency';
 
+export enum CustomerBalanceTransactionTypeEnum {
+  ADJUSTMENT = 'adjustment',
+  APPLIED_TO_INVOICE = 'applied_to_invoice',
+  CREDIT_NOTE = 'credit_note',
+  INVOICE_OVERPAID = 'invoice_overpaid',
+  UNAPPLIED_FROM_INVOICE = 'unapplied_from_invoice',
+}
+export type CustomerBalanceTransactionType = `${CustomerBalanceTransactionTypeEnum}`;
+
 export const customerSchema = Type.Object({
   object: Type.Literal('customer'),
   id: Type.String(),
@@ -97,7 +106,50 @@ export const deletedCustomerSchema = Type.Object({
   deleted: Type.Literal(true),
 });
 
+export const customerBalanceTransactionSchema = Type.Object({
+  object: Type.Literal('customer_balance_transaction'),
+  id: Type.String(),
+  livemode: Type.Boolean(),
+  customerId: Type.String(),
+  customer: Type.Optional(Type.Unknown()),
+  invoiceId: Type.Union([Type.String(), Type.Null()]),
+  creditNoteId: Type.Union([Type.String(), Type.Null()]),
+  type: Type.Unsafe<CustomerBalanceTransactionType>(Type.Enum(CustomerBalanceTransactionTypeEnum)),
+  currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
+  amount: Type.Integer(),
+  endingBalance: Type.Integer(),
+  description: Type.String(),
+  metadata: Type.Record(Type.String(), Type.String()),
+  createdAt: Type.String(),
+});
+
+export const createCustomerBalanceTransactionSchema = Type.Object(
+  {
+    amount: Type.Integer(),
+    currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
+    description: Type.Optional(Type.String()),
+    metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
+  },
+  { additionalProperties: false },
+);
+
+export const findCustomerBalanceTransactionsSchema = Type.Object(
+  {
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
+    startingAfter: Type.Optional(Type.String()),
+    endingBefore: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
 export type CustomerResponse = Static<typeof customerSchema>;
+export type CustomerBalanceTransactionResponse = Static<typeof customerBalanceTransactionSchema>;
+export type CreateCustomerBalanceTransactionPayload = Static<
+  typeof createCustomerBalanceTransactionSchema
+>;
+export type FindCustomerBalanceTransactionsQuery = Static<
+  typeof findCustomerBalanceTransactionsSchema
+>;
 export type DeletedCustomerResponse = Static<typeof deletedCustomerSchema>;
 export type CreateCustomerPayload = Static<typeof createCustomerSchema>;
 export type UpdateCustomerPayload = Static<typeof updateCustomerSchema>;

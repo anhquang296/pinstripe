@@ -161,11 +161,15 @@ export class PaymentService {
       throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
     });
 
-    await this.fastify.invoiceService.payInvoice(
-      paymentIntent.invoiceId,
-      { amount: paymentIntent.amount },
-      `payment_intent:${paymentIntent.id}`,
-    );
+    const { invoiceId } = paymentIntent;
+
+    if (invoiceId) {
+      await this.fastify.invoiceService.payInvoice(
+        invoiceId,
+        { amount: paymentIntent.amount },
+        `payment_intent:${paymentIntent.id}`,
+      );
+    }
 
     return this.buildPaymentIntent(succeededPaymentIntent);
   }

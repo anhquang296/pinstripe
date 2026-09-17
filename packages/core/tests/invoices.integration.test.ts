@@ -12,7 +12,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeSubscription as makeSubscriptionFixture } from './factories';
+import { makeSubscription as makeSubscriptionFixture, TEST_LIVEMODE } from './factories';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const SWAP_MID_CLOCK = new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString();
@@ -133,8 +133,8 @@ describe('InvoiceService.createInvoice', () => {
   it('returns the same draft when asked twice for one billing period', async () => {
     const { subscriptionId } = await makeSubscription();
 
-    const first = await fastify.invoiceService.createInvoice({ subscriptionId });
-    const second = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const first = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
+    const second = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
 
     expect(second.id).toBe(first.id);
     expect(first.status).toBe(InvoiceStatusEnum.DRAFT);
@@ -145,7 +145,7 @@ describe('InvoiceService.createInvoice', () => {
 describe('InvoiceService.finalizeInvoice', () => {
   it('freezes the rated total into line items and assigns a number', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
 
     const invoice = await fastify.invoiceService.finalizeInvoice(draft.id);
 
@@ -158,7 +158,7 @@ describe('InvoiceService.finalizeInvoice', () => {
 
   it('debits receivable and credits revenue for the invoiced total', async () => {
     const { subscriptionId, customerId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
 
     await fastify.invoiceService.finalizeInvoice(draft.id);
 
@@ -174,7 +174,7 @@ describe('InvoiceService.finalizeInvoice', () => {
 
   it('refuses to finalize an invoice twice', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
 
     await fastify.invoiceService.finalizeInvoice(draft.id);
 
@@ -186,7 +186,7 @@ describe('InvoiceService.finalizeInvoice', () => {
       _.times(3, async () => {
         const { subscriptionId } = await makeSubscription();
 
-        return fastify.invoiceService.createInvoice({ subscriptionId });
+        return fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
       }),
     );
 
@@ -210,7 +210,7 @@ describe('InvoiceService.finalizeInvoice', () => {
 describe('InvoiceService.payInvoice', () => {
   it('settles the invoice and moves the receivable into cash', async () => {
     const { subscriptionId, customerId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     const paid = await fastify.invoiceService.payInvoice(open.id, {});
@@ -229,7 +229,7 @@ describe('InvoiceService.payInvoice', () => {
 
   it('keeps the invoice open when only part of it is paid', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     const partial = await fastify.invoiceService.payInvoice(open.id, { amount: 200_000 });
@@ -240,7 +240,7 @@ describe('InvoiceService.payInvoice', () => {
 
   it('rejects a payment larger than what is still owed', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     await expect(
@@ -252,7 +252,7 @@ describe('InvoiceService.payInvoice', () => {
 describe('InvoiceService.voidInvoice', () => {
   it('reverses the receivable it had posted', async () => {
     const { subscriptionId, customerId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     const voided = await fastify.invoiceService.voidInvoice(open.id, {});
@@ -270,7 +270,7 @@ describe('InvoiceService.voidInvoice', () => {
 
   it('refuses to void an invoice that has been paid', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     await fastify.invoiceService.payInvoice(open.id, {});
@@ -282,7 +282,7 @@ describe('InvoiceService.voidInvoice', () => {
 describe('issued invoices are immutable in the database', () => {
   it('rejects a direct rewrite of the billed total', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     const act = async () => {
@@ -296,7 +296,7 @@ describe('issued invoices are immutable in the database', () => {
 
   it('rejects a direct rewrite of a line item', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
     const lineItemId = _.get(open, 'lineItems.0.id');
 
@@ -313,7 +313,7 @@ describe('issued invoices are immutable in the database', () => {
 describe('CreditNoteService.createCreditNote', () => {
   it('numbers credit notes in their own sequence and credits the receivable back', async () => {
     const { subscriptionId, customerId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     const creditNote = await fastify.creditNoteService.createCreditNote({
@@ -335,7 +335,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
   it('refuses to credit more than the invoice was worth', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     await fastify.creditNoteService.createCreditNote({
@@ -355,7 +355,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
   it('refuses to credit money the customer has already paid', async () => {
     const { subscriptionId, customerId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     await fastify.invoiceService.payInvoice(open.id, { amount: 400_000 });
@@ -380,7 +380,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
   it('settles the invoice when a payment and a credit note together cover it', async () => {
     const { subscriptionId, customerId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     await fastify.creditNoteService.createCreditNote({
@@ -407,7 +407,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
   it('settles an invoice a credit note has fully covered, so nothing keeps chasing it', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     await fastify.creditNoteService.createCreditNote({
@@ -425,7 +425,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
   it('refuses to credit a draft that can still be edited', async () => {
     const { subscriptionId } = await makeSubscription();
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
 
     await expect(
       fastify.creditNoteService.createCreditNote({

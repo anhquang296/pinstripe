@@ -35,7 +35,10 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     { schema: { body: createInvoiceSchema, response: { 201: invoiceSchema } } },
     async (request, reply) => {
-      const invoice = await fastify.invoiceService.createInvoice(request.body);
+      const invoice = await fastify.invoiceService.createInvoice(
+        request.body,
+        readLivemode(request),
+      );
 
       return ApiResponse.created(reply, invoice);
     },

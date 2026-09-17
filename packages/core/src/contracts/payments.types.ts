@@ -36,7 +36,7 @@ export const PAYMENT_INTENT_TRANSITIONS: Record<PaymentIntentStatus, PaymentInte
 export const paymentIntentSchema = Type.Object({
   object: Type.Literal('payment_intent'),
   id: Type.String(),
-  invoiceId: Type.String(),
+  invoiceId: Type.Union([Type.String(), Type.Null()]),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
   status: Type.Unsafe<PaymentIntentStatus>(Type.Enum(PaymentIntentStatusEnum)),
@@ -66,7 +66,7 @@ export const refundSchema = Type.Object({
   object: Type.Literal('refund'),
   id: Type.String(),
   paymentIntentId: Type.String(),
-  invoiceId: Type.String(),
+  invoiceId: Type.Union([Type.String(), Type.Null()]),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
@@ -122,6 +122,7 @@ export const findPaymentIntentsSchema = Type.Object(
     invoiceId: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     status: Type.Optional(Type.Unsafe<PaymentIntentStatus>(Type.Enum(PaymentIntentStatusEnum))),
+    expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );
@@ -133,6 +134,7 @@ export const findRefundsSchema = Type.Object(
     endingBefore: Type.Optional(Type.String()),
     invoiceId: Type.Optional(Type.String()),
     paymentIntentId: Type.Optional(Type.String()),
+    expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );

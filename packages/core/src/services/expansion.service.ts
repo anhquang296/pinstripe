@@ -42,6 +42,8 @@ export class ExpansionService {
 
     this.targetsByObject = {
       invoice: { customer, subscription },
+      invoiceitem: { customer },
+      customer_balance_transaction: { customer },
       subscription: { customer },
       payment_intent: { customer },
       refund: { customer },

@@ -144,6 +144,7 @@ export const findSubscriptionsSchema = Type.Object(
     endingBefore: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     status: Type.Optional(Type.Unsafe<SubscriptionStatus>(Type.Enum(SubscriptionStatusEnum))),
+    expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );

@@ -1,10 +1,17 @@
 import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { BillingReason, InvoiceStatus } from '@contracts/invoices.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
-import type { Invoice, InvoiceLineItem, NewInvoice, NewInvoiceLineItem } from '@database/schemas';
-import { invoiceLineItems, invoices } from '@database/schemas';
+import type {
+  Invoice,
+  InvoiceLineItem,
+  InvoicePayment,
+  NewInvoice,
+  NewInvoiceLineItem,
+  NewInvoicePayment,
+} from '@database/schemas';
+import { invoiceLineItems, invoicePayments, invoices } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
-import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, lt, lte, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface InvoiceFilters {
@@ -17,6 +24,8 @@ export interface InvoiceFilters {
   periodStart?: Date;
   periodEndBeforeAt?: Date;
   nextAttemptBeforeAt?: Date;
+  autoAdvance?: boolean;
+  createdBeforeAt?: Date;
   shardCount?: number;
   shardIndex?: number;
   beforeAt?: RowCursor;
@@ -98,6 +107,28 @@ export class InvoiceRepository {
     await db.insert(invoiceLineItems).values([...payload]);
   }
 
+  async findInvoicePayments(invoiceIds: readonly string[]): Promise<InvoicePayment[]> {
+    if (_.isEmpty(invoiceIds)) {
+      return [];
+    }
+
+    return this._db.master
+      .select()
+      .from(invoicePayments)
+      .where(inArray(invoicePayments.invoiceId, [...invoiceIds]))
+      .orderBy(asc(invoicePayments.paidAt), asc(invoicePayments.id));
+  }
+
+  async createInvoicePayment(
+    payload: NewInvoicePayment,
+    executor?: DatabaseTransaction,
+  ): Promise<InvoicePayment | null> {
+    const db = executor ?? this._db.master;
+    const [invoicePayment] = await db.insert(invoicePayments).values(payload).returning();
+
+    return invoicePayment ?? null;
+  }
+
   async updateInvoice(
     id: string,
     payload: Partial<NewInvoice>,
@@ -122,6 +153,8 @@ export class InvoiceRepository {
       filters.nextAttemptBeforeAt
         ? lte(invoices.nextAttemptAt, filters.nextAttemptBeforeAt)
         : undefined,
+      filters.autoAdvance === undefined ? undefined : eq(invoices.autoAdvance, filters.autoAdvance),
+      filters.createdBeforeAt ? lt(invoices.createdAt, filters.createdBeforeAt) : undefined,
       filters.shardCount && filters.shardIndex !== undefined
         ? sql`abs(hashtext(${invoices.customerId})) % ${filters.shardCount} = ${filters.shardIndex}`
         : undefined,

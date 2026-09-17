@@ -1,4 +1,7 @@
-import type { CustomerResponse as CustomerContract } from '@contracts/customers.types';
+import type {
+  CustomerBalanceTransactionType,
+  CustomerResponse as CustomerContract,
+} from '@contracts/customers.types';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
 import {
@@ -43,5 +46,38 @@ export const customers = pgTable(
   },
 );
 
+export const customerBalanceTransactions = pgTable(
+  'customer_balance_transactions',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => {
+        return customers.id;
+      }),
+    invoiceId: text('invoice_id'),
+    creditNoteId: text('credit_note_id'),
+    type: text('type').$type<CustomerBalanceTransactionType>().notNull(),
+    currency: text('currency').$type<Currency>().notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    endingBalance: bigint('ending_balance', { mode: 'number' }).notNull(),
+    description: text('description').notNull().default(''),
+    metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      index('customer_balance_transactions_customer_id_idx').on(table.customerId),
+      index('customer_balance_transactions_created_at_id_idx').on(table.createdAt, table.id),
+      uniqueIndex('customer_balance_transactions_invoice_idx')
+        .on(table.invoiceId, table.type)
+        .where(sql`invoice_id is not null`),
+    ];
+  },
+);
+
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
+export type CustomerBalanceTransaction = typeof customerBalanceTransactions.$inferSelect;
+export type NewCustomerBalanceTransaction = typeof customerBalanceTransactions.$inferInsert;

@@ -18,6 +18,7 @@ export interface WorkflowSchedules {
   billingRunBatchSize: number;
   billingRunShardCount: number;
   billingRunJitterMs: number;
+  invoiceFinalizeDelayMs: number;
   dunningIntervalMs: number;
   dunningBatchSize: number;
   dunningJitterMs: number;
@@ -48,6 +49,7 @@ export const configPlugin = fp(async (fastify) => {
     billingRunBatchSize: config.BILLING_RUN_BATCH_SIZE,
     billingRunShardCount: config.BILLING_RUN_SHARD_COUNT,
     billingRunJitterMs: config.BILLING_RUN_JITTER_MS,
+    invoiceFinalizeDelayMs: config.INVOICE_FINALIZE_DELAY_MS,
     dunningIntervalMs: config.DUNNING_INTERVAL_MS,
     dunningBatchSize: config.DUNNING_BATCH_SIZE,
     dunningJitterMs: config.DUNNING_JITTER_MS,

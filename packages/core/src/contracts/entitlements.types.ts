@@ -29,6 +29,7 @@ export const findEntitlementsSchema = Type.Object(
     endingBefore: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     productId: Type.Optional(Type.String()),
+    expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );

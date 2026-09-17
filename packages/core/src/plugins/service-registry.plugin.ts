@@ -2,12 +2,14 @@ import { ApiKeyService } from '@services/api-key.service';
 import { BillingRunService } from '@services/billing-run.service';
 import { CreditNoteService } from '@services/credit-note.service';
 import { CustomerService } from '@services/customer.service';
+import { CustomerBalanceTransactionService } from '@services/customer-balance-transaction.service';
 import { DunningService } from '@services/dunning.service';
 import { EntitlementService } from '@services/entitlement.service';
 import { EventService } from '@services/event.service';
 import { ExpansionService } from '@services/expansion.service';
 import { IdempotencyService } from '@services/idempotency.service';
 import { InvoiceService } from '@services/invoice.service';
+import { InvoiceItemService } from '@services/invoice-item.service';
 import { LedgerService } from '@services/ledger.service';
 import { MeterService } from '@services/meter.service';
 import { MeterEventService } from '@services/meter-event.service';
@@ -44,6 +46,11 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
     'invoiceService',
     new InvoiceService(fastify, { dueDays: fastify.config.INVOICE_DUE_DAYS }),
   );
+  fastify.decorate('invoiceItemService', new InvoiceItemService(fastify));
+  fastify.decorate(
+    'customerBalanceTransactionService',
+    new CustomerBalanceTransactionService(fastify),
+  );
   fastify.decorate('creditNoteService', new CreditNoteService(fastify));
   fastify.decorate('paymentService', new PaymentService(fastify));
   fastify.decorate('refundService', new RefundService(fastify));
@@ -59,7 +66,10 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   );
   fastify.decorate(
     'billingRunService',
-    new BillingRunService(fastify, { batchSize: fastify.workflowSchedules.billingRunBatchSize }),
+    new BillingRunService(fastify, {
+      batchSize: fastify.workflowSchedules.billingRunBatchSize,
+      finalizeDelayMs: fastify.workflowSchedules.invoiceFinalizeDelayMs,
+    }),
   );
   fastify.decorate('testClockService', new TestClockService(fastify));
   fastify.decorate('meterService', new MeterService(fastify));

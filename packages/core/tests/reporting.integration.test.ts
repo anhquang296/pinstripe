@@ -8,6 +8,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+import { TEST_LIVEMODE } from './factories';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const MONTHLY_AMOUNT = 500_000;
@@ -135,7 +136,7 @@ describe('ReportingService.aggregateRevenueSummary', () => {
 describe('ReconciliationService.aggregateReconciliationReport', () => {
   it('matches a collected payment against the cash it moved in the ledger', async () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
     const windowStart = new Date(Date.now() - MILLISECONDS_PER_DAY);
 
@@ -164,7 +165,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
   it('nets a refund back out so the processor and the ledger still agree', async () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
     const paymentIntent = await fastify.paymentService.createPaymentIntent(
       { invoiceId: open.id },
@@ -193,7 +194,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
   it('still matches when the invoice was only part paid', async () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
-    const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
     const paymentIntent = await fastify.paymentService.createPaymentIntent(
       {

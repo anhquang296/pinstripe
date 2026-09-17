@@ -85,9 +85,10 @@ export async function makeOpenInvoice(
   overrides: SubscriptionOverrides = {},
 ): Promise<OpenInvoiceFixture> {
   const fixture = await makeSubscription(fastify, overrides);
-  const draft = await fastify.invoiceService.createInvoice({
-    subscriptionId: fixture.subscriptionId,
-  });
+  const draft = await fastify.invoiceService.createInvoice(
+    { subscriptionId: fixture.subscriptionId },
+    TEST_LIVEMODE,
+  );
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   return { ...fixture, invoiceId: open.id };

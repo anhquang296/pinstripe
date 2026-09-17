@@ -61,6 +61,7 @@ export const envSchema = Type.Object({
   PSP_REFERENCE_PREFIX: Default(Type.String({ minLength: 1 }), 'mockpsp'),
 
   INVOICE_DUE_DAYS: Default(Type.Integer({ minimum: 0 }), 7),
+  INVOICE_FINALIZE_DELAY_MS: Default(Type.Integer({ minimum: 0 }), 3_600_000),
   DUNNING_INTERVAL_MS: Default(Type.Integer({ minimum: 1000 }), 60_000),
   DUNNING_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
   DUNNING_JITTER_MS: Default(Type.Integer({ minimum: 0 }), 5_000),

@@ -17,6 +17,9 @@ export enum LineItemTypeEnum {
   SUBSCRIPTION = 'subscription',
   USAGE = 'usage',
   PRORATION = 'proration',
+  INVOICEITEM = 'invoiceitem',
+  DISCOUNT = 'discount',
+  TAX = 'tax',
 }
 export type LineItemType = `${LineItemTypeEnum}`;
 

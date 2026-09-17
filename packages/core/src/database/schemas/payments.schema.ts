@@ -18,11 +18,9 @@ export const paymentIntents = pgTable(
   {
     id: text('id').primaryKey(),
     livemode: boolean('livemode').notNull(),
-    invoiceId: text('invoice_id')
-      .notNull()
-      .references(() => {
-        return invoices.id;
-      }),
+    invoiceId: text('invoice_id').references(() => {
+      return invoices.id;
+    }),
     customerId: text('customer_id')
       .notNull()
       .references(() => {
@@ -80,11 +78,9 @@ export const refunds = pgTable(
       .references(() => {
         return paymentIntents.id;
       }),
-    invoiceId: text('invoice_id')
-      .notNull()
-      .references(() => {
-        return invoices.id;
-      }),
+    invoiceId: text('invoice_id').references(() => {
+      return invoices.id;
+    }),
     customerId: text('customer_id')
       .notNull()
       .references(() => {

@@ -55,6 +55,17 @@ export class CustomerRepository {
       .limit(limit);
   }
 
+  async lockCustomer(id: string, executor: DatabaseTransaction): Promise<Customer | null> {
+    const [customer] = await executor
+      .select()
+      .from(customers)
+      .where(and(eq(customers.id, id), isNull(customers.deletedAt)))
+      .limit(1)
+      .for('update');
+
+    return customer ?? null;
+  }
+
   async createCustomer(
     payload: NewCustomer,
     executor?: DatabaseTransaction,

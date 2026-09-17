@@ -1,10 +1,12 @@
 import { ApiKeyRepository } from '@repositories/api-key.repository';
 import { CreditNoteRepository } from '@repositories/credit-note.repository';
 import { CustomerRepository } from '@repositories/customer.repository';
+import { CustomerBalanceTransactionRepository } from '@repositories/customer-balance-transaction.repository';
 import { EntitlementRepository } from '@repositories/entitlement.repository';
 import { EventRepository } from '@repositories/event.repository';
 import { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
 import { InvoiceRepository } from '@repositories/invoice.repository';
+import { InvoiceItemRepository } from '@repositories/invoice-item.repository';
 import { LedgerAccountRepository } from '@repositories/ledger-account.repository';
 import { LedgerTransactionRepository } from '@repositories/ledger-transaction.repository';
 import { MeterRepository } from '@repositories/meter.repository';
@@ -24,6 +26,10 @@ import fp from 'fastify-plugin';
 export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('apiKeyRepository', new ApiKeyRepository(fastify.database));
   fastify.decorate('customerRepository', new CustomerRepository(fastify.database));
+  fastify.decorate(
+    'customerBalanceTransactionRepository',
+    new CustomerBalanceTransactionRepository(fastify.database),
+  );
   fastify.decorate('eventRepository', new EventRepository(fastify.database));
   fastify.decorate('idempotencyKeyRepository', new IdempotencyKeyRepository(fastify.database));
   fastify.decorate('ledgerAccountRepository', new LedgerAccountRepository(fastify.database));
@@ -40,6 +46,7 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('subscriptionRepository', new SubscriptionRepository(fastify.database));
   fastify.decorate('testClockRepository', new TestClockRepository(fastify.database));
   fastify.decorate('invoiceRepository', new InvoiceRepository(fastify.database));
+  fastify.decorate('invoiceItemRepository', new InvoiceItemRepository(fastify.database));
   fastify.decorate('creditNoteRepository', new CreditNoteRepository(fastify.database));
   fastify.decorate('numberSequenceRepository', new NumberSequenceRepository(fastify.database));
   fastify.decorate('paymentIntentRepository', new PaymentIntentRepository(fastify.database));

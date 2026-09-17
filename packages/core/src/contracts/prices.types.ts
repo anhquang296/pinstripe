@@ -155,6 +155,7 @@ export const findPricesSchema = Type.Object(
     productId: Type.Optional(Type.String()),
     lookupKey: Type.Optional(Type.String()),
     active: Type.Optional(Type.Boolean()),
+    expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );

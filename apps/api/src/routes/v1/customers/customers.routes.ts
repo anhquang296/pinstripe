@@ -1,9 +1,12 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
+  createCustomerBalanceTransactionSchema,
   createCustomerSchema,
+  customerBalanceTransactionSchema,
   customerParamsSchema,
   customerSchema,
   deletedCustomerSchema,
+  findCustomerBalanceTransactionsSchema,
   findCustomersSchema,
   ListResponseSchema,
   updateCustomerSchema,
@@ -91,6 +94,48 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       );
 
       return ApiResponse.success(reply, deleted);
+    },
+  );
+
+  fastify.post(
+    '/:customerId/balance_transactions',
+    {
+      schema: {
+        params: customerParamsSchema,
+        body: createCustomerBalanceTransactionSchema,
+        response: { 201: customerBalanceTransactionSchema },
+      },
+    },
+    async (request, reply) => {
+      const balanceTransaction =
+        await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(
+          request.params.customerId,
+          request.body,
+          readLivemode(request),
+        );
+
+      return ApiResponse.created(reply, balanceTransaction);
+    },
+  );
+
+  fastify.get(
+    '/:customerId/balance_transactions',
+    {
+      schema: {
+        params: customerParamsSchema,
+        querystring: findCustomerBalanceTransactionsSchema,
+        response: { 200: ListResponseSchema(customerBalanceTransactionSchema) },
+      },
+    },
+    async (request, reply) => {
+      const balanceTransactions =
+        await fastify.customerBalanceTransactionService.findCustomerBalanceTransactions(
+          request.params.customerId,
+          request.query,
+          readLivemode(request),
+        );
+
+      return ApiResponse.success(reply, balanceTransactions);
     },
   );
 };

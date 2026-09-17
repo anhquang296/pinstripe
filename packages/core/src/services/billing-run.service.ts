@@ -6,11 +6,13 @@ const BILLABLE_STATUSES = [SubscriptionStatusEnum.ACTIVE, SubscriptionStatusEnum
 
 export interface BillingRunServiceConfig {
   batchSize: number;
+  finalizeDelayMs: number;
 }
 
 export interface BillingRunResult {
   drafted: number;
   scanned: number;
+  finalized: number;
 }
 
 export class BillingRunService {
@@ -41,11 +43,19 @@ export class BillingRunService {
       }
     }
 
+    const finalizeBeforeAt = new Date(runAt.getTime() - this.config.finalizeDelayMs);
+    const finalized = await this.fastify.invoiceService.advanceDraftInvoices(
+      finalizeBeforeAt,
+      job.shardCount,
+      job.shardIndex,
+      this.config.batchSize,
+    );
+
     this.fastify.log.info(
-      { shardIndex: job.shardIndex, scanned: due.length, drafted },
+      { shardIndex: job.shardIndex, scanned: due.length, drafted, finalized },
       '[BillingRunService] runBillingShard() completed',
     );
 
-    return { drafted, scanned: due.length };
+    return { drafted, scanned: due.length, finalized };
   }
 }

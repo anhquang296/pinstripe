@@ -1,4 +1,5 @@
 import type { BillingReason, InvoiceStatus, NumberSequence } from '@contracts/invoices.types';
+import type { CollectionMethod } from '@contracts/subscriptions.types';
 import { customers } from '@database/schemas/customers.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
@@ -18,6 +19,17 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
+
+export interface InvoiceLineDiscountAmount {
+  discountId: string;
+  amount: number;
+}
+
+export interface InvoiceLineTaxAmount {
+  taxRateId: string;
+  amount: number;
+  isInclusive: boolean;
+}
 
 export const numberSequences = pgTable(
   'number_sequences',
@@ -48,10 +60,20 @@ export const invoices = pgTable(
     status: text('status').$type<InvoiceStatus>().notNull(),
     billingReason: text('billing_reason').$type<BillingReason>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
+    collectionMethod: text('collection_method').$type<CollectionMethod>().notNull(),
+    autoAdvance: boolean('auto_advance').notNull().default(true),
+    daysUntilDue: integer('days_until_due'),
+    attempted: boolean('attempted').notNull().default(false),
     periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
     periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
     subtotal: bigint('subtotal', { mode: 'number' }).notNull().default(0),
+    subtotalExcludingTax: bigint('subtotal_excluding_tax', { mode: 'number' }).notNull().default(0),
+    totalDiscountAmount: bigint('total_discount_amount', { mode: 'number' }).notNull().default(0),
+    totalTaxAmount: bigint('total_tax_amount', { mode: 'number' }).notNull().default(0),
     total: bigint('total', { mode: 'number' }).notNull().default(0),
+    startingBalance: bigint('starting_balance', { mode: 'number' }).notNull().default(0),
+    endingBalance: bigint('ending_balance', { mode: 'number' }).notNull().default(0),
+    amountDue: bigint('amount_due', { mode: 'number' }).notNull().default(0),
     amountPaid: bigint('amount_paid', { mode: 'number' }).notNull().default(0),
     dueAt: timestamp('due_at', { withTimezone: true }),
     attemptCount: integer('attempt_count').notNull().default(0),
@@ -88,14 +110,22 @@ export const invoiceLineItems = pgTable(
         return invoices.id;
       }),
     subscriptionItemId: text('subscription_item_id'),
-    priceId: text('price_id')
-      .notNull()
-      .references(() => {
-        return prices.id;
-      }),
+    invoiceItemId: text('invoice_item_id'),
+    priceId: text('price_id').references(() => {
+      return prices.id;
+    }),
     type: text('type').$type<LineItemType>().notNull(),
+    description: text('description').notNull().default(''),
     quantity: doublePrecision('quantity').notNull(),
+    unitAmount: bigint('unit_amount', { mode: 'number' }),
     amount: bigint('amount', { mode: 'number' }).notNull(),
+    amountExcludingTax: bigint('amount_excluding_tax', { mode: 'number' }).notNull().default(0),
+    discountable: boolean('discountable').notNull().default(true),
+    discountAmounts: jsonb('discount_amounts')
+      .$type<InvoiceLineDiscountAmount[]>()
+      .notNull()
+      .default([]),
+    taxAmounts: jsonb('tax_amounts').$type<InvoiceLineTaxAmount[]>().notNull().default([]),
     periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
     periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
     prorationFactor: doublePrecision('proration_factor').notNull(),
@@ -137,9 +167,78 @@ export const creditNotes = pgTable(
   },
 );
 
+export const invoiceItems = pgTable(
+  'invoice_items',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => {
+        return customers.id;
+      }),
+    invoiceId: text('invoice_id').references(() => {
+      return invoices.id;
+    }),
+    subscriptionId: text('subscription_id').references(() => {
+      return subscriptions.id;
+    }),
+    priceId: text('price_id').references(() => {
+      return prices.id;
+    }),
+    currency: text('currency').$type<Currency>().notNull(),
+    description: text('description').notNull().default(''),
+    quantity: doublePrecision('quantity').notNull().default(1),
+    unitAmount: bigint('unit_amount', { mode: 'number' }),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    discountable: boolean('discountable').notNull().default(true),
+    periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
+    periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
+    metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (table) => {
+    return [
+      index('invoice_items_customer_id_idx').on(table.customerId),
+      index('invoice_items_invoice_id_idx').on(table.invoiceId),
+      index('invoice_items_created_at_id_idx').on(table.createdAt, table.id),
+    ];
+  },
+);
+
+export const invoicePayments = pgTable(
+  'invoice_payments',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    invoiceId: text('invoice_id')
+      .notNull()
+      .references(() => {
+        return invoices.id;
+      }),
+    paymentIntentId: text('payment_intent_id'),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    settlementReference: text('settlement_reference'),
+    paidAt: timestamp('paid_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      index('invoice_payments_invoice_id_idx').on(table.invoiceId),
+      index('invoice_payments_payment_intent_id_idx').on(table.paymentIntentId),
+    ];
+  },
+);
+
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
 export type NewInvoiceLineItem = typeof invoiceLineItems.$inferInsert;
 export type CreditNote = typeof creditNotes.$inferSelect;
 export type NewCreditNote = typeof creditNotes.$inferInsert;
+export type InvoiceItem = typeof invoiceItems.$inferSelect;
+export type NewInvoiceItem = typeof invoiceItems.$inferInsert;
+export type InvoicePayment = typeof invoicePayments.$inferSelect;
+export type NewInvoicePayment = typeof invoicePayments.$inferInsert;
