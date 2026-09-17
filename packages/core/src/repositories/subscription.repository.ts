@@ -4,10 +4,12 @@ import type { Database, DatabaseClient, DatabaseTransaction } from '@database/da
 import type {
   NewSubscription,
   NewSubscriptionItem,
+  NewSubscriptionItemChange,
   Subscription,
   SubscriptionItem,
+  SubscriptionItemChange,
 } from '@database/schemas';
-import { subscriptionItems, subscriptions } from '@database/schemas';
+import { subscriptionItemChanges, subscriptionItems, subscriptions } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
 import {
   and,
@@ -30,6 +32,13 @@ export interface SubscriptionItemFilters {
   ids?: readonly string[];
   subscriptionIds?: readonly string[];
   deletedAtIsNull?: boolean;
+}
+
+export interface SubscriptionItemChangeFilters {
+  ids?: readonly string[];
+  subscriptionIds?: readonly string[];
+  subscriptionItemIds?: readonly string[];
+  billedThroughIsNull?: boolean;
   billedFromBeforeAt?: Date;
   billedThroughAfterAt?: Date;
 }
@@ -42,6 +51,9 @@ export interface SubscriptionFilters {
   statusNe?: SubscriptionStatus;
   testClockId?: string;
   currentPeriodEndTo?: Date;
+  cancelAtTo?: Date;
+  pauseResumesAtTo?: Date;
+  updatedAtTo?: Date;
   statuses?: readonly SubscriptionStatus[];
   shardCount?: number;
   shardIndex?: number;
@@ -80,6 +92,11 @@ export class SubscriptionRepository {
       filters.currentPeriodEndTo
         ? lte(subscriptions.currentPeriodEnd, filters.currentPeriodEndTo)
         : undefined,
+      filters.cancelAtTo ? lte(subscriptions.cancelAt, filters.cancelAtTo) : undefined,
+      filters.pauseResumesAtTo
+        ? lte(subscriptions.pauseCollectionResumesAt, filters.pauseResumesAtTo)
+        : undefined,
+      filters.updatedAtTo ? lte(subscriptions.updatedAt, filters.updatedAtTo) : undefined,
       filters.statuses ? inArray(subscriptions.status, [...filters.statuses]) : undefined,
       filters.shardCount && filters.shardIndex !== undefined
         ? sql`abs(hashtext(${subscriptions.id})) % ${filters.shardCount} = ${filters.shardIndex}`
@@ -98,6 +115,16 @@ export class SubscriptionRepository {
       .where(where)
       .orderBy(desc(subscriptions.createdAt), desc(subscriptions.id))
       .limit(limit);
+  }
+
+  async findSubscriptionItem(id: string): Promise<SubscriptionItem | null> {
+    const [subscriptionItem] = await this._db.master
+      .select()
+      .from(subscriptionItems)
+      .where(eq(subscriptionItems.id, id))
+      .limit(1);
+
+    return subscriptionItem ?? null;
   }
 
   async findSubscriptionItems(
@@ -120,15 +147,6 @@ export class SubscriptionRepository {
         : filters.deletedAtIsNull
           ? isNull(subscriptionItems.deletedAt)
           : isNotNull(subscriptionItems.deletedAt),
-      filters.billedFromBeforeAt
-        ? lt(subscriptionItems.billedFrom, filters.billedFromBeforeAt)
-        : undefined,
-      filters.billedThroughAfterAt
-        ? or(
-            isNull(subscriptionItems.billedThrough),
-            gt(subscriptionItems.billedThrough, filters.billedThroughAfterAt),
-          )
-        : undefined,
     );
 
     return db
@@ -138,47 +156,60 @@ export class SubscriptionRepository {
       .orderBy(asc(subscriptionItems.createdAt));
   }
 
-  async markSubscriptionItemsInvoiced(
-    ids: readonly string[],
+  async findSubscriptionItemChanges(
+    filters: SubscriptionItemChangeFilters = {},
     executor?: DatabaseTransaction,
-  ): Promise<void> {
-    if (_.isEmpty(ids)) {
-      return;
+  ): Promise<SubscriptionItemChange[]> {
+    const subscriptionIds = filters.subscriptionIds;
+
+    if (subscriptionIds && _.isEmpty(subscriptionIds)) {
+      return [];
     }
 
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
 
-    await db
-      .update(subscriptionItems)
-      .set({ invoicedThrough: sql`${subscriptionItems.billedThrough}` })
-      .where(inArray(subscriptionItems.id, [...ids]));
-  }
+    const where = and(
+      filters.ids ? inArray(subscriptionItemChanges.id, [...filters.ids]) : undefined,
+      subscriptionIds
+        ? inArray(subscriptionItemChanges.subscriptionId, [...subscriptionIds])
+        : undefined,
+      filters.subscriptionItemIds
+        ? inArray(subscriptionItemChanges.subscriptionItemId, [...filters.subscriptionItemIds])
+        : undefined,
+      filters.billedThroughIsNull === undefined
+        ? undefined
+        : filters.billedThroughIsNull
+          ? isNull(subscriptionItemChanges.billedThrough)
+          : isNotNull(subscriptionItemChanges.billedThrough),
+      filters.billedFromBeforeAt
+        ? lt(subscriptionItemChanges.billedFrom, filters.billedFromBeforeAt)
+        : undefined,
+      filters.billedThroughAfterAt
+        ? or(
+            isNull(subscriptionItemChanges.billedThrough),
+            gt(subscriptionItemChanges.billedThrough, filters.billedThroughAfterAt),
+          )
+        : undefined,
+    );
 
-  async reopenSubscriptionItemInvoicing(
-    ids: readonly string[],
-    executor?: DatabaseTransaction,
-  ): Promise<void> {
-    if (_.isEmpty(ids)) {
-      return;
-    }
-
-    const db: Database | DatabaseTransaction = executor ?? this._db.master;
-
-    await db
-      .update(subscriptionItems)
-      .set({ invoicedThrough: null })
-      .where(inArray(subscriptionItems.id, [...ids]));
+    return db
+      .select()
+      .from(subscriptionItemChanges)
+      .where(where)
+      .orderBy(asc(subscriptionItemChanges.billedFrom), asc(subscriptionItemChanges.id));
   }
 
   async createSubscription(
     payload: NewSubscription,
     items: readonly NewSubscriptionItem[],
+    changes: readonly NewSubscriptionItemChange[],
     executor?: DatabaseTransaction,
   ): Promise<Subscription | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
     const [subscription] = await db.insert(subscriptions).values(payload).returning();
 
     await db.insert(subscriptionItems).values([...items]);
+    await db.insert(subscriptionItemChanges).values([...changes]);
 
     return subscription ?? null;
   }
@@ -198,25 +229,115 @@ export class SubscriptionRepository {
     return subscription ?? null;
   }
 
-  async replaceSubscriptionItems(
-    subscriptionId: string,
+  async createSubscriptionItems(
     items: readonly NewSubscriptionItem[],
-    deletedAt: Date,
-    billedThrough: Date,
     executor?: DatabaseTransaction,
   ): Promise<void> {
+    if (_.isEmpty(items)) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db.insert(subscriptionItems).values([...items]);
+  }
+
+  async updateSubscriptionItem(
+    id: string,
+    payload: Partial<NewSubscriptionItem>,
+    executor?: DatabaseTransaction,
+  ): Promise<SubscriptionItem | null> {
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+    const [subscriptionItem] = await db
+      .update(subscriptionItems)
+      .set(payload)
+      .where(eq(subscriptionItems.id, id))
+      .returning();
+
+    return subscriptionItem ?? null;
+  }
+
+  async deleteSubscriptionItems(
+    ids: readonly string[],
+    deletedAt: Date,
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (_.isEmpty(ids)) {
+      return;
+    }
+
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
 
     await db
       .update(subscriptionItems)
-      .set({ deletedAt, billedThrough })
+      .set({ deletedAt })
+      .where(inArray(subscriptionItems.id, [...ids]));
+  }
+
+  async createSubscriptionItemChanges(
+    changes: readonly NewSubscriptionItemChange[],
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (_.isEmpty(changes)) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db.insert(subscriptionItemChanges).values([...changes]);
+  }
+
+  async closeSubscriptionItemChanges(
+    subscriptionItemIds: readonly string[],
+    billedThrough: Date,
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (_.isEmpty(subscriptionItemIds)) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db
+      .update(subscriptionItemChanges)
+      .set({ billedThrough })
       .where(
         and(
-          eq(subscriptionItems.subscriptionId, subscriptionId),
-          isNull(subscriptionItems.deletedAt),
+          inArray(subscriptionItemChanges.subscriptionItemId, [...subscriptionItemIds]),
+          isNull(subscriptionItemChanges.billedThrough),
         ),
       );
+  }
 
-    await db.insert(subscriptionItems).values([...items]);
+  async markSubscriptionItemChangesInvoiced(
+    ids: readonly string[],
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (_.isEmpty(ids)) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db
+      .update(subscriptionItemChanges)
+      .set({ invoicedThrough: sql`${subscriptionItemChanges.billedThrough}` })
+      .where(inArray(subscriptionItemChanges.id, [...ids]));
+  }
+
+  async reopenSubscriptionItemChangeInvoicing(
+    ids: readonly string[],
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (_.isEmpty(ids)) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db
+      .update(subscriptionItemChanges)
+      .set({ invoicedThrough: null })
+      .where(inArray(subscriptionItemChanges.id, [...ids]));
   }
 }

@@ -1,1 +1,2 @@
 export const MAX_ITEMS_PER_SUBSCRIPTION = 100;
+export const INCOMPLETE_EXPIRY_HOURS = 23;

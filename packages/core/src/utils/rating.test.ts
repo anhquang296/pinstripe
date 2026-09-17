@@ -31,6 +31,7 @@ function makePrice(overrides: Partial<RatingPrice> = {}): RatingPrice {
 function makeLine(overrides: Partial<RatingLine> = {}): RatingLine {
   return {
     subscriptionItemId: 'si_test',
+    subscriptionItemChangeId: 'sic_test',
     price: makePrice(),
     type: LineItemTypeEnum.SUBSCRIPTION,
     quantity: 1,

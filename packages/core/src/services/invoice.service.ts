@@ -21,7 +21,8 @@ import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type { TaxBehavior } from '@contracts/prices.types';
 import { TaxBehaviorEnum } from '@contracts/prices.types';
 import type { RatedInvoiceResponse } from '@contracts/rating.types';
-import { CollectionMethodEnum } from '@contracts/subscriptions.types';
+import type { PauseCollectionBehavior } from '@contracts/subscriptions.types';
+import { CollectionMethodEnum, PauseCollectionBehaviorEnum } from '@contracts/subscriptions.types';
 import type { DatabaseTransaction } from '@database/database.client';
 import type {
   Customer,
@@ -53,6 +54,7 @@ export interface EnsuredInvoice {
 
 export interface InvoiceDraftLine {
   subscriptionItemId: string | null;
+  subscriptionItemChangeId: string | null;
   invoiceItemId: string | null;
   priceId: string | null;
   type: LineItemType;
@@ -118,7 +120,7 @@ export class InvoiceService {
     livemode: boolean,
   ): Promise<Invoice> {
     const customer = await this.fastify.customerService.getCustomer(customerId, livemode);
-    const now = this.fastify.clock.now();
+    const now = await this.fastify.clockService.resolveCustomerNow(customerId);
     const id = generateGid(ObjectPrefixEnum.INVOICE);
 
     const {
@@ -173,7 +175,7 @@ export class InvoiceService {
     }
 
     const id = generateGid(ObjectPrefixEnum.INVOICE);
-    const now = this.fastify.clock.now();
+    const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
 
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
@@ -233,13 +235,74 @@ export class InvoiceService {
     InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.OPEN);
 
     const lines = await this.collectInvoiceLines(invoice);
-    const now = this.fastify.clock.now();
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
 
     const finalizedInvoice = await this.fastify.database.master.transaction(async (tx) => {
       return this.writeFinalizedInvoice(invoice, lines, now, tx);
     });
 
     return this.buildInvoice(finalizedInvoice);
+  }
+
+  async markInvoiceUncollectible(id: string): Promise<InvoiceResponse> {
+    const invoice = await this.getInvoiceEntity(id);
+
+    InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.UNCOLLECTIBLE);
+
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
+
+    const abandonedInvoice = await this.fastify.database.master.transaction(async (tx) => {
+      const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
+        invoice.id,
+        {
+          status: InvoiceStatusEnum.UNCOLLECTIBLE,
+          nextAttemptAt: null,
+          updatedAt: now,
+        },
+        tx,
+      );
+
+      if (updatedInvoice) {
+        await this.recordInvoiceEvent(
+          updatedInvoice,
+          DomainEventTypeEnum.INVOICE_MARKED_UNCOLLECTIBLE,
+          tx,
+        );
+
+        return updatedInvoice;
+      }
+
+      throw new NotFoundError(`No such invoice: ${invoice.id}`);
+    });
+
+    return this.buildInvoice(abandonedInvoice);
+  }
+
+  async applyPauseCollection(
+    invoice: Invoice,
+    behavior: PauseCollectionBehavior,
+  ): Promise<InvoiceResponse> {
+    if (behavior === PauseCollectionBehaviorEnum.VOID) {
+      return this.voidInvoice(invoice.id, {});
+    }
+
+    if (behavior === PauseCollectionBehaviorEnum.MARK_UNCOLLECTIBLE) {
+      const open = await this.finalizeInvoice(invoice.id);
+
+      return this.markInvoiceUncollectible(open.id);
+    }
+
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
+    const held = await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
+      autoAdvance: false,
+      updatedAt: now,
+    });
+
+    if (held) {
+      return this.buildInvoice(held);
+    }
+
+    throw new NotFoundError(`No such invoice: ${invoice.id}`);
   }
 
   private async collectInvoiceLines(invoice: Invoice): Promise<InvoiceDraftLine[]> {
@@ -287,6 +350,7 @@ export class InvoiceService {
 
       return {
         subscriptionItemId: lineItem.subscriptionItemId,
+        subscriptionItemChangeId: lineItem.subscriptionItemChangeId,
         invoiceItemId: null,
         priceId: lineItem.priceId,
         type: lineItem.type,
@@ -333,6 +397,7 @@ export class InvoiceService {
     return _.map(invoiceItems, (invoiceItem): InvoiceDraftLine => {
       return {
         subscriptionItemId: null,
+        subscriptionItemChangeId: null,
         invoiceItemId: invoiceItem.id,
         priceId: invoiceItem.priceId,
         type: LineItemTypeEnum.INVOICEITEM,
@@ -433,8 +498,8 @@ export class InvoiceService {
       const lines = await this.buildSubscriptionLines(subscription, rated.lineItems);
       const finalizedInvoice = await this.writeFinalizedInvoice(invoice, lines, now, tx);
 
-      await this.fastify.subscriptionRepository.markSubscriptionItemsInvoiced(
-        _.map(rated.lineItems, 'subscriptionItemId'),
+      await this.fastify.subscriptionRepository.markSubscriptionItemChangesInvoiced(
+        _.map(rated.lineItems, 'subscriptionItemChangeId'),
         tx,
       );
 
@@ -466,6 +531,7 @@ export class InvoiceService {
         livemode: invoice.livemode,
         invoiceId: invoice.id,
         subscriptionItemId: line.subscriptionItemId,
+        subscriptionItemChangeId: line.subscriptionItemChangeId,
         invoiceItemId: line.invoiceItemId,
         priceId: line.priceId,
         type: line.type,
@@ -664,7 +730,8 @@ export class InvoiceService {
     payload: PayInvoicePayload,
     settlementReference?: string,
   ): Promise<InvoiceResponse> {
-    const now = this.fastify.clock.now();
+    const invoiceEntity = await this.getInvoiceEntity(id);
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoiceEntity);
 
     const paidInvoice = await this.fastify.database.master.transaction(async (tx) => {
       const invoice = await this.getLockedInvoiceEntity(id, tx);
@@ -739,7 +806,7 @@ export class InvoiceService {
       );
     }
 
-    const now = this.fastify.clock.now();
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
 
     const voidedInvoice = await this.fastify.database.master.transaction(async (tx) => {
       const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
@@ -831,12 +898,9 @@ export class InvoiceService {
 
   private async reopenInvoicedItems(invoiceId: string, tx: DatabaseTransaction): Promise<void> {
     const lineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([invoiceId]);
-    const subscriptionItemIds = _.compact(_.map(lineItems, 'subscriptionItemId'));
+    const changeIds = _.compact(_.map(lineItems, 'subscriptionItemChangeId'));
 
-    await this.fastify.subscriptionRepository.reopenSubscriptionItemInvoicing(
-      subscriptionItemIds,
-      tx,
-    );
+    await this.fastify.subscriptionRepository.reopenSubscriptionItemChangeInvoicing(changeIds, tx);
   }
 
   private async findPeriodInvoice(subscription: Subscription): Promise<Invoice | null> {

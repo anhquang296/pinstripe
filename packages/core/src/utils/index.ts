@@ -7,4 +7,5 @@ export * from '@utils/rate-limit';
 export * from '@utils/rating';
 export * from '@utils/recurring-amount';
 export * from '@utils/redis-key-factory';
+export * from '@utils/subscription-price';
 export * from '@utils/webhook-signature';

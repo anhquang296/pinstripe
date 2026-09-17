@@ -17,6 +17,7 @@ export const ratedInvoiceSchema = Type.Object({
     Type.Object({
       object: Type.Literal('rated_line_item'),
       subscriptionItemId: Type.String(),
+      subscriptionItemChangeId: Type.String(),
       priceId: Type.String(),
       type: Type.Unsafe<LineItemType>(Type.Enum(LineItemTypeEnum)),
       quantity: Type.Number(),

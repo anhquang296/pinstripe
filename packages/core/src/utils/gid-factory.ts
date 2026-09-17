@@ -10,6 +10,7 @@ export enum ObjectPrefixEnum {
   PRICE = 'price',
   SUBSCRIPTION = 'sub',
   SUBSCRIPTION_ITEM = 'si',
+  SUBSCRIPTION_ITEM_CHANGE = 'sic',
   SUBSCRIPTION_SCHEDULE = 'sub_sched',
   INVOICE = 'in',
   INVOICE_LINE_ITEM = 'il',
