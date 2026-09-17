@@ -79,14 +79,20 @@ export class PinstripeTransport {
     signal: AbortSignal | undefined,
     canRetry: boolean,
   ): Promise<Response | null> {
+    if (signal?.aborted) {
+      throw new PinstripeConnectionError('Request was aborted', signal.reason);
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
     }, this._timeoutMs);
 
-    signal?.addEventListener('abort', () => {
+    const abortFromCaller = () => {
       controller.abort();
-    });
+    };
+
+    signal?.addEventListener('abort', abortFromCaller, { once: true });
 
     try {
       return await this._fetch(url, { ...init, signal: controller.signal });
@@ -102,6 +108,7 @@ export class PinstripeTransport {
       throw new PinstripeConnectionError('Failed to reach the Pinstripe API', error);
     } finally {
       clearTimeout(timeout);
+      signal?.removeEventListener('abort', abortFromCaller);
     }
   }
 
@@ -166,7 +173,11 @@ export class PinstripeTransport {
       return null as T;
     }
 
-    return (await response.json()) as T;
+    try {
+      return (await response.json()) as T;
+    } catch (error) {
+      throw new PinstripeConnectionError('Pinstripe API returned a body that is not JSON', error);
+    }
   }
 
   private async _buildError(response: Response): Promise<Error> {

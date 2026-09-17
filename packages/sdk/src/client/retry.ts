@@ -25,7 +25,7 @@ export function resolveBackoffMs(attempt: number, retryAfterHeader: string | nul
   const retryAfterMs = resolveRetryAfterMs(retryAfterHeader);
 
   if (retryAfterMs !== null) {
-    return retryAfterMs;
+    return Math.min(DEFAULT_MAX_RETRY_DELAY_MS, retryAfterMs);
   }
 
   const exponentialMs = Math.min(DEFAULT_MAX_RETRY_DELAY_MS, DEFAULT_RETRY_BASE_MS * 2 ** attempt);

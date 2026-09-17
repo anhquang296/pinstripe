@@ -41,7 +41,11 @@ export default function InvoicesPage() {
   });
   const { mutate: finalizeInvoice, isPending: isFinalizing } = useFinalizeInvoiceMutation({
     successMessage: (invoice) => {
-      return `Đã phát hành ${invoice.number}.`;
+      if (invoice.number) {
+        return `Đã phát hành ${invoice.number}.`;
+      }
+
+      return 'Đã phát hành hóa đơn.';
     },
   });
   const { mutate: chargeInvoice, isPending: isCharging } = useChargeInvoiceMutation();

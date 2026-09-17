@@ -15,7 +15,8 @@ function useInvoiceInvalidation() {
   const queryClient = useQueryClient();
   const { queries } = usePinstripeContext();
 
-  return () => {
+  return (invoiceId: string) => {
+    queryClient.invalidateQueries({ queryKey: queries.invoice.invoice(invoiceId).queryKey });
     queryClient.invalidateQueries({ queryKey: queries.invoice.invoices._def });
     queryClient.invalidateQueries({ queryKey: queries.invoice.creditNotes._def });
     queryClient.invalidateQueries({ queryKey: queries.ledger.accounts._def });
@@ -33,7 +34,7 @@ export function useCreateInvoiceMutation({ successMessage }: MutationProps<Invoi
       return client.invoices.create(payload);
     },
     onSuccess: (invoice) => {
-      invalidate();
+      invalidate(invoice.id);
       notifySuccess(invoice);
     },
     onError: notifyError,
@@ -52,7 +53,7 @@ export function useFinalizeInvoiceMutation({
       return client.invoices.finalize(invoiceId);
     },
     onSuccess: (invoice) => {
-      invalidate();
+      invalidate(invoice.id);
       notifySuccess(invoice);
     },
     onError: notifyError,
@@ -69,7 +70,7 @@ export function usePayInvoiceMutation({ successMessage }: MutationProps<InvoiceR
       return client.invoices.pay(id, payload);
     },
     onSuccess: (invoice) => {
-      invalidate();
+      invalidate(invoice.id);
       notifySuccess(invoice);
     },
     onError: notifyError,
@@ -86,7 +87,7 @@ export function useVoidInvoiceMutation({ successMessage }: MutationProps<Invoice
       return client.invoices.void(id, payload);
     },
     onSuccess: (invoice) => {
-      invalidate();
+      invalidate(invoice.id);
       notifySuccess(invoice);
     },
     onError: notifyError,
@@ -105,7 +106,7 @@ export function useCreateCreditNoteMutation({
       return client.creditNotes.create(payload);
     },
     onSuccess: (creditNote) => {
-      invalidate();
+      invalidate(creditNote.invoiceId);
       notifySuccess(creditNote);
     },
     onError: notifyError,

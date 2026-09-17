@@ -1,4 +1,4 @@
-import { find, get, map } from 'lodash-es';
+import { find, get, map, startsWith } from 'lodash-es';
 import { type ChangeEvent, useCallback } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -22,8 +22,9 @@ export default function AppLayout() {
   const navigate = useNavigate();
 
   const activeNavItem = find(NAV_ITEMS, (navItem) => {
-    return pathname.startsWith(navItem.to);
+    return startsWith(pathname, navItem.to);
   });
+
   const activeTo = get(activeNavItem, 'to', '');
 
   const handleOnNavChange = useCallback(
