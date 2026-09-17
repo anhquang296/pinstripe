@@ -38,11 +38,26 @@ stateDiagram-v2
 
 `ensureDraftInvoice` — [invoice.service.ts:53-110](../../packages/core/src/services/invoice.service.ts) — idempotent theo kỳ:
 
-1. `findPeriodInvoice` tìm hoá đơn có `periodStart` trùng `subscription.currentPeriodStart` — có rồi thì trả về, `isCreated: false`.
+1. `findPeriodInvoice` tìm hoá đơn `billing_reason = subscription_cycle` có `periodStart` trùng `subscription.currentPeriodStart` — có rồi thì trả về, `isCreated: false`.
 2. Chưa có → INSERT nháp (`subtotal`/`total`/`amountPaid` = 0, `number` = `null`) + event `invoice.created`.
 3. Đụng unique violation (hai tiến trình chạy cùng lúc) → tìm lại, trả hoá đơn của kẻ thắng cuộc.
 
 Bước 3 là lý do billing run chạy nhiều shard song song vẫn không tạo hoá đơn trùng.
+
+## Hai lý do phát hành
+
+`billing_reason` phân biệt hai loại hoá đơn dùng chung một kỳ:
+
+| `billing_reason`      | Ai tạo                                                       | Phủ gì                                 |
+| --------------------- | ------------------------------------------------------------ | -------------------------------------- |
+| `subscription_cycle`  | billing run, sau khi kỳ kết thúc                             | toàn bộ item còn cửa sổ mở trong kỳ    |
+| `subscription_update` | `updateSubscription` với `prorationBehavior: always_invoice` | các cửa sổ vừa đóng, chưa xuất hoá đơn |
+
+Tính duy nhất "một hoá đơn mỗi kỳ" vì thế là **partial**: `UNIQUE (subscription_id, period_start) WHERE billing_reason = 'subscription_cycle'`.
+
+> `findPeriodInvoice` **bắt buộc** lọc theo `billing_reason`. Không lọc, nó trả về hoá đơn proration như "draft của kỳ này", `ensureDraftInvoice` báo `isCreated: false`, và billing run âm thầm ngừng draft — không có gì throw. Xem [ADR 0013](../adr/0013-arrears-proration.md).
+
+Hoá đơn `subscription_update` được tạo, phát hành và post sổ cái **trong cùng transaction** với lần đổi item, nên một lần update bị từ chối không để lại hoá đơn mồ côi. Nó vào dunning như mọi hoá đơn OPEN khác.
 
 ## Finalize — bước quan trọng nhất
 

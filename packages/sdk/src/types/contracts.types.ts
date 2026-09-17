@@ -1,5 +1,6 @@
 export type {
   AdvanceTestClockPayload,
+  BillingReason,
   CancelPaymentIntentPayload,
   CancelSubscriptionPayload,
   ConfirmPaymentIntentPayload,
@@ -53,6 +54,7 @@ export type {
   PostLedgerTransactionPayload,
   PriceResponse,
   ProductResponse,
+  ProrationBehavior,
   RatedInvoiceResponse,
   ReconciliationReportResponse,
   RefundResponse,

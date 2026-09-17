@@ -134,11 +134,27 @@ Lưu ý: `GET /v1/entitlements` **không** đi qua cache, nó đọc thẳng DB.
 
 ## Bảng DB
 
-| Bảng                 | Điểm cần nhớ                                                                                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `subscriptions`      | `currentPeriodStart/End`, `chargedThroughDate`, `trialStart/End`, `canceledAt`, `endedAt`, `testClockId` — các cột nullable ở đây đều là trạng thái thật ("chưa xảy ra") |
-| `subscription_items` | `replaceSubscriptionItems` thay toàn bộ, không patch từng dòng                                                                                                           |
-| `entitlements`       | upsert theo unique index `(subscriptionId, productId)` — một khách có thể có hai hàng cho cùng product nếu quyền đến từ hai subscription                                 |
+| Bảng                 | Điểm cần nhớ                                                                                                                                                                                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `subscriptions`      | `currentPeriodStart/End`, `chargedThroughDate`, `trialStart/End`, `canceledAt`, `endedAt`, `testClockId` — các cột nullable ở đây đều là trạng thái thật ("chưa xảy ra")                                                                         |
+| `subscription_items` | `replaceSubscriptionItems` thay toàn bộ, không patch từng dòng. `created_at`/`deleted_at` là vòng đời; `billed_from`/`billed_through`/`invoiced_through` là **cửa sổ tính tiền** và dưới `prorationBehavior: none` chúng cố ý lệch khỏi vòng đời |
+| `entitlements`       | upsert theo unique index `(subscriptionId, productId)` — một khách có thể có hai hàng cho cùng product nếu quyền đến từ hai subscription                                                                                                         |
+
+## Đổi item giữa kỳ
+
+`updateSubscription` nhận `prorationBehavior`, chỉ hợp lệ khi payload có `items` — gửi kèm mà không
+đổi item thì 400.
+
+| Giá trị                        | Item bị gỡ                                 | Item mới                                  | Hoá đơn                           |
+| ------------------------------ | ------------------------------------------ | ----------------------------------------- | --------------------------------- |
+| `create_prorations` (mặc định) | `billed_through = now`, bill lát đã dùng   | `billed_from = now`                       | cả hai chờ cuối kỳ                |
+| `none`                         | `billed_through = periodStart`, không bill | `billed_from = periodStart`, bill trọn kỳ | chờ cuối kỳ                       |
+| `always_invoice`               | như `create_prorations`                    | như `create_prorations`                   | lát đã đóng xuất hoá đơn **ngay** |
+
+`none` là thứ một lần tăng giá cho toàn bộ khách hàng cần: giá mới áp trọn kỳ, không cắt lát.
+
+Hệ bill in arrears nên item bị gỡ sinh dòng **dương** cho phần đã dùng, không phải credit âm kiểu
+Stripe — [ADR 0013](../adr/0013-arrears-proration.md).
 
 ## Đọc tiếp
 

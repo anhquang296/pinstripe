@@ -1,9 +1,16 @@
 import { UsageTypeEnum } from '@contracts/prices.types';
 import type { RatedInvoiceResponse } from '@contracts/rating.types';
+import type { DatabaseTransaction } from '@database/database.client';
 import type { Price, Subscription, SubscriptionItem } from '@database/schemas';
 import { BadRequestError, NotFoundError } from '@errors/app.error';
-import type { LineItemType, RatedLineItem, RatingLine, RatingPrice } from '@utils/rating';
-import { LineItemTypeEnum, rateLines } from '@utils/rating';
+import type {
+  BillingWindow,
+  LineItemType,
+  RatedLineItem,
+  RatingLine,
+  RatingPrice,
+} from '@utils/rating';
+import { LineItemTypeEnum, rateLines, resolveBillingWindow } from '@utils/rating';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -11,15 +18,50 @@ export class RatingService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async rateUpcomingInvoice(subscriptionId: string): Promise<RatedInvoiceResponse> {
+    const subscription = await this.getSubscription(subscriptionId);
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [subscriptionId],
+      billedFromBeforeAt: subscription.currentPeriodEnd,
+      billedThroughAfterAt: subscription.currentPeriodStart,
+    });
+
+    return this.rateSubscriptionItems(subscription, subscriptionItems);
+  }
+
+  async rateProrationInvoice(
+    subscriptionId: string,
+    executor?: DatabaseTransaction,
+  ): Promise<RatedInvoiceResponse> {
+    const subscription = await this.getSubscription(subscriptionId);
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems(
+      {
+        subscriptionIds: [subscriptionId],
+        deletedAtIsNull: false,
+        billedFromBeforeAt: subscription.currentPeriodEnd,
+        billedThroughAfterAt: subscription.currentPeriodStart,
+      },
+      executor,
+    );
+
+    return this.rateSubscriptionItems(subscription, subscriptionItems);
+  }
+
+  private async getSubscription(subscriptionId: string): Promise<Subscription> {
     const subscription = await this.fastify.subscriptionRepository.findSubscription(subscriptionId);
 
-    if (!subscription) {
-      throw new NotFoundError(`No such subscription: ${subscriptionId}`);
+    if (subscription) {
+      return subscription;
     }
 
-    const items = await this.fastify.subscriptionRepository.findSubscriptionItems([subscriptionId]);
-    const priceById = await this.resolvePrices(_.map(items, 'priceId'));
-    const lines = await this.buildLines(subscription, items, priceById);
+    throw new NotFoundError(`No such subscription: ${subscriptionId}`);
+  }
+
+  private async rateSubscriptionItems(
+    subscription: Subscription,
+    subscriptionItems: readonly SubscriptionItem[],
+  ): Promise<RatedInvoiceResponse> {
+    const priceById = await this.resolvePrices(_.map(subscriptionItems, 'priceId'));
+    const lines = await this.buildLines(subscription, subscriptionItems, priceById);
     const { lineItems, total } = rateLines(lines, subscription.currency);
 
     return {
@@ -36,21 +78,31 @@ export class RatingService {
 
   private async buildLines(
     subscription: Subscription,
-    items: readonly SubscriptionItem[],
+    subscriptionItems: readonly SubscriptionItem[],
     priceById: Record<string, Price>,
   ): Promise<RatingLine[]> {
     const lines: RatingLine[] = [];
 
-    for (const subscriptionItem of items) {
+    for (const subscriptionItem of subscriptionItems) {
       const price = priceById[subscriptionItem.priceId];
 
       if (!price) {
         throw new NotFoundError(`No such price: ${subscriptionItem.priceId}`);
       }
 
-      const line = await this.buildLine(subscription, subscriptionItem, price);
+      const window = resolveBillingWindow(
+        subscriptionItem.billedFrom,
+        subscriptionItem.billedThrough,
+        subscriptionItem.invoicedThrough,
+        subscription.currentPeriodStart,
+        subscription.currentPeriodEnd,
+      );
 
-      lines.push(line);
+      if (window) {
+        const line = await this.buildLine(subscription, subscriptionItem, price, window);
+
+        lines.push(line);
+      }
     }
 
     return lines;
@@ -60,24 +112,22 @@ export class RatingService {
     subscription: Subscription,
     item: SubscriptionItem,
     price: Price,
+    window: BillingWindow,
   ): Promise<RatingLine> {
     const isMetered = price.usageType === UsageTypeEnum.METERED;
-    const periodStart = subscription.currentPeriodStart;
-    const periodEnd = subscription.currentPeriodEnd;
-    const startedMidPeriod = item.createdAt.getTime() > periodStart.getTime();
     const quantity = isMetered
-      ? await this.resolveUsage(subscription, price, periodStart, periodEnd)
+      ? await this.resolveUsage(subscription, price, window.start, window.end)
       : item.quantity;
 
     return {
       subscriptionItemId: item.id,
       price: RatingService.buildRatingPrice(price),
-      type: RatingService.resolveLineItemType(isMetered, startedMidPeriod),
+      type: RatingService.resolveLineItemType(isMetered, window.isPartial),
       quantity,
-      periodStart,
-      periodEnd,
-      usageStart: startedMidPeriod && !isMetered ? item.createdAt : null,
-      usageEnd: startedMidPeriod && !isMetered ? periodEnd : null,
+      periodStart: subscription.currentPeriodStart,
+      periodEnd: subscription.currentPeriodEnd,
+      usageStart: window.isPartial && !isMetered ? window.start : null,
+      usageEnd: window.isPartial && !isMetered ? window.end : null,
       isCredit: false,
     };
   }
@@ -85,16 +135,16 @@ export class RatingService {
   private async resolveUsage(
     subscription: Subscription,
     price: Price,
-    periodStart: Date,
-    periodEnd: Date,
+    windowStart: Date,
+    windowEnd: Date,
   ): Promise<number> {
     const meterId = price.meterId;
 
     if (meterId) {
       const summary = await this.fastify.meterEventService.getMeterEventSummary(meterId, {
         customerId: subscription.customerId,
-        windowStart: periodStart.toISOString(),
-        windowEnd: periodEnd.toISOString(),
+        windowStart: windowStart.toISOString(),
+        windowEnd: windowEnd.toISOString(),
       });
 
       return summary.value;
@@ -112,12 +162,12 @@ export class RatingService {
     return _.keyBy(rows, 'id');
   }
 
-  private static resolveLineItemType(isMetered: boolean, startedMidPeriod: boolean): LineItemType {
+  private static resolveLineItemType(isMetered: boolean, isPartial: boolean): LineItemType {
     if (isMetered) {
       return LineItemTypeEnum.USAGE;
     }
 
-    if (startedMidPeriod) {
+    if (isPartial) {
       return LineItemTypeEnum.PRORATION;
     }
 

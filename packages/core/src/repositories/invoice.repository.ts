@@ -1,5 +1,5 @@
 import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
-import type { InvoiceStatus, NumberSequence } from '@contracts/invoices.types';
+import type { BillingReason, InvoiceStatus, NumberSequence } from '@contracts/invoices.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Invoice, InvoiceLineItem, NewInvoice, NewInvoiceLineItem } from '@database/schemas';
 import { invoiceLineItems, invoices, numberSequences } from '@database/schemas';
@@ -11,6 +11,8 @@ export interface InvoiceFilters {
   subscriptionId?: string;
   status?: InvoiceStatus;
   statuses?: readonly InvoiceStatus[];
+  billingReason?: BillingReason;
+  periodStart?: Date;
   periodEndBeforeAt?: Date;
   nextAttemptBeforeAt?: Date;
   shardCount?: number;
@@ -113,6 +115,8 @@ export class InvoiceRepository {
       filters.subscriptionId ? eq(invoices.subscriptionId, filters.subscriptionId) : undefined,
       filters.status ? eq(invoices.status, filters.status) : undefined,
       filters.statuses ? inArray(invoices.status, [...filters.statuses]) : undefined,
+      filters.billingReason ? eq(invoices.billingReason, filters.billingReason) : undefined,
+      filters.periodStart ? eq(invoices.periodStart, filters.periodStart) : undefined,
       filters.periodEndBeforeAt ? lte(invoices.periodEnd, filters.periodEndBeforeAt) : undefined,
       filters.nextAttemptBeforeAt
         ? lte(invoices.nextAttemptAt, filters.nextAttemptBeforeAt)

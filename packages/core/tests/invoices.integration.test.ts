@@ -1,10 +1,12 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
-import { InvoiceStatusEnum } from '@contracts/invoices.types';
+import { BillingReasonEnum, InvoiceStatusEnum } from '@contracts/invoices.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
+import { ProrationBehaviorEnum } from '@contracts/subscriptions.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
+import { LineItemTypeEnum } from '@utils/rating';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -12,6 +14,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildTestContext } from './context';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
+const SWAP_MID_CLOCK = new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString();
 const BASE_AMOUNT = 500_000;
 
 let fastify: FastifyInstance;
@@ -61,6 +64,76 @@ async function makeSubscription(
   });
 
   return { subscriptionId: subscription.id, customerId: customer.id };
+}
+
+async function readSubscriptionRow(subscriptionId: string) {
+  const subscription = await fastify.subscriptionRepository.findSubscription(subscriptionId);
+
+  if (subscription) {
+    return subscription;
+  }
+
+  throw new Error(`test fixture lost subscription ${subscriptionId}`);
+}
+
+async function readProrationInvoice(subscriptionId: string) {
+  const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId });
+  const prorationInvoice = _.find(invoices, {
+    billingReason: BillingReasonEnum.SUBSCRIPTION_UPDATE,
+  });
+
+  if (prorationInvoice) {
+    return prorationInvoice;
+  }
+
+  throw new Error(`test fixture issued no proration invoice for ${subscriptionId}`);
+}
+
+interface SwapScenario {
+  subscriptionId: string;
+  customerId: string;
+  clockId: string;
+  oldPriceId: string;
+  newPriceId: string;
+}
+
+async function makeSwapScenario(): Promise<SwapScenario> {
+  const clock = await fastify.testClockService.createTestClock({
+    name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
+    frozenTime: CLOCK_START,
+  });
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+    testClockId: clock.id,
+  });
+  const product = await fastify.productService.createProduct({
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+  });
+  const oldPrice = await fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount: BASE_AMOUNT,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
+  const newPrice = await fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount: BASE_AMOUNT * 2,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
+  const subscription = await fastify.subscriptionService.createSubscription({
+    customerId: customer.id,
+    items: [{ priceId: oldPrice.id }],
+  });
+
+  return {
+    subscriptionId: subscription.id,
+    customerId: customer.id,
+    clockId: clock.id,
+    oldPriceId: oldPrice.id,
+    newPriceId: newPrice.id,
+  };
 }
 
 describe('InvoiceService.createInvoice', () => {
@@ -399,5 +472,106 @@ describe('BillingRunService.runBillingShard', () => {
     });
 
     expect(owningShards).toHaveLength(1);
+  });
+});
+
+describe('InvoiceService.issueProrationInvoice', () => {
+  it('issues an open numbered invoice for the removed item elapsed slice at the swap', async () => {
+    const { subscriptionId, clockId, newPriceId } = await makeSwapScenario();
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
+    await fastify.subscriptionService.updateSubscription(subscriptionId, {
+      items: [{ priceId: newPriceId }],
+      prorationBehavior: ProrationBehaviorEnum.ALWAYS_INVOICE,
+    });
+
+    const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId });
+    const prorationInvoice = _.find(invoices, {
+      billingReason: BillingReasonEnum.SUBSCRIPTION_UPDATE,
+    });
+
+    expect(prorationInvoice?.status).toBe(InvoiceStatusEnum.OPEN);
+    expect(prorationInvoice?.number).toMatch(/^INV-/);
+    expect(prorationInvoice?.total).toBeGreaterThan(0);
+    expect(_.map(prorationInvoice?.lineItems, 'type')).toEqual([LineItemTypeEnum.PRORATION]);
+  });
+
+  it('leaves the replacement remainder to the period end and never repeats the invoiced slice', async () => {
+    const { subscriptionId, clockId, newPriceId } = await makeSwapScenario();
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
+    await fastify.subscriptionService.updateSubscription(subscriptionId, {
+      items: [{ priceId: newPriceId }],
+      prorationBehavior: ProrationBehaviorEnum.ALWAYS_INVOICE,
+    });
+
+    const ratedInvoice = await fastify.ratingService.rateUpcomingInvoice(subscriptionId);
+
+    expect(_.map(ratedInvoice.lineItems, 'priceId')).toEqual([newPriceId]);
+  });
+
+  it('issues no invoice when the update only replaces an item with itself', async () => {
+    const { subscriptionId, clockId, oldPriceId } = await makeSwapScenario();
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
+    await fastify.subscriptionService.updateSubscription(subscriptionId, {
+      items: [{ priceId: oldPriceId }],
+      prorationBehavior: ProrationBehaviorEnum.NONE,
+    });
+
+    const { data: invoices } = await fastify.invoiceService.findInvoices({ subscriptionId });
+
+    expect(invoices).toEqual([]);
+  });
+
+  it('posts a receivable for the immediate invoice', async () => {
+    const { subscriptionId, customerId, clockId, newPriceId } = await makeSwapScenario();
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
+    await fastify.subscriptionService.updateSubscription(subscriptionId, {
+      items: [{ priceId: newPriceId }],
+      prorationBehavior: ProrationBehaviorEnum.ALWAYS_INVOICE,
+    });
+
+    const receivable = await fastify.ledgerService.ensureAccount(
+      LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
+      CurrencyEnum.VND,
+      customerId,
+    );
+
+    expect(receivable.balance).toBeGreaterThan(0);
+  });
+
+  it('still drafts the cycle invoice for the same period after a proration invoice was issued', async () => {
+    const { subscriptionId, clockId, newPriceId } = await makeSwapScenario();
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
+    await fastify.subscriptionService.updateSubscription(subscriptionId, {
+      items: [{ priceId: newPriceId }],
+      prorationBehavior: ProrationBehaviorEnum.ALWAYS_INVOICE,
+    });
+
+    const subscription = await readSubscriptionRow(subscriptionId);
+    const { isCreated } = await fastify.invoiceService.ensureDraftInvoice(subscription, {});
+
+    expect(isCreated).toBe(true);
+  });
+
+  it('re-bills the slice at period end after the proration invoice is voided', async () => {
+    const { subscriptionId, clockId, newPriceId, oldPriceId } = await makeSwapScenario();
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
+    await fastify.subscriptionService.updateSubscription(subscriptionId, {
+      items: [{ priceId: newPriceId }],
+      prorationBehavior: ProrationBehaviorEnum.ALWAYS_INVOICE,
+    });
+
+    const prorationInvoice = await readProrationInvoice(subscriptionId);
+
+    await fastify.invoiceService.voidInvoice(prorationInvoice.id, {});
+
+    const ratedInvoice = await fastify.ratingService.rateUpcomingInvoice(subscriptionId);
+
+    expect(_.map(ratedInvoice.lineItems, 'priceId')).toEqual([oldPriceId, newPriceId]);
   });
 });

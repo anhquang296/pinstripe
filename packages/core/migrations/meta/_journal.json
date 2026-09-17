@@ -106,6 +106,13 @@
       "when": 1789526640099,
       "tag": "0014_webhooks_and_dunning",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1789638456672,
+      "tag": "0015_proration_billing_window",
+      "breakpoints": true
     }
   ]
 }

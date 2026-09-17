@@ -61,6 +61,9 @@ export const subscriptionItems = pgTable(
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    billedFrom: timestamp('billed_from', { withTimezone: true }).notNull().defaultNow(),
+    billedThrough: timestamp('billed_through', { withTimezone: true }),
+    invoicedThrough: timestamp('invoiced_through', { withTimezone: true }),
   },
   (table) => {
     return [index('subscription_items_subscription_id_idx').on(table.subscriptionId)];

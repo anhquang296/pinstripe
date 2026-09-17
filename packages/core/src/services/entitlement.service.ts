@@ -49,8 +49,11 @@ export class EntitlementService {
       return;
     }
 
-    const items = await this.fastify.subscriptionRepository.findSubscriptionItems([subscriptionId]);
-    const priceIds = _.map(items, 'priceId');
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [subscriptionId],
+      deletedAtIsNull: true,
+    });
+    const priceIds = _.map(subscriptionItems, 'priceId');
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: priceIds },
       MAX_ITEMS_PER_SUBSCRIPTION,

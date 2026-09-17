@@ -95,13 +95,31 @@ Batch (`ingestMeterEventBatch` — [meter-event.service.ts:45-81](../../packages
 
 [resolveLineItemType:115-125](../../packages/core/src/services/rating.service.ts):
 
-| Điều kiện                                         | `type`         | `quantity` lấy từ       |
-| ------------------------------------------------- | -------------- | ----------------------- |
-| price metered                                     | `usage`        | tổng hợp meter trong kỳ |
-| item tạo giữa kỳ (`item.createdAt > periodStart`) | `proration`    | `item.quantity`         |
-| còn lại                                           | `subscription` | `item.quantity`         |
+Mỗi item mang một **cửa sổ tính tiền** riêng, dựng từ `billed_from` / `billed_through` /
+`invoiced_through` bởi [resolveBillingWindow](../../packages/core/src/utils/rating.ts):
 
-Chỉ dòng **không** metered mới có `usageStart/usageEnd`, tức là chỉ nó mới bị chia tỷ lệ. Hợp lý: usage đã tự nó chỉ đếm phần thực dùng, chia thêm lần nữa là trừ hai lần.
+```
+start = max(billed_from, periodStart, invoiced_through)
+end   = min(billed_through ?? periodEnd, periodEnd)
+```
+
+Cửa sổ rỗng (`end <= start`) thì item **không sinh dòng nào** — đó là cách một lần gỡ với
+`prorationBehavior: none` biến mất khỏi kỳ này, và cũng là cách một lát đã xuất hoá đơn tức thì
+không bị tính lại.
+
+| Điều kiện                              | `type`         | `quantity` lấy từ               |
+| -------------------------------------- | -------------- | ------------------------------- |
+| price metered                          | `usage`        | tổng hợp meter **trong cửa sổ** |
+| cửa sổ hẹp hơn kỳ (`window.isPartial`) | `proration`    | `item.quantity`                 |
+| còn lại                                | `subscription` | `item.quantity`                 |
+
+Cửa sổ hẹp hơn kỳ ở **cả hai đầu**: item thêm giữa kỳ bắt đầu muộn, item bị gỡ giữa kỳ kết thúc
+sớm. Hệ bill in arrears nên item bị gỡ sinh một dòng **dương** cho phần đã dùng, không phải credit
+âm kiểu Stripe — [ADR 0013](../adr/0013-arrears-proration.md).
+
+Chỉ dòng **không** metered mới có `usageStart/usageEnd`, tức là chỉ nó mới bị chia tỷ lệ. Dòng
+metered thay vào đó **dịch cửa sổ đo**: `prorationFactor` luôn bằng 1. Hợp lý: usage đã tự nó chỉ
+đếm phần thực dùng, chia thêm lần nữa là trừ hai lần.
 
 ### Cách tính một dòng
 

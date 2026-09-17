@@ -16,6 +16,7 @@ import type {
 } from '@contracts/subscriptions.types';
 import {
   CollectionMethodEnum,
+  ProrationBehaviorEnum,
   SUBSCRIPTION_TRANSITIONS,
   SubscriptionStatusEnum,
 } from '@contracts/subscriptions.types';
@@ -52,14 +53,17 @@ export class SubscriptionService {
       ? new Date(payload.billingCycleAnchor)
       : (trialEnd ?? now);
     const { interval, intervalCount } = SubscriptionService.resolveInterval(prices);
-    const items: NewSubscriptionItem[] = _.map(payload.items, (item) => {
+    const subscriptionItems: NewSubscriptionItem[] = _.map(payload.items, (subscriptionItem) => {
       return {
         id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
         subscriptionId,
-        priceId: item.priceId,
-        quantity: item.quantity ?? 1,
-        metadata: item.metadata ?? {},
+        priceId: subscriptionItem.priceId,
+        quantity: subscriptionItem.quantity ?? 1,
+        metadata: subscriptionItem.metadata ?? {},
         createdAt: now,
+        billedFrom: now,
+        billedThrough: null,
+        invoicedThrough: null,
       };
     });
 
@@ -85,7 +89,7 @@ export class SubscriptionService {
           createdAt: now,
           updatedAt: now,
         },
-        items,
+        subscriptionItems,
         tx,
       );
 
@@ -102,7 +106,7 @@ export class SubscriptionService {
       return subscription;
     });
 
-    return SubscriptionService.buildSubscription(createdSubscription, items);
+    return SubscriptionService.buildSubscription(createdSubscription, subscriptionItems);
   }
 
   async getSubscription(id: string): Promise<SubscriptionResponse> {
@@ -112,9 +116,12 @@ export class SubscriptionService {
       throw new NotFoundError(`No such subscription: ${id}`);
     }
 
-    const items = await this.fastify.subscriptionRepository.findSubscriptionItems([id]);
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [id],
+      deletedAtIsNull: true,
+    });
 
-    return SubscriptionService.buildSubscription(subscription, items);
+    return SubscriptionService.buildSubscription(subscription, subscriptionItems);
   }
 
   async findSubscriptions(
@@ -132,9 +139,10 @@ export class SubscriptionService {
     );
     const hasMore = rows.length > limit;
     const page = rows.slice(0, limit);
-    const items = await this.fastify.subscriptionRepository.findSubscriptionItems(
-      _.map(page, 'id'),
-    );
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: _.map(page, 'id'),
+      deletedAtIsNull: true,
+    });
 
     return {
       object: 'list',
@@ -143,7 +151,7 @@ export class SubscriptionService {
       data: _.map(page, (subscription) => {
         return SubscriptionService.buildSubscription(
           subscription,
-          _.filter(items, { subscriptionId: subscription.id }),
+          _.filter(subscriptionItems, { subscriptionId: subscription.id }),
         );
       }),
     };
@@ -163,29 +171,51 @@ export class SubscriptionService {
       throw new ConflictError(`Subscription ${id} is canceled and can no longer be updated`);
     }
 
+    if (payload.prorationBehavior && !payload.items) {
+      throw new BadRequestError('prorationBehavior only applies when items change', {
+        param: 'prorationBehavior',
+      });
+    }
+
     const now = await this.resolveNow(subscription.testClockId);
-    const items = payload.items
-      ? _.map(payload.items, (item) => {
+    const prorationBehavior = payload.prorationBehavior ?? ProrationBehaviorEnum.CREATE_PRORATIONS;
+    const isProrated = prorationBehavior !== ProrationBehaviorEnum.NONE;
+    const boundary = isProrated ? now : subscription.currentPeriodStart;
+    const subscriptionItems = payload.items
+      ? _.map(payload.items, (subscriptionItem) => {
           return {
             id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
             subscriptionId: id,
-            priceId: item.priceId,
-            quantity: item.quantity ?? 1,
-            metadata: item.metadata ?? {},
+            priceId: subscriptionItem.priceId,
+            quantity: subscriptionItem.quantity ?? 1,
+            metadata: subscriptionItem.metadata ?? {},
             createdAt: now,
+            billedFrom: boundary,
+            billedThrough: null,
+            invoicedThrough: null,
           };
         })
       : null;
 
-    if (items) {
-      const prices = await this.resolvePrices(_.map(items, 'priceId'));
+    if (subscriptionItems) {
+      const prices = await this.resolvePrices(_.map(subscriptionItems, 'priceId'));
 
       SubscriptionService.assertPricesUsable(prices, subscription.currency);
     }
 
     const updatedSubscription = await this.fastify.database.master.transaction(async (tx) => {
-      if (items) {
-        await this.fastify.subscriptionRepository.replaceSubscriptionItems(id, items, now, tx);
+      if (subscriptionItems) {
+        await this.fastify.subscriptionRepository.replaceSubscriptionItems(
+          id,
+          subscriptionItems,
+          now,
+          boundary,
+          tx,
+        );
+      }
+
+      if (subscriptionItems && prorationBehavior === ProrationBehaviorEnum.ALWAYS_INVOICE) {
+        await this.fastify.invoiceService.issueProrationInvoice(subscription, now, tx);
       }
 
       const next = await this.fastify.subscriptionRepository.updateSubscription(
@@ -291,10 +321,11 @@ export class SubscriptionService {
   }
 
   private async advanceSubscription(subscription: Subscription, now: Date): Promise<void> {
-    const items = await this.fastify.subscriptionRepository.findSubscriptionItems([
-      subscription.id,
-    ]);
-    const prices = await this.resolvePrices(_.map(items, 'priceId'));
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [subscription.id],
+      deletedAtIsNull: true,
+    });
+    const prices = await this.resolvePrices(_.map(subscriptionItems, 'priceId'));
     const { interval, intervalCount } = SubscriptionService.resolveInterval(prices);
 
     let current = subscription;
@@ -517,7 +548,7 @@ export class SubscriptionService {
 
   private static buildSubscription(
     entity: Subscription,
-    items: readonly (SubscriptionItem | NewSubscriptionItem)[],
+    subscriptionItems: readonly (SubscriptionItem | NewSubscriptionItem)[],
   ): SubscriptionResponse {
     return {
       object: 'subscription',
@@ -526,15 +557,15 @@ export class SubscriptionService {
       status: entity.status,
       currency: entity.currency,
       collectionMethod: entity.collectionMethod,
-      items: _.map(items, (item): SubscriptionItemResponse => {
+      items: _.map(subscriptionItems, (subscriptionItem): SubscriptionItemResponse => {
         return {
           object: 'subscription_item',
-          id: item.id,
-          subscriptionId: item.subscriptionId,
-          priceId: item.priceId,
-          quantity: item.quantity ?? 1,
-          metadata: item.metadata ?? {},
-          createdAt: (item.createdAt ?? entity.createdAt).toISOString(),
+          id: subscriptionItem.id,
+          subscriptionId: subscriptionItem.subscriptionId,
+          priceId: subscriptionItem.priceId,
+          quantity: subscriptionItem.quantity ?? 1,
+          metadata: subscriptionItem.metadata ?? {},
+          createdAt: (subscriptionItem.createdAt ?? entity.createdAt).toISOString(),
         };
       }),
       billingCycleAnchor: entity.billingCycleAnchor.toISOString(),

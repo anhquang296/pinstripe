@@ -106,15 +106,15 @@ describe('DunningService.runDunningShard', () => {
     const dueAt = await readDueAt(invoiceId);
     const beforeDue = new Date(dueAt.getTime() - MILLISECONDS_PER_DAY);
 
-    const dunningRun = await fastify.dunningService.runDunningShard({
+    await fastify.dunningService.runDunningShard({
       ...SHARD_JOB,
       runAt: beforeDue.toISOString(),
     });
     const untouched = await readInvoiceRow(invoiceId);
 
-    expect(_.some([dunningRun], { scanned: 0 })).toBe(true);
     expect(untouched.status).toBe(InvoiceStatusEnum.OPEN);
     expect(untouched.attemptCount).toBe(0);
+    expect(untouched.nextAttemptAt).toEqual(dueAt);
   });
 
   it('collects an overdue invoice and stops chasing it', async () => {

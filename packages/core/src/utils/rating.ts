@@ -62,6 +62,35 @@ export interface RatingResult {
   currency: Currency;
 }
 
+export interface BillingWindow {
+  start: Date;
+  end: Date;
+  isPartial: boolean;
+}
+
+export function resolveBillingWindow(
+  billedFrom: Date,
+  billedThrough: Date | null,
+  invoicedThrough: Date | null,
+  periodStart: Date,
+  periodEnd: Date,
+): BillingWindow | null {
+  const invoicedThroughMs = invoicedThrough ? invoicedThrough.getTime() : periodStart.getTime();
+  const billedThroughMs = billedThrough ? billedThrough.getTime() : periodEnd.getTime();
+  const startMs = Math.max(billedFrom.getTime(), periodStart.getTime(), invoicedThroughMs);
+  const endMs = Math.min(billedThroughMs, periodEnd.getTime());
+
+  if (endMs <= startMs) {
+    return null;
+  }
+
+  return {
+    start: new Date(startMs),
+    end: new Date(endMs),
+    isPartial: startMs > periodStart.getTime() || endMs < periodEnd.getTime(),
+  };
+}
+
 export function transformQuantity(price: RatingPrice, quantity: number): number {
   const transform = price.transformQuantity;
 

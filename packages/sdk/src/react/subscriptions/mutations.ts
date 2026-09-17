@@ -44,6 +44,8 @@ export function useUpdateSubscriptionMutation({
       queryClient.invalidateQueries({ queryKey: queries.subscription.subscription(id).queryKey });
       queryClient.invalidateQueries({ queryKey: queries.subscription.subscriptions._def });
       queryClient.invalidateQueries({ queryKey: queries.entitlement.entitlements._def });
+      queryClient.invalidateQueries({ queryKey: queries.invoice.upcoming._def });
+      queryClient.invalidateQueries({ queryKey: queries.invoice.invoices._def });
       notifySuccess(subscription);
     },
     onError: notifyError,

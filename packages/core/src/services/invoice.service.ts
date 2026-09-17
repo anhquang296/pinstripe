@@ -9,6 +9,7 @@ import type {
   VoidInvoicePayload,
 } from '@contracts/invoices.types';
 import {
+  BillingReasonEnum,
   INVOICE_TRANSITIONS,
   InvoiceStatusEnum,
   NumberSequenceEnum,
@@ -16,6 +17,7 @@ import {
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import type { RatedInvoiceResponse } from '@contracts/rating.types';
 import type { DatabaseTransaction } from '@database/database.client';
 import type { Invoice, InvoiceLineItem, NewInvoiceLineItem, Subscription } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
@@ -72,6 +74,7 @@ export class InvoiceService {
             customerId: subscription.customerId,
             subscriptionId: subscription.id,
             status: InvoiceStatusEnum.DRAFT,
+            billingReason: BillingReasonEnum.SUBSCRIPTION_CYCLE,
             currency: subscription.currency,
             periodStart: subscription.currentPeriodStart,
             periodEnd: subscription.currentPeriodEnd,
@@ -128,6 +131,72 @@ export class InvoiceService {
 
     const rated = await this.fastify.ratingService.rateUpcomingInvoice(invoice.subscriptionId);
     const now = this.fastify.clock.now();
+
+    const finalizedInvoice = await this.fastify.database.master.transaction(async (tx) => {
+      return this.writeFinalizedInvoice(invoice, rated, now, tx);
+    });
+
+    return this.buildInvoice(finalizedInvoice);
+  }
+
+  async issueProrationInvoice(
+    subscription: Subscription,
+    now: Date,
+    tx: DatabaseTransaction,
+  ): Promise<Invoice | null> {
+    const rated = await this.fastify.ratingService.rateProrationInvoice(subscription.id, tx);
+
+    if (_.isEmpty(rated.lineItems) || rated.total <= 0) {
+      return null;
+    }
+
+    const id = generateGid(ObjectPrefixEnum.INVOICE);
+    const invoice = await this.fastify.invoiceRepository.createInvoice(
+      {
+        id,
+        number: null,
+        customerId: subscription.customerId,
+        subscriptionId: subscription.id,
+        status: InvoiceStatusEnum.DRAFT,
+        billingReason: BillingReasonEnum.SUBSCRIPTION_UPDATE,
+        currency: subscription.currency,
+        periodStart: subscription.currentPeriodStart,
+        periodEnd: subscription.currentPeriodEnd,
+        subtotal: 0,
+        total: 0,
+        amountPaid: 0,
+        finalizedAt: null,
+        paidAt: null,
+        voidedAt: null,
+        metadata: {},
+        createdAt: now,
+        updatedAt: now,
+      },
+      tx,
+    );
+
+    if (!invoice) {
+      throw new NotFoundError(`Invoice ${id} could not be created`);
+    }
+
+    await this.recordInvoiceEvent(invoice, DomainEventTypeEnum.INVOICE_CREATED, tx);
+
+    const finalizedInvoice = await this.writeFinalizedInvoice(invoice, rated, now, tx);
+
+    await this.fastify.subscriptionRepository.markSubscriptionItemsInvoiced(
+      _.map(rated.lineItems, 'subscriptionItemId'),
+      tx,
+    );
+
+    return finalizedInvoice;
+  }
+
+  private async writeFinalizedInvoice(
+    invoice: Invoice,
+    rated: RatedInvoiceResponse,
+    now: Date,
+    tx: DatabaseTransaction,
+  ): Promise<Invoice> {
     const dueAt = new Date(now.getTime() + this.options.dueDays * MILLISECONDS_PER_DAY);
     const lineItems = _.map(rated.lineItems, (lineItem): NewInvoiceLineItem => {
       return {
@@ -145,44 +214,40 @@ export class InvoiceService {
       };
     });
 
-    const finalizedInvoice = await this.fastify.database.master.transaction(async (tx) => {
-      const sequenceValue = await this.fastify.invoiceRepository.claimNextNumber(
-        NumberSequenceEnum.INVOICE,
-        tx,
-      );
+    const sequenceValue = await this.fastify.invoiceRepository.claimNextNumber(
+      NumberSequenceEnum.INVOICE,
+      tx,
+    );
 
-      if (sequenceValue === null) {
-        throw new NotFoundError('Invoice number sequence is not provisioned');
-      }
+    if (sequenceValue === null) {
+      throw new NotFoundError('Invoice number sequence is not provisioned');
+    }
 
-      await this.fastify.invoiceRepository.createInvoiceLineItems(lineItems, tx);
+    await this.fastify.invoiceRepository.createInvoiceLineItems(lineItems, tx);
 
-      const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
-        invoice.id,
-        {
-          number: InvoiceService.formatNumber(INVOICE_NUMBER_PREFIX, sequenceValue),
-          status: InvoiceStatusEnum.OPEN,
-          subtotal: rated.total,
-          total: rated.total,
-          finalizedAt: now,
-          dueAt,
-          nextAttemptAt: dueAt,
-          updatedAt: now,
-        },
-        tx,
-      );
+    const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
+      invoice.id,
+      {
+        number: InvoiceService.formatNumber(INVOICE_NUMBER_PREFIX, sequenceValue),
+        status: InvoiceStatusEnum.OPEN,
+        subtotal: rated.total,
+        total: rated.total,
+        finalizedAt: now,
+        dueAt,
+        nextAttemptAt: dueAt,
+        updatedAt: now,
+      },
+      tx,
+    );
 
-      if (!updatedInvoice) {
-        throw new NotFoundError(`No such invoice: ${invoice.id}`);
-      }
+    if (!updatedInvoice) {
+      throw new NotFoundError(`No such invoice: ${invoice.id}`);
+    }
 
-      await this.postReceivable(updatedInvoice, tx);
-      await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_FINALIZED, tx);
+    await this.postReceivable(updatedInvoice, tx);
+    await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_FINALIZED, tx);
 
-      return updatedInvoice;
-    });
-
-    return this.buildInvoice(finalizedInvoice);
+    return updatedInvoice;
   }
 
   async payInvoice(
@@ -271,6 +336,10 @@ export class InvoiceService {
         await this.reverseReceivable(updatedInvoice, tx);
       }
 
+      if (invoice.billingReason === BillingReasonEnum.SUBSCRIPTION_UPDATE) {
+        await this.reopenInvoicedItems(invoice.id, tx);
+      }
+
       await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_VOIDED, tx);
 
       return updatedInvoice;
@@ -320,17 +389,27 @@ export class InvoiceService {
     };
   }
 
+  private async reopenInvoicedItems(invoiceId: string, tx: DatabaseTransaction): Promise<void> {
+    const lineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([invoiceId]);
+    const subscriptionItemIds = _.compact(_.map(lineItems, 'subscriptionItemId'));
+
+    await this.fastify.subscriptionRepository.reopenSubscriptionItemInvoicing(
+      subscriptionItemIds,
+      tx,
+    );
+  }
+
   private async findPeriodInvoice(subscription: Subscription): Promise<Invoice | null> {
-    const rows = await this.fastify.invoiceRepository.findInvoices(
-      { subscriptionId: subscription.id },
-      DEFAULT_PAGE_LIMIT,
+    const [invoice] = await this.fastify.invoiceRepository.findInvoices(
+      {
+        subscriptionId: subscription.id,
+        billingReason: BillingReasonEnum.SUBSCRIPTION_CYCLE,
+        periodStart: subscription.currentPeriodStart,
+      },
+      1,
     );
 
-    return (
-      _.find(rows, (invoice) => {
-        return invoice.periodStart.getTime() === subscription.currentPeriodStart.getTime();
-      }) ?? null
-    );
+    return invoice ?? null;
   }
 
   private async postReceivable(invoice: Invoice, tx: DatabaseTransaction): Promise<void> {
@@ -533,6 +612,7 @@ export class InvoiceService {
       customerId: invoice.customerId,
       subscriptionId: invoice.subscriptionId,
       status: invoice.status,
+      billingReason: invoice.billingReason,
       currency: invoice.currency,
       periodStart: invoice.periodStart.toISOString(),
       periodEnd: invoice.periodEnd.toISOString(),

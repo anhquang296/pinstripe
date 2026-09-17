@@ -62,6 +62,16 @@ tìm trong toàn bộ codebase.
 - `meter_events.value` là `double precision` — đó là **lượng dùng**, không phải tiền.
 - Không có chuyển đổi tỷ giá ở bất kỳ đâu. Reporting mặc định `VND` và lặng lẽ chỉ báo cáo đúng
   currency đó.
+- Rating chỉ nhìn item qua **cửa sổ tính tiền** (`billed_from` / `billed_through` /
+  `invoiced_through`), không qua `deleted_at`. Một row soft-delete mà `billed_through` còn `NULL`
+  đọc thành cửa sổ mở và bị bill **trọn kỳ, mãi mãi** — đó là lý do migration `0015` backfill
+  `billed_through = deleted_at` và có `CHECK` ép hai cột đi cùng nhau.
+- Void một hoá đơn `billing_reason = subscription_update` **phải** clear `invoiced_through` của các
+  item nó phủ. Thiếu bước đó là mất vĩnh viễn khoản ấy: lát đã đóng dấu đã xuất hoá đơn và không gì
+  bill lại — [invoice.service.ts](../packages/core/src/services/invoice.service.ts),
+  [ADR 0013](./adr/0013-arrears-proration.md).
+- `prorationBehavior: none` trên một item **metered** bỏ hẳn usage của kỳ khi item thay thế trỏ
+  **meter khác**. Cùng meter thì không mất gì. Đây là đánh đổi có chủ ý, không phải lỗi.
 
 ## 3. Sổ cái và hợp đồng ngầm `externalId`
 

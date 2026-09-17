@@ -9,7 +9,28 @@ import type {
 } from '@database/schemas';
 import { subscriptionItems, subscriptions } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
-import { and, asc, desc, eq, inArray, isNull, lte, ne, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm';
+
+export interface SubscriptionItemFilters {
+  subscriptionIds?: readonly string[];
+  deletedAtIsNull?: boolean;
+  billedFromBeforeAt?: Date;
+  billedThroughAfterAt?: Date;
+}
 
 export interface SubscriptionFilters {
   customerId?: string;
@@ -73,21 +94,73 @@ export class SubscriptionRepository {
       .limit(limit);
   }
 
-  async findSubscriptionItems(subscriptionIds: readonly string[]): Promise<SubscriptionItem[]> {
-    if (subscriptionIds.length === 0) {
+  async findSubscriptionItems(
+    filters: SubscriptionItemFilters = {},
+    executor?: DatabaseTransaction,
+  ): Promise<SubscriptionItem[]> {
+    const subscriptionIds = filters.subscriptionIds;
+
+    if (subscriptionIds && subscriptionIds.length === 0) {
       return [];
     }
 
-    return this._db.master
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    const where = and(
+      subscriptionIds ? inArray(subscriptionItems.subscriptionId, [...subscriptionIds]) : undefined,
+      filters.deletedAtIsNull === undefined
+        ? undefined
+        : filters.deletedAtIsNull
+          ? isNull(subscriptionItems.deletedAt)
+          : isNotNull(subscriptionItems.deletedAt),
+      filters.billedFromBeforeAt
+        ? lt(subscriptionItems.billedFrom, filters.billedFromBeforeAt)
+        : undefined,
+      filters.billedThroughAfterAt
+        ? or(
+            isNull(subscriptionItems.billedThrough),
+            gt(subscriptionItems.billedThrough, filters.billedThroughAfterAt),
+          )
+        : undefined,
+    );
+
+    return db
       .select()
       .from(subscriptionItems)
-      .where(
-        and(
-          inArray(subscriptionItems.subscriptionId, [...subscriptionIds]),
-          isNull(subscriptionItems.deletedAt),
-        ),
-      )
+      .where(where)
       .orderBy(asc(subscriptionItems.createdAt));
+  }
+
+  async markSubscriptionItemsInvoiced(
+    ids: readonly string[],
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db
+      .update(subscriptionItems)
+      .set({ invoicedThrough: sql`${subscriptionItems.billedThrough}` })
+      .where(inArray(subscriptionItems.id, [...ids]));
+  }
+
+  async reopenSubscriptionItemInvoicing(
+    ids: readonly string[],
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db
+      .update(subscriptionItems)
+      .set({ invoicedThrough: null })
+      .where(inArray(subscriptionItems.id, [...ids]));
   }
 
   async createSubscription(
@@ -122,13 +195,14 @@ export class SubscriptionRepository {
     subscriptionId: string,
     items: readonly NewSubscriptionItem[],
     deletedAt: Date,
+    billedThrough: Date,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
 
     await db
       .update(subscriptionItems)
-      .set({ deletedAt })
+      .set({ deletedAt, billedThrough })
       .where(
         and(
           eq(subscriptionItems.subscriptionId, subscriptionId),

@@ -1,9 +1,10 @@
-import type { InvoiceStatus, NumberSequence } from '@contracts/invoices.types';
+import type { BillingReason, InvoiceStatus, NumberSequence } from '@contracts/invoices.types';
 import { customers } from '@database/schemas/customers.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
 import type { Currency } from '@utils/currency';
 import type { LineItemType } from '@utils/rating';
+import { sql } from 'drizzle-orm';
 import {
   bigint,
   doublePrecision,
@@ -35,6 +36,7 @@ export const invoices = pgTable(
       return subscriptions.id;
     }),
     status: text('status').$type<InvoiceStatus>().notNull(),
+    billingReason: text('billing_reason').$type<BillingReason>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
     periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
@@ -57,7 +59,9 @@ export const invoices = pgTable(
       index('invoices_status_idx').on(table.status),
       index('invoices_created_at_id_idx').on(table.createdAt, table.id),
       uniqueIndex('invoices_number_idx').on(table.number),
-      uniqueIndex('invoices_subscription_period_idx').on(table.subscriptionId, table.periodStart),
+      uniqueIndex('invoices_subscription_cycle_period_idx')
+        .on(table.subscriptionId, table.periodStart)
+        .where(sql`${table.billingReason} = 'subscription_cycle'`),
       index('invoices_status_next_attempt_at_idx').on(table.status, table.nextAttemptAt),
     ];
   },

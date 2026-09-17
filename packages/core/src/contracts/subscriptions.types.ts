@@ -19,6 +19,13 @@ export enum CollectionMethodEnum {
 }
 export type CollectionMethod = `${CollectionMethodEnum}`;
 
+export enum ProrationBehaviorEnum {
+  CREATE_PRORATIONS = 'create_prorations',
+  NONE = 'none',
+  ALWAYS_INVOICE = 'always_invoice',
+}
+export type ProrationBehavior = `${ProrationBehaviorEnum}`;
+
 export const SUBSCRIPTION_TRANSITIONS: Record<SubscriptionStatus, SubscriptionStatus[]> = {
   [SubscriptionStatusEnum.INCOMPLETE]: [
     SubscriptionStatusEnum.TRIALING,
@@ -111,6 +118,9 @@ export const updateSubscriptionSchema = Type.Object(
         }),
         { minItems: 1 },
       ),
+    ),
+    prorationBehavior: Type.Optional(
+      Type.Unsafe<ProrationBehavior>(Type.Enum(ProrationBehaviorEnum)),
     ),
     cancelAtPeriodEnd: Type.Optional(Type.Boolean()),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),

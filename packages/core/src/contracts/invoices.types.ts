@@ -20,6 +20,12 @@ export enum NumberSequenceEnum {
 }
 export type NumberSequence = `${NumberSequenceEnum}`;
 
+export enum BillingReasonEnum {
+  SUBSCRIPTION_CYCLE = 'subscription_cycle',
+  SUBSCRIPTION_UPDATE = 'subscription_update',
+}
+export type BillingReason = `${BillingReasonEnum}`;
+
 export const INVOICE_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
   [InvoiceStatusEnum.DRAFT]: [InvoiceStatusEnum.OPEN, InvoiceStatusEnum.VOID],
   [InvoiceStatusEnum.OPEN]: [
@@ -39,6 +45,7 @@ export const invoiceSchema = Type.Object({
   customerId: Type.String(),
   subscriptionId: Type.Union([Type.String(), Type.Null()]),
   status: Type.Unsafe<InvoiceStatus>(Type.Enum(InvoiceStatusEnum)),
+  billingReason: Type.Unsafe<BillingReason>(Type.Enum(BillingReasonEnum)),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   periodStart: Type.String(),
   periodEnd: Type.String(),

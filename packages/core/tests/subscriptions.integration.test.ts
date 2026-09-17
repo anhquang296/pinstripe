@@ -2,16 +2,18 @@ import type { CustomerResponse } from '@contracts/customers.types';
 import { EntitlementStatusEnum } from '@contracts/entitlements.types';
 import type { PriceResponse } from '@contracts/prices.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
-import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
+import { ProrationBehaviorEnum, SubscriptionStatusEnum } from '@contracts/subscriptions.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
 
 const CLOCK_START = '2026-01-01T00:00:00.000Z';
+const SWAP_AT = '2026-01-16T12:00:00.000Z';
 const TRIAL_DAYS = 7;
 
 let fastify: FastifyInstance;
@@ -208,5 +210,101 @@ describe('SubscriptionService.cancelSubscription', () => {
     const act = fastify.subscriptionService.cancelSubscription(subscription.id, {});
 
     await expect(act).rejects.toThrowError(ConflictError);
+  });
+});
+
+describe('SubscriptionService.updateSubscription proration', () => {
+  it('rejects a proration behavior when the payload changes no items', async () => {
+    const { customer, price } = await buildScenario();
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId: customer.id,
+      items: [{ priceId: price.id }],
+    });
+
+    const act = () => {
+      return fastify.subscriptionService.updateSubscription(subscription.id, {
+        prorationBehavior: ProrationBehaviorEnum.NONE,
+        metadata: { plan: 'pro' },
+      });
+    };
+
+    await expect(act).rejects.toThrowError(BadRequestError);
+  });
+
+  it('records the swap instant as the billing boundary on both the removed and the replacement item', async () => {
+    const { customer, price, clockId } = await buildScenario();
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId: customer.id,
+      items: [{ priceId: price.id }],
+    });
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_AT });
+    await fastify.subscriptionService.updateSubscription(subscription.id, {
+      items: [{ priceId: price.id }],
+    });
+
+    const items = await fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [subscription.id],
+    });
+    const removedItem = _.find(items, (item) => {
+      return item.deletedAt !== null;
+    });
+    const liveItem = _.find(items, (item) => {
+      return item.deletedAt === null;
+    });
+
+    const billedThrough = _.get(removedItem, 'billedThrough', null);
+
+    expect(billedThrough?.toISOString()).toBe(SWAP_AT);
+    expect(liveItem?.billedFrom.toISOString()).toBe(SWAP_AT);
+  });
+
+  it('records the period start as the billing boundary when no proration is wanted', async () => {
+    const { customer, price, clockId } = await buildScenario();
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId: customer.id,
+      items: [{ priceId: price.id }],
+    });
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_AT });
+    await fastify.subscriptionService.updateSubscription(subscription.id, {
+      items: [{ priceId: price.id }],
+      prorationBehavior: ProrationBehaviorEnum.NONE,
+    });
+
+    const items = await fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [subscription.id],
+    });
+    const liveItem = _.find(items, (item) => {
+      return item.deletedAt === null;
+    });
+
+    expect(liveItem?.billedFrom.toISOString()).toBe(subscription.currentPeriodStart);
+  });
+
+  it('leaves no invoice behind when an always_invoice update is rejected', async () => {
+    const { customer, price, clockId } = await buildScenario();
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId: customer.id,
+      items: [{ priceId: price.id }],
+    });
+    const archivedPrice = await fastify.priceService.updatePrice(price.id, { active: false });
+
+    await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_AT });
+
+    const act = () => {
+      return fastify.subscriptionService.updateSubscription(subscription.id, {
+        items: [{ priceId: archivedPrice.id }],
+        prorationBehavior: ProrationBehaviorEnum.ALWAYS_INVOICE,
+      });
+    };
+
+    await expect(act).rejects.toThrowError(BadRequestError);
+
+    const { data: invoices } = await fastify.invoiceService.findInvoices({
+      subscriptionId: subscription.id,
+    });
+
+    expect(invoices).toEqual([]);
   });
 });

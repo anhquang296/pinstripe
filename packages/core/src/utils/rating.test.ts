@@ -1,12 +1,19 @@
 import { BillingSchemeEnum, RoundingModeEnum, TiersModeEnum } from '@contracts/prices.types';
 import { CurrencyEnum } from '@utils/currency';
 import type { RatingLine, RatingPrice } from '@utils/rating';
-import { LineItemTypeEnum, rateLine, rateLines, ratePrice } from '@utils/rating';
+import {
+  LineItemTypeEnum,
+  rateLine,
+  rateLines,
+  ratePrice,
+  resolveBillingWindow,
+} from '@utils/rating';
 import _ from 'lodash';
 import { describe, expect, it } from 'vitest';
 
 const PERIOD_START = new Date('2026-01-01T00:00:00.000Z');
 const PERIOD_END = new Date('2026-02-01T00:00:00.000Z');
+const MID_PERIOD = new Date('2026-01-16T12:00:00.000Z');
 
 function makePrice(overrides: Partial<RatingPrice> = {}): RatingPrice {
   return {
@@ -197,6 +204,104 @@ describe('ratePrice volume tiers', () => {
   });
 });
 
+describe('resolveBillingWindow', () => {
+  it('covers the whole period for an item that was billable throughout it', () => {
+    const window = resolveBillingWindow(PERIOD_START, null, null, PERIOD_START, PERIOD_END);
+
+    expect(window).toEqual({ start: PERIOD_START, end: PERIOD_END, isPartial: false });
+  });
+
+  it('clamps the start to the period start for an item billable since before it', () => {
+    const billedFrom = new Date('2025-11-01T00:00:00.000Z');
+
+    const window = resolveBillingWindow(billedFrom, null, null, PERIOD_START, PERIOD_END);
+
+    expect(window).toEqual({ start: PERIOD_START, end: PERIOD_END, isPartial: false });
+  });
+
+  it('ends the window at the moment the item stopped being billable', () => {
+    const window = resolveBillingWindow(PERIOD_START, MID_PERIOD, null, PERIOD_START, PERIOD_END);
+
+    expect(window).toEqual({ start: PERIOD_START, end: MID_PERIOD, isPartial: true });
+  });
+
+  it('clamps the end to the period end for an item that stopped after the period closed', () => {
+    const billedThrough = new Date('2026-03-01T00:00:00.000Z');
+
+    const window = resolveBillingWindow(
+      PERIOD_START,
+      billedThrough,
+      null,
+      PERIOD_START,
+      PERIOD_END,
+    );
+
+    expect(window).toEqual({ start: PERIOD_START, end: PERIOD_END, isPartial: false });
+  });
+
+  it('reports a partial window for an item both added and removed inside the period', () => {
+    const addedAt = new Date('2026-01-08T00:00:00.000Z');
+
+    const window = resolveBillingWindow(addedAt, MID_PERIOD, null, PERIOD_START, PERIOD_END);
+
+    expect(window).toEqual({ start: addedAt, end: MID_PERIOD, isPartial: true });
+  });
+
+  it('returns null when the window closed at the period start', () => {
+    const window = resolveBillingWindow(PERIOD_START, PERIOD_START, null, PERIOD_START, PERIOD_END);
+
+    expect(window).toBeNull();
+  });
+
+  it('returns null when the window closed before it opened', () => {
+    const addedAt = new Date('2026-01-08T00:00:00.000Z');
+
+    const window = resolveBillingWindow(addedAt, PERIOD_START, null, PERIOD_START, PERIOD_END);
+
+    expect(window).toBeNull();
+  });
+
+  it('returns null when the closed window has already been invoiced in full', () => {
+    const window = resolveBillingWindow(
+      PERIOD_START,
+      MID_PERIOD,
+      MID_PERIOD,
+      PERIOD_START,
+      PERIOD_END,
+    );
+
+    expect(window).toBeNull();
+  });
+
+  it('starts the window at the invoiced boundary when only part of it was invoiced', () => {
+    const invoicedThrough = new Date('2026-01-08T00:00:00.000Z');
+
+    const window = resolveBillingWindow(
+      PERIOD_START,
+      MID_PERIOD,
+      invoicedThrough,
+      PERIOD_START,
+      PERIOD_END,
+    );
+
+    expect(window).toEqual({ start: invoicedThrough, end: MID_PERIOD, isPartial: true });
+  });
+
+  it('ignores an invoiced boundary that precedes the period start', () => {
+    const invoicedThrough = new Date('2025-12-15T00:00:00.000Z');
+
+    const window = resolveBillingWindow(
+      PERIOD_START,
+      null,
+      invoicedThrough,
+      PERIOD_START,
+      PERIOD_END,
+    );
+
+    expect(window).toEqual({ start: PERIOD_START, end: PERIOD_END, isPartial: false });
+  });
+});
+
 describe('rateLine proration', () => {
   it('charges the full amount when the line covers the whole period', () => {
     const line = makeLine({ quantity: 2, price: makePrice({ unitAmount: 31_000 }) });
@@ -232,6 +337,19 @@ describe('rateLine proration', () => {
     const lineItem = rateLine(line);
 
     expect(lineItem.amount.amount).toBe(-31_000);
+  });
+
+  it('charges the elapsed half for a line that stops halfway through the period', () => {
+    const line = makeLine({
+      price: makePrice({ unitAmount: 62_000 }),
+      type: LineItemTypeEnum.PRORATION,
+      usageStart: PERIOD_START,
+      usageEnd: MID_PERIOD,
+    });
+
+    const lineItem = rateLine(line);
+
+    expect(lineItem.amount.amount).toBe(31_000);
   });
 
   it('rejects a period that does not move forward', () => {
