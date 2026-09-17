@@ -36,6 +36,14 @@ fi
 
 mkdir -p "$RUN_DIR"
 
+# Token của `claude setup-token` sống ngoài repo, chmod 600, không bao giờ đi vào git.
+# Xem phần "Chạy đêm" trong README của script này.
+CREDENTIALS_FILE="${CREDENTIALS_FILE:-$HOME/.claude/overnight.env}"
+if [[ -f "$CREDENTIALS_FILE" ]]; then
+  # shellcheck source=/dev/null
+  source "$CREDENTIALS_FILE"
+fi
+
 log() {
   printf '%s  %s\n' "$(date '+%H:%M:%S')" "$*" | tee -a "$RUN_DIR/run.log"
 }
@@ -70,11 +78,17 @@ preflight() {
   # Cái này phải kiểm tra bằng một lần gọi thật. `claude -p` chạy trong subprocess có thể
   # không refresh được OAuth session, và khi đó nó trả is_error mà exit code vẫn 0 —
   # cả đêm sẽ chạy không, không commit nào, không PR nào.
+  if [[ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]]; then
+    log "preflight: dùng CLAUDE_CODE_OAUTH_TOKEN (${#CLAUDE_CODE_OAUTH_TOKEN} ký tự, từ $CREDENTIALS_FILE)"
+  else
+    log "preflight: không có CLAUDE_CODE_OAUTH_TOKEN — dựa vào OAuth session của máy, thứ vốn hay hết hạn giữa đêm"
+  fi
+
   log "preflight: thử xác thực claude -p"
   claude -p "Trả lời đúng hai chữ: auth ok" --output-format json >"$RUN_DIR/auth-probe.json" 2>&1 || true
   if ! jq -e '.is_error == false' "$RUN_DIR/auth-probe.json" >/dev/null 2>&1; then
     jq -r '.result // "(không đọc được output)"' "$RUN_DIR/auth-probe.json" 2>/dev/null | tee -a "$RUN_DIR/run.log" || true
-    die "claude -p không xác thực được. Chạy 'claude setup-token' (hoặc đăng nhập lại trong một phiên claude tương tác) rồi thử lại."
+    die "claude -p không xác thực được. Chạy 'claude setup-token' rồi cất token vào $CREDENTIALS_FILE dưới dạng: export CLAUDE_CODE_OAUTH_TOKEN=<token>"
   fi
 
   local permission
