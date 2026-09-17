@@ -95,6 +95,9 @@ docker compose -f docker/compose.yml down -v && pnpm docker:up && pnpm db:migrat
 | Rating            | `GET /v1/invoices/upcoming?subscriptionId=…`                                                                                            |
 | Invoices          | `POST/GET /v1/invoices`, `GET /v1/invoices/:invoiceId`, `POST /v1/invoices/:invoiceId/{finalize,pay,void}`                              |
 | Credit notes      | `POST/GET /v1/credit_notes`, `GET /v1/credit_notes/:creditNoteId`                                                                       |
+| Coupons           | `POST/GET /v1/coupons`, `GET/POST/DELETE /v1/coupons/:couponId`                                                                         |
+| Promotion codes   | `POST/GET /v1/promotion_codes`, `GET/POST /v1/promotion_codes/:promotionCodeId`                                                         |
+| Discounts         | `POST/GET /v1/discounts`, `GET/POST/DELETE /v1/discounts/:discountId`                                                                   |
 | Payments          | `POST/GET /v1/payment_intents`, `GET /v1/payment_intents/:id`, `POST /v1/payment_intents/:id/{confirm,cancel}`                          |
 | Refunds           | `POST/GET /v1/refunds`, `GET /v1/refunds/:refundId`                                                                                     |
 | Webhooks          | `POST/GET /v1/webhook_endpoints`, `GET/POST /v1/webhook_endpoints/:id`, `GET /v1/webhook_deliveries`                                    |

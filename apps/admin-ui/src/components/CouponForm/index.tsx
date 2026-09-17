@@ -2,6 +2,7 @@ import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
 import TextField from '@components/ui/TextField';
 import type { CouponFormData } from '@forms/coupon-form';
+import { toNumber } from '@lib/form-value';
 import { CouponDurationEnum } from '@pinstripe/core/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -49,13 +50,13 @@ export default function CouponForm({ form, isSaving, onSave }: CouponFormProps) 
         label="Phần trăm giảm"
         type="number"
         error={errors.percentOff?.message}
-        {...form.register('percentOff')}
+        {...form.register('percentOff', { setValueAs: toNumber })}
       />
       <TextField
         label="Số tiền giảm (VND)"
         type="number"
         error={errors.amountOff?.message}
-        {...form.register('amountOff')}
+        {...form.register('amountOff', { setValueAs: toNumber })}
       />
       <SelectField
         label="Thời hạn"
@@ -67,13 +68,13 @@ export default function CouponForm({ form, isSaving, onSave }: CouponFormProps) 
         label="Số tháng"
         type="number"
         error={errors.durationInMonths?.message}
-        {...form.register('durationInMonths')}
+        {...form.register('durationInMonths', { setValueAs: toNumber })}
       />
       <TextField
         label="Giới hạn lượt dùng (0 = không giới hạn)"
         type="number"
         error={errors.maxRedemptions?.message}
-        {...form.register('maxRedemptions')}
+        {...form.register('maxRedemptions', { setValueAs: toNumber })}
       />
       <Button type="submit" disabled={isSaving}>
         Tạo coupon

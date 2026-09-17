@@ -1,6 +1,9 @@
+import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { CouponDurationEnum } from '@contracts/discounts.types';
+import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
@@ -25,6 +28,37 @@ async function makeCustomerId(): Promise<string> {
   );
 
   return customer.id;
+}
+
+async function makePriceId(unitAmount: number): Promise<{ productId: string; priceId: string }> {
+  const product = await fastify.productService.createProduct(
+    { name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}` },
+    TEST_LIVEMODE,
+  );
+  const price = await fastify.priceService.createPrice(
+    {
+      productId: product.id,
+      currency: CurrencyEnum.VND,
+      unitAmount,
+      recurring: { interval: RecurringIntervalEnum.MONTH },
+    },
+    TEST_LIVEMODE,
+  );
+
+  return { productId: product.id, priceId: price.id };
+}
+
+async function makeTwoProductSubscription(unitAmount: number) {
+  const customerId = await makeCustomerId();
+  const coveredPlan = await makePriceId(unitAmount);
+  const otherPlan = await makePriceId(unitAmount);
+
+  const subscription = await fastify.subscriptionService.createSubscription(
+    { customerId, items: [{ priceId: coveredPlan.priceId }, { priceId: otherPlan.priceId }] },
+    TEST_LIVEMODE,
+  );
+
+  return { customerId, subscriptionId: subscription.id, coveredProductId: coveredPlan.productId };
 }
 
 async function billStandalone(customerId: string, amount: number): Promise<number> {
@@ -245,6 +279,109 @@ it('discounts three subscription invoices with a three month coupon and leaves t
   }
 
   expect(discountedTotals).toEqual([200_000, 200_000, 200_000, 0]);
+});
+
+it('discounts only the line whose product the coupon applies to', async () => {
+  const fixture = await makeTwoProductSubscription(1_000_000);
+  const coupon = await fastify.couponService.createCoupon(
+    {
+      name: 'One plan only',
+      percentOff: 20,
+      duration: CouponDurationEnum.FOREVER,
+      appliesToProductIds: [fixture.coveredProductId],
+    },
+    TEST_LIVEMODE,
+  );
+
+  await fastify.discountService.createDiscount(
+    { couponId: coupon.id, subscriptionId: fixture.subscriptionId },
+    TEST_LIVEMODE,
+  );
+
+  const draft = await fastify.invoiceService.createInvoice(
+    { subscriptionId: fixture.subscriptionId },
+    TEST_LIVEMODE,
+  );
+  const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
+  expect(open.subtotal).toBe(2_000_000);
+  expect(open.totalDiscountAmount).toBe(200_000);
+});
+
+it('refuses a coupon that is past its redeem by date', async () => {
+  const customerId = await makeCustomerId();
+  const coupon = await fastify.couponService.createCoupon(
+    {
+      name: 'Expired',
+      percentOff: 15,
+      duration: CouponDurationEnum.FOREVER,
+      redeemBy: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
+    },
+    TEST_LIVEMODE,
+  );
+
+  const act = fastify.discountService.createDiscount(
+    { couponId: coupon.id, customerId },
+    TEST_LIVEMODE,
+  );
+
+  await expect(act).rejects.toThrow(ConflictError);
+});
+
+it('refuses a first time transaction promotion code for a customer who has already paid', async () => {
+  const customerId = await makeCustomerId();
+  const coupon = await fastify.couponService.createCoupon(
+    { name: 'Newcomer', percentOff: 15, duration: CouponDurationEnum.FOREVER },
+    TEST_LIVEMODE,
+  );
+
+  await fastify.promotionCodeService.createPromotionCode(
+    { couponId: coupon.id, code: 'NEWCOMER15', firstTimeTransaction: true },
+    TEST_LIVEMODE,
+  );
+  await fastify.invoiceItemService.createInvoiceItem(
+    { customerId, description: 'Consulting', amount: 300_000 },
+    TEST_LIVEMODE,
+  );
+
+  const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
+  const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
+  await fastify.invoiceService.payInvoice(open.id, {});
+
+  const act = fastify.discountService.createDiscount(
+    { promotionCode: 'NEWCOMER15', customerId },
+    TEST_LIVEMODE,
+  );
+
+  await expect(act).rejects.toThrow(ConflictError);
+});
+
+it('keeps an invoice item discount on its own line', async () => {
+  const customerId = await makeCustomerId();
+  const coupon = await fastify.couponService.createCoupon(
+    { name: 'One line', percentOff: 50, duration: CouponDurationEnum.FOREVER },
+    TEST_LIVEMODE,
+  );
+  const discountedItem = await fastify.invoiceItemService.createInvoiceItem(
+    { customerId, description: 'Discounted', amount: 400_000 },
+    TEST_LIVEMODE,
+  );
+
+  await fastify.invoiceItemService.createInvoiceItem(
+    { customerId, description: 'Untouched', amount: 400_000 },
+    TEST_LIVEMODE,
+  );
+  await fastify.discountService.createDiscount(
+    { couponId: coupon.id, invoiceItemId: discountedItem.id },
+    TEST_LIVEMODE,
+  );
+
+  const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
+  const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
+  expect(open.totalDiscountAmount).toBe(200_000);
+  expect(open.total).toBe(600_000);
 });
 
 it('reports MRR net of an active subscription discount', async () => {

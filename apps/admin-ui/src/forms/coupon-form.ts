@@ -7,11 +7,23 @@ const couponFormSchema = z
   .object({
     name: z.string().min(1, 'Tên coupon là bắt buộc'),
     kind: z.enum(['percent', 'amount'], { message: 'Chọn kiểu giảm giá' }),
-    percentOff: z.coerce.number().min(0, 'Phần trăm không âm').max(100, 'Tối đa 100%'),
-    amountOff: z.coerce.number().min(0, 'Số tiền không âm'),
+    percentOff: z
+      .number({ message: 'Phần trăm phải là số' })
+      .min(0, 'Phần trăm không âm')
+      .max(100, 'Tối đa 100%'),
+    amountOff: z
+      .number({ message: 'Số tiền phải là số' })
+      .int('Số tiền phải là số nguyên')
+      .min(0, 'Số tiền không âm'),
     duration: z.nativeEnum(CouponDurationEnum, { message: 'Chọn thời hạn' }),
-    durationInMonths: z.coerce.number().min(0, 'Số tháng không âm'),
-    maxRedemptions: z.coerce.number().min(0, 'Số lần dùng không âm'),
+    durationInMonths: z
+      .number({ message: 'Số tháng phải là số' })
+      .int('Số tháng phải là số nguyên')
+      .min(0, 'Số tháng không âm'),
+    maxRedemptions: z
+      .number({ message: 'Số lần dùng phải là số' })
+      .int('Số lần dùng phải là số nguyên')
+      .min(0, 'Số lần dùng không âm'),
   })
   .refine(
     (formData) => {

@@ -33,7 +33,7 @@ PostgreSQL + BullMQ + Drizzle.
 | 11    | API key trong DB + scopes + `livemode`                                        | L        | Nền — bẫy #4     | Xong              |
 | 12    | Vỏ platform: `events`, `expand[]`, versioning, rate limit, webhook DLQ        | L        | Nền              | Xong (còn nợ)     |
 | 13    | Mô hình tổng hoá đơn + `InvoiceItem` + hoá đơn rời + tách bút toán            | XL       | Nền — bẫy #1     | Xong              |
-| 14    | Giảm giá: Coupon, PromotionCode, Discount                                     | M        | Bề mặt           | Chưa              |
+| 14    | Giảm giá: Coupon, PromotionCode, Discount                                     | M        | Bề mặt           | Xong              |
 | 15    | Thuế: TaxRate, dòng thuế, TaxId, khớp nối hoá đơn điện tử                     | L        | Bề mặt (pháp lý) | Chưa              |
 | 16    | Hoàn thiện vòng đời subscription                                              | XL       | Nền — bẫy #2     | Chưa (mới schema) |
 | 17    | Chuyển sang bill **in advance**                                               | XL       | Trung thành      | Chưa              |

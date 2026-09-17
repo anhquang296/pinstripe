@@ -1,4 +1,5 @@
 import CouponForm from '@components/CouponForm';
+import PromotionCodeForm from '@components/PromotionCodeForm';
 import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
@@ -8,12 +9,20 @@ import {
   couponFormDefaultValues,
   couponFormResolver,
 } from '@forms/coupon-form';
+import type { PromotionCodeFormData } from '@forms/promotion-code-form';
+import {
+  promotionCodeFormDataToPayload,
+  promotionCodeFormDefaultValues,
+  promotionCodeFormResolver,
+} from '@forms/promotion-code-form';
 import {
   useCouponsQuery,
   useCreateCouponMutation,
   useCreateDiscountMutation,
+  useCreatePromotionCodeMutation,
   useDeleteDiscountMutation,
   useDiscountsQuery,
+  usePromotionCodesQuery,
   useSubscriptionsQuery,
 } from '@pinstripe/sdk/react';
 import { map } from 'lodash-es';
@@ -26,11 +35,17 @@ export default function DiscountsPage() {
 
   const { data: coupons, error } = useCouponsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
   const { data: discounts } = useDiscountsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
+  const { data: promotionCodes } = usePromotionCodesQuery(
+    { limit: PAGE_LIMIT },
+    { hasPlaceholder: true },
+  );
   const { data: subscriptions } = useSubscriptionsQuery({ limit: OPTION_LIMIT });
 
-  const { mutate: createCoupon, isPending: isSaving } = useCreateCouponMutation({
+  const { mutate: createCoupon, isPending: isSavingCoupon } = useCreateCouponMutation({
     successMessage: 'Đã tạo coupon.',
   });
+  const { mutate: createPromotionCode, isPending: isSavingPromotionCode } =
+    useCreatePromotionCodeMutation({ successMessage: 'Đã tạo promotion code.' });
   const { mutate: createDiscount, isPending: isApplying } = useCreateDiscountMutation({
     successMessage: 'Đã áp giảm giá.',
   });
@@ -38,9 +53,14 @@ export default function DiscountsPage() {
     successMessage: 'Đã gỡ giảm giá.',
   });
 
-  const form = useForm<CouponFormData>({
+  const couponForm = useForm<CouponFormData>({
     resolver: couponFormResolver,
     defaultValues: couponFormDefaultValues,
+  });
+
+  const promotionCodeForm = useForm<PromotionCodeFormData>({
+    resolver: promotionCodeFormResolver,
+    defaultValues: promotionCodeFormDefaultValues,
   });
 
   const couponOptions = useMemo(() => {
@@ -63,8 +83,12 @@ export default function DiscountsPage() {
     ];
   }, [subscriptions]);
 
-  const handleOnSave = form.handleSubmit((formData) => {
+  const handleOnSaveCoupon = couponForm.handleSubmit((formData) => {
     createCoupon(couponFormDataToPayload(formData));
+  });
+
+  const handleOnSavePromotionCode = promotionCodeForm.handleSubmit((formData) => {
+    createPromotionCode(promotionCodeFormDataToPayload(formData));
   });
 
   const handleOnCouponChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -96,7 +120,14 @@ export default function DiscountsPage() {
         </p>
       </div>
 
-      <CouponForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+      <CouponForm form={couponForm} isSaving={isSavingCoupon} onSave={handleOnSaveCoupon} />
+
+      <PromotionCodeForm
+        form={promotionCodeForm}
+        couponOptions={couponOptions}
+        isSaving={isSavingPromotionCode}
+        onSave={handleOnSavePromotionCode}
+      />
 
       <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
         <SelectField
@@ -117,6 +148,37 @@ export default function DiscountsPage() {
         >
           Áp giảm giá
         </Button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <table className="w-full min-w-[56rem] text-left text-sm">
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-4 py-3">Mã</th>
+              <th className="px-4 py-3">Coupon</th>
+              <th className="px-4 py-3">Đang bật</th>
+              <th className="px-4 py-3">Đã dùng</th>
+              <th className="px-4 py-3">Hoá đơn tối thiểu</th>
+              <th className="px-4 py-3">Giao dịch đầu</th>
+            </tr>
+          </thead>
+          <tbody>
+            {map(promotionCodes?.data, (promotionCode) => {
+              return (
+                <tr key={promotionCode.id} className="border-t border-slate-100">
+                  <td className="px-4 py-3 font-mono text-xs">{promotionCode.code}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{promotionCode.couponId}</td>
+                  <td className="px-4 py-3">{promotionCode.active ? 'có' : 'không'}</td>
+                  <td className="px-4 py-3">{promotionCode.timesRedeemed}</td>
+                  <td className="px-4 py-3">{promotionCode.minimumAmount ?? '—'}</td>
+                  <td className="px-4 py-3">
+                    {promotionCode.firstTimeTransaction ? 'chỉ lần đầu' : '—'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
