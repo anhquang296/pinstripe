@@ -208,7 +208,7 @@ export class InvoiceService {
 
     const now = this.fastify.clock.now();
     const amountPaid = invoice.amountPaid + amount;
-    const isSettled = amountPaid + amountCredited === invoice.total;
+    const isSettled = amountPaid + amountCredited >= invoice.total;
 
     const paidInvoice = await this.fastify.database.master.transaction(async (tx) => {
       const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(

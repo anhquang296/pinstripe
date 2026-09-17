@@ -28,5 +28,5 @@ export function getCurrencyExponent(currency: Currency): number {
 }
 
 export function isCurrency(value: string): value is Currency {
-  return value in CURRENCY_EXPONENTS;
+  return Object.hasOwn(CURRENCY_EXPONENTS, value);
 }
