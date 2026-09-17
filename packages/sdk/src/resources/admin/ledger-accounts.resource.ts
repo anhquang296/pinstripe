@@ -17,7 +17,7 @@ export class LedgerAccountsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindLedgerAccountsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<LedgerAccountResponse>> {
@@ -29,7 +29,7 @@ export class LedgerAccountsResource {
     });
   }
 
-  retrieve(accountId: string, options?: RequestOptions): Promise<LedgerAccountResponse> {
+  get(accountId: string, options?: RequestOptions): Promise<LedgerAccountResponse> {
     return this._transport.request({
       path: buildPath(LEDGER_ACCOUNTS_PATH, accountId),
       method: HttpMethodEnum.GET,

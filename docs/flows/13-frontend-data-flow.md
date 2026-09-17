@@ -80,7 +80,7 @@ Next.js 15 App Router, port 3100. Không có provider client nào, không TanSta
 
 - Client chạy **trên server**; `createPinstripeClient` đọc `PINSTRIPE_API_URL` và `PINSTRIPE_SECRET_API_KEY` từ `process.env`. API key không bao giờ tới trình duyệt.
 - Lỗi là `PinstripeError` của SDK, giữ `statusCode` / `type` / `requestId` đọc từ vỏ lỗi của API.
-- Trang gọi ba method: `customers.retrieve`, `subscriptions.list`, `invoices.list`, mỗi danh sách `limit=20`, không phân trang.
+- Trang gọi ba method: `customers.get`, `subscriptions.find`, `invoices.find`, mỗi danh sách `limit=20`, không phân trang.
 
 ### Lỗ hổng cần biết
 

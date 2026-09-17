@@ -19,7 +19,7 @@ export class PricesResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindPricesQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<PriceResponse>> {
@@ -31,7 +31,7 @@ export class PricesResource {
     });
   }
 
-  retrieve(priceId: string, options?: RequestOptions): Promise<PriceResponse> {
+  get(priceId: string, options?: RequestOptions): Promise<PriceResponse> {
     return this._transport.request({
       path: buildPath(PRICES_PATH, priceId),
       method: HttpMethodEnum.GET,

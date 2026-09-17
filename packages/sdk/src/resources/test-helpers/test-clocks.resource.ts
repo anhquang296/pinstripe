@@ -19,7 +19,7 @@ export class TestClocksResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindTestClocksQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<TestClockResponse>> {
@@ -31,7 +31,7 @@ export class TestClocksResource {
     });
   }
 
-  retrieve(testClockId: string, options?: RequestOptions): Promise<TestClockResponse> {
+  get(testClockId: string, options?: RequestOptions): Promise<TestClockResponse> {
     return this._transport.request({
       path: buildPath(TEST_CLOCKS_PATH, testClockId),
       method: HttpMethodEnum.GET,

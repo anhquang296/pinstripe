@@ -9,7 +9,7 @@ export function createPaymentQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.paymentIntents.list(query);
+          return client.paymentIntents.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createPaymentQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.refunds.list(query);
+          return client.refunds.find(query);
         },
       };
     },

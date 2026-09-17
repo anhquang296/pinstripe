@@ -32,7 +32,7 @@ it('builds a relative url when baseUrl is empty', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
   const { client } = setup(fetchImpl);
 
-  await client.customers.list();
+  await client.customers.find();
 
   expect(readCall(fetchImpl).url).toBe('/v1/customers');
 });
@@ -41,7 +41,7 @@ it('encodes a path parameter', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: 'cus_1' }));
   const { client } = setup(fetchImpl);
 
-  await client.customers.retrieve('cus/1 2');
+  await client.customers.get('cus/1 2');
 
   expect(readCall(fetchImpl).url).toBe('/v1/customers/cus%2F1%202');
 });
@@ -50,7 +50,7 @@ it('keeps falsy query values and drops undefined ones', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
   const { client } = setup(fetchImpl);
 
-  await client.customers.list({ limit: 0, email: '', startingAfter: undefined } as never);
+  await client.customers.find({ limit: 0, email: '', startingAfter: undefined } as never);
 
   expect(readCall(fetchImpl).url).toBe('/v1/customers?limit=0&email=');
 });
@@ -59,7 +59,7 @@ it('sends the authorization header when an apiKey is configured', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
   const { client } = setup(fetchImpl, { apiKey: 'sk_test_1' });
 
-  await client.customers.list();
+  await client.customers.find();
 
   expect(readCall(fetchImpl).headers.authorization).toBe('Bearer sk_test_1');
 });
@@ -68,7 +68,7 @@ it('omits the authorization header when no apiKey is configured', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
   const { client } = setup(fetchImpl);
 
-  await client.customers.list();
+  await client.customers.find();
 
   expect(readCall(fetchImpl).headers.authorization).toBeUndefined();
 });
@@ -109,7 +109,7 @@ it('does not send an idempotency key on a read', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
   const { client } = setup(fetchImpl);
 
-  await client.customers.list();
+  await client.customers.find();
 
   expect(readCall(fetchImpl).headers['idempotency-key']).toBeUndefined();
 });
@@ -154,7 +154,7 @@ it('throws PinstripeError carrying every envelope field', async () => {
   );
   const { client } = setup(fetchImpl);
 
-  const error = await client.customers.list().catch((caught: unknown) => {
+  const error = await client.customers.find().catch((caught: unknown) => {
     return caught;
   });
 
@@ -173,21 +173,21 @@ it('throws PinstripeConnectionError when the body carries no envelope', async ()
   const fetchImpl = vi.fn().mockResolvedValue(new Response('<html>502</html>', { status: 502 }));
   const { client } = setup(fetchImpl);
 
-  await expect(client.customers.list()).rejects.toBeInstanceOf(PinstripeConnectionError);
+  await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeConnectionError);
 });
 
 it('throws PinstripeConnectionError when fetch rejects and retries are exhausted', async () => {
   const fetchImpl = vi.fn().mockRejectedValue(new TypeError('network down'));
   const { client } = setup(fetchImpl);
 
-  await expect(client.customers.list()).rejects.toBeInstanceOf(PinstripeConnectionError);
+  await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeConnectionError);
 });
 
 it('returns null for a 204 without parsing a body', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
   const { client } = setup(fetchImpl);
 
-  await expect(client.customers.list()).resolves.toBeNull();
+  await expect(client.customers.find()).resolves.toBeNull();
 });
 
 describe('retry policy', () => {
@@ -198,7 +198,7 @@ describe('retry policy', () => {
       .mockResolvedValueOnce(jsonResponse({ object: 'list', data: [] }));
     const { client } = setup(fetchImpl, { maxRetries: 1 });
 
-    await client.customers.list();
+    await client.customers.find();
 
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
@@ -214,7 +214,7 @@ describe('retry policy', () => {
       );
     const { client } = setup(fetchImpl, { maxRetries: 2 });
 
-    await expect(client.customers.list()).rejects.toBeInstanceOf(PinstripeError);
+    await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeError);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
@@ -226,7 +226,7 @@ describe('retry policy', () => {
       );
     const { client } = setup(fetchImpl, { maxRetries: 0 });
 
-    await expect(client.customers.list()).rejects.toBeInstanceOf(PinstripeError);
+    await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeError);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
@@ -239,7 +239,7 @@ describe('retry policy', () => {
       .mockResolvedValueOnce(jsonResponse({ object: 'list', data: [] }));
     const { client } = setup(fetchImpl, { maxRetries: 1 });
 
-    await client.customers.list();
+    await client.customers.find();
 
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });

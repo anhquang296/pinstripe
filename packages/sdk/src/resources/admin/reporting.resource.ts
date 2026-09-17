@@ -17,7 +17,7 @@ export class ReportingResource {
     this._transport = transport;
   }
 
-  retrieveRevenueSummary(
+  getRevenueSummary(
     query: AggregateRevenueSummaryQuery = {},
     options?: RequestOptions,
   ): Promise<RevenueSummaryResponse> {
@@ -29,7 +29,7 @@ export class ReportingResource {
     });
   }
 
-  retrieveReconciliationReport(
+  getReconciliationReport(
     query: AggregateReconciliationReportQuery,
     options?: RequestOptions,
   ): Promise<ReconciliationReportResponse> {

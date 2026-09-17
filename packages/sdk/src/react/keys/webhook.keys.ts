@@ -9,7 +9,7 @@ export function createWebhookQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.webhookEndpoints.list(query);
+          return client.webhookEndpoints.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createWebhookQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.webhookDeliveries.list(query);
+          return client.webhookDeliveries.find(query);
         },
       };
     },

@@ -9,7 +9,7 @@ export function createEntitlementQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.entitlements.list(query);
+          return client.entitlements.find(query);
         },
       };
     },

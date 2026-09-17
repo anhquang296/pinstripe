@@ -18,7 +18,7 @@ export class CreditNotesResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindCreditNotesQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<CreditNoteResponse>> {
@@ -30,7 +30,7 @@ export class CreditNotesResource {
     });
   }
 
-  retrieve(creditNoteId: string, options?: RequestOptions): Promise<CreditNoteResponse> {
+  get(creditNoteId: string, options?: RequestOptions): Promise<CreditNoteResponse> {
     return this._transport.request({
       path: buildPath(CREDIT_NOTES_PATH, creditNoteId),
       method: HttpMethodEnum.GET,

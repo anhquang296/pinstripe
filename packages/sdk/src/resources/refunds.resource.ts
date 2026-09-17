@@ -18,7 +18,7 @@ export class RefundsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindRefundsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<RefundResponse>> {
@@ -30,7 +30,7 @@ export class RefundsResource {
     });
   }
 
-  retrieve(refundId: string, options?: RequestOptions): Promise<RefundResponse> {
+  get(refundId: string, options?: RequestOptions): Promise<RefundResponse> {
     return this._transport.request({
       path: buildPath(REFUNDS_PATH, refundId),
       method: HttpMethodEnum.GET,

@@ -9,7 +9,7 @@ export function createPriceQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.prices.list(query);
+          return client.prices.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createPriceQueries(client: PinstripeClient) {
       return {
         queryKey: [priceId],
         queryFn: () => {
-          return client.prices.retrieve(priceId);
+          return client.prices.get(priceId);
         },
       };
     },

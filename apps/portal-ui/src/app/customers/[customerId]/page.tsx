@@ -27,9 +27,9 @@ export default async function CustomerPortalPage({ params }: CustomerPortalPageP
   const { customerId } = await params;
 
   const [customer, subscriptions, invoices] = await Promise.all([
-    pinstripe.customers.retrieve(customerId),
-    pinstripe.subscriptions.list({ customerId, limit: PAGE_LIMIT }),
-    pinstripe.invoices.list({ customerId, limit: PAGE_LIMIT }),
+    pinstripe.customers.get(customerId),
+    pinstripe.subscriptions.find({ customerId, limit: PAGE_LIMIT }),
+    pinstripe.invoices.find({ customerId, limit: PAGE_LIMIT }),
   ]);
 
   return (

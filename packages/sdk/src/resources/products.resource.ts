@@ -19,7 +19,7 @@ export class ProductsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindProductsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<ProductResponse>> {
@@ -31,7 +31,7 @@ export class ProductsResource {
     });
   }
 
-  retrieve(productId: string, options?: RequestOptions): Promise<ProductResponse> {
+  get(productId: string, options?: RequestOptions): Promise<ProductResponse> {
     return this._transport.request({
       path: buildPath(PRODUCTS_PATH, productId),
       method: HttpMethodEnum.GET,

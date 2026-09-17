@@ -9,7 +9,7 @@ export function createSubscriptionQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.subscriptions.list(query);
+          return client.subscriptions.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createSubscriptionQueries(client: PinstripeClient) {
       return {
         queryKey: [subscriptionId],
         queryFn: () => {
-          return client.subscriptions.retrieve(subscriptionId);
+          return client.subscriptions.get(subscriptionId);
         },
       };
     },

@@ -13,7 +13,7 @@ export function createInvoiceQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.invoices.retrieveUpcoming(query);
+          return client.invoices.getUpcoming(query);
         },
       };
     },
@@ -21,7 +21,7 @@ export function createInvoiceQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.invoices.list(query);
+          return client.invoices.find(query);
         },
       };
     },
@@ -29,7 +29,7 @@ export function createInvoiceQueries(client: PinstripeClient) {
       return {
         queryKey: [invoiceId],
         queryFn: () => {
-          return client.invoices.retrieve(invoiceId);
+          return client.invoices.get(invoiceId);
         },
       };
     },
@@ -37,7 +37,7 @@ export function createInvoiceQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.creditNotes.list(query);
+          return client.creditNotes.find(query);
         },
       };
     },

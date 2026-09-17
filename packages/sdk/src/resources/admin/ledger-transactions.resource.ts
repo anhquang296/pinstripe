@@ -19,7 +19,7 @@ export class LedgerTransactionsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindLedgerTransactionsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<LedgerTransactionResponse>> {
@@ -31,7 +31,7 @@ export class LedgerTransactionsResource {
     });
   }
 
-  retrieve(transactionId: string, options?: RequestOptions): Promise<LedgerTransactionResponse> {
+  get(transactionId: string, options?: RequestOptions): Promise<LedgerTransactionResponse> {
     return this._transport.request({
       path: buildPath(LEDGER_TRANSACTIONS_PATH, transactionId),
       method: HttpMethodEnum.GET,

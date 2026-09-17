@@ -19,8 +19,8 @@ import { PinstripeClient } from '@pinstripe/sdk';
 
 const pinstripe = new PinstripeClient({ baseUrl: '', apiKey: 'sk_test_…' });
 
-const customers = await pinstripe.customers.list({ limit: 20 });
-const customer = await pinstripe.customers.retrieve('cus_123');
+const customers = await pinstripe.customers.find({ limit: 20 });
+const customer = await pinstripe.customers.get('cus_123');
 ```
 
 `apiKey` và `baseUrl` đều optional: `admin-ui` chạy với `baseUrl: ''` và không có key, vì Vite proxy tự inject `Authorization`.
@@ -65,7 +65,7 @@ const { mutate: finalizeInvoice } = useFinalizeInvoiceMutation({
 
 `customers`, `products`, `prices`, `subscriptions`, `entitlements`, `invoices`, `creditNotes`, `paymentIntents`, `refunds`, `webhookEndpoints`, `webhookDeliveries`, `billing.{meters,meterEvents,meterEventBatches}`, `testHelpers.testClocks`, và `admin.{ledgerAccounts,ledgerTransactions,reporting}`.
 
-`admin.*` đi qua một transport thứ hai mang `adminApiKey` và base path `/api/v1/admin`. Bề mặt khuyết ở vài chỗ (`entitlements` chỉ `list`, `products` không có `delete`, `creditNotes` không có `void`) là hình dạng thật của API — đừng lấp.
+`admin.*` đi qua một transport thứ hai mang `adminApiKey` và base path `/api/v1/admin`. Bề mặt khuyết ở vài chỗ (`entitlements` chỉ `find`, `products` không có `delete`, `creditNotes` không có `void`) là hình dạng thật của API — đừng lấp.
 
 ## Idempotency và retry
 

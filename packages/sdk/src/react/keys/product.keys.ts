@@ -9,7 +9,7 @@ export function createProductQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.products.list(query);
+          return client.products.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createProductQueries(client: PinstripeClient) {
       return {
         queryKey: [productId],
         queryFn: () => {
-          return client.products.retrieve(productId);
+          return client.products.get(productId);
         },
       };
     },

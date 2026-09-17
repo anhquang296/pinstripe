@@ -12,7 +12,7 @@ export function createReportingQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.admin.reporting.retrieveRevenueSummary(query);
+          return client.admin.reporting.getRevenueSummary(query);
         },
       };
     },
@@ -20,7 +20,7 @@ export function createReportingQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.admin.reporting.retrieveReconciliationReport(query);
+          return client.admin.reporting.getReconciliationReport(query);
         },
       };
     },

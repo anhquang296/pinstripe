@@ -9,7 +9,7 @@ export function createLedgerQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.admin.ledgerAccounts.list(query);
+          return client.admin.ledgerAccounts.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createLedgerQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.admin.ledgerTransactions.list(query);
+          return client.admin.ledgerTransactions.find(query);
         },
       };
     },
@@ -25,7 +25,7 @@ export function createLedgerQueries(client: PinstripeClient) {
       return {
         queryKey: [transactionId],
         queryFn: () => {
-          return client.admin.ledgerTransactions.retrieve(transactionId);
+          return client.admin.ledgerTransactions.get(transactionId);
         },
       };
     },

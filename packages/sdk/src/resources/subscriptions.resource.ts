@@ -20,7 +20,7 @@ export class SubscriptionsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindSubscriptionsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<SubscriptionResponse>> {
@@ -32,7 +32,7 @@ export class SubscriptionsResource {
     });
   }
 
-  retrieve(subscriptionId: string, options?: RequestOptions): Promise<SubscriptionResponse> {
+  get(subscriptionId: string, options?: RequestOptions): Promise<SubscriptionResponse> {
     return this._transport.request({
       path: buildPath(SUBSCRIPTIONS_PATH, subscriptionId),
       method: HttpMethodEnum.GET,

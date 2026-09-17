@@ -22,7 +22,7 @@ export class InvoicesResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindInvoicesQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<InvoiceResponse>> {
@@ -34,7 +34,7 @@ export class InvoicesResource {
     });
   }
 
-  retrieve(invoiceId: string, options?: RequestOptions): Promise<InvoiceResponse> {
+  get(invoiceId: string, options?: RequestOptions): Promise<InvoiceResponse> {
     return this._transport.request({
       path: buildPath(INVOICES_PATH, invoiceId),
       method: HttpMethodEnum.GET,
@@ -42,7 +42,7 @@ export class InvoicesResource {
     });
   }
 
-  retrieveUpcoming(
+  getUpcoming(
     query: GetUpcomingInvoiceQuery,
     options?: RequestOptions,
   ): Promise<RatedInvoiceResponse> {

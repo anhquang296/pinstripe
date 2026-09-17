@@ -1,6 +1,6 @@
 # SDK Convention
 
-`@pinstripe/sdk` là public API của sản phẩm này, nên method name của nó là thứ khách hàng đọc — không phải thứ codebase tự chọn. Bốn rule của kit được viết cho một app tự gọi API bằng tay; app ở đây không còn làm thế nữa, và không ghi lại chỗ lệch thì agent tiếp theo sẽ "sửa" SDK về đúng kit và làm hỏng bề mặt công khai.
+`@pinstripe/sdk` là public API của sản phẩm này: một client dựng bằng class, có instance, có provider. Bốn rule của kit được viết cho một app tự gọi API bằng tay; app ở đây không còn làm thế nữa, và không ghi lại chỗ lệch thì agent tiếp theo sẽ "sửa" SDK về đúng chữ của kit và làm hỏng bề mặt công khai.
 
 ## Scope
 
@@ -25,31 +25,34 @@ Những yêu cầu còn lại của rule đó vẫn ràng buộc, và ràng bu�
 - Response envelope hiện trong return type — `Promise<ListResponse<CustomerResponse>>`, không unwrap.
 - Component không bao giờ gọi thẳng resource; data đi qua hook.
 
-## Method name theo bề mặt Stripe
+## Method name: verb đọc theo kit, tên để bare
 
-Trong `packages/sdk/src/resources/**` **và chỉ ở đó**, method name lấy theo bề mặt Stripe:
+Trong `packages/sdk/src/resources/**`, method name lấy từ đúng một danh sách:
 
-`list`, `retrieve`, `create`, `update`, `delete`, `cancel`, `void`, `finalize`, `pay`, `confirm`, `advance`, `reverse`.
+`find`, `get`, `create`, `update`, `delete`, `cancel`, `void`, `finalize`, `pay`, `confirm`, `advance`, `reverse`.
 
-Đây là chỗ lệch với `core/naming-convention.md` §Verbs (`get` throws / `find` returns null) và với §"Avoid → use instead" (`list*`). Lý do: tên này là API công khai, khách hàng đã biết nó từ Stripe, và đổi nó sau là breaking change. Mọi nơi khác trong repo giữ nguyên verb của kit — repository vẫn `find<Entity>`, service vẫn `get<Entity>` / `find<Entities>`.
+Hai verb đọc là verb của kit, không phải của Stripe, vì hành vi khớp đúng định nghĩa ở `core/verb-convention.md` §Verbs: transport ném `PinstripeError` khi 404, nên read một bản ghi là `get`; một list read trả `ListResponse` rỗng chứ không miss, nên là `find`. Bảy verb còn lại là domain verb của API, kit vốn đã cho phép.
 
-`eslint-config/sdk.js` tắt đúng một selector (`list|fetch|load|save|insert|purge|destroy` + chữ hoa) cho `src/resources/**`. Mọi selector khác của agentkit vẫn bật ở đó.
+Chỗ lệch với kit chỉ còn một, và nó ở **hình dạng tên**, không ở verb: method của resource là **bare**, entity nằm ở receiver. `customers.get(id)` chứ không `customers.getCustomer(id)` — lặp entity ở đây là lặp thật, và `create` / `update` / `cancel` xung quanh cũng bare. Mọi layer khác của repo giữ entity trong tên: repository vẫn `findCustomer<s>`, service vẫn `getCustomer` / `findCustomers`.
 
 ```ts
 // CORRECT — trong packages/sdk/src/resources/
-pinstripe.customers.list(query);
-pinstripe.customers.retrieve(customerId);
+pinstripe.customers.find(query);
+pinstripe.customers.get(customerId);
 pinstripe.invoices.finalize(invoiceId);
 
-// WRONG — ở đây; kit verb không dùng cho bề mặt công khai
+// WRONG — entity lặp; receiver đã mang nó
 pinstripe.customers.findCustomers(query);
 pinstripe.customers.getCustomer(customerId);
 
-// WRONG — trong packages/core/src/repositories/; kit verb vẫn là luật ở đó
-customerRepository.list(filters);
+// WRONG — verb Stripe; không còn dùng ở bất kỳ đâu trong repo
+pinstripe.customers.list(query);
+pinstripe.customers.retrieve(customerId);
 ```
 
-Không tự chế method cho route không tồn tại. `entitlements` chỉ có `list`, `products` không có `delete`, `creditNotes` không có `void` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
+`lodash/prefer-lodash-method` đọc mọi `.find(` là `Array.prototype.find` và đòi `_.find`. `pinstripe.customers.find(query)` không phải collection method, nên `eslint-config/react.js` liệt `^pinstripe\.` vào `ignoreObjects`. Đó là chỗ duy nhất xử lý va chạm này — đừng rải `eslint-disable` ở call site, và đừng đổi tên method để tránh lint.
+
+Không tự chế method cho route không tồn tại. `entitlements` chỉ có `find`, `products` không có `delete`, `creditNotes` không có `void` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
 
 ## Hook, key và toast sống trong SDK
 
@@ -87,7 +90,8 @@ PINSTRIPE_MAX_RETRIES, PINSTRIPE_TIMEOUT_MS
 ## NEVER Do
 
 - Dựng lại một `api/` folder, một HTTP client thứ hai, hay một request function viết tay trong app tiêu thụ SDK.
-- Dùng kit verb (`find`, `get`) cho method của một resource trong SDK, hoặc dùng verb Stripe (`list`, `retrieve`) ở bất kỳ layer nào khác của repo.
+- Lặp entity trong method name của một resource SDK (`findCustomers`, `getCustomer`) — receiver đã mang nó; hoặc bỏ entity khỏi tên ở repository / service, nơi kit vẫn bắt buộc có.
+- Dùng `list` hay `retrieve` ở bất kỳ đâu trong repo — hai verb đó không còn là verb của codebase này.
 - Thêm method cho một route không tồn tại chỉ để bề mặt trông đầy đủ.
 - Khai báo domain type trong SDK — chúng đi qua `src/types/contracts.types.ts`, bằng `export type`, từ `@pinstripe/core/contracts`.
 - Import `@pinstripe/core` như value ở bất kỳ đâu trong `packages/sdk/src` — nó sẽ vào bundle và `src/bundle.test.ts` sẽ fail.

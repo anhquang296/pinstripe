@@ -9,7 +9,7 @@ export function createMeterQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.billing.meters.list(query);
+          return client.billing.meters.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createMeterQueries(client: PinstripeClient) {
       return {
         queryKey: [meterId],
         queryFn: () => {
-          return client.billing.meters.retrieve(meterId);
+          return client.billing.meters.get(meterId);
         },
       };
     },
@@ -25,7 +25,7 @@ export function createMeterQueries(client: PinstripeClient) {
       return {
         queryKey: [meterId, query],
         queryFn: () => {
-          return client.billing.meters.retrieveEventSummary(meterId, query);
+          return client.billing.meters.getEventSummary(meterId, query);
         },
       };
     },

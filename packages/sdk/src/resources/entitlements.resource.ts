@@ -16,7 +16,7 @@ export class EntitlementsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindEntitlementsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<EntitlementResponse>> {

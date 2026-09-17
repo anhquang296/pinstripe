@@ -21,7 +21,7 @@ export class MetersResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindMetersQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<MeterResponse>> {
@@ -33,7 +33,7 @@ export class MetersResource {
     });
   }
 
-  retrieve(meterId: string, options?: RequestOptions): Promise<MeterResponse> {
+  get(meterId: string, options?: RequestOptions): Promise<MeterResponse> {
     return this._transport.request({
       path: buildPath(METERS_PATH, meterId),
       method: HttpMethodEnum.GET,
@@ -63,7 +63,7 @@ export class MetersResource {
     });
   }
 
-  retrieveEventSummary(
+  getEventSummary(
     meterId: string,
     query: GetMeterEventSummaryQuery,
     options?: RequestOptions,

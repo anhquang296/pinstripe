@@ -9,7 +9,7 @@ export function createTestClockQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.testHelpers.testClocks.list(query);
+          return client.testHelpers.testClocks.find(query);
         },
       };
     },

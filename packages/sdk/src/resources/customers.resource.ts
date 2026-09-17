@@ -20,7 +20,7 @@ export class CustomersResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindCustomersQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<CustomerResponse>> {
@@ -32,7 +32,7 @@ export class CustomersResource {
     });
   }
 
-  retrieve(customerId: string, options?: RequestOptions): Promise<CustomerResponse> {
+  get(customerId: string, options?: RequestOptions): Promise<CustomerResponse> {
     return this._transport.request({
       path: buildPath(CUSTOMERS_PATH, customerId),
       method: HttpMethodEnum.GET,

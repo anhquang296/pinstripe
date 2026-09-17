@@ -20,7 +20,7 @@ export class PaymentIntentsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindPaymentIntentsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<PaymentIntentResponse>> {
@@ -32,7 +32,7 @@ export class PaymentIntentsResource {
     });
   }
 
-  retrieve(paymentIntentId: string, options?: RequestOptions): Promise<PaymentIntentResponse> {
+  get(paymentIntentId: string, options?: RequestOptions): Promise<PaymentIntentResponse> {
     return this._transport.request({
       path: buildPath(PAYMENT_INTENTS_PATH, paymentIntentId),
       method: HttpMethodEnum.GET,

@@ -51,7 +51,16 @@ export function react({ ignores = [], tsconfigRootDir, hasLodash = false } = {})
                 'error',
                 {
                   ignoreMethods: ['reduceRight', 'push', 'join', 'split', 'replace', 'trim'],
-                  ignoreObjects: ['Object', 'JSON', 'Math', 'Promise', 'Array', 'String', 'Number'],
+                  ignoreObjects: [
+                    'Object',
+                    'JSON',
+                    'Math',
+                    'Promise',
+                    'Array',
+                    'String',
+                    'Number',
+                    '^pinstripe\\.',
+                  ],
                 },
               ],
               'lodash/prefer-get': 'error',

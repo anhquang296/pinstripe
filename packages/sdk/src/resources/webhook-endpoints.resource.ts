@@ -19,7 +19,7 @@ export class WebhookEndpointsResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindWebhookEndpointsQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<WebhookEndpointResponse>> {
@@ -31,7 +31,7 @@ export class WebhookEndpointsResource {
     });
   }
 
-  retrieve(webhookEndpointId: string, options?: RequestOptions): Promise<WebhookEndpointResponse> {
+  get(webhookEndpointId: string, options?: RequestOptions): Promise<WebhookEndpointResponse> {
     return this._transport.request({
       path: buildPath(WEBHOOK_ENDPOINTS_PATH, webhookEndpointId),
       method: HttpMethodEnum.GET,

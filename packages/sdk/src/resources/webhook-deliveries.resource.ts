@@ -16,7 +16,7 @@ export class WebhookDeliveriesResource {
     this._transport = transport;
   }
 
-  list(
+  find(
     query: FindWebhookDeliveriesQuery = {},
     options?: RequestOptions,
   ): Promise<ListResponse<WebhookDeliveryResponse>> {
