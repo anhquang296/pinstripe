@@ -9,9 +9,10 @@ import type {
   RefundResponse,
 } from '@type/contracts.types';
 
-export type ChargeInvoiceVariables = Pick<CreatePaymentIntentPayload, 'invoiceId'> & {
-  paymentMethod: NonNullable<CreatePaymentIntentPayload['paymentMethod']>;
-};
+export type ChargeInvoiceVariables = Pick<
+  CreatePaymentIntentPayload,
+  'invoiceId' | 'paymentMethodId'
+>;
 
 function usePaymentInvalidation() {
   const queryClient = useQueryClient();
@@ -34,10 +35,10 @@ export function useChargeInvoiceMutation({
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
-    mutationFn: async ({ invoiceId, paymentMethod }: ChargeInvoiceVariables) => {
-      const paymentIntent = await client.paymentIntents.create({ invoiceId, paymentMethod });
+    mutationFn: async ({ invoiceId, paymentMethodId }: ChargeInvoiceVariables) => {
+      const paymentIntent = await client.paymentIntents.create({ invoiceId, paymentMethodId });
 
-      return client.paymentIntents.confirm(paymentIntent.id, { paymentMethod });
+      return client.paymentIntents.confirm(paymentIntent.id, { paymentMethodId });
     },
     onSuccess: (paymentIntent) => {
       invalidate();
