@@ -1,5 +1,5 @@
-import Button from '@components/ui/Button';
 import { COLLECTION_METHOD_LABELS } from '@constants/collection-method';
+import { Button } from '@heroui/react';
 import type { SubscriptionResponse } from '@pinstripe/core/contracts';
 import { useCallback } from 'react';
 
@@ -57,10 +57,10 @@ export default function SubscriptionItem({ subscription, onCancel }: Subscriptio
           <span className="text-xs text-slate-400">đã kết thúc</span>
         ) : (
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={handleOnCancelAtPeriodEndClick}>
+            <Button variant="ghost" onPress={handleOnCancelAtPeriodEndClick}>
               Hủy cuối kỳ
             </Button>
-            <Button variant="ghost" onClick={handleOnCancelNowClick}>
+            <Button variant="ghost" onPress={handleOnCancelNowClick}>
               Hủy ngay
             </Button>
           </div>

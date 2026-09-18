@@ -1,5 +1,6 @@
 import CustomerForm from '@components/CustomerForm';
 import CustomerItem from '@components/CustomerItem';
+import PageCard from '@components/PageCard';
 import { PAGE_LIMIT } from '@constants/pagination';
 import type { CustomerFormData } from '@forms/customer-form';
 import {
@@ -31,9 +32,7 @@ export default function CustomersPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
-
+    <PageCard title="Customers" description="Khách hàng và thông tin thanh toán của họ.">
       <CustomerForm form={form} isSaving={isSaving} onSave={handleOnSave} />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -53,9 +52,9 @@ export default function CustomersPage() {
             })}
           </tbody>
         </table>
-        {isPending ? <p className="px-4 py-3 text-slate-500">Đang tải…</p> : null}
-        {error ? <p className="px-4 py-3 text-red-600">{error.message}</p> : null}
+        {isPending ? <p className="text-app-description px-4 py-3">Đang tải…</p> : null}
+        {error ? <p className="px-4 py-3 text-danger">{error.message}</p> : null}
       </div>
-    </div>
+    </PageCard>
   );
 }

@@ -1,4 +1,4 @@
-import Button from '@components/ui/Button';
+import { Button } from '@heroui/react';
 import type { TestClockResponse } from '@pinstripe/core/contracts';
 import { useCallback } from 'react';
 
@@ -41,7 +41,7 @@ export default function TestClockItem({
             onChange={handleOnTargetChange}
             className="h-9 rounded-md border border-slate-200 px-3 text-sm outline-none focus:border-indigo-500"
           />
-          <Button variant="ghost" onClick={handleOnAdvance}>
+          <Button variant="ghost" onPress={handleOnAdvance}>
             Tua
           </Button>
         </div>

@@ -1,10 +1,7 @@
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
+import RenderNumberField from '@components/fields/RenderNumberField';
 import type { PriceFormData } from '@forms/price-form';
-import { get } from 'lodash-es';
+import { Button } from '@heroui/react';
 import type { UseFormReturn } from 'react-hook-form';
-
-import { toNullableNumber } from './helpers';
 
 interface PriceTierItemProps {
   form: UseFormReturn<PriceFormData>;
@@ -13,41 +10,35 @@ interface PriceTierItemProps {
 }
 
 export default function PriceTierItem({ form, index, onRemove }: PriceTierItemProps) {
-  const tierErrors = get(form.formState.errors.tiers, index);
-
   const handleOnRemove = () => {
     onRemove(index);
   };
 
   return (
-    <div className="flex flex-wrap items-end gap-4 rounded-lg border border-slate-100 bg-slate-50 p-3">
-      <span className="h-9 pt-2 text-sm font-medium text-slate-500">Bậc {index + 1}</span>
-      <TextField
+    <div className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-background p-3">
+      <span className="text-app-label h-control pt-2 text-[13px] font-medium">Bậc {index + 1}</span>
+      <RenderNumberField
+        control={form.control}
+        name={`tiers.${index}.upTo`}
         label="Đến mức"
-        type="number"
-        min={1}
-        placeholder="để trống = hết phần còn lại"
+        minValue={1}
         className="w-52"
-        error={get(tierErrors, 'upTo.message')}
-        {...form.register(`tiers.${index}.upTo`, { setValueAs: toNullableNumber })}
       />
-      <TextField
+      <RenderNumberField
+        control={form.control}
+        name={`tiers.${index}.unitAmount`}
         label="Đơn giá"
-        type="number"
-        min={0}
+        minValue={0}
         className="w-36"
-        error={get(tierErrors, 'unitAmount.message')}
-        {...form.register(`tiers.${index}.unitAmount`, { setValueAs: toNullableNumber })}
       />
-      <TextField
+      <RenderNumberField
+        control={form.control}
+        name={`tiers.${index}.flatAmount`}
         label="Phí cố định"
-        type="number"
-        min={0}
+        minValue={0}
         className="w-36"
-        error={get(tierErrors, 'flatAmount.message')}
-        {...form.register(`tiers.${index}.flatAmount`, { setValueAs: toNullableNumber })}
       />
-      <Button type="button" variant="ghost" onClick={handleOnRemove}>
+      <Button type="button" variant="ghost" onPress={handleOnRemove}>
         Xóa bậc
       </Button>
     </div>

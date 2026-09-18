@@ -1,8 +1,8 @@
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
+import RenderNumberField from '@components/fields/RenderNumberField';
+import RenderSelectField from '@components/fields/RenderSelectField';
+import RenderTextField from '@components/fields/RenderTextField';
 import type { CouponFormData } from '@forms/coupon-form';
-import { toNumber } from '@lib/form-value';
+import { Button } from '@heroui/react';
 import { CouponDurationEnum } from '@pinstripe/core/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -24,59 +24,53 @@ interface CouponFormProps {
 }
 
 export default function CouponForm({ form, isSaving, onSave }: CouponFormProps) {
-  const { errors } = form.formState;
-
   return (
     <form
-      className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
+      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
       }}
     >
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="name"
         label="Tên"
         placeholder="Khai trương 20%"
-        error={errors.name?.message}
-        {...form.register('name')}
       />
-      <SelectField
-        label="Kiểu"
-        options={KIND_OPTIONS}
-        error={errors.kind?.message}
-        {...form.register('kind')}
-      />
-      <TextField
+      <RenderSelectField control={form.control} name="kind" label="Kiểu" options={KIND_OPTIONS} />
+      <RenderNumberField
+        control={form.control}
+        name="percentOff"
         label="Phần trăm giảm"
-        type="number"
-        error={errors.percentOff?.message}
-        {...form.register('percentOff', { setValueAs: toNumber })}
+        minValue={0}
+        maxValue={100}
       />
-      <TextField
+      <RenderNumberField
+        control={form.control}
+        name="amountOff"
         label="Số tiền giảm (VND)"
-        type="number"
-        error={errors.amountOff?.message}
-        {...form.register('amountOff', { setValueAs: toNumber })}
+        minValue={0}
       />
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="duration"
         label="Thời hạn"
         options={DURATION_OPTIONS}
-        error={errors.duration?.message}
-        {...form.register('duration')}
       />
-      <TextField
+      <RenderNumberField
+        control={form.control}
+        name="durationInMonths"
         label="Số tháng"
-        type="number"
-        error={errors.durationInMonths?.message}
-        {...form.register('durationInMonths', { setValueAs: toNumber })}
+        minValue={0}
       />
-      <TextField
+      <RenderNumberField
+        control={form.control}
+        name="maxRedemptions"
         label="Giới hạn lượt dùng (0 = không giới hạn)"
-        type="number"
-        error={errors.maxRedemptions?.message}
-        {...form.register('maxRedemptions', { setValueAs: toNumber })}
+        minValue={0}
       />
-      <Button type="submit" disabled={isSaving}>
+      <Button type="submit" isDisabled={isSaving}>
         Tạo coupon
       </Button>
     </form>

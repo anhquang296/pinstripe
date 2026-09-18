@@ -1,3 +1,6 @@
+import PageCard from '@components/PageCard';
+import StatGrid from '@components/StatGrid';
+import StatItem from '@components/StatItem';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@pinstripe/sdk/react';
 import { isNil, map, toUpper } from 'lodash-es';
@@ -60,30 +63,17 @@ export default function ReportsPage() {
   }, [revenue]);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-        <p className="text-sm text-slate-500">
-          MRR quy về tháng từ gói đang chạy. Đối soát so tiền cổng thanh toán với tiền mặt trên sổ —
-          lệch thì hiện ở đây, không im lặng.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <PageCard
+      title="Reports"
+      description="MRR quy về tháng từ gói đang chạy. Đối soát so tiền cổng thanh toán với tiền mặt trên sổ — lệch thì hiện ở đây, không im lặng."
+    >
+      <StatGrid>
         {map(metrics, (metric) => {
-          return (
-            <div
-              key={metric.label}
-              className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white p-4"
-            >
-              <span className="text-xs uppercase tracking-wide text-slate-500">{metric.label}</span>
-              <span className="text-2xl font-semibold tabular-nums">{metric.value}</span>
-            </div>
-          );
+          return <StatItem key={metric.label} label={metric.label} value={metric.value} />;
         })}
-      </div>
+      </StatGrid>
 
-      {error ? <p className="text-sm text-red-600">{error.message}</p> : null}
+      {error ? <p className="text-[13px] text-danger">{error.message}</p> : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">
@@ -157,6 +147,6 @@ export default function ReportsPage() {
           </table>
         </div>
       </section>
-    </div>
+    </PageCard>
   );
 }

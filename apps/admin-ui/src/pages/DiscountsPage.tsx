@@ -1,7 +1,6 @@
 import CouponForm from '@components/CouponForm';
+import PageCard from '@components/PageCard';
 import PromotionCodeForm from '@components/PromotionCodeForm';
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
 import type { CouponFormData } from '@forms/coupon-form';
 import {
@@ -15,6 +14,7 @@ import {
   promotionCodeFormDefaultValues,
   promotionCodeFormResolver,
 } from '@forms/promotion-code-form';
+import { Button, Label, ListBox, Select } from '@heroui/react';
 import {
   useCouponsQuery,
   useCreateCouponMutation,
@@ -25,7 +25,7 @@ import {
   usePromotionCodesQuery,
   useSubscriptionsQuery,
 } from '@pinstripe/sdk/react';
-import { map } from 'lodash-es';
+import { map, toString } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -64,23 +64,21 @@ export default function DiscountsPage() {
   });
 
   const couponOptions = useMemo(() => {
-    return [
-      { value: '', label: '— chọn coupon —' },
-      ...map(coupons?.data, (coupon) => {
-        const off = coupon.percentOff === null ? `${coupon.amountOff}` : `${coupon.percentOff}%`;
+    return map(coupons?.data, (coupon) => {
+      const off = coupon.percentOff === null ? `${coupon.amountOff}` : `${coupon.percentOff}%`;
 
-        return { value: coupon.id, label: `${coupon.name || coupon.id} (${off})` };
-      }),
-    ];
+      return { value: coupon.id, label: `${coupon.name || coupon.id} (${off})` };
+    });
   }, [coupons]);
 
+  const couponFieldOptions = useMemo(() => {
+    return [{ value: '', label: '— chọn coupon —' }, ...couponOptions];
+  }, [couponOptions]);
+
   const subscriptionOptions = useMemo(() => {
-    return [
-      { value: '', label: '— chọn subscription —' },
-      ...map(subscriptions?.data, (subscription) => {
-        return { value: subscription.id, label: subscription.id };
-      }),
-    ];
+    return map(subscriptions?.data, (subscription) => {
+      return { value: subscription.id, label: subscription.id };
+    });
   }, [subscriptions]);
 
   const handleOnSaveCoupon = couponForm.handleSubmit((formData) => {
@@ -91,12 +89,12 @@ export default function DiscountsPage() {
     createPromotionCode(promotionCodeFormDataToPayload(formData));
   });
 
-  const handleOnCouponChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCouponId(event.target.value);
+  const handleOnCouponChange = useCallback((key: unknown) => {
+    setSelectedCouponId(toString(key));
   }, []);
 
-  const handleOnSubscriptionChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSubscriptionId(event.target.value);
+  const handleOnSubscriptionChange = useCallback((key: unknown) => {
+    setSelectedSubscriptionId(toString(key));
   }, []);
 
   const handleOnApply = useCallback(() => {
@@ -111,40 +109,69 @@ export default function DiscountsPage() {
   );
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Giảm giá</h1>
-        <p className="text-sm text-slate-500">
-          Giảm giá trừ vào từng dòng hoá đơn, trước thuế, theo thứ tự tạo. Một coupon repeating tính
-          hạn từ lúc discount được tạo.
-        </p>
-      </div>
-
+    <PageCard
+      title="Giảm giá"
+      description="Giảm giá trừ vào từng dòng hoá đơn, trước thuế, theo thứ tự tạo. Một coupon repeating tính hạn từ lúc discount được tạo."
+    >
       <CouponForm form={couponForm} isSaving={isSavingCoupon} onSave={handleOnSaveCoupon} />
 
       <PromotionCodeForm
         form={promotionCodeForm}
-        couponOptions={couponOptions}
+        couponOptions={couponFieldOptions}
         isSaving={isSavingPromotionCode}
         onSave={handleOnSavePromotionCode}
       />
 
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
-        <SelectField
-          label="Coupon"
-          options={couponOptions}
-          value={selectedCouponId}
-          onChange={handleOnCouponChange}
-        />
-        <SelectField
-          label="Subscription"
-          options={subscriptionOptions}
-          value={selectedSubscriptionId}
-          onChange={handleOnSubscriptionChange}
-        />
+      <div className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4">
+        <Select
+          className="flex flex-col gap-1"
+          placeholder="— chọn coupon —"
+          selectedKey={selectedCouponId === '' ? null : selectedCouponId}
+          onSelectionChange={handleOnCouponChange}
+        >
+          <Label>Coupon</Label>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {map(couponOptions, (couponOption) => {
+                return (
+                  <ListBox.Item key={couponOption.value} id={couponOption.value}>
+                    {couponOption.label}
+                  </ListBox.Item>
+                );
+              })}
+            </ListBox>
+          </Select.Popover>
+        </Select>
+        <Select
+          className="flex flex-col gap-1"
+          placeholder="— chọn subscription —"
+          selectedKey={selectedSubscriptionId === '' ? null : selectedSubscriptionId}
+          onSelectionChange={handleOnSubscriptionChange}
+        >
+          <Label>Subscription</Label>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {map(subscriptionOptions, (subscriptionOption) => {
+                return (
+                  <ListBox.Item key={subscriptionOption.value} id={subscriptionOption.value}>
+                    {subscriptionOption.label}
+                  </ListBox.Item>
+                );
+              })}
+            </ListBox>
+          </Select.Popover>
+        </Select>
         <Button
-          onClick={handleOnApply}
-          disabled={isApplying || !selectedCouponId || !selectedSubscriptionId}
+          onPress={handleOnApply}
+          isDisabled={isApplying || !selectedCouponId || !selectedSubscriptionId}
         >
           Áp giảm giá
         </Button>
@@ -209,8 +236,8 @@ export default function DiscountsPage() {
                   <td className="px-4 py-3">
                     <Button
                       variant="ghost"
-                      disabled={isDeleting}
-                      onClick={() => {
+                      isDisabled={isDeleting}
+                      onPress={() => {
                         handleOnDelete(discount.id);
                       }}
                     >
@@ -222,8 +249,8 @@ export default function DiscountsPage() {
             })}
           </tbody>
         </table>
-        {error ? <p className="px-4 py-3 text-red-600">{error.message}</p> : null}
+        {error ? <p className="px-4 py-3 text-danger">{error.message}</p> : null}
       </div>
-    </div>
+    </PageCard>
   );
 }

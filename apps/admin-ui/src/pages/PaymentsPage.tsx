@@ -1,6 +1,7 @@
+import PageCard from '@components/PageCard';
 import PaymentIntentItem from '@components/PaymentIntentItem';
-import TextField from '@components/ui/TextField';
 import { PAGE_LIMIT } from '@constants/pagination';
+import { Input, Label, TextField } from '@heroui/react';
 import {
   useCreateRefundMutation,
   usePaymentIntentsQuery,
@@ -23,10 +24,6 @@ export default function PaymentsPage() {
     successMessage: 'Đã hoàn tiền.',
   });
 
-  const handleOnRefundAmountChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setRefundAmount(event.target.value);
-  }, []);
-
   const handleOnRefund = useCallback(
     (chargeId: string) => {
       createRefund({
@@ -39,23 +36,19 @@ export default function PaymentsPage() {
   );
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Payments</h1>
-        <p className="text-sm text-slate-500">
-          PSP giả lập, chạy trong tiến trình. Thẻ quyết định kết quả: `pm_card_ok` thì duyệt,
-          `pm_card_declined` thì từ chối. Mọi lần thử đều được giữ lại.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
+    <PageCard
+      title="Payments"
+      description="PSP giả lập, chạy trong tiến trình. Thẻ quyết định kết quả: pm_card_ok thì duyệt, pm_card_declined thì từ chối. Mọi lần thử đều được giữ lại."
+    >
+      <div className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4">
         <TextField
-          label="Số tiền hoàn"
-          type="number"
-          className="w-40"
+          className="flex w-40 flex-col gap-1"
           value={refundAmount}
-          onChange={handleOnRefundAmountChange}
-        />
+          onChange={setRefundAmount}
+        >
+          <Label>Số tiền hoàn</Label>
+          <Input type="number" />
+        </TextField>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -118,6 +111,6 @@ export default function PaymentsPage() {
           </table>
         </div>
       </section>
-    </div>
+    </PageCard>
   );
 }

@@ -1,4 +1,4 @@
-import Button from '@components/ui/Button';
+import { Button } from '@heroui/react';
 import type { PaymentIntentResponse } from '@pinstripe/core/contracts';
 import { PaymentIntentStatusEnum } from '@pinstripe/core/contracts';
 import { map, toUpper } from 'lodash-es';
@@ -67,7 +67,7 @@ export default function PaymentIntentItem({
       </td>
       <td className="px-4 py-3">
         {isSucceeded ? (
-          <Button variant="ghost" onClick={handleOnRefund} disabled={isBusy}>
+          <Button variant="ghost" onPress={handleOnRefund} isDisabled={isBusy}>
             Hoàn tiền
           </Button>
         ) : null}

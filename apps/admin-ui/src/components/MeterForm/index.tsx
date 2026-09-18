@@ -1,7 +1,7 @@
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
+import RenderSelectField from '@components/fields/RenderSelectField';
+import RenderTextField from '@components/fields/RenderTextField';
 import type { MeterFormData } from '@forms/meter-form';
+import { Button } from '@heroui/react';
 import { MeterAggregationEnum } from '@pinstripe/core/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -19,38 +19,36 @@ interface MeterFormProps {
 }
 
 export default function MeterForm({ form, isSaving, onSave }: MeterFormProps) {
-  const { errors } = form.formState;
-
   return (
     <form
-      className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
+      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
       onSubmit={onSave}
     >
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="displayName"
         label="Tên hiển thị"
         placeholder="API tokens"
-        error={errors.displayName?.message}
-        {...form.register('displayName')}
       />
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="eventName"
         label="Tên event"
         placeholder="api_request"
-        error={errors.eventName?.message}
-        {...form.register('eventName')}
       />
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="aggregation"
         label="Tổng hợp"
         options={AGGREGATION_OPTIONS}
-        error={errors.aggregation?.message}
-        {...form.register('aggregation')}
       />
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="valueKey"
         label="Khóa giá trị"
         placeholder="tokens"
-        error={errors.valueKey?.message}
-        {...form.register('valueKey')}
       />
-      <Button type="submit" disabled={isSaving}>
+      <Button type="submit" isDisabled={isSaving}>
         Tạo meter
       </Button>
     </form>

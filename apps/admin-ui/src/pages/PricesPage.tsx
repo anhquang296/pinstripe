@@ -1,3 +1,4 @@
+import PageCard from '@components/PageCard';
 import PriceForm from '@components/PriceForm';
 import PriceItem from '@components/PriceItem';
 import type { PriceFormData } from '@forms/price-form';
@@ -74,15 +75,10 @@ export default function PricesPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Prices</h1>
-        <p className="text-sm text-slate-500">
-          Giá là bất biến: đổi giá sinh version mới, version cũ vẫn phục vụ hợp đồng cũ. Tăng giá là
-          tạo price mới cùng lookup key; ngừng bán là tắt active, không phải xóa.
-        </p>
-      </div>
-
+    <PageCard
+      title="Prices"
+      description="Giá là bất biến: đổi giá sinh version mới, version cũ vẫn phục vụ hợp đồng cũ. Tăng giá là tạo price mới cùng lookup key; ngừng bán là tắt active, không phải xóa."
+    >
       <PriceForm
         form={form}
         productOptions={productOptions}
@@ -113,9 +109,9 @@ export default function PricesPage() {
             })}
           </tbody>
         </table>
-        {isPending ? <p className="px-4 py-3 text-slate-500">Đang tải…</p> : null}
-        {error ? <p className="px-4 py-3 text-red-600">{error.message}</p> : null}
+        {isPending ? <p className="text-app-description px-4 py-3">Đang tải…</p> : null}
+        {error ? <p className="px-4 py-3 text-danger">{error.message}</p> : null}
       </div>
-    </div>
+    </PageCard>
   );
 }
