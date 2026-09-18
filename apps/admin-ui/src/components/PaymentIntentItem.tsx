@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 interface PaymentIntentItemProps {
   paymentIntent: PaymentIntentResponse;
   isBusy: boolean;
-  onRefund: (paymentIntentId: string) => void;
+  onRefund: (chargeId: string) => void;
 }
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -25,11 +25,16 @@ export default function PaymentIntentItem({
   isBusy,
   onRefund,
 }: PaymentIntentItemProps) {
-  const handleOnRefund = useCallback(() => {
-    onRefund(paymentIntent.id);
-  }, [onRefund, paymentIntent.id]);
+  const { latestChargeId } = paymentIntent;
 
-  const isSucceeded = paymentIntent.status === PaymentIntentStatusEnum.SUCCEEDED;
+  const handleOnRefund = useCallback(() => {
+    if (latestChargeId) {
+      onRefund(latestChargeId);
+    }
+  }, [onRefund, latestChargeId]);
+
+  const isSucceeded =
+    paymentIntent.status === PaymentIntentStatusEnum.SUCCEEDED && Boolean(latestChargeId);
 
   return (
     <tr className="border-t border-slate-100 align-top">
