@@ -1,5 +1,6 @@
 import './index.css';
 
+import AdminAuthProvider from '@lib/auth';
 import AdminPinstripeProvider from '@lib/pinstripe';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
@@ -24,7 +25,9 @@ createRoot(container).render(
     <QueryClientProvider client={queryClient}>
       <AdminPinstripeProvider>
         <BrowserRouter>
-          <App />
+          <AdminAuthProvider queryClient={queryClient}>
+            <App />
+          </AdminAuthProvider>
         </BrowserRouter>
         <Toaster position="top-right" richColors />
       </AdminPinstripeProvider>
