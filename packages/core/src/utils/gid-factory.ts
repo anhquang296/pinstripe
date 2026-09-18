@@ -22,6 +22,8 @@ export enum ObjectPrefixEnum {
   CHARGE = 'ch',
   REFUND = 're',
   PAYMENT_METHOD = 'pm',
+  SETUP_INTENT = 'seti',
+  PSP_EVENT = 'pspevt',
   EVENT = 'evt',
   WEBHOOK_ENDPOINT = 'we',
   WEBHOOK_DELIVERY = 'wd',

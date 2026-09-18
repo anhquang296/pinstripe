@@ -4,8 +4,10 @@ import type {
 } from '@contracts/customers.types';
 import type { TaxExempt } from '@contracts/taxes.types';
 import { TaxExemptEnum } from '@contracts/taxes.types';
+import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import {
   bigint,
   boolean,
@@ -31,7 +33,9 @@ export const customers = pgTable(
     taxExempt: text('tax_exempt').$type<TaxExempt>().notNull().default(TaxExemptEnum.NONE),
     address: jsonb('address').$type<NonNullable<CustomerContract['address']>>(),
     currency: text('currency').$type<Currency>().notNull(),
-    defaultPaymentMethod: text('default_payment_method'),
+    defaultPaymentMethodId: text('default_payment_method_id').references((): AnyPgColumn => {
+      return paymentMethods.id;
+    }),
     testClockId: text('test_clock_id'),
     balance: bigint('balance', { mode: 'number' }).notNull().default(0),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
