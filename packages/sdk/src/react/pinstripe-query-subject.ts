@@ -14,6 +14,9 @@ export enum PinstripeQuerySubjectEnum {
   REFUND = 'refund',
   WEBHOOK = 'webhook',
   REPORTING = 'reporting',
+  USER = 'user',
+  ACCOUNT = 'account',
+  API_KEY = 'api_key',
 }
 
 export type PinstripeQuerySubject = `${PinstripeQuerySubjectEnum}`;
