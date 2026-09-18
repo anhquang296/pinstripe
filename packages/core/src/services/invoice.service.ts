@@ -11,6 +11,7 @@ import type {
 } from '@contracts/invoices.types';
 import {
   BillingReasonEnum,
+  CreditNoteStatusEnum,
   INVOICE_TRANSITIONS,
   InvoiceStatusEnum,
   NumberSequenceEnum,
@@ -18,6 +19,7 @@ import {
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import { RefundStatusEnum } from '@contracts/payments.types';
 import type { TaxBehavior } from '@contracts/prices.types';
 import { TaxBehaviorEnum } from '@contracts/prices.types';
 import type { RatedInvoiceResponse } from '@contracts/rating.types';
@@ -976,7 +978,9 @@ export class InvoiceService {
         tx,
       );
 
-      await this.postCashReceipt(updatedInvoice, amount, payload.settlementReference, tx);
+      if (!payload.chargeId) {
+        await this.postCashReceipt(updatedInvoice, amount, payload.settlementReference, tx);
+      }
 
       if (isSettled) {
         await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_PAID, tx);
@@ -1392,7 +1396,9 @@ export class InvoiceService {
   private async resolveCreditedAmounts(
     invoiceIds: readonly string[],
   ): Promise<Record<string, number>> {
-    const rows = await this.fastify.creditNoteRepository.aggregateCreditedAmounts(invoiceIds);
+    const rows = await this.fastify.creditNoteRepository.aggregateCreditedAmounts(invoiceIds, [
+      CreditNoteStatusEnum.VOID,
+    ]);
 
     return _.mapValues(_.keyBy(rows, 'invoiceId'), 'creditedAmount');
   }
@@ -1400,7 +1406,9 @@ export class InvoiceService {
   private async resolveRefundedAmounts(
     invoiceIds: readonly string[],
   ): Promise<Record<string, number>> {
-    const rows = await this.fastify.refundRepository.aggregateRefundedAmounts(invoiceIds);
+    const rows = await this.fastify.refundRepository.aggregateRefundedAmounts(invoiceIds, [
+      RefundStatusEnum.SUCCEEDED,
+    ]);
 
     return _.mapValues(_.keyBy(rows, 'invoiceId'), 'refundedAmount');
   }

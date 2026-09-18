@@ -1,9 +1,11 @@
 import { ApiKeyRepository } from '@repositories/api-key.repository';
+import { BalanceTransactionRepository } from '@repositories/balance-transaction.repository';
 import { CouponRepository } from '@repositories/coupon.repository';
 import { CreditNoteRepository } from '@repositories/credit-note.repository';
 import { CustomerRepository } from '@repositories/customer.repository';
 import { CustomerBalanceTransactionRepository } from '@repositories/customer-balance-transaction.repository';
 import { DiscountRepository } from '@repositories/discount.repository';
+import { DisputeRepository } from '@repositories/dispute.repository';
 import { EntitlementRepository } from '@repositories/entitlement.repository';
 import { EventRepository } from '@repositories/event.repository';
 import { IdempotencyKeyRepository } from '@repositories/idempotency-key.repository';
@@ -17,6 +19,7 @@ import { NumberSequenceRepository } from '@repositories/number-sequence.reposito
 import { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import { PaymentIntentRepository } from '@repositories/payment-intent.repository';
 import { PaymentMethodRepository } from '@repositories/payment-method.repository';
+import { PayoutRepository } from '@repositories/payout.repository';
 import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
 import { PromotionCodeRepository } from '@repositories/promotion-code.repository';
@@ -62,6 +65,12 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('setupIntentRepository', new SetupIntentRepository(fastify.database));
   fastify.decorate('pspEventRepository', new PspEventRepository(fastify.database));
   fastify.decorate('refundRepository', new RefundRepository(fastify.database));
+  fastify.decorate(
+    'balanceTransactionRepository',
+    new BalanceTransactionRepository(fastify.database),
+  );
+  fastify.decorate('payoutRepository', new PayoutRepository(fastify.database));
+  fastify.decorate('disputeRepository', new DisputeRepository(fastify.database));
   fastify.decorate('webhookRepository', new WebhookRepository(fastify.database));
   fastify.decorate('reportingRepository', new ReportingRepository(fastify.database));
   fastify.decorate('couponRepository', new CouponRepository(fastify.database));
