@@ -1,4 +1,4 @@
-import { OPERATOR_COLLECTION_METHODS } from '@constants/collection';
+import { PARTNER_COLLECTION_METHODS } from '@constants/collection';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
@@ -164,8 +164,8 @@ export class DunningService {
       return DunningOutcomeEnum.SETTLED;
     }
 
-    if (_.includes(OPERATOR_COLLECTION_METHODS, invoice.collectionMethod)) {
-      return this.collectFromOperator(invoice, owed.amountRemaining, now);
+    if (_.includes(PARTNER_COLLECTION_METHODS, invoice.collectionMethod)) {
+      return this.collectFromPartner(invoice, owed.amountRemaining, now);
     }
 
     const inFlight = await this.findInFlightIntent(invoice);
@@ -211,12 +211,12 @@ export class DunningService {
     });
   }
 
-  private async collectFromOperator(
+  private async collectFromPartner(
     invoice: Invoice,
     amountRemaining: number,
     now: Date,
   ): Promise<DunningOutcome> {
-    const { isSettled } = await this.fastify.operatorCollectionService.collectInvoice(
+    const { isSettled } = await this.fastify.partnerCollectionService.collectInvoice(
       invoice,
       amountRemaining,
       now,

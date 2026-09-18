@@ -14,6 +14,11 @@ export enum CustomerBalanceTransactionTypeEnum {
 }
 export type CustomerBalanceTransactionType = `${CustomerBalanceTransactionTypeEnum}`;
 
+export enum PartnerPlatformEnum {
+  VEXERE = 'vexere',
+}
+export type PartnerPlatform = `${PartnerPlatformEnum}`;
+
 export const customerSchema = Type.Object({
   id: Type.String(),
   email: Type.Union([Type.String(), Type.Null()]),
@@ -36,7 +41,11 @@ export const customerSchema = Type.Object({
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   defaultPaymentMethodId: Type.Union([Type.String(), Type.Null()]),
   testClockId: Type.Union([Type.String(), Type.Null()]),
-  vexereOperatorId: Type.Union([Type.String(), Type.Null()]),
+  partnerPlatform: Type.Union([
+    Type.Unsafe<PartnerPlatform>(Type.Enum(PartnerPlatformEnum)),
+    Type.Null(),
+  ]),
+  partnerAccountId: Type.Union([Type.String(), Type.Null()]),
   balance: Type.Integer(),
   metadata: Type.Record(Type.String(), Type.String()),
   createdAt: Type.String(),
@@ -68,7 +77,8 @@ export const createCustomerSchema = Type.Object(
     currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
     defaultPaymentMethodId: Type.Optional(Type.String({ minLength: 1 })),
     testClockId: Type.Optional(Type.String({ minLength: 1 })),
-    vexereOperatorId: Type.Optional(Type.String({ minLength: 1 })),
+    partnerPlatform: Type.Optional(Type.Unsafe<PartnerPlatform>(Type.Enum(PartnerPlatformEnum))),
+    partnerAccountId: Type.Optional(Type.String({ minLength: 1 })),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
   },
   { additionalProperties: false },
@@ -93,7 +103,10 @@ export const updateCustomerSchema = Type.Object(
       }),
     ),
     defaultPaymentMethodId: Type.Optional(Type.Union([Type.String({ minLength: 1 }), Type.Null()])),
-    vexereOperatorId: Type.Optional(Type.Union([Type.String({ minLength: 1 }), Type.Null()])),
+    partnerPlatform: Type.Optional(
+      Type.Union([Type.Unsafe<PartnerPlatform>(Type.Enum(PartnerPlatformEnum)), Type.Null()]),
+    ),
+    partnerAccountId: Type.Optional(Type.Union([Type.String({ minLength: 1 }), Type.Null()])),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
   },
   { additionalProperties: false },

@@ -51,15 +51,15 @@ Bước 1 bắt trường hợp hoá đơn đã được trả hoặc ghi giảm
 
 ### `offset_ticket` / `debit_wallet`
 
-Sau bước 1, hoá đơn có collection method thu qua Vexere rẽ sang `collectFromOperator` thay vì bước 2-3 — [ADR 0023](../adr/0023-operator-collection-methods.md):
+Sau bước 1, hoá đơn có collection method thu qua nền tảng đối tác rẽ sang `collectFromPartner` thay vì bước 2-3. Provider được chọn theo `customer.partnerPlatform` — [ADR 0023](../adr/0023-partner-collection-methods.md):
 
-| #   | Điều kiện                            | Làm gì                                                                                        | Kết quả                 |
-| --- | ------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------- |
-| a   | có `collection_attempts` `pending`   | gọi lại Vexere với **cùng** `idempotencyKey`                                                  |                         |
-| b   | chưa có                              | tạo attempt `pending` (commit), gọi `offsetTicketSales` / `debitWallet` với `amountRemaining` |                         |
-| c   | `appliedAmount > 0`                  | `applyInvoicePayment` + `DEBIT <clearing> / CREDIT accounts_receivable`, attempt `succeeded`  |                         |
-| d   | trả đủ                               | `handleInvoicePaymentSucceeded`                                                               | `settled`               |
-| e   | thiếu (0 hoặc một phần) / lỗi Vexere | attempt `failed` nếu 0 / lỗi; `scheduleRetryOrAbandon` như thẻ không có payment method        | `retried` / `abandoned` |
+| #   | Điều kiện                             | Làm gì                                                                                        | Kết quả                 |
+| --- | ------------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
+| a   | có `collection_attempts` `pending`    | gọi lại đối tác với **cùng** `idempotencyKey`                                                 |                         |
+| b   | chưa có                               | tạo attempt `pending` (commit), gọi `offsetTicketSales` / `debitWallet` với `amountRemaining` |                         |
+| c   | `appliedAmount > 0`                   | `applyInvoicePayment` + `DEBIT <clearing> / CREDIT accounts_receivable`, attempt `succeeded`  |                         |
+| d   | trả đủ                                | `handleInvoicePaymentSucceeded`                                                               | `settled`               |
+| e   | thiếu (0 hoặc một phần) / lỗi đối tác | attempt `failed` nếu 0 / lỗi; `scheduleRetryOrAbandon` như thẻ không có payment method        | `retried` / `abandoned` |
 
 ## Lịch retry
 

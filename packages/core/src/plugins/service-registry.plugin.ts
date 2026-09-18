@@ -22,8 +22,8 @@ import { LedgerService } from '@services/ledger.service';
 import { MeterService } from '@services/meter.service';
 import { MeterEventService } from '@services/meter-event.service';
 import { NotificationService } from '@services/notification.service';
-import { OperatorCollectionService } from '@services/operator-collection.service';
 import { OutboxService } from '@services/outbox.service';
+import { PartnerCollectionService } from '@services/partner-collection.service';
 import { PaymentService } from '@services/payment.service';
 import { PaymentLinkService } from '@services/payment-link.service';
 import { PaymentMethodService } from '@services/payment-method.service';
@@ -91,7 +91,7 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('webhookService', new WebhookService(fastify));
   fastify.decorate('reportingService', new ReportingService(fastify));
   fastify.decorate('reconciliationService', new ReconciliationService(fastify));
-  fastify.decorate('operatorCollectionService', new OperatorCollectionService(fastify));
+  fastify.decorate('partnerCollectionService', new PartnerCollectionService(fastify));
   fastify.decorate(
     'dunningService',
     new DunningService(fastify, {

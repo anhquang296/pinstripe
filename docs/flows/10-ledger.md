@@ -6,14 +6,14 @@ Nguồn sự thật về tiền. Mọi con số tài chính trong báo cáo đ�
 
 Không có route `/v1` nào ghi sổ trực tiếp. Bút toán luôn được sinh **bên trong transaction của một nghiệp vụ khác**:
 
-| Nghiệp vụ           | Nợ                                                    | Có                            | Ở đâu                                                                                             |
-| ------------------- | ----------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
-| Phát hành hoá đơn   | `accounts_receivable` (khách)                         | `revenue`                     | [invoice.service.ts:336-362](../../packages/core/src/services/invoice.service.ts)                 |
-| Thu tiền            | `cash`                                                | `accounts_receivable` (khách) | [invoice.service.ts:364-391](../../packages/core/src/services/invoice.service.ts)                 |
-| Huỷ hoá đơn `open`  | `revenue`                                             | `accounts_receivable` (khách) | [invoice.service.ts:393-419](../../packages/core/src/services/invoice.service.ts)                 |
-| Credit note         | `revenue`                                             | `accounts_receivable` (khách) | [credit-note.service.ts:147-169](../../packages/core/src/services/credit-note.service.ts)         |
-| Refund              | `revenue`                                             | `cash`                        | [refund.service.ts:122-143](../../packages/core/src/services/refund.service.ts)                   |
-| Cấn trừ vé / trừ ví | `ticket_offset_clearing` / `operator_wallet_clearing` | `accounts_receivable` (khách) | [operator-collection.service.ts](../../packages/core/src/services/operator-collection.service.ts) |
+| Nghiệp vụ           | Nợ                                                   | Có                            | Ở đâu                                                                                           |
+| ------------------- | ---------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| Phát hành hoá đơn   | `accounts_receivable` (khách)                        | `revenue`                     | [invoice.service.ts:336-362](../../packages/core/src/services/invoice.service.ts)               |
+| Thu tiền            | `cash`                                               | `accounts_receivable` (khách) | [invoice.service.ts:364-391](../../packages/core/src/services/invoice.service.ts)               |
+| Huỷ hoá đơn `open`  | `revenue`                                            | `accounts_receivable` (khách) | [invoice.service.ts:393-419](../../packages/core/src/services/invoice.service.ts)               |
+| Credit note         | `revenue`                                            | `accounts_receivable` (khách) | [credit-note.service.ts:147-169](../../packages/core/src/services/credit-note.service.ts)       |
+| Refund              | `revenue`                                            | `cash`                        | [refund.service.ts:122-143](../../packages/core/src/services/refund.service.ts)                 |
+| Cấn trừ vé / trừ ví | `ticket_offset_clearing` / `partner_wallet_clearing` | `accounts_receivable` (khách) | [partner-collection.service.ts](../../packages/core/src/services/partner-collection.service.ts) |
 
 Ngoài ra admin ghi tay được qua `POST /api/v1/admin/ledger/transactions` và đảo qua `.../transactions/:id/reverse`.
 
@@ -21,21 +21,21 @@ Ngoài ra admin ghi tay được qua `POST /api/v1/admin/ledger/transactions` v�
 
 [ledger.types.ts:38-74](../../packages/core/src/contracts/ledger.types.ts):
 
-| Mã                         | Loại      | Số dư thường | Theo từng khách |
-| -------------------------- | --------- | ------------ | --------------- |
-| `accounts_receivable`      | asset     | debit        | ✅              |
-| `cash`                     | asset     | debit        |                 |
-| `revenue`                  | revenue   | credit       |                 |
-| `deferred_revenue`         | liability | credit       |                 |
-| `tax_payable`              | liability | credit       |                 |
-| `customer_credit_balance`  | liability | credit       | ✅              |
-| `rounding_difference`      | expense   | debit        |                 |
-| `psp_receivable`           | asset     | debit        |                 |
-| `psp_fees`                 | expense   | debit        |                 |
-| `disputes_held`            | asset     | debit        |                 |
-| `payouts_clearing`         | asset     | debit        |                 |
-| `ticket_offset_clearing`   | asset     | debit        |                 |
-| `operator_wallet_clearing` | asset     | debit        |                 |
+| Mã                        | Loại      | Số dư thường | Theo từng khách |
+| ------------------------- | --------- | ------------ | --------------- |
+| `accounts_receivable`     | asset     | debit        | ✅              |
+| `cash`                    | asset     | debit        |                 |
+| `revenue`                 | revenue   | credit       |                 |
+| `deferred_revenue`        | liability | credit       |                 |
+| `tax_payable`             | liability | credit       |                 |
+| `customer_credit_balance` | liability | credit       | ✅              |
+| `rounding_difference`     | expense   | debit        |                 |
+| `psp_receivable`          | asset     | debit        |                 |
+| `psp_fees`                | expense   | debit        |                 |
+| `disputes_held`           | asset     | debit        |                 |
+| `payouts_clearing`        | asset     | debit        |                 |
+| `ticket_offset_clearing`  | asset     | debit        |                 |
+| `partner_wallet_clearing` | asset     | debit        |                 |
 
 `tax_payable` có bút toán từ phase 15: finalize ghi **Có** phần `totalTaxAmount`, void đảo lại — [ADR 0016](../adr/0016-tax-model.md). `customer_credit_balance` dùng từ phase 13. Bốn mã cuối là của phase 19 và mô tả phía quỹ: tiền PSP đang giữ, phí PSP đã trừ, tiền bị giữ vì dispute, tiền đang trên đường về ngân hàng — [ADR 0020](../adr/0020-money-flow.md). Còn `deferred_revenue` và `rounding_difference` đã khai báo nhưng **chưa có bút toán nào dùng** — chỗ dành sẵn cho ghi nhận doanh thu theo kỳ.
 

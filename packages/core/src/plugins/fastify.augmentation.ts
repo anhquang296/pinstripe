@@ -2,6 +2,7 @@ import type { FileStorageClient } from '@clients/file-storage.client';
 import type { MockPspClient } from '@clients/mock-psp.client';
 import type { SmtpClient } from '@clients/smtp.client';
 import type { Env } from '@config/env.schema';
+import type { PartnerPlatform } from '@contracts/customers.types';
 import type { DatabaseClient } from '@database/database.client';
 import type { ListenAddress, WorkflowSchedules } from '@plugins/config.plugin';
 import type { QueueRegistry } from '@queues/queue-registry';
@@ -69,8 +70,8 @@ import type { LedgerService } from '@services/ledger.service';
 import type { MeterService } from '@services/meter.service';
 import type { MeterEventService } from '@services/meter-event.service';
 import type { NotificationService } from '@services/notification.service';
-import type { OperatorCollectionService } from '@services/operator-collection.service';
 import type { OutboxService } from '@services/outbox.service';
+import type { PartnerCollectionService } from '@services/partner-collection.service';
 import type { PaymentService } from '@services/payment.service';
 import type { PaymentLinkService } from '@services/payment-link.service';
 import type { PaymentMethodService } from '@services/payment-method.service';
@@ -91,7 +92,7 @@ import type { TaxIdService } from '@services/tax-id.service';
 import type { TaxRateService } from '@services/tax-rate.service';
 import type { TestClockService } from '@services/test-clock.service';
 import type { WebhookService } from '@services/webhook.service';
-import type { OperatorCollectionProvider } from '@type/operator-collection-provider';
+import type { PartnerCollectionProvider } from '@type/partner-collection-provider';
 import type { TaxProvider } from '@type/tax-provider';
 import type { Clock } from '@utils/clock';
 import type { HostedUrlFactory } from '@utils/hosted-url';
@@ -200,9 +201,9 @@ declare module 'fastify' {
     hostedUrlFactory: HostedUrlFactory;
     mailer: SmtpClient | null;
     taxProvider: TaxProvider;
-    operatorCollectionProvider: OperatorCollectionProvider;
+    partnerCollectionProviders: Record<PartnerPlatform, PartnerCollectionProvider>;
     collectionAttemptRepository: CollectionAttemptRepository;
-    operatorCollectionService: OperatorCollectionService;
+    partnerCollectionService: PartnerCollectionService;
   }
 }
 

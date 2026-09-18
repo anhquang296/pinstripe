@@ -1,9 +1,9 @@
 import type { Logger } from '@type/logger';
 import type {
-  OperatorCollectionPayload,
-  OperatorCollectionProvider,
-  OperatorCollectionResult,
-} from '@type/operator-collection-provider';
+  PartnerCollectionPayload,
+  PartnerCollectionProvider,
+  PartnerCollectionResult,
+} from '@type/partner-collection-provider';
 import _ from 'lodash';
 
 const TICKET_OFFSETS_PATH = '/ticket-offsets';
@@ -30,7 +30,7 @@ export class VexereRequestError extends Error {
   }
 }
 
-export class VexereClient implements OperatorCollectionProvider {
+export class VexereClient implements PartnerCollectionProvider {
   private _apiUrl: string;
   private _apiKey: string;
   private _timeoutMs: number;
@@ -49,28 +49,30 @@ export class VexereClient implements OperatorCollectionProvider {
     return Boolean(vexereConfig.apiUrl && vexereConfig.apiKey);
   }
 
-  async offsetTicketSales(payload: OperatorCollectionPayload): Promise<OperatorCollectionResult> {
+  async offsetTicketSales(payload: PartnerCollectionPayload): Promise<PartnerCollectionResult> {
     return this.collect(TICKET_OFFSETS_PATH, payload);
   }
 
-  async debitWallet(payload: OperatorCollectionPayload): Promise<OperatorCollectionResult> {
+  async debitWallet(payload: PartnerCollectionPayload): Promise<PartnerCollectionResult> {
     return this.collect(WALLET_DEBITS_PATH, payload);
   }
 
   private async collect(
     path: string,
-    payload: OperatorCollectionPayload,
-  ): Promise<OperatorCollectionResult> {
+    payload: PartnerCollectionPayload,
+  ): Promise<PartnerCollectionResult> {
     if (VexereClient.isConfigured({ apiUrl: this._apiUrl, apiKey: this._apiKey })) {
+      const { partnerAccountId, idempotencyKey, ...collection } = payload;
+
       try {
         const response = await fetch(`${this._apiUrl}${path}`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${this._apiKey}`,
             'Content-Type': 'application/json',
-            'Idempotency-Key': payload.idempotencyKey,
+            'Idempotency-Key': idempotencyKey,
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...collection, operatorId: partnerAccountId }),
           signal: AbortSignal.timeout(this._timeoutMs),
         });
 
@@ -91,7 +93,7 @@ export class VexereClient implements OperatorCollectionProvider {
     throw new VexereNotConfiguredError();
   }
 
-  private static buildCollectionResult(body: unknown): OperatorCollectionResult {
+  private static buildCollectionResult(body: unknown): PartnerCollectionResult {
     const appliedAmount: unknown = _.get(body, 'appliedAmount');
     const reference: unknown = _.get(body, 'reference', null);
 

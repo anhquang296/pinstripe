@@ -11,3 +11,11 @@ function readDriverCode(error: unknown): string | undefined {
 export function isUniqueViolation(error: unknown): boolean {
   return readDriverCode(error) === UNIQUE_VIOLATION_CODE;
 }
+
+export function isUniqueViolationOf(error: unknown, constraintName: string): boolean {
+  if (isUniqueViolation(error) && error instanceof Error && 'constraint_name' in error) {
+    return error.constraint_name === constraintName;
+  }
+
+  return false;
+}

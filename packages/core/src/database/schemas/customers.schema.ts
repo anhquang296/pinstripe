@@ -1,6 +1,8 @@
+import { CUSTOMER_PARTNER_ACCOUNT_INDEX } from '@constants/customer';
 import type {
   CustomerBalanceTransactionType,
   CustomerResponse as CustomerContract,
+  PartnerPlatform,
 } from '@contracts/customers.types';
 import type { TaxExempt } from '@contracts/taxes.types';
 import { TaxExemptEnum } from '@contracts/taxes.types';
@@ -9,7 +11,7 @@ import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { bigint, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { bigint, check, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const customers = pgTable(
   'customers',
@@ -27,7 +29,8 @@ export const customers = pgTable(
       return paymentMethods.id;
     }),
     testClockId: text('test_clock_id'),
-    vexereOperatorId: text('vexere_operator_id'),
+    partnerPlatform: text('partner_platform').$type<PartnerPlatform>(),
+    partnerAccountId: text('partner_account_id'),
     balance: bigint('balance', { mode: 'number' }).notNull().default(0),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: isoTimestamp('created_at')
@@ -44,6 +47,13 @@ export const customers = pgTable(
       uniqueIndex('customers_email_idx')
         .on(table.email)
         .where(sql`deleted_at is null and email is not null`),
+      uniqueIndex(CUSTOMER_PARTNER_ACCOUNT_INDEX)
+        .on(table.partnerPlatform, table.partnerAccountId)
+        .where(sql`partner_account_id is not null`),
+      check(
+        'customers_partner_pair',
+        sql`(partner_platform is null) = (partner_account_id is null)`,
+      ),
     ];
   },
 );

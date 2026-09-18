@@ -1,5 +1,6 @@
 import { PspTokenEnum } from '@clients/mock-psp.client';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
+import type { PartnerPlatform } from '@contracts/customers.types';
 import type { PaymentMethodResponse } from '@contracts/payment-methods.types';
 import { PaymentMethodTypeEnum } from '@contracts/payment-methods.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
@@ -19,7 +20,8 @@ export interface SubscriptionOverrides {
   frozenTime?: string;
   billingMode?: BillingMode;
   collectionMethod?: CollectionMethod;
-  vexereOperatorId?: string;
+  partnerPlatform?: PartnerPlatform;
+  partnerAccountId?: string;
 }
 
 export interface SubscriptionFixture {
@@ -45,7 +47,8 @@ export async function makeSubscription(
     frozenTime = DEFAULT_CLOCK_START,
     billingMode = BillingModeEnum.ADVANCE,
     collectionMethod = CollectionMethodEnum.CHARGE_AUTOMATICALLY,
-    vexereOperatorId,
+    partnerPlatform,
+    partnerAccountId,
   } = overrides;
 
   const clock = await fastify.testClockService.createTestClock({
@@ -56,7 +59,8 @@ export async function makeSubscription(
     email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
     testClockId: clock.id,
-    vexereOperatorId,
+    partnerPlatform,
+    partnerAccountId,
   });
   const paymentMethod = await makePaymentMethod(fastify, customer.id, token);
   const product = await fastify.productService.createProduct({

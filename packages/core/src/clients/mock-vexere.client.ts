@@ -1,9 +1,9 @@
 import type { Logger } from '@type/logger';
 import type {
-  OperatorCollectionPayload,
-  OperatorCollectionProvider,
-  OperatorCollectionResult,
-} from '@type/operator-collection-provider';
+  PartnerCollectionPayload,
+  PartnerCollectionProvider,
+  PartnerCollectionResult,
+} from '@type/partner-collection-provider';
 import _ from 'lodash';
 
 const DEFAULT_REFERENCE_PREFIX = 'mockvxr';
@@ -18,11 +18,11 @@ export type MockVexereConfig = {
   referencePrefix?: string;
 };
 
-export class MockVexereClient implements OperatorCollectionProvider {
+export class MockVexereClient implements PartnerCollectionProvider {
   private _referencePrefix: string;
   private _logger: Logger;
   private _balancesBySource: Record<MockVexereSource, Map<string, number>>;
-  private _collectionsByIdempotencyKey: Map<string, OperatorCollectionResult>;
+  private _collectionsByIdempotencyKey: Map<string, PartnerCollectionResult>;
 
   constructor(mockVexereConfig: MockVexereConfig, logger: Logger) {
     const { referencePrefix = DEFAULT_REFERENCE_PREFIX } = mockVexereConfig;
@@ -36,20 +36,20 @@ export class MockVexereClient implements OperatorCollectionProvider {
     this._collectionsByIdempotencyKey = new Map();
   }
 
-  async offsetTicketSales(payload: OperatorCollectionPayload): Promise<OperatorCollectionResult> {
+  async offsetTicketSales(payload: PartnerCollectionPayload): Promise<PartnerCollectionResult> {
     return this.collect(MockVexereSourceEnum.TICKET_SALES, payload);
   }
 
-  async debitWallet(payload: OperatorCollectionPayload): Promise<OperatorCollectionResult> {
+  async debitWallet(payload: PartnerCollectionPayload): Promise<PartnerCollectionResult> {
     return this.collect(MockVexereSourceEnum.WALLET, payload);
   }
 
-  fundOperator(source: MockVexereSource, operatorId: string, amount: number): void {
-    this._balancesBySource[source].set(operatorId, amount);
+  fundAccount(source: MockVexereSource, partnerAccountId: string, amount: number): void {
+    this._balancesBySource[source].set(partnerAccountId, amount);
   }
 
-  resolveOperatorBalance(source: MockVexereSource, operatorId: string): number {
-    const balance = this._balancesBySource[source].get(operatorId);
+  resolveAccountBalance(source: MockVexereSource, partnerAccountId: string): number {
+    const balance = this._balancesBySource[source].get(partnerAccountId);
 
     if (balance) {
       return balance;
@@ -60,25 +60,25 @@ export class MockVexereClient implements OperatorCollectionProvider {
 
   private collect(
     source: MockVexereSource,
-    payload: OperatorCollectionPayload,
-  ): OperatorCollectionResult {
+    payload: PartnerCollectionPayload,
+  ): PartnerCollectionResult {
     const replayedCollection = this._collectionsByIdempotencyKey.get(payload.idempotencyKey);
 
     if (replayedCollection) {
       return replayedCollection;
     }
 
-    const balance = this.resolveOperatorBalance(source, payload.operatorId);
-    const appliedAmount = _.clamp(payload.amount, 0, balance);
-    const reference =
-      appliedAmount > 0 ? `${this._referencePrefix}_${payload.idempotencyKey}` : null;
+    const { partnerAccountId, amount, idempotencyKey } = payload;
+    const balance = this.resolveAccountBalance(source, partnerAccountId);
+    const appliedAmount = _.clamp(amount, 0, balance);
+    const reference = appliedAmount > 0 ? `${this._referencePrefix}_${idempotencyKey}` : null;
     const collection = { appliedAmount, reference };
 
-    this._balancesBySource[source].set(payload.operatorId, balance - appliedAmount);
-    this._collectionsByIdempotencyKey.set(payload.idempotencyKey, collection);
+    this._balancesBySource[source].set(partnerAccountId, balance - appliedAmount);
+    this._collectionsByIdempotencyKey.set(idempotencyKey, collection);
 
     this._logger.info(
-      { source, operatorId: payload.operatorId, requestedAmount: payload.amount, appliedAmount },
+      { source, partnerAccountId, requestedAmount: amount, appliedAmount },
       '[MockVexereClient] collect() completed',
     );
 

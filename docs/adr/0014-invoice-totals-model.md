@@ -93,7 +93,7 @@ append-only.
 - `autoAdvance = true` + `draft` + `createdAt` cũ hơn `INVOICE_FINALIZE_DELAY_MS` → billing shard tự
   finalize. Cùng shard với billing run, không thêm queue.
 - `collectionMethod = send_invoice` → `nextAttemptAt = null`, nên dunning **không** đụng vào nó.
-  `offset_ticket` / `debit_wallet` (thêm sau, [ADR 0023](0023-operator-collection-methods.md)) được
+  `offset_ticket` / `debit_wallet` (thêm sau, [ADR 0023](0023-partner-collection-methods.md)) được
   lên lịch như `charge_automatically`.
   `charge_automatically` giữ nguyên hành vi cũ.
 - `daysUntilDue` ghi đè `INVOICE_DUE_DAYS` cho từng hoá đơn.

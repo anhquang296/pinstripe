@@ -1,0 +1,1 @@
+export const CUSTOMER_PARTNER_ACCOUNT_INDEX = 'customers_partner_platform_partner_account_id_idx';

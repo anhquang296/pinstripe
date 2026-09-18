@@ -1,3 +1,4 @@
+import { CUSTOMER_PARTNER_ACCOUNT_INDEX } from '@constants/customer';
 import type {
   CreateCustomerPayload,
   CustomerResponse,
@@ -11,7 +12,7 @@ import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import { TaxExemptEnum } from '@contracts/taxes.types';
 import type { Customer } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
-import { isUniqueViolation } from '@errors/database.error';
+import { isUniqueViolation, isUniqueViolationOf } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
@@ -21,6 +22,8 @@ export class CustomerService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createCustomer(payload: CreateCustomerPayload): Promise<CustomerResponse> {
+    CustomerService.assertPartnerPair(payload);
+
     if (this.canAttachTestClock(payload.testClockId)) {
       const now = this.fastify.clock.now().toISOString();
 
@@ -70,7 +73,8 @@ export class CustomerService {
             currency: payload.currency,
             defaultPaymentMethodId: payload.defaultPaymentMethodId ?? null,
             testClockId: payload.testClockId ?? null,
-            vexereOperatorId: payload.vexereOperatorId ?? null,
+            partnerPlatform: payload.partnerPlatform ?? null,
+            partnerAccountId: payload.partnerAccountId ?? null,
             metadata,
             createdAt: now,
             updatedAt: now,
@@ -97,6 +101,10 @@ export class CustomerService {
         throw new NotFoundError(`Customer ${id} could not be created`);
       });
     } catch (error) {
+      if (isUniqueViolationOf(error, CUSTOMER_PARTNER_ACCOUNT_INDEX)) {
+        throw CustomerService.buildPartnerConflictError(payload, error);
+      }
+
       if (isUniqueViolation(error)) {
         throw new ConflictError(`A customer with email ${payload.email} already exists`, {
           param: 'email',
@@ -113,9 +121,23 @@ export class CustomerService {
   }
 
   async updateCustomer(id: string, payload: UpdateCustomerPayload): Promise<CustomerResponse> {
+    CustomerService.assertPartnerPair(payload);
+
     await this.getCustomer(id);
 
-    const updatedCustomer = await this.fastify.database.master.transaction(async (tx) => {
+    try {
+      return await this.writeCustomerUpdate(id, payload);
+    } catch (error) {
+      if (isUniqueViolationOf(error, CUSTOMER_PARTNER_ACCOUNT_INDEX)) {
+        throw CustomerService.buildPartnerConflictError(payload, error);
+      }
+
+      throw error;
+    }
+  }
+
+  private async writeCustomerUpdate(id: string, payload: UpdateCustomerPayload): Promise<Customer> {
+    return this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.updateCustomer(
         id,
         { ...payload, updatedAt: this.fastify.clock.now().toISOString() },
@@ -140,8 +162,31 @@ export class CustomerService {
 
       throw new NotFoundError(`No such customer: ${id}`);
     });
+  }
 
-    return updatedCustomer;
+  private static assertPartnerPair(
+    payload: Pick<UpdateCustomerPayload, 'partnerPlatform' | 'partnerAccountId'>,
+  ): void {
+    const isKeyMismatched =
+      _.has(payload, 'partnerPlatform') !== _.has(payload, 'partnerAccountId');
+    const isValueMismatched =
+      _.isNil(payload.partnerPlatform) !== _.isNil(payload.partnerAccountId);
+
+    if (isKeyMismatched || isValueMismatched) {
+      throw new BadRequestError('partnerPlatform and partnerAccountId must be set together', {
+        param: 'partnerAccountId',
+      });
+    }
+  }
+
+  private static buildPartnerConflictError(
+    payload: Pick<UpdateCustomerPayload, 'partnerPlatform' | 'partnerAccountId'>,
+    error: unknown,
+  ): ConflictError {
+    return new ConflictError(
+      `Partner account ${payload.partnerAccountId} on ${payload.partnerPlatform} is already mapped to another customer`,
+      { param: 'partnerAccountId', cause: error },
+    );
   }
 
   async deleteCustomer(id: string): Promise<DeletedCustomerResponse> {

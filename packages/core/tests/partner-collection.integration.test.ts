@@ -2,11 +2,12 @@ import type { MockVexereSource } from '@clients/mock-vexere.client';
 import { MockVexereClient, MockVexereSourceEnum } from '@clients/mock-vexere.client';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { CollectionAttemptStatusEnum } from '@contracts/collection-attempts.types';
+import { PartnerPlatformEnum } from '@contracts/customers.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
 import type { CollectionMethod } from '@contracts/subscriptions.types';
 import { CollectionMethodEnum, SubscriptionStatusEnum } from '@contracts/subscriptions.types';
-import { BadRequestError } from '@errors/app.error';
+import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
@@ -31,7 +32,7 @@ afterAll(async () => {
 });
 
 function readMockVexere(): MockVexereClient {
-  const provider = fastify.operatorCollectionProvider;
+  const provider = fastify.partnerCollectionProviders[PartnerPlatformEnum.VEXERE];
 
   if (provider instanceof MockVexereClient) {
     return provider;
@@ -40,16 +41,21 @@ function readMockVexere(): MockVexereClient {
   throw new Error('test context is not wired to the mock Vexere client');
 }
 
-async function makeOperatorInvoice(collectionMethod: CollectionMethod) {
-  const vexereOperatorId = `op_${generateGid(ObjectPrefixEnum.CUSTOMER)}`;
+function buildPartnerAccountId(): string {
+  return `acct_${generateGid(ObjectPrefixEnum.CUSTOMER)}`;
+}
+
+async function makePartnerInvoice(collectionMethod: CollectionMethod) {
+  const partnerAccountId = buildPartnerAccountId();
   const fixture = await makeOpenInvoice(fastify, {
     unitAmount: BASE_AMOUNT,
     frozenTime: CLOCK_START,
     collectionMethod,
-    vexereOperatorId,
+    partnerPlatform: PartnerPlatformEnum.VEXERE,
+    partnerAccountId,
   });
 
-  return { ...fixture, vexereOperatorId };
+  return { ...fixture, partnerAccountId };
 }
 
 async function readInvoiceRow(invoiceId: string) {
@@ -92,15 +98,15 @@ async function readAccountBalance(code: LedgerAccountCodeEnum): Promise<number> 
   return account.balance;
 }
 
-function fundOperator(source: MockVexereSource, operatorId: string, amount: number): void {
-  readMockVexere().fundOperator(source, operatorId, amount);
+function fundAccount(source: MockVexereSource, partnerAccountId: string, amount: number): void {
+  readMockVexere().fundAccount(source, partnerAccountId, amount);
 }
 
-describe('InvoiceService.finalizeInvoice operator collection', () => {
+describe('InvoiceService.finalizeInvoice partner collection', () => {
   it.each([CollectionMethodEnum.OFFSET_TICKET, CollectionMethodEnum.DEBIT_WALLET])(
     'schedules a first collection attempt at the due date for %s',
     async (collectionMethod) => {
-      const { invoiceId } = await makeOperatorInvoice(collectionMethod);
+      const { invoiceId } = await makePartnerInvoice(collectionMethod);
 
       const invoice = await readInvoiceRow(invoiceId);
 
@@ -110,13 +116,13 @@ describe('InvoiceService.finalizeInvoice operator collection', () => {
   );
 });
 
-describe('DunningService.runDunningShard operator collection', () => {
+describe('DunningService.runDunningShard partner collection', () => {
   it('settles an offset_ticket invoice in full from ticket sales and posts to the ticket clearing account', async () => {
-    const { invoiceId, subscriptionId, vexereOperatorId } = await makeOperatorInvoice(
+    const { invoiceId, subscriptionId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.OFFSET_TICKET,
     );
     const dueAt = await readDueAt(invoiceId);
-    fundOperator(MockVexereSourceEnum.TICKET_SALES, vexereOperatorId, BASE_AMOUNT * 2);
+    fundAccount(MockVexereSourceEnum.TICKET_SALES, partnerAccountId, BASE_AMOUNT * 2);
     const clearingBefore = await readAccountBalance(LedgerAccountCodeEnum.TICKET_OFFSET_CLEARING);
 
     await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
@@ -135,21 +141,21 @@ describe('DunningService.runDunningShard operator collection', () => {
       clearingBefore + BASE_AMOUNT,
     );
     expect(
-      readMockVexere().resolveOperatorBalance(MockVexereSourceEnum.TICKET_SALES, vexereOperatorId),
+      readMockVexere().resolveAccountBalance(MockVexereSourceEnum.TICKET_SALES, partnerAccountId),
     ).toBe(BASE_AMOUNT);
     expect(subscription.status).toBe(SubscriptionStatusEnum.ACTIVE);
     expect(subscription.chargedThroughDate).toBe(invoice.periodEnd);
   });
 
   it('takes what the wallet holds, leaves the rest owed and schedules a retry', async () => {
-    const { invoiceId, subscriptionId, vexereOperatorId } = await makeOperatorInvoice(
+    const { invoiceId, subscriptionId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.DEBIT_WALLET,
     );
     const dueAt = await readDueAt(invoiceId);
     const runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
     const walletAmount = BASE_AMOUNT / 5;
-    fundOperator(MockVexereSourceEnum.WALLET, vexereOperatorId, walletAmount);
-    const clearingBefore = await readAccountBalance(LedgerAccountCodeEnum.OPERATOR_WALLET_CLEARING);
+    fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, walletAmount);
+    const clearingBefore = await readAccountBalance(LedgerAccountCodeEnum.PARTNER_WALLET_CLEARING);
 
     await runShard(runAt);
 
@@ -164,20 +170,20 @@ describe('DunningService.runDunningShard operator collection', () => {
     expect(invoice.nextAttemptAt).toBe(
       new Date(runAt.getTime() + MILLISECONDS_PER_DAY).toISOString(),
     );
-    expect(await readAccountBalance(LedgerAccountCodeEnum.OPERATOR_WALLET_CLEARING)).toBe(
+    expect(await readAccountBalance(LedgerAccountCodeEnum.PARTNER_WALLET_CLEARING)).toBe(
       clearingBefore + walletAmount,
     );
     expect(subscription.status).toBe(SubscriptionStatusEnum.INCOMPLETE);
   });
 
   it('collects the remainder on the retry and recovers the subscription', async () => {
-    const { invoiceId, subscriptionId, vexereOperatorId } = await makeOperatorInvoice(
+    const { invoiceId, subscriptionId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.DEBIT_WALLET,
     );
     const dueAt = await readDueAt(invoiceId);
-    fundOperator(MockVexereSourceEnum.WALLET, vexereOperatorId, BASE_AMOUNT / 2);
+    fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, BASE_AMOUNT / 2);
     await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
-    fundOperator(MockVexereSourceEnum.WALLET, vexereOperatorId, BASE_AMOUNT);
+    fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, BASE_AMOUNT);
     const nextAttemptAt = await readNextAttemptAt(invoiceId);
 
     await runShard(nextAttemptAt);
@@ -195,7 +201,7 @@ describe('DunningService.runDunningShard operator collection', () => {
   });
 
   it('marks the invoice uncollectible once the retry schedule runs out with nothing to take', async () => {
-    const { invoiceId, subscriptionId } = await makeOperatorInvoice(
+    const { invoiceId, subscriptionId } = await makePartnerInvoice(
       CollectionMethodEnum.OFFSET_TICKET,
     );
     const dueAt = await readDueAt(invoiceId);
@@ -225,13 +231,13 @@ describe('DunningService.runDunningShard operator collection', () => {
   });
 
   it('replays a pending attempt with the same idempotency key instead of debiting twice', async () => {
-    const { invoiceId, vexereOperatorId } = await makeOperatorInvoice(
+    const { invoiceId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.DEBIT_WALLET,
     );
     const dueAt = await readDueAt(invoiceId);
     const createdAt = dueAt.toISOString();
     const collectionAttemptId = generateGid(ObjectPrefixEnum.COLLECTION_ATTEMPT);
-    fundOperator(MockVexereSourceEnum.WALLET, vexereOperatorId, BASE_AMOUNT);
+    fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, BASE_AMOUNT);
     await fastify.collectionAttemptRepository.createCollectionAttempt({
       id: collectionAttemptId,
       invoiceId,
@@ -242,7 +248,7 @@ describe('DunningService.runDunningShard operator collection', () => {
       updatedAt: createdAt,
     });
     await readMockVexere().debitWallet({
-      operatorId: vexereOperatorId,
+      partnerAccountId,
       amount: BASE_AMOUNT,
       currency: CurrencyEnum.VND,
       idempotencyKey: collectionAttemptId,
@@ -260,18 +266,58 @@ describe('DunningService.runDunningShard operator collection', () => {
     expect(invoice.status).toBe(InvoiceStatusEnum.PAID);
     expect(collectionAttempts).toHaveLength(1);
     expect(
-      readMockVexere().resolveOperatorBalance(MockVexereSourceEnum.WALLET, vexereOperatorId),
+      readMockVexere().resolveAccountBalance(MockVexereSourceEnum.WALLET, partnerAccountId),
     ).toBe(0);
   });
 });
 
-describe('SubscriptionService.createSubscription operator collection', () => {
-  it('throws BadRequestError when the customer has no Vexere operator', async () => {
+describe('SubscriptionService.createSubscription partner collection', () => {
+  it('throws BadRequestError when the customer has no partner account', async () => {
     await expect(
       makeSubscription(fastify, {
         frozenTime: CLOCK_START,
         collectionMethod: CollectionMethodEnum.OFFSET_TICKET,
       }),
     ).rejects.toThrow(BadRequestError);
+  });
+});
+
+describe('CustomerService partner account mapping', () => {
+  it('throws BadRequestError when partnerAccountId is sent without partnerPlatform', async () => {
+    await expect(
+      fastify.customerService.createCustomer({
+        currency: CurrencyEnum.VND,
+        partnerAccountId: buildPartnerAccountId(),
+      }),
+    ).rejects.toThrow(BadRequestError);
+  });
+
+  it('throws BadRequestError when an update clears only one half of the mapping', async () => {
+    const customer = await fastify.customerService.createCustomer({
+      currency: CurrencyEnum.VND,
+      partnerPlatform: PartnerPlatformEnum.VEXERE,
+      partnerAccountId: buildPartnerAccountId(),
+    });
+
+    await expect(
+      fastify.customerService.updateCustomer(customer.id, { partnerAccountId: null }),
+    ).rejects.toThrow(BadRequestError);
+  });
+
+  it('throws ConflictError when the partner account is already mapped to another customer', async () => {
+    const partnerAccountId = buildPartnerAccountId();
+    await fastify.customerService.createCustomer({
+      currency: CurrencyEnum.VND,
+      partnerPlatform: PartnerPlatformEnum.VEXERE,
+      partnerAccountId,
+    });
+
+    await expect(
+      fastify.customerService.createCustomer({
+        currency: CurrencyEnum.VND,
+        partnerPlatform: PartnerPlatformEnum.VEXERE,
+        partnerAccountId,
+      }),
+    ).rejects.toThrow(ConflictError);
   });
 });

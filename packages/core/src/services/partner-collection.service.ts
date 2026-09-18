@@ -1,4 +1,5 @@
 import { CollectionAttemptStatusEnum } from '@contracts/collection-attempts.types';
+import type { PartnerPlatform } from '@contracts/customers.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import type { LedgerAccountCode } from '@contracts/ledger.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
@@ -7,46 +8,46 @@ import { CollectionMethodEnum } from '@contracts/subscriptions.types';
 import type { CollectionAttempt, Invoice } from '@database/schemas';
 import { BadRequestError, NotFoundError } from '@errors/app.error';
 import type {
-  OperatorCollectionPayload,
-  OperatorCollectionResult,
-} from '@type/operator-collection-provider';
+  PartnerCollectionPayload,
+  PartnerCollectionResult,
+} from '@type/partner-collection-provider';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
 const NOTHING_COLLECTED_MESSAGE = 'No ticket sales or wallet balance was available to collect';
-const REQUEST_FAILED_MESSAGE = 'The Vexere collection request failed';
+const REQUEST_FAILED_MESSAGE = 'The partner collection request failed';
 
-export interface OperatorCollectionOutcome {
+export interface PartnerCollectionOutcome {
   appliedAmount: number;
   isSettled: boolean;
 }
 
-type OperatorCollector = (payload: OperatorCollectionPayload) => Promise<OperatorCollectionResult>;
+type PartnerCollector = (payload: PartnerCollectionPayload) => Promise<PartnerCollectionResult>;
 
-interface OperatorCollectionResponse extends OperatorCollectionResult {
+interface PartnerCollectionResponse extends PartnerCollectionResult {
   failureMessage: string | null;
 }
 
-export class OperatorCollectionService {
+export class PartnerCollectionService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async collectInvoice(
     invoice: Invoice,
     amountRemaining: number,
     now: Date,
-  ): Promise<OperatorCollectionOutcome> {
-    const collector = this.resolveCollector(invoice.collectionMethod);
+  ): Promise<PartnerCollectionOutcome> {
     const customer = await this.fastify.customerRepository.getCustomer(invoice.customerId);
-    const { vexereOperatorId } = customer;
+    const { partnerPlatform, partnerAccountId } = customer;
 
-    if (vexereOperatorId) {
+    if (partnerPlatform && partnerAccountId) {
+      const collector = this.resolveCollector(invoice.collectionMethod, partnerPlatform);
       const collectionAttempt = await this.resolveCollectionAttempt(invoice, amountRemaining, now);
       const response = await this.requestCollection(
         collector,
         invoice,
         collectionAttempt,
-        vexereOperatorId,
+        partnerAccountId,
       );
 
       if (response.appliedAmount > 0) {
@@ -71,14 +72,17 @@ export class OperatorCollectionService {
 
     this.fastify.log.warn(
       { invoiceId: invoice.id, customerId: invoice.customerId },
-      '[OperatorCollectionService] collectInvoice() customer has no vexere operator',
+      '[PartnerCollectionService] collectInvoice() customer has no partner account',
     );
 
     return { appliedAmount: 0, isSettled: false };
   }
 
-  private resolveCollector(collectionMethod: CollectionMethod): OperatorCollector {
-    const provider = this.fastify.operatorCollectionProvider;
+  private resolveCollector(
+    collectionMethod: CollectionMethod,
+    partnerPlatform: PartnerPlatform,
+  ): PartnerCollector {
+    const provider = this.fastify.partnerCollectionProviders[partnerPlatform];
 
     if (collectionMethod === CollectionMethodEnum.OFFSET_TICKET) {
       return (payload) => {
@@ -93,7 +97,7 @@ export class OperatorCollectionService {
     }
 
     throw new BadRequestError(
-      `Collection method ${collectionMethod} is not collected through Vexere`,
+      `Collection method ${collectionMethod} is not collected through a partner platform`,
       { param: 'collectionMethod' },
     );
   }
@@ -132,14 +136,14 @@ export class OperatorCollectionService {
   }
 
   private async requestCollection(
-    collector: OperatorCollector,
+    collector: PartnerCollector,
     invoice: Invoice,
     collectionAttempt: CollectionAttempt,
-    vexereOperatorId: string,
-  ): Promise<OperatorCollectionResponse> {
+    partnerAccountId: string,
+  ): Promise<PartnerCollectionResponse> {
     try {
       const collection = await collector({
-        operatorId: vexereOperatorId,
+        partnerAccountId,
         amount: collectionAttempt.requestedAmount,
         currency: invoice.currency,
         idempotencyKey: collectionAttempt.id,
@@ -151,7 +155,7 @@ export class OperatorCollectionService {
     } catch (error) {
       this.fastify.log.error(
         { error, invoiceId: invoice.id, collectionAttemptId: collectionAttempt.id },
-        '[OperatorCollectionService] requestCollection() error',
+        '[PartnerCollectionService] requestCollection() error',
       );
 
       const failureMessage = _.get(error, 'message', REQUEST_FAILED_MESSAGE);
@@ -163,12 +167,12 @@ export class OperatorCollectionService {
   private async applyCollectionAttempt(
     invoice: Invoice,
     collectionAttempt: CollectionAttempt,
-    collection: OperatorCollectionResult,
+    collection: PartnerCollectionResult,
     now: Date,
-  ): Promise<OperatorCollectionOutcome> {
+  ): Promise<PartnerCollectionOutcome> {
     const { appliedAmount, reference } = collection;
     const updatedAt = now.toISOString();
-    const clearingAccountCode = OperatorCollectionService.resolveClearingAccountCode(
+    const clearingAccountCode = PartnerCollectionService.resolveClearingAccountCode(
       collectionAttempt.collectionMethod,
     );
 
@@ -214,7 +218,7 @@ export class OperatorCollectionService {
         appliedAmount,
         isSettled,
       },
-      '[OperatorCollectionService] applyCollectionAttempt() success',
+      '[PartnerCollectionService] applyCollectionAttempt() success',
     );
 
     return { appliedAmount, isSettled };
@@ -224,7 +228,7 @@ export class OperatorCollectionService {
     collectionAttempt: CollectionAttempt,
     failureMessage: string,
     now: Date,
-  ): Promise<OperatorCollectionOutcome> {
+  ): Promise<PartnerCollectionOutcome> {
     await this.fastify.collectionAttemptRepository.updateCollectionAttempt(collectionAttempt.id, {
       status: CollectionAttemptStatusEnum.FAILED,
       failureMessage,
@@ -236,7 +240,7 @@ export class OperatorCollectionService {
 
   private static resolveClearingAccountCode(collectionMethod: CollectionMethod): LedgerAccountCode {
     if (collectionMethod === CollectionMethodEnum.DEBIT_WALLET) {
-      return LedgerAccountCodeEnum.OPERATOR_WALLET_CLEARING;
+      return LedgerAccountCodeEnum.PARTNER_WALLET_CLEARING;
     }
 
     return LedgerAccountCodeEnum.TICKET_OFFSET_CLEARING;
