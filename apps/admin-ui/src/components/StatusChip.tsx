@@ -5,9 +5,40 @@ interface StatusChipProps {
   status: string;
 }
 
-const SUCCESS_STATUSES = ['active', 'paid', 'succeeded', 'complete', 'completed', 'posted'];
-const WARNING_STATUSES = ['past_due', 'review', 'pending', 'processing', 'trialing', 'incomplete'];
-const DANGER_STATUSES = ['overdue', 'void', 'voided', 'failed', 'canceled', 'uncollectible'];
+const SUCCESS_STATUSES = [
+  'active',
+  'paid',
+  'succeeded',
+  'complete',
+  'completed',
+  'posted',
+  'matched',
+  'issued',
+];
+const WARNING_STATUSES = [
+  'past_due',
+  'review',
+  'pending',
+  'processing',
+  'trialing',
+  'incomplete',
+  'missing_in_processor',
+  'requires_action',
+  'requires_confirmation',
+  'requires_payment_method',
+  'requires_capture',
+];
+const DANGER_STATUSES = [
+  'overdue',
+  'void',
+  'voided',
+  'failed',
+  'canceled',
+  'uncollectible',
+  'amount_mismatch',
+  'missing_in_ledger',
+  'missing_in_invoices',
+];
 
 function resolveStatusColor(status: string): 'success' | 'warning' | 'danger' | 'accent' {
   if (includes(SUCCESS_STATUSES, status)) {
