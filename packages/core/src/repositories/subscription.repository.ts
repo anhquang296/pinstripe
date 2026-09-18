@@ -229,6 +229,19 @@ export class SubscriptionRepository {
     return subscription ?? null;
   }
 
+  async clearSubscriptionPaymentMethods(
+    paymentMethodId: string,
+    updatedAt: Date,
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    await db
+      .update(subscriptions)
+      .set({ defaultPaymentMethodId: null, updatedAt })
+      .where(eq(subscriptions.defaultPaymentMethodId, paymentMethodId));
+  }
+
   async createSubscriptionItems(
     items: readonly NewSubscriptionItem[],
     executor?: DatabaseTransaction,
