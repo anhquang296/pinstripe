@@ -1,6 +1,7 @@
 import '@plugins/fastify.augmentation';
 
 export * from '@services/api-key.service';
+export * from '@services/balance.service';
 export * from '@services/billing-run.service';
 export * from '@services/clock.service';
 export * from '@services/coupon.service';
@@ -8,6 +9,7 @@ export * from '@services/credit-note.service';
 export * from '@services/customer.service';
 export * from '@services/customer-balance-transaction.service';
 export * from '@services/discount.service';
+export * from '@services/dispute.service';
 export * from '@services/dunning.service';
 export * from '@services/entitlement.service';
 export * from '@services/event.service';
@@ -22,6 +24,7 @@ export * from '@services/notification.service';
 export * from '@services/outbox.service';
 export * from '@services/payment.service';
 export * from '@services/payment-method.service';
+export * from '@services/payout.service';
 export * from '@services/price.service';
 export * from '@services/product.service';
 export * from '@services/promotion-code.service';

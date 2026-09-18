@@ -65,6 +65,7 @@ export const envSchema = Type.Object({
   PSP_WEBHOOK_SECRET: Optional(Type.String({ minLength: 16 })),
   PSP_CALLBACK_TOLERANCE_SECONDS: Default(Type.Integer({ minimum: 1 }), 300),
   PSP_CALLBACK_POLL_INTERVAL_MS: Default(Type.Integer({ minimum: 100 }), 2_000),
+  PAYOUT_SETTLE_POLL_INTERVAL_MS: Default(Type.Integer({ minimum: 100 }), 60_000),
 
   INVOICE_DUE_DAYS: Default(Type.Integer({ minimum: 0 }), 7),
   INVOICE_FINALIZE_DELAY_MS: Default(Type.Integer({ minimum: 0 }), 3_600_000),
