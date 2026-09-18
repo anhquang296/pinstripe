@@ -1,3 +1,4 @@
+import type { BetterAuthClient } from '@clients/better-auth.client';
 import type { FileStorageClient } from '@clients/file-storage.client';
 import type { MockPspClient } from '@clients/mock-psp.client';
 import type { SmtpClient } from '@clients/smtp.client';
@@ -7,6 +8,7 @@ import type { DatabaseClient } from '@database/database.client';
 import type { ListenAddress, WorkflowSchedules } from '@plugins/config.plugin';
 import type { QueueRegistry } from '@queues/queue-registry';
 import type { ApiKeyRepository } from '@repositories/api-key.repository';
+import type { AuditLogRepository } from '@repositories/audit-log.repository';
 import type { BalanceTransactionRepository } from '@repositories/balance-transaction.repository';
 import type { BillingPortalConfigurationRepository } from '@repositories/billing-portal-configuration.repository';
 import type { BillingPortalSessionRepository } from '@repositories/billing-portal-session.repository';
@@ -45,8 +47,10 @@ import type { SubscriptionRepository } from '@repositories/subscription.reposito
 import type { TaxIdRepository } from '@repositories/tax-id.repository';
 import type { TaxRateRepository } from '@repositories/tax-rate.repository';
 import type { TestClockRepository } from '@repositories/test-clock.repository';
+import type { UserRepository } from '@repositories/user.repository';
 import type { WebhookRepository } from '@repositories/webhook.repository';
 import type { ApiKeyService } from '@services/api-key.service';
+import type { AuditLogService } from '@services/audit-log.service';
 import type { BalanceService } from '@services/balance.service';
 import type { BillingPortalService } from '@services/billing-portal.service';
 import type { BillingRunService } from '@services/billing-run.service';
@@ -91,6 +95,7 @@ import type { TaxService } from '@services/tax.service';
 import type { TaxIdService } from '@services/tax-id.service';
 import type { TaxRateService } from '@services/tax-rate.service';
 import type { TestClockService } from '@services/test-clock.service';
+import type { UserService } from '@services/user.service';
 import type { WebhookService } from '@services/webhook.service';
 import type { PartnerCollectionProvider } from '@type/partner-collection-provider';
 import type { TaxProvider } from '@type/tax-provider';
@@ -113,6 +118,8 @@ declare module 'fastify' {
     queuePrefix: string;
     queues: QueueRegistry;
     apiKeyRepository: ApiKeyRepository;
+    userRepository: UserRepository;
+    auditLogRepository: AuditLogRepository;
     customerRepository: CustomerRepository;
     customerBalanceTransactionRepository: CustomerBalanceTransactionRepository;
     eventRepository: EventRepository;
@@ -152,6 +159,8 @@ declare module 'fastify' {
     checkoutSessionRepository: CheckoutSessionRepository;
     paymentLinkRepository: PaymentLinkRepository;
     apiKeyService: ApiKeyService;
+    userService: UserService;
+    auditLogService: AuditLogService;
     customerService: CustomerService;
     customerBalanceTransactionService: CustomerBalanceTransactionService;
     eventService: EventService;
@@ -197,6 +206,7 @@ declare module 'fastify' {
     paymentLinkService: PaymentLinkService;
     checkoutService: CheckoutService;
     psp: MockPspClient;
+    betterAuth: BetterAuthClient;
     fileStorage: FileStorageClient;
     hostedUrlFactory: HostedUrlFactory;
     mailer: SmtpClient | null;

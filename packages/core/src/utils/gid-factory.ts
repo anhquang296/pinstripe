@@ -53,6 +53,11 @@ export enum ObjectPrefixEnum {
   PAYMENT_LINK = 'plink',
   PAYMENT_LINK_LINE_ITEM = 'plli',
   COLLECTION_ATTEMPT = 'colatt',
+  USER = 'usr',
+  ADMIN_SESSION = 'ases',
+  USER_ACCOUNT = 'uacc',
+  AUTH_VERIFICATION = 'aver',
+  AUDIT_LOG = 'aud',
 }
 export type ObjectPrefix = `${ObjectPrefixEnum}`;
 

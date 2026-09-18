@@ -49,6 +49,17 @@ export const envSchema = Type.Object({
 
   TEST_CLOCKS_ENABLED: Default(Type.Boolean(), false),
 
+  ADMIN_UI_ORIGIN: Default(Type.String({ minLength: 1 }), 'http://localhost:5173'),
+  BETTER_AUTH_SECRET: Default(
+    Type.String({ minLength: 32 }),
+    'pinstripe-better-auth-development-secret',
+  ),
+  ADMIN_SESSION_IDLE_TTL_MINUTES: Default(Type.Integer({ minimum: 1 }), 60),
+  ADMIN_SESSION_ABSOLUTE_TTL_HOURS: Default(Type.Integer({ minimum: 1 }), 12),
+  GOOGLE_OAUTH_CLIENT_ID: Optional(Type.String({ minLength: 1 })),
+  GOOGLE_OAUTH_CLIENT_SECRET: Optional(Type.String({ minLength: 1 })),
+  GOOGLE_OAUTH_ALLOWED_DOMAIN: Optional(Type.String({ minLength: 1 })),
+
   PUBLIC_BASE_URL: Default(Type.String({ minLength: 1 }), 'http://localhost:3000'),
   PORTAL_BASE_URL: Default(Type.String({ minLength: 1 }), 'http://localhost:3100'),
   HOSTED_URL_SECRET: Default(

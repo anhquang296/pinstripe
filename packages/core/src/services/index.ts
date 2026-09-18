@@ -1,6 +1,7 @@
 import '@plugins/fastify.augmentation';
 
 export * from '@services/api-key.service';
+export * from '@services/audit-log.service';
 export * from '@services/balance.service';
 export * from '@services/billing-portal.service';
 export * from '@services/billing-run.service';
@@ -45,4 +46,5 @@ export * from '@services/tax.service';
 export * from '@services/tax-id.service';
 export * from '@services/tax-rate.service';
 export * from '@services/test-clock.service';
+export * from '@services/user.service';
 export * from '@services/webhook.service';

@@ -1,4 +1,6 @@
 export * from '@database/schemas/api-keys.schema';
+export * from '@database/schemas/audit-logs.schema';
+export * from '@database/schemas/auth.schema';
 export * from '@database/schemas/balance-transactions.schema';
 export * from '@database/schemas/billing-portal.schema';
 export * from '@database/schemas/checkout.schema';
