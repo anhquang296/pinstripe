@@ -2,9 +2,11 @@ import { verifyAdminRequest } from '@hooks/verify-admin-request';
 import { PermissionEnum } from '@pinstripe/core/contracts';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { rateLimitPlugin } from '@plugins/rate-limit.plugin';
+import { accountRoutes } from '@routes/admin/account/account.routes';
 import { apiKeysRoutes } from '@routes/admin/api-keys/api-keys.routes';
 import { ledgerRoutes } from '@routes/admin/ledger/ledger.routes';
 import { reportingRoutes } from '@routes/admin/reporting/reporting.routes';
+import { usersRoutes } from '@routes/admin/users/users.routes';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import { buildRouteConfig } from '@utils/route-permission';
@@ -18,6 +20,8 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(apiKeysRoutes, { prefix: '/api_keys' });
   await fastify.register(ledgerRoutes, { prefix: '/ledger' });
   await fastify.register(reportingRoutes, { prefix: '/reporting' });
+  await fastify.register(usersRoutes, { prefix: '/users' });
+  await fastify.register(accountRoutes, { prefix: '/account' });
 
   fastify.get(
     '/ping',
