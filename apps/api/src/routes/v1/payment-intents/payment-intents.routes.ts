@@ -1,6 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   cancelPaymentIntentSchema,
+  capturePaymentIntentSchema,
   confirmPaymentIntentSchema,
   createPaymentIntentSchema,
   findPaymentIntentsSchema,
@@ -67,6 +68,26 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     },
     async (request, reply) => {
       const paymentIntent = await fastify.paymentService.confirmPaymentIntent(
+        request.params.paymentIntentId,
+        request.body,
+        readLivemode(request),
+      );
+
+      return ApiResponse.success(reply, paymentIntent);
+    },
+  );
+
+  fastify.post(
+    '/:paymentIntentId/capture',
+    {
+      schema: {
+        params: paymentIntentParamsSchema,
+        body: capturePaymentIntentSchema,
+        response: { 200: paymentIntentSchema },
+      },
+    },
+    async (request, reply) => {
+      const paymentIntent = await fastify.paymentService.capturePaymentIntent(
         request.params.paymentIntentId,
         request.body,
         readLivemode(request),
