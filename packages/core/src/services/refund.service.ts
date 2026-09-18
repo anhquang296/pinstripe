@@ -27,7 +27,9 @@ export class RefundService {
     creditNoteId: string | null = null,
   ): Promise<RefundResponse> {
     const charge = await this.getSucceededCharge(payload.chargeId);
+
     const refundable = await this.resolveRefundableAmount(charge);
+
     const { amount = refundable, metadata = {} } = payload;
 
     if (amount > refundable) {
@@ -44,6 +46,7 @@ export class RefundService {
       creditNoteId,
       metadata,
     );
+
     const createdRefund = await this.fastify.database.master.transaction(async (tx) => {
       return this.writeRefund(refundPayload, tx);
     });
@@ -67,6 +70,7 @@ export class RefundService {
     }
 
     const id = generateGid(ObjectPrefixEnum.REFUND);
+
     const pspRefund = await this.fastify.psp.createRefund({
       reference: pspReference,
       amount,
