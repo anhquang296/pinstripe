@@ -1,5 +1,5 @@
 import { RecurringIntervalEnum } from '@contracts/prices.types';
-import { advancePeriod } from '@utils/billing-period';
+import { advancePeriod, regressPeriod } from '@utils/billing-period';
 import { describe, expect, it } from 'vitest';
 
 describe('advancePeriod', () => {
@@ -49,5 +49,32 @@ describe('advancePeriod', () => {
     const next = advancePeriod(start, RecurringIntervalEnum.MONTH, 3);
 
     expect(next.toISOString()).toBe('2027-02-28T00:00:00.000Z');
+  });
+});
+
+describe('regressPeriod', () => {
+  it('walks a month back so an advance invoice can name the period it trails', () => {
+    const periodStart = new Date('2026-04-01T00:00:00.000Z');
+
+    const previous = regressPeriod(periodStart, RecurringIntervalEnum.MONTH, 1);
+
+    expect(previous.toISOString()).toBe('2026-03-01T00:00:00.000Z');
+  });
+
+  it('walks whole days back for a daily interval', () => {
+    const periodStart = new Date('2026-01-04T08:30:00.000Z');
+
+    const previous = regressPeriod(periodStart, RecurringIntervalEnum.DAY, 3);
+
+    expect(previous.toISOString()).toBe('2026-01-01T08:30:00.000Z');
+  });
+
+  it('reaches no later than the period it walked forward from', () => {
+    const anchor = new Date('2026-01-31T00:00:00.000Z');
+    const periodStart = advancePeriod(anchor, RecurringIntervalEnum.MONTH, 1);
+
+    const previous = regressPeriod(periodStart, RecurringIntervalEnum.MONTH, 1);
+
+    expect(previous.getTime()).toBeLessThanOrEqual(anchor.getTime());
   });
 });

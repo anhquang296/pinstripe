@@ -1,4 +1,4 @@
-import { BILLABLE_SUBSCRIPTION_STATUSES } from '@contracts/subscriptions.types';
+import { BILLABLE_SUBSCRIPTION_STATUSES, BillingModeEnum } from '@contracts/subscriptions.types';
 import type { Subscription } from '@database/schemas';
 import type { BillingRunShardJob } from '@queues/billing.queue';
 import type { FastifyInstance } from 'fastify';
@@ -77,6 +77,10 @@ export class BillingRunService {
   }
 
   private async draftInvoice(subscription: Subscription): Promise<boolean> {
+    if (subscription.billingMode === BillingModeEnum.ADVANCE) {
+      return false;
+    }
+
     const { isCreated } = await this.fastify.invoiceService.ensureBillableDraft(subscription);
 
     return isCreated;

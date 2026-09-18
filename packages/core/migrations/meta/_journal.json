@@ -162,6 +162,13 @@
       "when": 1789675497270,
       "tag": "0022_subscription_lifecycle",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789695809757,
+      "tag": "0023_loose_gladiator",
+      "breakpoints": true
     }
   ]
 }

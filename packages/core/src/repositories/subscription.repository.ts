@@ -325,6 +325,26 @@ export class SubscriptionRepository {
       .where(inArray(subscriptionItemChanges.id, [...ids]));
   }
 
+  async invoiceSubscriptionItemChanges(
+    ids: readonly string[],
+    through: Date,
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (_.isEmpty(ids)) {
+      return;
+    }
+
+    const db: Database | DatabaseTransaction = executor ?? this._db.master;
+    const boundary = sql`${through.toISOString()}::timestamptz`;
+
+    await db
+      .update(subscriptionItemChanges)
+      .set({
+        invoicedThrough: sql`least(coalesce(${subscriptionItemChanges.billedThrough}, 'infinity'::timestamptz), greatest(coalesce(${subscriptionItemChanges.invoicedThrough}, ${boundary}), ${boundary}))`,
+      })
+      .where(inArray(subscriptionItemChanges.id, [...ids]));
+  }
+
   async reopenSubscriptionItemChangeInvoicing(
     ids: readonly string[],
     executor?: DatabaseTransaction,

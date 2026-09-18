@@ -1,11 +1,12 @@
 import type {
+  BillingMode,
   CancellationReason,
   CollectionMethod,
   PauseCollectionBehavior,
   SubscriptionStatus,
   TrialEndBehavior,
 } from '@contracts/subscriptions.types';
-import { TrialEndBehaviorEnum } from '@contracts/subscriptions.types';
+import { BillingModeEnum, TrialEndBehaviorEnum } from '@contracts/subscriptions.types';
 import { customers } from '@database/schemas/customers.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { testClocks } from '@database/schemas/test-clocks.schema';
@@ -35,6 +36,10 @@ export const subscriptions = pgTable(
     status: text('status').$type<SubscriptionStatus>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     collectionMethod: text('collection_method').$type<CollectionMethod>().notNull(),
+    billingMode: text('billing_mode')
+      .$type<BillingMode>()
+      .notNull()
+      .default(BillingModeEnum.ADVANCE),
     billingCycleAnchor: timestamp('billing_cycle_anchor', { withTimezone: true }).notNull(),
     currentPeriodStart: timestamp('current_period_start', { withTimezone: true }).notNull(),
     currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }).notNull(),

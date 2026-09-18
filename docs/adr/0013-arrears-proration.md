@@ -1,6 +1,12 @@
 # ADR 0013 — Proration theo arrears, và `prorationBehavior`
 
-Ngày: 2026-09-17. Trạng thái: đã triển khai.
+Ngày: 2026-09-17. Trạng thái: đã triển khai, và **bị [ADR 0018](0018-bill-in-advance.md) thay ở phần
+mặc định**.
+
+> Từ phase 17, `billingMode` mặc định là `advance`. Mọi thứ dưới đây vẫn đúng nguyên văn cho một
+> subscription `billingMode: 'arrears'`, và ba cột cửa sổ vẫn là cơ chế chung của cả hai mode. Hai câu
+> đã hết hạn: `subscription_create` nay có producer, và `RatingLine.isCredit` nay có producer —
+> [ADR 0018 §3](0018-bill-in-advance.md).
 
 ## Bối cảnh
 

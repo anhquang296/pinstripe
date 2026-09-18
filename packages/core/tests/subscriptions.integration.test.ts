@@ -2,7 +2,11 @@ import type { CustomerResponse } from '@contracts/customers.types';
 import { EntitlementStatusEnum } from '@contracts/entitlements.types';
 import type { PriceResponse } from '@contracts/prices.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
-import { ProrationBehaviorEnum, SubscriptionStatusEnum } from '@contracts/subscriptions.types';
+import {
+  BillingModeEnum,
+  ProrationBehaviorEnum,
+  SubscriptionStatusEnum,
+} from '@contracts/subscriptions.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -341,6 +345,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
       {
         customerId: customer.id,
         items: [{ priceId: price.id }],
+        billingMode: BillingModeEnum.ARREARS,
       },
       false,
     );

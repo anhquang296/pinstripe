@@ -1,6 +1,7 @@
 import { CouponDurationEnum } from '@contracts/discounts.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
 import { RecurringIntervalEnum, TaxBehaviorEnum } from '@contracts/prices.types';
+import { BillingModeEnum } from '@contracts/subscriptions.types';
 import {
   AuthorityStatusEnum,
   AutomaticTaxStatusEnum,
@@ -384,7 +385,12 @@ it('applies the default tax rates of a subscription to its cycle invoice', async
     TEST_LIVEMODE,
   );
   const subscription = await fastify.subscriptionService.createSubscription(
-    { customerId, items: [{ priceId: price.id }], defaultTaxRates: [taxRateId] },
+    {
+      customerId,
+      items: [{ priceId: price.id }],
+      defaultTaxRates: [taxRateId],
+      billingMode: BillingModeEnum.ARREARS,
+    },
     TEST_LIVEMODE,
   );
 
@@ -422,6 +428,7 @@ it('lets a subscription item override the default tax rates of its subscription'
       customerId,
       items: [{ priceId: price.id, taxRates: [itemTaxRateId] }],
       defaultTaxRates: [defaultTaxRateId],
+      billingMode: BillingModeEnum.ARREARS,
     },
     TEST_LIVEMODE,
   );

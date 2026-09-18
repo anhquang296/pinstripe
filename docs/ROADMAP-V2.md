@@ -36,7 +36,7 @@ PostgreSQL + BullMQ + Drizzle.
 | 14    | Giảm giá: Coupon, PromotionCode, Discount                                     | M        | Bề mặt           | Xong          |
 | 15    | Thuế: TaxRate, dòng thuế, TaxId, khớp nối hoá đơn điện tử                     | L        | Bề mặt (pháp lý) | Xong          |
 | 16    | Hoàn thiện vòng đời subscription                                              | XL       | Nền — bẫy #2     | Xong          |
-| 17    | Chuyển sang bill **in advance**                                               | XL       | Trung thành      | Chưa          |
+| 17    | Chuyển sang bill **in advance**                                               | XL       | Trung thành      | Xong          |
 | 18    | Mô hình payment: PaymentMethod, SetupIntent, Charge, 3DS, callback            | XL       | Nền — bẫy #3     | Chưa          |
 | 19    | Dòng tiền: BalanceTransaction, Balance, Payout, Dispute, refund/CN v2         | L        | Bề mặt           | Chưa          |
 | 20    | Bề mặt khách: portal auth, billing portal, Checkout, Payment Link, PDF, email | XL       | Bề mặt           | Chưa          |

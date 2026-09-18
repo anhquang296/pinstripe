@@ -30,11 +30,25 @@ nếu không có gì cắt lát:
 Ba dòng đầu là chuyện **tính đúng**. Dòng thứ tư là chuyện **thu khi nào**. `prorationBehavior` trả
 lời cả hai bằng một tham số duy nhất trên `POST /v1/subscriptions/:id`.
 
-## Điều quan trọng nhất: arrears đảo chiều dấu của proration
+## Hai mode, một engine
 
-Người quen Stripe sẽ trông đợi một dòng âm. Stripe bill **in advance** — khách đã trả trọn kỳ ngay
-đầu kỳ — nên đổi giữa kỳ phải **hoàn lại** phần chưa dùng của gói cũ rồi **thu thêm** phần còn lại
-của gói mới. Hai dòng, một âm một dương, net lại thành chênh lệch.
+Từ phase 17 một subscription mang `billingMode`, mặc định `advance`. Cơ chế dưới đây — ba cột cửa sổ,
+ba `prorationBehavior`, `resolveBillingWindow` — là của **cả hai** mode; thứ khác nhau là mốc phát hoá
+đơn, và vì thế là dấu của dòng proration. Phần dưới mô tả `arrears`; chỗ `advance` lệch đi nằm ở
+[ADR 0018](../adr/0018-bill-in-advance.md).
+
+|                  | `advance` (mặc định)                           | `arrears`                |
+| ---------------- | ---------------------------------------------- | ------------------------ |
+| hoá đơn phát lúc | đầu kỳ, phủ kỳ sắp chạy                        | cuối kỳ, phủ kỳ vừa đóng |
+| kỳ đầu           | một hoá đơn `subscription_create` ngay lúc tạo | không xuất gì lúc tạo    |
+| đổi giữa kỳ      | một dòng credit âm + một dòng charge dương     | hai dòng dương           |
+| item metered     | vẫn bill sau kỳ, trên cùng hoá đơn             | bill sau kỳ              |
+
+## Điều quan trọng nhất: ở arrears, proration không đảo dấu
+
+Ở `advance` — như Stripe, và như mặc định của hệ này — khách đã trả trọn kỳ ngay đầu kỳ, nên đổi giữa
+kỳ phải **hoàn lại** phần chưa dùng của gói cũ rồi **thu thêm** phần còn lại của gói mới. Hai dòng,
+một âm một dương, net lại thành chênh lệch.
 
 Ở arrears, tại thời điểm swap **chưa ai trả đồng nào**. Không có gì để hoàn. Đúng nghiệp vụ là thu
 **cả hai lát**, và cả hai đều dương.

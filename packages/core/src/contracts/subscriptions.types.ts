@@ -42,6 +42,12 @@ export enum CollectionMethodEnum {
 }
 export type CollectionMethod = `${CollectionMethodEnum}`;
 
+export enum BillingModeEnum {
+  ADVANCE = 'advance',
+  ARREARS = 'arrears',
+}
+export type BillingMode = `${BillingModeEnum}`;
+
 export enum ProrationBehaviorEnum {
   CREATE_PRORATIONS = 'create_prorations',
   NONE = 'none',
@@ -110,6 +116,7 @@ export const subscriptionSchema = Type.Object({
   status: Type.Unsafe<SubscriptionStatus>(Type.Enum(SubscriptionStatusEnum)),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   collectionMethod: Type.Unsafe<CollectionMethod>(Type.Enum(CollectionMethodEnum)),
+  billingMode: Type.Unsafe<BillingMode>(Type.Enum(BillingModeEnum)),
   items: Type.Array(subscriptionItemSchema),
   billingCycleAnchor: Type.String(),
   currentPeriodStart: Type.String(),
@@ -176,6 +183,7 @@ export const createSubscriptionSchema = Type.Object(
     ),
     billingCycleAnchor: Type.Optional(Type.String({ format: 'date-time' })),
     collectionMethod: Type.Optional(Type.Unsafe<CollectionMethod>(Type.Enum(CollectionMethodEnum))),
+    billingMode: Type.Optional(Type.Unsafe<BillingMode>(Type.Enum(BillingModeEnum))),
     defaultTaxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
     defaultPaymentMethod: Type.Optional(Type.String({ minLength: 1 })),
     cancelAt: Type.Optional(Type.String({ format: 'date-time' })),

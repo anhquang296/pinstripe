@@ -1,6 +1,7 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { ReconciliationOutcomeEnum } from '@contracts/reporting.types';
+import { BillingModeEnum } from '@contracts/subscriptions.types';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
@@ -61,6 +62,7 @@ async function makeActiveSubscription(
     {
       customerId: customer.id,
       items: [{ priceId: price.id }],
+      billingMode: BillingModeEnum.ARREARS,
     },
     false,
   );

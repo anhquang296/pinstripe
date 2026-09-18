@@ -6,7 +6,7 @@ import {
   TiersModeEnum,
   UsageTypeEnum,
 } from '@contracts/prices.types';
-import { ProrationBehaviorEnum } from '@contracts/subscriptions.types';
+import { BillingModeEnum, ProrationBehaviorEnum } from '@contracts/subscriptions.types';
 import { BadRequestError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -135,6 +135,7 @@ async function makeSwapScenario(): Promise<SwapScenario> {
     {
       customerId: customer.id,
       items: [{ priceId: oldPrice.id }],
+      billingMode: BillingModeEnum.ARREARS,
     },
     false,
   );

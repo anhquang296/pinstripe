@@ -44,6 +44,10 @@ export function advancePeriod(start: Date, interval: RecurringInterval, count: n
   return addMonths(start, count * MONTHS_PER_YEAR);
 }
 
+export function regressPeriod(end: Date, interval: RecurringInterval, count: number): Date {
+  return advancePeriod(end, interval, -count);
+}
+
 export function countPeriodsElapsed(
   periodStart: Date,
   interval: RecurringInterval,

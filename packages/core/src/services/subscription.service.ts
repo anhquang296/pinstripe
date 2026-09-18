@@ -16,6 +16,7 @@ import type {
 } from '@contracts/subscriptions.types';
 import {
   BILLABLE_SUBSCRIPTION_STATUSES,
+  BillingModeEnum,
   CancellationReasonEnum,
   CollectionMethodEnum,
   PauseCollectionBehaviorEnum,
@@ -128,6 +129,7 @@ export class SubscriptionService {
           status: trialEnd ? SubscriptionStatusEnum.TRIALING : SubscriptionStatusEnum.ACTIVE,
           currency: customer.currency,
           collectionMethod: payload.collectionMethod ?? CollectionMethodEnum.CHARGE_AUTOMATICALLY,
+          billingMode: payload.billingMode ?? BillingModeEnum.ADVANCE,
           billingCycleAnchor: anchor,
           currentPeriodStart: now,
           currentPeriodEnd: trialEnd ?? advancePeriod(anchor, interval, intervalCount),
@@ -168,6 +170,10 @@ export class SubscriptionService {
 
       throw new NotFoundError(`Subscription ${subscriptionId} could not be created`);
     });
+
+    if (createdSubscription.billingMode === BillingModeEnum.ADVANCE && !trialEnd) {
+      await this.fastify.invoiceService.issueSubscriptionCreateInvoice(createdSubscription, now);
+    }
 
     return SubscriptionService.buildSubscription(createdSubscription, subscriptionItems);
   }
@@ -614,13 +620,22 @@ export class SubscriptionService {
   ): Promise<Subscription> {
     const periodEnd = subscription.currentPeriodEnd;
     const cancelAt = subscription.cancelAt;
+    const isAdvance = subscription.billingMode === BillingModeEnum.ADVANCE;
+    const isBillable = _.includes(BILLABLE_SUBSCRIPTION_STATUSES, subscription.status);
 
-    if (_.includes(BILLABLE_SUBSCRIPTION_STATUSES, subscription.status)) {
+    if (!isAdvance && isBillable) {
       await this.fastify.invoiceService.ensureBillableDraft(subscription);
     }
 
     if (subscription.cancelAtPeriodEnd || (cancelAt && cancelAt.getTime() <= periodEnd.getTime())) {
       const endedAt = cancelAt && cancelAt.getTime() <= periodEnd.getTime() ? cancelAt : periodEnd;
+
+      if (isAdvance && isBillable) {
+        await this.fastify.invoiceService.issueTrailingInvoice(subscription, endedAt, {
+          interval,
+          intervalCount,
+        });
+      }
 
       return this.writeSubscription(
         subscription.id,
@@ -637,20 +652,25 @@ export class SubscriptionService {
       );
     }
 
-    if (subscription.status === SubscriptionStatusEnum.TRIALING) {
-      return this.endTrial(subscription, interval, intervalCount);
+    const rolled =
+      subscription.status === SubscriptionStatusEnum.TRIALING
+        ? await this.endTrial(subscription, interval, intervalCount)
+        : await this.writeSubscription(
+            subscription.id,
+            {
+              status: SubscriptionStatusEnum.ACTIVE,
+              currentPeriodStart: periodEnd,
+              currentPeriodEnd: advancePeriod(periodEnd, interval, intervalCount),
+              updatedAt: periodEnd,
+            },
+            DomainEventTypeEnum.SUBSCRIPTION_RENEWED,
+          );
+
+    if (isAdvance && _.includes(BILLABLE_SUBSCRIPTION_STATUSES, rolled.status)) {
+      await this.fastify.invoiceService.ensureBillableDraft(rolled);
     }
 
-    return this.writeSubscription(
-      subscription.id,
-      {
-        status: SubscriptionStatusEnum.ACTIVE,
-        currentPeriodStart: periodEnd,
-        currentPeriodEnd: advancePeriod(periodEnd, interval, intervalCount),
-        updatedAt: periodEnd,
-      },
-      DomainEventTypeEnum.SUBSCRIPTION_RENEWED,
-    );
+    return rolled;
   }
 
   private async endTrial(
@@ -885,6 +905,7 @@ export class SubscriptionService {
       status: entity.status,
       currency: entity.currency,
       collectionMethod: entity.collectionMethod,
+      billingMode: entity.billingMode,
       items: _.map(subscriptionItems, (subscriptionItem) => {
         return SubscriptionService.buildSubscriptionItem(subscriptionItem, entity.createdAt);
       }),
