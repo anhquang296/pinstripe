@@ -225,9 +225,10 @@ Những chỗ **chưa** an toàn:
   5000ms). Cache TTL 300s và `GET /v1/entitlements` **không** đi qua cache còn `getEntitlementStatus`
   thì có — hai đường có thể trả lời khác nhau.
 
-- **Reconciliation `SCAN_LIMIT = 1000`** lấy 1000 hàng mới nhất **rồi mới** lọc theo cửa sổ, không
-  phân trang. Cửa sổ cũ hoặc dữ liệu nhiều là **sót âm thầm** —
-  [reconciliation.service.ts:11](../packages/core/src/services/reconciliation.service.ts).
+- **Reconciliation đã phân trang từ phase 19** (`PAGE_SIZE = 200`, con trỏ `(createdAt, id)`), nên
+  `SCAN_LIMIT = 1000` cắt cụt âm thầm không còn. Đổi lại, phía sổ cái chỉ đọc `psp_receivable` +
+  `psp_fees`: một bút toán tiền mặt ngoài luồng (`payInvoice` không qua charge) **không** xuất hiện
+  trong báo cáo đối chiếu — [reconciliation.service.ts](../packages/core/src/services/reconciliation.service.ts).
 
 ## 9. Bẫy môi trường phát triển
 
