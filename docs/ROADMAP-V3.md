@@ -33,7 +33,7 @@ làm thay đổi**, không để cuối. Rule đang cấm `better-auth/react` tr
 | 25    | Route auth dashboard `/api/v1/auth/*`                                        | M        | Backend  | Xong       |
 | 26    | Session authorization cho `/api/v1/admin/*` và `/v1/*`                       | L        | Backend  | Xong       |
 | 27    | Quản trị user: route admin + SDK `admin.users` / `admin.account` / `apiKeys` | M        | Backend  | Xong       |
-| 28    | SDK: hook cho mọi resource admin-facing còn thiếu                            | L        | SDK      | Chưa       |
+| 28    | SDK: hook cho mọi resource admin-facing còn thiếu                            | L        | SDK      | Xong       |
 | 29    | admin-ui nền: HeroUI, theme mockup, shell, better-auth-ui, guard             | XL       | Frontend | Chưa       |
 | 30    | Màn Sales                                                                    | XL       | Frontend | Chưa       |
 | 31    | Màn Finance + Tổng quan                                                      | L        | Frontend | Chưa       |
