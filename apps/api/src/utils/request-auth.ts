@@ -1,4 +1,4 @@
-import type { RequestAuth } from '@pinstripe/core/contracts';
+import type { PortalAuth, RequestAuth } from '@pinstripe/core/contracts';
 import { UnauthorizedError } from '@pinstripe/core/errors';
 import type { FastifyRequest } from 'fastify';
 
@@ -14,4 +14,14 @@ export function readAuth(request: FastifyRequest): RequestAuth {
 
 export function readLivemode(request: FastifyRequest): boolean {
   return readAuth(request).livemode;
+}
+
+export function readPortalAuth(request: FastifyRequest): PortalAuth {
+  const { portalAuth } = request;
+
+  if (portalAuth) {
+    return portalAuth;
+  }
+
+  throw new UnauthorizedError('This route was reached without an authenticated portal session');
 }
