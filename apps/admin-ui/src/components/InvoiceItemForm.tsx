@@ -1,0 +1,50 @@
+import RenderCheckboxField from '@components/fields/RenderCheckboxField';
+import RenderNumberField from '@components/fields/RenderNumberField';
+import RenderTextField from '@components/fields/RenderTextField';
+import type { InvoiceItemFormData } from '@forms/invoice-item-form';
+import { Button } from '@heroui/react';
+import type { UseFormReturn } from 'react-hook-form';
+
+interface InvoiceItemFormProps {
+  mode: 'create' | 'edit';
+  form: UseFormReturn<InvoiceItemFormData>;
+  isSaving?: boolean;
+  onSave: () => void;
+}
+
+export default function InvoiceItemForm({ mode, form, isSaving, onSave }: InvoiceItemFormProps) {
+  return (
+    <form
+      className="flex flex-wrap items-end gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave();
+      }}
+    >
+      <RenderTextField
+        control={form.control}
+        name="description"
+        label="Diễn giải"
+        placeholder="Phí dịch vụ tháng 9"
+      />
+      <RenderNumberField
+        control={form.control}
+        name="quantity"
+        label="Số lượng"
+        minValue={0}
+        className="w-28"
+      />
+      <RenderNumberField
+        control={form.control}
+        name="unitAmount"
+        label="Đơn giá"
+        minValue={0}
+        className="w-40"
+      />
+      <RenderCheckboxField control={form.control} name="discountable" label="Được giảm giá" />
+      <Button type="submit" isDisabled={isSaving}>
+        {mode === 'create' ? 'Thêm dòng' : 'Lưu dòng'}
+      </Button>
+    </form>
+  );
+}
