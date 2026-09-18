@@ -4,6 +4,7 @@ import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 import type { SubscriptionResponse } from '@contracts/subscriptions.types';
 import {
+  BillingModeEnum,
   PauseCollectionBehaviorEnum,
   SubscriptionStatusEnum,
   TrialEndBehaviorEnum,
@@ -116,7 +117,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
     const customerId = await makeCustomer({ paymentMethod: OK_METHOD });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
-      { customerId, items: [{ priceId }] },
+      { customerId, items: [{ priceId }], billingMode: BillingModeEnum.ARREARS },
       LIVEMODE,
     );
 

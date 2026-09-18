@@ -59,6 +59,7 @@ export interface RatedLineItem {
   periodStart: Date;
   periodEnd: Date;
   prorationFactor: number;
+  isCredit: boolean;
 }
 
 export interface RatingResult {
@@ -94,6 +95,26 @@ export function resolveBillingWindow(
     end: new Date(endMs),
     isPartial: startMs > periodStart.getTime() || endMs < periodEnd.getTime(),
   };
+}
+
+export function resolveCreditWindow(
+  billedThrough: Date | null,
+  invoicedThrough: Date | null,
+  periodStart: Date,
+  periodEnd: Date,
+): BillingWindow | null {
+  if (!billedThrough || !invoicedThrough) {
+    return null;
+  }
+
+  const startMs = Math.max(billedThrough.getTime(), periodStart.getTime());
+  const endMs = Math.min(invoicedThrough.getTime(), periodEnd.getTime());
+
+  if (endMs <= startMs) {
+    return null;
+  }
+
+  return { start: new Date(startMs), end: new Date(endMs), isPartial: true };
 }
 
 export function transformQuantity(price: RatingPrice, quantity: number): number {
@@ -232,6 +253,7 @@ export function rateLine(line: RatingLine): RatedLineItem {
     periodStart: line.periodStart,
     periodEnd: line.periodEnd,
     prorationFactor,
+    isCredit: line.isCredit,
   };
 }
 

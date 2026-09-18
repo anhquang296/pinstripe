@@ -1,8 +1,11 @@
+import { MAX_ITEMS_PER_SUBSCRIPTION } from '@constants/subscription';
 import { UsageTypeEnum } from '@contracts/prices.types';
 import type { RatedInvoiceResponse } from '@contracts/rating.types';
+import { BillingModeEnum } from '@contracts/subscriptions.types';
 import type { DatabaseTransaction } from '@database/database.client';
 import type { Price, Subscription, SubscriptionItemChange } from '@database/schemas';
 import { BadRequestError, NotFoundError } from '@errors/app.error';
+import { advancePeriod, regressPeriod } from '@utils/billing-period';
 import type {
   BillingWindow,
   LineItemType,
@@ -10,7 +13,14 @@ import type {
   RatingLine,
   RatingPrice,
 } from '@utils/rating';
-import { LineItemTypeEnum, rateLines, resolveBillingWindow } from '@utils/rating';
+import {
+  LineItemTypeEnum,
+  rateLines,
+  resolveBillingWindow,
+  resolveCreditWindow,
+} from '@utils/rating';
+import type { SubscriptionInterval } from '@utils/subscription-price';
+import { resolveInterval } from '@utils/subscription-price';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -25,10 +35,21 @@ export class RatingService {
   async rateUpcomingInvoice(subscriptionId: string): Promise<RatedInvoiceResponse> {
     const subscription = await this.getSubscription(subscriptionId);
 
+    if (subscription.billingMode === BillingModeEnum.ARREARS) {
+      return this.rateInvoicePeriod(
+        subscriptionId,
+        subscription.currentPeriodStart,
+        subscription.currentPeriodEnd,
+      );
+    }
+
+    const { interval, intervalCount } = await this.resolveSubscriptionInterval(subscriptionId);
+    const nextPeriodStart = subscription.currentPeriodEnd;
+
     return this.rateInvoicePeriod(
       subscriptionId,
-      subscription.currentPeriodStart,
-      subscription.currentPeriodEnd,
+      nextPeriodStart,
+      advancePeriod(nextPeriodStart, interval, intervalCount),
     );
   }
 
@@ -38,13 +59,15 @@ export class RatingService {
     periodEnd: Date,
   ): Promise<RatedInvoiceResponse> {
     const subscription = await this.getSubscription(subscriptionId);
-    const changes = await this.fastify.subscriptionRepository.findSubscriptionItemChanges({
-      subscriptionIds: [subscriptionId],
-      billedFromBeforeAt: periodEnd,
-      billedThroughAfterAt: periodStart,
-    });
+    const period: RatingPeriod = { periodStart, periodEnd };
 
-    return this.rateSubscriptionItemChanges(subscription, changes, { periodStart, periodEnd });
+    if (subscription.billingMode === BillingModeEnum.ADVANCE) {
+      return this.rateAdvancePeriod(subscription, period);
+    }
+
+    const changes = await this.findPeriodChanges(subscriptionId, period);
+
+    return this.rateSubscriptionItemChanges(subscription, changes, period);
   }
 
   async rateProrationInvoice(
@@ -52,20 +75,154 @@ export class RatingService {
     executor?: DatabaseTransaction,
   ): Promise<RatedInvoiceResponse> {
     const subscription = await this.getSubscription(subscriptionId);
+    const period: RatingPeriod = {
+      periodStart: subscription.currentPeriodStart,
+      periodEnd: subscription.currentPeriodEnd,
+    };
+
+    if (subscription.billingMode === BillingModeEnum.ADVANCE) {
+      const changes = await this.findPeriodChanges(subscriptionId, period, executor);
+      const lines = await this.buildTrailingLines(subscription, changes, period);
+
+      return RatingService.assembleRatedInvoice(subscription, lines, period);
+    }
+
     const changes = await this.fastify.subscriptionRepository.findSubscriptionItemChanges(
       {
         subscriptionIds: [subscriptionId],
         billedThroughIsNull: false,
-        billedFromBeforeAt: subscription.currentPeriodEnd,
-        billedThroughAfterAt: subscription.currentPeriodStart,
+        billedFromBeforeAt: period.periodEnd,
+        billedThroughAfterAt: period.periodStart,
       },
       executor,
     );
 
-    return this.rateSubscriptionItemChanges(subscription, changes, {
-      periodStart: subscription.currentPeriodStart,
-      periodEnd: subscription.currentPeriodEnd,
+    return this.rateSubscriptionItemChanges(subscription, changes, period);
+  }
+
+  private async rateAdvancePeriod(
+    subscription: Subscription,
+    period: RatingPeriod,
+  ): Promise<RatedInvoiceResponse> {
+    const { interval, intervalCount } = await this.resolveSubscriptionInterval(subscription.id);
+    const trailingPeriod: RatingPeriod = {
+      periodStart: regressPeriod(period.periodStart, interval, intervalCount),
+      periodEnd: period.periodStart,
+    };
+    const trailingChanges = await this.findPeriodChanges(subscription.id, trailingPeriod);
+    const trailingLines = await this.buildTrailingLines(
+      subscription,
+      trailingChanges,
+      trailingPeriod,
+    );
+    const upfrontChanges = await this.findPeriodChanges(subscription.id, period);
+    const upfrontLines = await this.buildUpfrontLines(upfrontChanges, period);
+
+    return RatingService.assembleRatedInvoice(
+      subscription,
+      [...trailingLines, ...upfrontLines],
+      period,
+    );
+  }
+
+  private async buildUpfrontLines(
+    changes: readonly SubscriptionItemChange[],
+    period: RatingPeriod,
+  ): Promise<RatingLine[]> {
+    const priceById = await this.resolvePrices(_.map(changes, 'priceId'));
+    const lines: RatingLine[] = [];
+
+    for (const change of changes) {
+      const price = RatingService.readPrice(priceById, change.priceId);
+
+      if (price.usageType !== UsageTypeEnum.METERED) {
+        const window = resolveBillingWindow(
+          change.billedFrom,
+          change.billedThrough,
+          change.invoicedThrough,
+          period.periodStart,
+          period.periodEnd,
+        );
+
+        if (window) {
+          lines.push(RatingService.buildLicensedLine(change, price, window, period, false));
+        }
+      }
+    }
+
+    return lines;
+  }
+
+  private async buildTrailingLines(
+    subscription: Subscription,
+    changes: readonly SubscriptionItemChange[],
+    period: RatingPeriod,
+  ): Promise<RatingLine[]> {
+    const priceById = await this.resolvePrices(_.map(changes, 'priceId'));
+    const lines: RatingLine[] = [];
+
+    for (const change of changes) {
+      const price = RatingService.readPrice(priceById, change.priceId);
+      const window = resolveBillingWindow(
+        change.billedFrom,
+        change.billedThrough,
+        change.invoicedThrough,
+        period.periodStart,
+        period.periodEnd,
+      );
+
+      if (price.usageType === UsageTypeEnum.METERED) {
+        if (window) {
+          lines.push(await this.buildMeteredLine(subscription, change, price, window, period));
+        }
+
+        continue;
+      }
+
+      if (window) {
+        lines.push(RatingService.buildLicensedLine(change, price, window, period, false));
+      }
+
+      const creditWindow = resolveCreditWindow(
+        change.billedThrough,
+        change.invoicedThrough,
+        period.periodStart,
+        period.periodEnd,
+      );
+
+      if (creditWindow) {
+        lines.push(RatingService.buildLicensedLine(change, price, creditWindow, period, true));
+      }
+    }
+
+    return lines;
+  }
+
+  private async findPeriodChanges(
+    subscriptionId: string,
+    period: RatingPeriod,
+    executor?: DatabaseTransaction,
+  ): Promise<SubscriptionItemChange[]> {
+    return this.fastify.subscriptionRepository.findSubscriptionItemChanges(
+      {
+        subscriptionIds: [subscriptionId],
+        billedFromBeforeAt: period.periodEnd,
+        billedThroughAfterAt: period.periodStart,
+      },
+      executor,
+    );
+  }
+
+  private async resolveSubscriptionInterval(subscriptionId: string): Promise<SubscriptionInterval> {
+    const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
+      subscriptionIds: [subscriptionId],
     });
+    const prices = await this.fastify.priceRepository.findPrices(
+      { ids: _.uniq(_.map(subscriptionItems, 'priceId')) },
+      MAX_ITEMS_PER_SUBSCRIPTION,
+    );
+
+    return resolveInterval(prices);
   }
 
   private async getSubscription(subscriptionId: string): Promise<Subscription> {
@@ -83,8 +240,16 @@ export class RatingService {
     changes: readonly SubscriptionItemChange[],
     period: RatingPeriod,
   ): Promise<RatedInvoiceResponse> {
-    const priceById = await this.resolvePrices(_.map(changes, 'priceId'));
-    const lines = await this.buildLines(subscription, changes, priceById, period);
+    const lines = await this.buildLines(subscription, changes, period);
+
+    return RatingService.assembleRatedInvoice(subscription, lines, period);
+  }
+
+  private static assembleRatedInvoice(
+    subscription: Subscription,
+    lines: readonly RatingLine[],
+    period: RatingPeriod,
+  ): RatedInvoiceResponse {
     const { lineItems, total } = rateLines(lines, subscription.currency);
 
     return {
@@ -102,18 +267,13 @@ export class RatingService {
   private async buildLines(
     subscription: Subscription,
     changes: readonly SubscriptionItemChange[],
-    priceById: Record<string, Price>,
     period: RatingPeriod,
   ): Promise<RatingLine[]> {
+    const priceById = await this.resolvePrices(_.map(changes, 'priceId'));
     const lines: RatingLine[] = [];
 
     for (const change of changes) {
-      const price = priceById[change.priceId];
-
-      if (!price) {
-        throw new NotFoundError(`No such price: ${change.priceId}`);
-      }
-
+      const price = RatingService.readPrice(priceById, change.priceId);
       const window = resolveBillingWindow(
         change.billedFrom,
         change.billedThrough,
@@ -123,38 +283,60 @@ export class RatingService {
       );
 
       if (window) {
-        const line = await this.buildLine(subscription, change, price, window, period);
+        if (price.usageType === UsageTypeEnum.METERED) {
+          lines.push(await this.buildMeteredLine(subscription, change, price, window, period));
 
-        lines.push(line);
+          continue;
+        }
+
+        lines.push(RatingService.buildLicensedLine(change, price, window, period, false));
       }
     }
 
     return lines;
   }
 
-  private async buildLine(
+  private async buildMeteredLine(
     subscription: Subscription,
     change: SubscriptionItemChange,
     price: Price,
     window: BillingWindow,
     period: RatingPeriod,
   ): Promise<RatingLine> {
-    const isMetered = price.usageType === UsageTypeEnum.METERED;
-    const quantity = isMetered
-      ? await this.resolveUsage(subscription, price, window.start, window.end)
-      : change.quantity;
+    const quantity = await this.resolveUsage(subscription, price, window.start, window.end);
 
     return {
       subscriptionItemId: change.subscriptionItemId,
       subscriptionItemChangeId: change.id,
       price: RatingService.buildRatingPrice(price),
-      type: RatingService.resolveLineItemType(isMetered, window.isPartial),
+      type: LineItemTypeEnum.USAGE,
       quantity,
       periodStart: period.periodStart,
       periodEnd: period.periodEnd,
-      usageStart: window.isPartial && !isMetered ? window.start : null,
-      usageEnd: window.isPartial && !isMetered ? window.end : null,
+      usageStart: null,
+      usageEnd: null,
       isCredit: false,
+    };
+  }
+
+  private static buildLicensedLine(
+    change: SubscriptionItemChange,
+    price: Price,
+    window: BillingWindow,
+    period: RatingPeriod,
+    isCredit: boolean,
+  ): RatingLine {
+    return {
+      subscriptionItemId: change.subscriptionItemId,
+      subscriptionItemChangeId: change.id,
+      price: RatingService.buildRatingPrice(price),
+      type: RatingService.resolveLineItemType(window.isPartial),
+      quantity: change.quantity,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
+      usageStart: window.isPartial ? window.start : null,
+      usageEnd: window.isPartial ? window.end : null,
+      isCredit,
     };
   }
 
@@ -184,19 +366,28 @@ export class RatingService {
   }
 
   private async resolvePrices(priceIds: readonly string[]): Promise<Record<string, Price>> {
-    const rows = await this.fastify.priceRepository.findPrices(
-      { ids: _.uniq(priceIds) },
-      priceIds.length,
-    );
+    const ids = _.uniq([...priceIds]);
+
+    if (_.isEmpty(ids)) {
+      return {};
+    }
+
+    const rows = await this.fastify.priceRepository.findPrices({ ids }, ids.length);
 
     return _.keyBy(rows, 'id');
   }
 
-  private static resolveLineItemType(isMetered: boolean, isPartial: boolean): LineItemType {
-    if (isMetered) {
-      return LineItemTypeEnum.USAGE;
+  private static readPrice(priceById: Record<string, Price>, priceId: string): Price {
+    const price = priceById[priceId];
+
+    if (price) {
+      return price;
     }
 
+    throw new NotFoundError(`No such price: ${priceId}`);
+  }
+
+  private static resolveLineItemType(isPartial: boolean): LineItemType {
     if (isPartial) {
       return LineItemTypeEnum.PRORATION;
     }
@@ -229,6 +420,7 @@ export class RatingService {
       periodStart: lineItem.periodStart.toISOString(),
       periodEnd: lineItem.periodEnd.toISOString(),
       prorationFactor: lineItem.prorationFactor,
+      isCredit: lineItem.isCredit,
     };
   }
 }

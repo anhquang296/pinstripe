@@ -26,6 +26,7 @@ export const ratedInvoiceSchema = Type.Object({
       periodStart: Type.String(),
       periodEnd: Type.String(),
       prorationFactor: Type.Number(),
+      isCredit: Type.Boolean(),
     }),
   ),
 });

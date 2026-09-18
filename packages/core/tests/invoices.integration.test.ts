@@ -2,7 +2,7 @@ import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { BillingReasonEnum, InvoiceStatusEnum } from '@contracts/invoices.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
-import { ProrationBehaviorEnum } from '@contracts/subscriptions.types';
+import { BillingModeEnum, ProrationBehaviorEnum } from '@contracts/subscriptions.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -41,7 +41,11 @@ async function readPeriodEnd(subscriptionId: string): Promise<Date> {
 async function makeSubscription(
   amount = BASE_AMOUNT,
 ): Promise<{ subscriptionId: string; customerId: string }> {
-  return makeSubscriptionFixture(fastify, { unitAmount: amount, frozenTime: CLOCK_START });
+  return makeSubscriptionFixture(fastify, {
+    unitAmount: amount,
+    frozenTime: CLOCK_START,
+    billingMode: BillingModeEnum.ARREARS,
+  });
 }
 
 async function readSubscriptionRow(subscriptionId: string) {
@@ -116,6 +120,7 @@ async function makeSwapScenario(): Promise<SwapScenario> {
     {
       customerId: customer.id,
       items: [{ priceId: oldPrice.id }],
+      billingMode: BillingModeEnum.ARREARS,
     },
     false,
   );
@@ -552,7 +557,14 @@ describe('InvoiceService.issueProrationInvoice', () => {
     });
 
     const subscription = await readSubscriptionRow(subscriptionId);
-    const { isCreated } = await fastify.invoiceService.ensureDraftInvoice(subscription, {});
+    const { isCreated } = await fastify.invoiceService.ensureDraftInvoice(
+      subscription,
+      {},
+      {
+        periodStart: subscription.currentPeriodStart,
+        periodEnd: subscription.currentPeriodEnd,
+      },
+    );
 
     expect(isCreated).toBe(true);
   });

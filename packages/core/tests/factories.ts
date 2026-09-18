@@ -1,5 +1,7 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
+import type { BillingMode } from '@contracts/subscriptions.types';
+import { BillingModeEnum } from '@contracts/subscriptions.types';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
@@ -14,6 +16,7 @@ export interface SubscriptionOverrides {
   unitAmount?: number;
   paymentMethod?: string;
   frozenTime?: string;
+  billingMode?: BillingMode;
 }
 
 export interface SubscriptionFixture {
@@ -36,6 +39,7 @@ export async function makeSubscription(
     unitAmount = DEFAULT_UNIT_AMOUNT,
     paymentMethod = DEFAULT_PAYMENT_METHOD,
     frozenTime = DEFAULT_CLOCK_START,
+    billingMode = BillingModeEnum.ADVANCE,
   } = overrides;
 
   const clock = await fastify.testClockService.createTestClock({
@@ -68,6 +72,7 @@ export async function makeSubscription(
     {
       customerId: customer.id,
       items: [{ priceId: price.id }],
+      billingMode,
     },
     false,
   );
@@ -86,6 +91,16 @@ export async function makeOpenInvoice(
   overrides: SubscriptionOverrides = {},
 ): Promise<OpenInvoiceFixture> {
   const fixture = await makeSubscription(fastify, overrides);
+  const { data } = await fastify.invoiceService.findInvoices(
+    { subscriptionId: fixture.subscriptionId },
+    TEST_LIVEMODE,
+  );
+  const [issuedInvoice] = data;
+
+  if (issuedInvoice) {
+    return { ...fixture, invoiceId: issuedInvoice.id };
+  }
+
   const draft = await fastify.invoiceService.createInvoice(
     { subscriptionId: fixture.subscriptionId },
     TEST_LIVEMODE,

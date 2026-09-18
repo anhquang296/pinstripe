@@ -1,6 +1,7 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { CouponDurationEnum } from '@contracts/discounts.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
+import { BillingModeEnum } from '@contracts/subscriptions.types';
 import { ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -54,7 +55,11 @@ async function makeTwoProductSubscription(unitAmount: number) {
   const otherPlan = await makePriceId(unitAmount);
 
   const subscription = await fastify.subscriptionService.createSubscription(
-    { customerId, items: [{ priceId: coveredPlan.priceId }, { priceId: otherPlan.priceId }] },
+    {
+      customerId,
+      items: [{ priceId: coveredPlan.priceId }, { priceId: otherPlan.priceId }],
+      billingMode: BillingModeEnum.ARREARS,
+    },
     TEST_LIVEMODE,
   );
 
@@ -244,7 +249,10 @@ it('skips a discount whose promotion code asks for a higher minimum amount', asy
 });
 
 it('discounts three subscription invoices with a three month coupon and leaves the fourth full', async () => {
-  const fixture = await makeSubscription(fastify, { unitAmount: 1_000_000 });
+  const fixture = await makeSubscription(fastify, {
+    unitAmount: 1_000_000,
+    billingMode: BillingModeEnum.ARREARS,
+  });
   const coupon = await fastify.couponService.createCoupon(
     {
       name: 'Three months',
