@@ -7,6 +7,7 @@ import {
   rateLines,
   ratePrice,
   resolveBillingWindow,
+  resolveCreditWindow,
 } from '@utils/rating';
 import _ from 'lodash';
 import { describe, expect, it } from 'vitest';
@@ -420,5 +421,31 @@ describe('rateLines', () => {
     };
 
     expect(act).toThrowError(/currency mismatch/);
+  });
+});
+
+describe('resolveCreditWindow', () => {
+  it('credits the prepaid remainder when a window closes before what was invoiced', () => {
+    const window = resolveCreditWindow(MID_PERIOD, PERIOD_END, PERIOD_START, PERIOD_END);
+
+    expect(window).toEqual({ start: MID_PERIOD, end: PERIOD_END, isPartial: true });
+  });
+
+  it('credits nothing for a window that is still open', () => {
+    const window = resolveCreditWindow(null, PERIOD_END, PERIOD_START, PERIOD_END);
+
+    expect(window).toBeNull();
+  });
+
+  it('credits nothing for a window nothing was invoiced past', () => {
+    const window = resolveCreditWindow(MID_PERIOD, MID_PERIOD, PERIOD_START, PERIOD_END);
+
+    expect(window).toBeNull();
+  });
+
+  it('clips the credit to the period it is rated in', () => {
+    const window = resolveCreditWindow(PERIOD_START, PERIOD_END, PERIOD_START, MID_PERIOD);
+
+    expect(window).toEqual({ start: PERIOD_START, end: MID_PERIOD, isPartial: true });
   });
 });
