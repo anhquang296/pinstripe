@@ -1,4 +1,3 @@
-import { readLivemode } from '@utils/request-auth';
 import type { FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import _ from 'lodash';
@@ -21,6 +20,6 @@ export const expandPlugin = fp(async (fastify) => {
       return payload;
     }
 
-    return fastify.expansionService.expandResponse(payload, expand, readLivemode(request));
+    return fastify.expansionService.expandResponse(payload, expand);
   });
 });

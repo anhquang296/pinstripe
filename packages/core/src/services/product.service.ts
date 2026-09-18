@@ -16,7 +16,7 @@ import _ from 'lodash';
 export class ProductService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createProduct(payload: CreateProductPayload, livemode: boolean): Promise<ProductResponse> {
+  async createProduct(payload: CreateProductPayload): Promise<ProductResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PRODUCT);
 
@@ -24,7 +24,6 @@ export class ProductService {
       const product = await this.fastify.productRepository.createProduct(
         {
           id,
-          livemode,
           name: payload.name,
           description: payload.description ?? '',
           active: payload.active ?? true,
@@ -42,7 +41,6 @@ export class ProductService {
             {
               aggregateType: AggregateTypeEnum.PRODUCT,
               aggregateId: product.id,
-              livemode: product.livemode,
               eventType: DomainEventTypeEnum.PRODUCT_CREATED,
               payload: { id: product.id },
             },
@@ -57,22 +55,18 @@ export class ProductService {
     });
   }
 
-  async getProduct(id: string, livemode: boolean): Promise<ProductResponse> {
+  async getProduct(id: string): Promise<ProductResponse> {
     const product = await this.fastify.productRepository.findProduct(id);
 
-    if (product && product.livemode === livemode) {
+    if (product) {
       return product;
     }
 
     throw new NotFoundError(`No such product: ${id}`);
   }
 
-  async updateProduct(
-    id: string,
-    payload: UpdateProductPayload,
-    livemode: boolean,
-  ): Promise<ProductResponse> {
-    await this.getProduct(id, livemode);
+  async updateProduct(id: string, payload: UpdateProductPayload): Promise<ProductResponse> {
+    await this.getProduct(id);
 
     return this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.updateProduct(
@@ -87,7 +81,6 @@ export class ProductService {
             {
               aggregateType: AggregateTypeEnum.PRODUCT,
               aggregateId: product.id,
-              livemode: product.livemode,
               eventType: DomainEventTypeEnum.PRODUCT_UPDATED,
               payload: { id: product.id },
             },
@@ -102,15 +95,12 @@ export class ProductService {
     });
   }
 
-  async findProducts(
-    query: FindProductsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<ProductResponse>> {
+  async findProducts(query: FindProductsQuery): Promise<ListResponse<ProductResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.productRepository.findProducts(
-      { livemode, active: query.active, beforeAt, afterAt },
+      { active: query.active, beforeAt, afterAt },
       limit + 1,
     );
     const hasMore = rows.length > limit;

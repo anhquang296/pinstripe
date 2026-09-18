@@ -9,7 +9,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice } from './factories';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const MAILPIT_API_URL = 'http://localhost:58025/api/v1';
@@ -52,17 +52,14 @@ async function findDeliveredSubject(email: string): Promise<string | null> {
 describe('NotificationService.sendNotification', () => {
   it('delivers a payment receipt to the customer mailbox', async () => {
     const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
-    const customer = await fastify.customerService.getCustomer(customerId, TEST_LIVEMODE);
-    const paymentIntent = await fastify.paymentService.createPaymentIntent(
-      { invoiceId },
-      TEST_LIVEMODE,
-    );
+    const customer = await fastify.customerService.getCustomer(customerId);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId });
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE);
+    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
     await fastify.paymentService.drainProviderEvents();
 
     const outcome = await fastify.notificationService.sendNotification(
-      buildNotificationSendJob(NotificationKindEnum.PAYMENT_SUCCEEDED, TEST_LIVEMODE, customerId, {
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_SUCCEEDED, customerId, {
         invoiceId,
         paymentIntentId: paymentIntent.id,
       }),
@@ -80,17 +77,14 @@ describe('NotificationService.sendNotification', () => {
       frozenTime: CLOCK_START,
       token: PspTokenEnum.CARD_INSUFFICIENT_FUNDS,
     });
-    const customer = await fastify.customerService.getCustomer(customerId, TEST_LIVEMODE);
-    const paymentIntent = await fastify.paymentService.createPaymentIntent(
-      { invoiceId },
-      TEST_LIVEMODE,
-    );
+    const customer = await fastify.customerService.getCustomer(customerId);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId });
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE);
+    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
     await fastify.paymentService.drainProviderEvents();
 
     const outcome = await fastify.notificationService.sendNotification(
-      buildNotificationSendJob(NotificationKindEnum.PAYMENT_FAILED, TEST_LIVEMODE, customerId, {
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_FAILED, customerId, {
         invoiceId,
         paymentIntentId: paymentIntent.id,
       }),
@@ -104,13 +98,13 @@ describe('NotificationService.sendNotification', () => {
   });
 
   it('skips a customer with no email rather than failing the job', async () => {
-    const customer = await fastify.customerService.createCustomer(
-      { currency: CurrencyEnum.VND, name: 'No Mailbox' },
-      TEST_LIVEMODE,
-    );
+    const customer = await fastify.customerService.createCustomer({
+      currency: CurrencyEnum.VND,
+      name: 'No Mailbox',
+    });
 
     const outcome = await fastify.notificationService.sendNotification(
-      buildNotificationSendJob(NotificationKindEnum.PAYMENT_SUCCEEDED, TEST_LIVEMODE, customer.id),
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_SUCCEEDED, customer.id),
     );
 
     expect(outcome).toBe(NotificationOutcomeEnum.SKIPPED_NO_EMAIL);
@@ -121,7 +115,6 @@ describe('NotificationService.sendNotification', () => {
       fastify.notificationService.sendNotification(
         buildNotificationSendJob(
           NotificationKindEnum.PAYMENT_SUCCEEDED,
-          TEST_LIVEMODE,
           `${ObjectPrefixEnum.CUSTOMER}_${generateGid(ObjectPrefixEnum.CUSTOMER)}`,
         ),
       ),
@@ -167,11 +160,11 @@ describe('NotificationService.dispatchNotification', () => {
 describe('NotificationService.sendNotification for invoice_sent', () => {
   it('mails the customer the hosted invoice link', async () => {
     const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
-    const customer = await fastify.customerService.getCustomer(customerId, TEST_LIVEMODE);
-    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+    const customer = await fastify.customerService.getCustomer(customerId);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId);
 
     const outcome = await fastify.notificationService.sendNotification(
-      buildNotificationSendJob(NotificationKindEnum.INVOICE_SENT, TEST_LIVEMODE, customerId, {
+      buildNotificationSendJob(NotificationKindEnum.INVOICE_SENT, customerId, {
         invoiceId,
         url: invoice.hostedInvoiceUrl,
       }),

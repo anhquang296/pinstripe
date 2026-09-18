@@ -8,17 +8,13 @@ import {
   updatePromotionCodeSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createPromotionCodeSchema, response: { 201: promotionCodeSchema } } },
     async (request, reply) => {
-      const promotionCode = await fastify.promotionCodeService.createPromotionCode(
-        request.body,
-        readLivemode(request),
-      );
+      const promotionCode = await fastify.promotionCodeService.createPromotionCode(request.body);
 
       return ApiResponse.created(reply, promotionCode);
     },
@@ -33,10 +29,7 @@ export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       },
     },
     async (request, reply) => {
-      const promotionCodes = await fastify.promotionCodeService.findPromotionCodes(
-        request.query,
-        readLivemode(request),
-      );
+      const promotionCodes = await fastify.promotionCodeService.findPromotionCodes(request.query);
 
       return ApiResponse.success(reply, promotionCodes);
     },
@@ -48,7 +41,6 @@ export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     async (request, reply) => {
       const promotionCode = await fastify.promotionCodeService.getPromotionCode(
         request.params.promotionCodeId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, promotionCode);
@@ -68,7 +60,6 @@ export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const promotionCode = await fastify.promotionCodeService.updatePromotionCode(
         request.params.promotionCodeId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, promotionCode);

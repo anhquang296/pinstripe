@@ -10,17 +10,13 @@ import {
   paymentIntentSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createPaymentIntentSchema, response: { 201: paymentIntentSchema } } },
     async (request, reply) => {
-      const paymentIntent = await fastify.paymentService.createPaymentIntent(
-        request.body,
-        readLivemode(request),
-      );
+      const paymentIntent = await fastify.paymentService.createPaymentIntent(request.body);
 
       return ApiResponse.created(reply, paymentIntent);
     },
@@ -35,10 +31,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       },
     },
     async (request, reply) => {
-      const paymentIntents = await fastify.paymentService.findPaymentIntents(
-        request.query,
-        readLivemode(request),
-      );
+      const paymentIntents = await fastify.paymentService.findPaymentIntents(request.query);
 
       return ApiResponse.success(reply, paymentIntents);
     },
@@ -50,7 +43,6 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     async (request, reply) => {
       const paymentIntent = await fastify.paymentService.getPaymentIntent(
         request.params.paymentIntentId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentIntent);
@@ -70,7 +62,6 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const paymentIntent = await fastify.paymentService.confirmPaymentIntent(
         request.params.paymentIntentId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentIntent);
@@ -90,7 +81,6 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const paymentIntent = await fastify.paymentService.capturePaymentIntent(
         request.params.paymentIntentId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentIntent);
@@ -110,7 +100,6 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const paymentIntent = await fastify.paymentService.cancelPaymentIntent(
         request.params.paymentIntentId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentIntent);

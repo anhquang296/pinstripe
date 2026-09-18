@@ -1,6 +1,6 @@
 import { DomainEventTypeEnum } from '@contracts/events.types';
 import { WebhookDeliveryStatusEnum } from '@contracts/webhooks.types';
-import { ConflictError, NotFoundError, TooManyRequestsError } from '@errors/app.error';
+import { ConflictError, TooManyRequestsError } from '@errors/app.error';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -19,17 +19,13 @@ afterAll(async () => {
 });
 
 async function makeDelivery(): Promise<string> {
-  const endpoint = await fastify.webhookService.createWebhookEndpoint(
-    {
-      url: 'https://example.test/hooks',
-      enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
-    },
-    false,
-  );
+  const endpoint = await fastify.webhookService.createWebhookEndpoint({
+    url: 'https://example.test/hooks',
+    enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
+  });
 
   await fastify.webhookService.handleDomainEvent({
     eventId: generateGid(ObjectPrefixEnum.EVENT),
-    livemode: false,
     eventType: DomainEventTypeEnum.INVOICE_PAID,
     aggregateType: 'invoice',
     aggregateId: 'in_test',
@@ -79,7 +75,7 @@ it('puts an exhausted delivery back to pending when it is replayed', async () =>
     attemptCount: fastify.workflowSchedules.webhookMaxAttempts,
   });
 
-  const replayed = await fastify.webhookService.replayWebhookDelivery(deliveryId, false);
+  const replayed = await fastify.webhookService.replayWebhookDelivery(deliveryId);
 
   expect(replayed.status).toBe(WebhookDeliveryStatusEnum.PENDING);
   expect(replayed.attemptCount).toBe(0);
@@ -89,23 +85,9 @@ it('puts an exhausted delivery back to pending when it is replayed', async () =>
 it('refuses to replay a delivery that is still pending', async () => {
   const deliveryId = await makeDelivery();
 
-  const act = fastify.webhookService.replayWebhookDelivery(deliveryId, false);
+  const act = fastify.webhookService.replayWebhookDelivery(deliveryId);
 
   await expect(act).rejects.toThrow(ConflictError);
-});
-
-it('refuses to replay a delivery belonging to the other mode', async () => {
-  const deliveryId = await makeDelivery();
-
-  await fastify.webhookService.recordDeliveryResult(deliveryId, {
-    responseStatus: 500,
-    error: 'boom',
-    attemptCount: fastify.workflowSchedules.webhookMaxAttempts,
-  });
-
-  const act = fastify.webhookService.replayWebhookDelivery(deliveryId, true);
-
-  await expect(act).rejects.toThrow(NotFoundError);
 });
 
 it('stops delivering to one endpoint once it is over its rate limit', async () => {

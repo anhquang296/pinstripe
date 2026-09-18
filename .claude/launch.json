@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@pinstripe/api", "dev"],
+      "port": 3000
+    },
+    {
       "name": "admin-ui",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@pinstripe/admin-ui", "dev"],

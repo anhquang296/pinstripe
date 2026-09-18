@@ -12,10 +12,6 @@ export function readAuth(request: FastifyRequest): RequestAuth {
   throw new UnauthorizedError('This route was reached without an authenticated API key');
 }
 
-export function readLivemode(request: FastifyRequest): boolean {
-  return readAuth(request).livemode;
-}
-
 export function readPortalAuth(request: FastifyRequest): PortalAuth {
   const { portalAuth } = request;
 

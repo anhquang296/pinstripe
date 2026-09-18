@@ -252,15 +252,12 @@ describe('DunningService.runDunningShard', () => {
 
 describe('WebhookService.createWebhookEndpoint', () => {
   it('returns the signing secret once, at creation, and never again', async () => {
-    const created = await fastify.webhookService.createWebhookEndpoint(
-      {
-        url: 'https://example.test/hooks',
-        enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
-      },
-      false,
-    );
+    const created = await fastify.webhookService.createWebhookEndpoint({
+      url: 'https://example.test/hooks',
+      enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
+    });
 
-    const fetched = await fastify.webhookService.getWebhookEndpoint(created.id, false);
+    const fetched = await fastify.webhookService.getWebhookEndpoint(created.id);
 
     expect(created.secret).toMatch(/^whsec_[0-9a-f]{48}$/);
     expect(fetched.secret).toBeNull();
@@ -271,24 +268,17 @@ describe('WebhookService.createWebhookEndpoint', () => {
 describe('WebhookService.handleDomainEvent', () => {
   it('queues a delivery only for endpoints subscribed to that event', async () => {
     const eventId = generateGid(ObjectPrefixEnum.EVENT);
-    const subscribed = await fastify.webhookService.createWebhookEndpoint(
-      {
-        url: 'https://example.test/subscribed',
-        enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
-      },
-      false,
-    );
-    await fastify.webhookService.createWebhookEndpoint(
-      {
-        url: 'https://example.test/uninterested',
-        enabledEvents: [DomainEventTypeEnum.CUSTOMER_CREATED],
-      },
-      false,
-    );
+    const subscribed = await fastify.webhookService.createWebhookEndpoint({
+      url: 'https://example.test/subscribed',
+      enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
+    });
+    await fastify.webhookService.createWebhookEndpoint({
+      url: 'https://example.test/uninterested',
+      enabledEvents: [DomainEventTypeEnum.CUSTOMER_CREATED],
+    });
 
     const queued = await fastify.webhookService.handleDomainEvent({
       eventId,
-      livemode: false,
       eventType: DomainEventTypeEnum.INVOICE_PAID,
       aggregateType: 'invoice',
       aggregateId: 'in_test',
@@ -306,13 +296,10 @@ describe('WebhookService.handleDomainEvent', () => {
   });
 
   it('ignores a disabled endpoint', async () => {
-    const endpoint = await fastify.webhookService.createWebhookEndpoint(
-      {
-        url: 'https://example.test/disabled',
-        enabledEvents: [DomainEventTypeEnum.INVOICE_VOIDED],
-      },
-      false,
-    );
+    const endpoint = await fastify.webhookService.createWebhookEndpoint({
+      url: 'https://example.test/disabled',
+      enabledEvents: [DomainEventTypeEnum.INVOICE_VOIDED],
+    });
 
     await fastify.webhookService.updateWebhookEndpoint(endpoint.id, {
       status: WebhookEndpointStatusEnum.DISABLED,
@@ -320,7 +307,6 @@ describe('WebhookService.handleDomainEvent', () => {
 
     await fastify.webhookService.handleDomainEvent({
       eventId: generateGid(ObjectPrefixEnum.EVENT),
-      livemode: false,
       eventType: DomainEventTypeEnum.INVOICE_VOIDED,
       aggregateType: 'invoice',
       aggregateId: 'in_test',
@@ -336,17 +322,13 @@ describe('WebhookService.handleDomainEvent', () => {
   });
 
   it('signs the body it will actually send with the endpoint secret', async () => {
-    const created = await fastify.webhookService.createWebhookEndpoint(
-      {
-        url: 'https://example.test/signed',
-        enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
-      },
-      false,
-    );
+    const created = await fastify.webhookService.createWebhookEndpoint({
+      url: 'https://example.test/signed',
+      enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
+    });
 
     await fastify.webhookService.handleDomainEvent({
       eventId: generateGid(ObjectPrefixEnum.EVENT),
-      livemode: false,
       eventType: DomainEventTypeEnum.INVOICE_FINALIZED,
       aggregateType: 'invoice',
       aggregateId: 'in_test',
@@ -365,17 +347,13 @@ describe('WebhookService.handleDomainEvent', () => {
 
   it('carries the event id so a receiver can drop a repeat', async () => {
     const eventId = generateGid(ObjectPrefixEnum.EVENT);
-    const created = await fastify.webhookService.createWebhookEndpoint(
-      {
-        url: 'https://example.test/idempotent',
-        enabledEvents: [DomainEventTypeEnum.REFUND_CREATED],
-      },
-      false,
-    );
+    const created = await fastify.webhookService.createWebhookEndpoint({
+      url: 'https://example.test/idempotent',
+      enabledEvents: [DomainEventTypeEnum.REFUND_CREATED],
+    });
 
     await fastify.webhookService.handleDomainEvent({
       eventId,
-      livemode: false,
       eventType: DomainEventTypeEnum.REFUND_CREATED,
       aggregateType: 'refund',
       aggregateId: 're_test',
@@ -395,17 +373,13 @@ describe('WebhookService.handleDomainEvent', () => {
 
 describe('WebhookService.recordDeliveryResult', () => {
   it('keeps the failure reason on the delivery so a dead endpoint is visible', async () => {
-    const created = await fastify.webhookService.createWebhookEndpoint(
-      {
-        url: 'https://example.test/broken',
-        enabledEvents: [DomainEventTypeEnum.INVOICE_CREATED],
-      },
-      false,
-    );
+    const created = await fastify.webhookService.createWebhookEndpoint({
+      url: 'https://example.test/broken',
+      enabledEvents: [DomainEventTypeEnum.INVOICE_CREATED],
+    });
 
     await fastify.webhookService.handleDomainEvent({
       eventId: generateGid(ObjectPrefixEnum.EVENT),
-      livemode: false,
       eventType: DomainEventTypeEnum.INVOICE_CREATED,
       aggregateType: 'invoice',
       aggregateId: 'in_test',

@@ -10,7 +10,6 @@ export type PortalSessionStatus = `${PortalSessionStatusEnum}`;
 
 export const portalSessionSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   customerId: Type.String(),
   status: Type.Unsafe<PortalSessionStatus>(Type.Enum(PortalSessionStatusEnum)),
   sessionKey: Type.Union([Type.String(), Type.Null()]),
@@ -21,7 +20,6 @@ export const portalSessionSchema = Type.Object({
 });
 
 export const portalLinkSchema = Type.Object({
-  livemode: Type.Boolean(),
   linkExpiresAt: Type.String(),
 });
 
@@ -86,5 +84,4 @@ export type FindPortalPaymentMethodsQuery = Static<typeof findPortalPaymentMetho
 export interface PortalAuth {
   portalSessionId: string;
   customerId: string;
-  livemode: boolean;
 }

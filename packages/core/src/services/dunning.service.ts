@@ -152,7 +152,7 @@ export class DunningService {
 
   private async collectInvoice(invoice: Invoice, runAt: Date): Promise<DunningOutcome> {
     const now = await this.resolveDunningNow(invoice, runAt);
-    const owed = await this.fastify.invoiceService.getInvoice(invoice.id, invoice.livemode);
+    const owed = await this.fastify.invoiceService.getInvoice(invoice.id);
 
     if (owed.amountRemaining <= 0) {
       await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
@@ -190,11 +190,9 @@ export class DunningService {
     const paymentIntentId = await this.resolveCollectionIntentId(invoice, paymentMethod);
 
     await this.deferAttempt(invoice, now);
-    await this.fastify.paymentService.confirmPaymentIntent(
-      paymentIntentId,
-      { paymentMethodId: paymentMethod.id },
-      invoice.livemode,
-    );
+    await this.fastify.paymentService.confirmPaymentIntent(paymentIntentId, {
+      paymentMethodId: paymentMethod.id,
+    });
 
     return DunningOutcomeEnum.ATTEMPTED;
   }
@@ -281,10 +279,10 @@ export class DunningService {
       return reusableIntent.id;
     }
 
-    const createdIntent = await this.fastify.paymentService.createPaymentIntent(
-      { invoiceId: invoice.id, paymentMethodId: paymentMethod.id },
-      invoice.livemode,
-    );
+    const createdIntent = await this.fastify.paymentService.createPaymentIntent({
+      invoiceId: invoice.id,
+      paymentMethodId: paymentMethod.id,
+    });
 
     return createdIntent.id;
   }
@@ -343,7 +341,6 @@ export class DunningService {
             {
               aggregateType: AggregateTypeEnum.INVOICE,
               aggregateId: invoice.id,
-              livemode: invoice.livemode,
               eventType: DomainEventTypeEnum.INVOICE_MARKED_UNCOLLECTIBLE,
               payload: { id: invoice.id, number: invoice.number, attemptCount },
             },

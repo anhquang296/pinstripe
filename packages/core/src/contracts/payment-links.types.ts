@@ -7,7 +7,6 @@ import { CurrencyEnum } from '@utils/currency';
 
 export const paymentLinkSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   isActive: Type.Boolean(),
   mode: Type.Unsafe<CheckoutSessionMode>(Type.Enum(CheckoutSessionModeEnum)),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),

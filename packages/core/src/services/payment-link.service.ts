@@ -22,10 +22,7 @@ const DEFAULT_QUANTITY = 1;
 export class PaymentLinkService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPaymentLink(
-    payload: CreatePaymentLinkPayload,
-    livemode: boolean,
-  ): Promise<PaymentLinkResponse> {
+  async createPaymentLink(payload: CreatePaymentLinkPayload): Promise<PaymentLinkResponse> {
     const priceIds = _.uniq(_.map(payload.lineItems, 'priceId'));
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: priceIds },
@@ -53,7 +50,6 @@ export class PaymentLinkService {
     const lineItems = _.map(payload.lineItems, (lineItem): NewPaymentLinkLineItem => {
       return {
         id: generateGid(ObjectPrefixEnum.PAYMENT_LINK_LINE_ITEM),
-        livemode,
         paymentLinkId: id,
         priceId: lineItem.priceId,
         quantity: lineItem.quantity ?? DEFAULT_QUANTITY,
@@ -65,7 +61,6 @@ export class PaymentLinkService {
       const paymentLink = await this.fastify.paymentLinkRepository.createPaymentLink(
         {
           id,
-          livemode,
           isActive: true,
           mode: payload.mode ?? CheckoutSessionModeEnum.PAYMENT,
           currency,
@@ -94,9 +89,8 @@ export class PaymentLinkService {
   async updatePaymentLink(
     id: string,
     payload: UpdatePaymentLinkPayload,
-    livemode: boolean,
   ): Promise<PaymentLinkResponse> {
-    const paymentLink = await this.getPaymentLinkEntity(id, livemode);
+    const paymentLink = await this.getPaymentLinkEntity(id);
     const updatedAt = this.fastify.clock.now().toISOString();
 
     const updatedPaymentLink = await this.fastify.database.master.transaction(async (tx) => {
@@ -127,21 +121,18 @@ export class PaymentLinkService {
     return this.buildPaymentLink(updatedPaymentLink);
   }
 
-  async getPaymentLink(id: string, livemode: boolean): Promise<PaymentLinkResponse> {
-    const paymentLink = await this.getPaymentLinkEntity(id, livemode);
+  async getPaymentLink(id: string): Promise<PaymentLinkResponse> {
+    const paymentLink = await this.getPaymentLinkEntity(id);
 
     return this.buildPaymentLink(paymentLink);
   }
 
-  async findPaymentLinks(
-    query: FindPaymentLinksQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<PaymentLinkResponse>> {
+  async findPaymentLinks(query: FindPaymentLinksQuery): Promise<ListResponse<PaymentLinkResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.paymentLinkRepository.findPaymentLinks(
-      { livemode, isActive: query.isActive, beforeAt, afterAt },
+      { isActive: query.isActive, beforeAt, afterAt },
       limit + 1,
     );
     const page = _.take(rows, limit);
@@ -159,10 +150,10 @@ export class PaymentLinkService {
     };
   }
 
-  async getPaymentLinkEntity(id: string, livemode: boolean): Promise<PaymentLink> {
+  async getPaymentLinkEntity(id: string): Promise<PaymentLink> {
     const paymentLink = await this.fastify.paymentLinkRepository.findPaymentLink(id);
 
-    if (paymentLink && paymentLink.livemode === livemode) {
+    if (paymentLink) {
       return paymentLink;
     }
 
@@ -194,7 +185,6 @@ export class PaymentLinkService {
         {
           aggregateType: AggregateTypeEnum.PAYMENT_LINK,
           aggregateId: paymentLink.id,
-          livemode: paymentLink.livemode,
           eventType,
           payload: {
             id: paymentLink.id,

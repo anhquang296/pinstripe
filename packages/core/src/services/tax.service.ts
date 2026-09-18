@@ -29,7 +29,6 @@ export class TaxService {
     }
 
     const lineAmounts = await this.fastify.taxProvider.calculate({
-      livemode: invoice.livemode,
       currency: invoice.currency,
       country: _.get(customer.address, 'country', null),
       state: _.get(customer.address, 'state', null),

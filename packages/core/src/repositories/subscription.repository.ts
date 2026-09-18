@@ -44,12 +44,12 @@ export interface SubscriptionItemChangeFilters {
 }
 
 export interface SubscriptionFilters {
-  livemode?: boolean;
   ids?: readonly string[];
   customerId?: string;
   status?: SubscriptionStatus;
   statusNe?: SubscriptionStatus;
   testClockId?: string;
+  testClockIdIsNull?: boolean;
   currentPeriodEndTo?: string;
   cancelAtTo?: string;
   pauseResumesAtTo?: string;
@@ -83,12 +83,12 @@ export class SubscriptionRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<Subscription[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(subscriptions.livemode, filters.livemode),
       filters.ids ? inArray(subscriptions.id, [...filters.ids]) : undefined,
       filters.customerId ? eq(subscriptions.customerId, filters.customerId) : undefined,
       filters.status ? eq(subscriptions.status, filters.status) : undefined,
       filters.statusNe ? ne(subscriptions.status, filters.statusNe) : undefined,
       filters.testClockId ? eq(subscriptions.testClockId, filters.testClockId) : undefined,
+      filters.testClockIdIsNull ? isNull(subscriptions.testClockId) : undefined,
       filters.currentPeriodEndTo
         ? lte(subscriptions.currentPeriodEnd, filters.currentPeriodEndTo)
         : undefined,

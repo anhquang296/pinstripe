@@ -57,10 +57,7 @@ export class ReportingRepository {
     this._db = db;
   }
 
-  async findRecurringCommitments(
-    currency: Currency,
-    livemode: boolean,
-  ): Promise<RecurringCommitment[]> {
+  async findRecurringCommitments(currency: Currency): Promise<RecurringCommitment[]> {
     return this._db.master
       .select({
         subscriptionId: subscriptions.id,
@@ -79,20 +76,18 @@ export class ReportingRepository {
         and(
           eq(subscriptions.status, SubscriptionStatusEnum.ACTIVE),
           eq(subscriptions.currency, currency),
-          eq(subscriptions.livemode, livemode),
           isNotNull(prices.recurringInterval),
         ),
       );
   }
 
-  async countSubscriptions(currency: Currency, livemode: boolean): Promise<SubscriptionCounts> {
+  async countSubscriptions(currency: Currency): Promise<SubscriptionCounts> {
     const rows = await this._db.master
       .select({ status: subscriptions.status, total: count() })
       .from(subscriptions)
       .where(
         and(
           eq(subscriptions.currency, currency),
-          eq(subscriptions.livemode, livemode),
           inArray(subscriptions.status, [
             SubscriptionStatusEnum.ACTIVE,
             SubscriptionStatusEnum.TRIALING,
@@ -113,7 +108,6 @@ export class ReportingRepository {
     currency: Currency,
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
   ): Promise<number> {
     const [row] = await this._db.master
       .select({ total: count() })
@@ -121,7 +115,6 @@ export class ReportingRepository {
       .where(
         and(
           eq(subscriptions.currency, currency),
-          eq(subscriptions.livemode, livemode),
           eq(subscriptions.status, SubscriptionStatusEnum.CANCELED),
           gte(subscriptions.canceledAt, windowStart),
           lt(subscriptions.canceledAt, windowEnd),
@@ -135,7 +128,6 @@ export class ReportingRepository {
     currency: Currency,
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
   ): Promise<InvoiceWindowTotals> {
     const [row] = await this._db.master
       .select({
@@ -146,7 +138,6 @@ export class ReportingRepository {
       .where(
         and(
           eq(invoices.currency, currency),
-          eq(invoices.livemode, livemode),
           isNotNull(invoices.finalizedAt),
           gte(invoices.finalizedAt, windowStart),
           lt(invoices.finalizedAt, windowEnd),
@@ -160,7 +151,6 @@ export class ReportingRepository {
     currency: Currency,
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
   ): Promise<number> {
     const [row] = await this._db.master
       .select({ total: sql<number>`coalesce(sum(${refunds.amount}), 0)::int` })
@@ -168,7 +158,6 @@ export class ReportingRepository {
       .where(
         and(
           eq(refunds.currency, currency),
-          eq(refunds.livemode, livemode),
           gte(refunds.createdAt, windowStart),
           lt(refunds.createdAt, windowEnd),
         ),
@@ -181,7 +170,6 @@ export class ReportingRepository {
     currency: Currency,
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
   ): Promise<number> {
     const [row] = await this._db.master
       .select({
@@ -193,7 +181,6 @@ export class ReportingRepository {
       .where(
         and(
           eq(ledgerAccounts.code, LedgerAccountCodeEnum.CASH),
-          eq(ledgerTransactions.livemode, livemode),
           eq(ledgerAccounts.currency, currency),
           gte(ledgerTransactions.effectiveAt, windowStart),
           lt(ledgerTransactions.effectiveAt, windowEnd),
@@ -207,7 +194,6 @@ export class ReportingRepository {
     codes: readonly LedgerAccountCode[],
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
   ): Promise<LedgerMovement[]> {
     return this._db.master
       .select({
@@ -221,7 +207,6 @@ export class ReportingRepository {
         and(
           inArray(ledgerAccounts.code, [...codes]),
           isNotNull(ledgerTransactions.externalId),
-          eq(ledgerTransactions.livemode, livemode),
           gte(ledgerTransactions.effectiveAt, windowStart),
           lt(ledgerTransactions.effectiveAt, windowEnd),
         ),
@@ -229,10 +214,7 @@ export class ReportingRepository {
       .groupBy(ledgerTransactions.externalId);
   }
 
-  async aggregateInvoiceSettlements(
-    chargeIds: readonly string[],
-    livemode: boolean,
-  ): Promise<InvoiceSettlement[]> {
+  async aggregateInvoiceSettlements(chargeIds: readonly string[]): Promise<InvoiceSettlement[]> {
     if (_.isEmpty(chargeIds)) {
       return [];
     }
@@ -243,12 +225,7 @@ export class ReportingRepository {
         amount: sql<number>`coalesce(sum(${invoicePayments.amount}), 0)::int`,
       })
       .from(invoicePayments)
-      .where(
-        and(
-          eq(invoicePayments.livemode, livemode),
-          inArray(invoicePayments.chargeId, [...chargeIds]),
-        ),
-      )
+      .where(inArray(invoicePayments.chargeId, [...chargeIds]))
       .groupBy(invoicePayments.chargeId);
   }
 }

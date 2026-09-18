@@ -18,8 +18,8 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/me',
     { schema: { response: { 200: portalIdentitySchema } } },
     async (request, reply) => {
-      const { customerId, livemode, portalSessionId } = readPortalAuth(request);
-      const customer = await fastify.customerService.getCustomer(customerId, livemode);
+      const { customerId, portalSessionId } = readPortalAuth(request);
+      const customer = await fastify.customerService.getCustomer(customerId);
       const portalSession = await fastify.portalSessionService.getPortalSession(portalSessionId);
 
       return ApiResponse.success(reply, {
@@ -41,11 +41,8 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const { customerId, livemode } = readPortalAuth(request);
-      const invoices = await fastify.invoiceService.findInvoices(
-        { ...request.query, customerId },
-        livemode,
-      );
+      const { customerId } = readPortalAuth(request);
+      const invoices = await fastify.invoiceService.findInvoices({ ...request.query, customerId });
 
       return ApiResponse.success(reply, invoices);
     },
@@ -60,11 +57,11 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const { customerId, livemode } = readPortalAuth(request);
-      const subscriptions = await fastify.subscriptionService.findSubscriptions(
-        { ...request.query, customerId },
-        livemode,
-      );
+      const { customerId } = readPortalAuth(request);
+      const subscriptions = await fastify.subscriptionService.findSubscriptions({
+        ...request.query,
+        customerId,
+      });
 
       return ApiResponse.success(reply, subscriptions);
     },
@@ -79,11 +76,11 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const { customerId, livemode } = readPortalAuth(request);
-      const paymentMethods = await fastify.paymentMethodService.findPaymentMethods(
-        { ...request.query, customerId },
-        livemode,
-      );
+      const { customerId } = readPortalAuth(request);
+      const paymentMethods = await fastify.paymentMethodService.findPaymentMethods({
+        ...request.query,
+        customerId,
+      });
 
       return ApiResponse.success(reply, paymentMethods);
     },

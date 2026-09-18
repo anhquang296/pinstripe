@@ -6,7 +6,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 export interface TaxIdFilters {
-  livemode?: boolean;
   customerId?: string;
   customerIds?: readonly string[];
   beforeAt?: RowCursor;
@@ -33,7 +32,6 @@ export class TaxIdRepository {
   async findTaxIds(filters: TaxIdFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<TaxId[]> {
     const where = and(
       isNull(taxIds.deletedAt),
-      filters.livemode === undefined ? undefined : eq(taxIds.livemode, filters.livemode),
       filters.customerId ? eq(taxIds.customerId, filters.customerId) : undefined,
       filters.customerIds ? inArray(taxIds.customerId, [...filters.customerIds]) : undefined,
       filters.beforeAt

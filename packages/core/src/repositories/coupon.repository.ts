@@ -6,7 +6,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
 export interface CouponFilters {
-  livemode?: boolean;
   ids?: readonly string[];
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -32,7 +31,6 @@ export class CouponRepository {
   async findCoupons(filters: CouponFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Coupon[]> {
     const where = and(
       isNull(coupons.deletedAt),
-      filters.livemode === undefined ? undefined : eq(coupons.livemode, filters.livemode),
       filters.ids ? inArray(coupons.id, [...filters.ids]) : undefined,
       filters.beforeAt
         ? sql`(${coupons.createdAt}, ${coupons.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`

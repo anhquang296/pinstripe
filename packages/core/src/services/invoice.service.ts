@@ -110,7 +110,7 @@ export class InvoiceService {
     private readonly config: InvoiceServiceConfig,
   ) {}
 
-  async createInvoice(payload: CreateInvoicePayload, livemode: boolean): Promise<InvoiceResponse> {
+  async createInvoice(payload: CreateInvoicePayload): Promise<InvoiceResponse> {
     const { subscriptionId, customerId } = payload;
 
     if (subscriptionId) {
@@ -125,7 +125,7 @@ export class InvoiceService {
     }
 
     if (customerId) {
-      const invoice = await this.writeStandaloneInvoice(customerId, payload, livemode);
+      const invoice = await this.writeStandaloneInvoice(customerId, payload);
 
       return this.buildInvoice(invoice);
     }
@@ -138,9 +138,8 @@ export class InvoiceService {
   private async writeStandaloneInvoice(
     customerId: string,
     payload: CreateInvoicePayload,
-    livemode: boolean,
   ): Promise<Invoice> {
-    const customer = await this.fastify.customerService.getCustomer(customerId, livemode);
+    const customer = await this.fastify.customerService.getCustomer(customerId);
     const now = await this.fastify.clockService.resolveCustomerNow(customerId);
     const createdAt = now.toISOString();
     const id = generateGid(ObjectPrefixEnum.INVOICE);
@@ -155,7 +154,6 @@ export class InvoiceService {
       const invoice = await this.fastify.invoiceRepository.createInvoice(
         {
           id,
-          livemode,
           number: null,
           customerId,
           subscriptionId: null,
@@ -207,7 +205,6 @@ export class InvoiceService {
         const invoice = await this.fastify.invoiceRepository.createInvoice(
           {
             id,
-            livemode: subscription.livemode,
             number: null,
             customerId: subscription.customerId,
             subscriptionId: subscription.id,
@@ -321,7 +318,6 @@ export class InvoiceService {
       const invoice = await this.fastify.invoiceRepository.createInvoice(
         {
           id,
-          livemode: subscription.livemode,
           number: null,
           customerId: subscription.customerId,
           subscriptionId: subscription.id,
@@ -540,7 +536,6 @@ export class InvoiceService {
 
   private async collectInvoiceItemLines(invoice: Invoice): Promise<InvoiceDraftLine[]> {
     const invoiceItems = await this.fastify.invoiceItemRepository.findInvoiceItems({
-      livemode: invoice.livemode,
       customerId: invoice.customerId,
       currency: invoice.currency,
       pendingForInvoiceId: invoice.id,
@@ -622,7 +617,6 @@ export class InvoiceService {
     const invoice = await this.fastify.invoiceRepository.createInvoice(
       {
         id,
-        livemode: subscription.livemode,
         number: null,
         customerId: subscription.customerId,
         subscriptionId: subscription.id,
@@ -679,7 +673,6 @@ export class InvoiceService {
     const lineItems = _.map(taxedLines, (line): NewInvoiceLineItem => {
       return {
         id: generateGid(ObjectPrefixEnum.INVOICE_LINE_ITEM),
-        livemode: invoice.livemode,
         invoiceId: invoice.id,
         subscriptionItemId: line.subscriptionItemId,
         subscriptionItemChangeId: line.subscriptionItemChangeId,
@@ -810,7 +803,6 @@ export class InvoiceService {
       return _.map(line.taxAmounts, (taxAmount): NewInvoiceLineItemTaxAmount => {
         return {
           id: generateGid(ObjectPrefixEnum.INVOICE_LINE_TAX_AMOUNT),
-          livemode: invoice.livemode,
           invoiceId: invoice.id,
           invoiceLineItemId: lineItem.id,
           taxRateId: taxAmount.taxRateId,
@@ -908,7 +900,6 @@ export class InvoiceService {
     await this.fastify.customerBalanceTransactionRepository.createCustomerBalanceTransaction(
       {
         id: generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION),
-        livemode: invoice.livemode,
         customerId: invoice.customerId,
         invoiceId: invoice.id,
         creditNoteId: null,
@@ -993,7 +984,6 @@ export class InvoiceService {
       await this.fastify.invoiceRepository.createInvoicePayment(
         {
           id: generateGid(ObjectPrefixEnum.INVOICE_PAYMENT),
-          livemode: invoice.livemode,
           invoiceId: invoice.id,
           paymentIntentId: payload.paymentIntentId ?? null,
           chargeId: payload.chargeId ?? null,
@@ -1066,26 +1056,18 @@ export class InvoiceService {
     return this.buildInvoice(voidedInvoice);
   }
 
-  async getInvoice(id: string, livemode: boolean): Promise<InvoiceResponse> {
+  async getInvoice(id: string): Promise<InvoiceResponse> {
     const invoice = await this.getInvoiceEntity(id);
 
-    if (invoice.livemode === livemode) {
-      return this.buildInvoice(invoice);
-    }
-
-    throw new NotFoundError(`No such invoice: ${id}`);
+    return this.buildInvoice(invoice);
   }
 
-  async findInvoices(
-    query: FindInvoicesQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<InvoiceResponse>> {
+  async findInvoices(query: FindInvoicesQuery): Promise<ListResponse<InvoiceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.invoiceRepository.findInvoices(
       {
-        livemode,
         customerId: query.customerId,
         subscriptionId: query.subscriptionId,
         status: query.status,
@@ -1195,7 +1177,6 @@ export class InvoiceService {
           return entry.amount > 0;
         }),
       },
-      invoice.livemode,
       tx,
     );
   }
@@ -1225,7 +1206,6 @@ export class InvoiceService {
           },
         ],
       },
-      invoice.livemode,
       tx,
     );
   }
@@ -1278,7 +1258,6 @@ export class InvoiceService {
           return entry.amount > 0;
         }),
       },
-      invoice.livemode,
       tx,
     );
   }
@@ -1306,7 +1285,6 @@ export class InvoiceService {
     await this.fastify.customerBalanceTransactionRepository.createCustomerBalanceTransaction(
       {
         id: generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION),
-        livemode: invoice.livemode,
         customerId: invoice.customerId,
         invoiceId: invoice.id,
         creditNoteId: null,
@@ -1332,7 +1310,6 @@ export class InvoiceService {
         {
           aggregateType: AggregateTypeEnum.INVOICE,
           aggregateId: invoice.id,
-          livemode: invoice.livemode,
           eventType,
           payload: {
             id: invoice.id,

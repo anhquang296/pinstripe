@@ -6,7 +6,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 export interface PriceFilters {
-  livemode?: boolean;
   ids?: readonly string[];
   productId?: string;
   lookupKey?: string;
@@ -30,7 +29,6 @@ export class PriceRepository {
 
   async findPrices(filters: PriceFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Price[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(prices.livemode, filters.livemode),
       filters.ids ? inArray(prices.id, [...filters.ids]) : undefined,
       filters.productId ? eq(prices.productId, filters.productId) : undefined,
       filters.lookupKey ? eq(prices.lookupKey, filters.lookupKey) : undefined,

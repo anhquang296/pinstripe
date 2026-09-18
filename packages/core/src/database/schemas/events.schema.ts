@@ -1,13 +1,12 @@
 import type { DomainEventType } from '@contracts/events.types';
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { sql } from 'drizzle-orm';
-import { boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
+import { index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const events = pgTable(
   'events',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     type: text('type').$type<DomainEventType>().notNull(),
     apiVersion: text('api_version').notNull(),
     data: jsonb('data').$type<{ object: unknown }>().notNull(),

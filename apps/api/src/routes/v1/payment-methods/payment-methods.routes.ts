@@ -9,17 +9,13 @@ import {
   updatePaymentMethodSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createPaymentMethodSchema, response: { 201: paymentMethodSchema } } },
     async (request, reply) => {
-      const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(
-        request.body,
-        readLivemode(request),
-      );
+      const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(request.body);
 
       return ApiResponse.created(reply, paymentMethod);
     },
@@ -34,10 +30,7 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       },
     },
     async (request, reply) => {
-      const paymentMethods = await fastify.paymentMethodService.findPaymentMethods(
-        request.query,
-        readLivemode(request),
-      );
+      const paymentMethods = await fastify.paymentMethodService.findPaymentMethods(request.query);
 
       return ApiResponse.success(reply, paymentMethods);
     },
@@ -49,7 +42,6 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     async (request, reply) => {
       const paymentMethod = await fastify.paymentMethodService.getPaymentMethod(
         request.params.paymentMethodId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentMethod);
@@ -69,7 +61,6 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const paymentMethod = await fastify.paymentMethodService.updatePaymentMethod(
         request.params.paymentMethodId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentMethod);
@@ -89,7 +80,6 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const paymentMethod = await fastify.paymentMethodService.attachPaymentMethod(
         request.params.paymentMethodId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentMethod);
@@ -102,7 +92,6 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     async (request, reply) => {
       const paymentMethod = await fastify.paymentMethodService.detachPaymentMethod(
         request.params.paymentMethodId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentMethod);

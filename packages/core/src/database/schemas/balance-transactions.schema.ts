@@ -2,13 +2,12 @@ import type { BalanceSourceType, BalanceTransactionType } from '@contracts/balan
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, index, pgTable, text } from 'drizzle-orm/pg-core';
+import { bigint, index, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const balanceTransactions = pgTable(
   'balance_transactions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     type: text('type').$type<BalanceTransactionType>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     gross: bigint('gross', { mode: 'number' }).notNull(),

@@ -15,8 +15,19 @@ import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
+export interface TestClockConfig {
+  isEnabled: boolean;
+}
+
 export class TestClockService {
-  constructor(private readonly fastify: FastifyInstance) {}
+  constructor(
+    private readonly fastify: FastifyInstance,
+    private readonly testClockConfig: TestClockConfig,
+  ) {}
+
+  get isEnabled(): boolean {
+    return this.testClockConfig.isEnabled;
+  }
 
   async createTestClock(payload: CreateTestClockPayload): Promise<TestClockResponse> {
     const now = this.fastify.clock.now().toISOString();
@@ -38,10 +49,10 @@ export class TestClockService {
     throw new NotFoundError('Test clock could not be created');
   }
 
-  async getTestClock(id: string, livemode: boolean): Promise<TestClockResponse> {
+  async getTestClock(id: string): Promise<TestClockResponse> {
     const clock = await this.fastify.testClockRepository.findTestClock(id);
 
-    if (clock && clock.livemode === livemode) {
+    if (clock) {
       return clock;
     }
 
@@ -114,7 +125,6 @@ export class TestClockService {
             {
               aggregateType: AggregateTypeEnum.TEST_CLOCK,
               aggregateId: id,
-              livemode: false,
               eventType: DomainEventTypeEnum.TEST_CLOCK_ADVANCED,
               payload: { id, frozenTime: target.toISOString() },
             },

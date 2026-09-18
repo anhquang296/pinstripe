@@ -31,12 +31,10 @@ export class NotificationService {
 
   async dispatchInvoiceSent(invoice: Invoice, url: string): Promise<void> {
     await this.dispatchNotification(
-      buildNotificationSendJob(
-        NotificationKindEnum.INVOICE_SENT,
-        invoice.livemode,
-        invoice.customerId,
-        { invoiceId: invoice.id, url },
-      ),
+      buildNotificationSendJob(NotificationKindEnum.INVOICE_SENT, invoice.customerId, {
+        invoiceId: invoice.id,
+        url,
+      }),
     );
   }
 
@@ -45,56 +43,44 @@ export class NotificationService {
     url: string,
   ): Promise<NotificationOutcome> {
     return this.sendNotification(
-      buildNotificationSendJob(
-        NotificationKindEnum.PORTAL_MAGIC_LINK,
-        portalSession.livemode,
-        portalSession.customerId,
-        { url, dedupeKey: portalSession.id },
-      ),
+      buildNotificationSendJob(NotificationKindEnum.PORTAL_MAGIC_LINK, portalSession.customerId, {
+        url,
+        dedupeKey: portalSession.id,
+      }),
     );
   }
 
   async dispatchInvoiceFinalized(invoice: Invoice): Promise<void> {
     await this.dispatchNotification(
-      buildNotificationSendJob(
-        NotificationKindEnum.INVOICE_FINALIZED,
-        invoice.livemode,
-        invoice.customerId,
-        { invoiceId: invoice.id },
-      ),
+      buildNotificationSendJob(NotificationKindEnum.INVOICE_FINALIZED, invoice.customerId, {
+        invoiceId: invoice.id,
+      }),
     );
   }
 
   async dispatchPaymentSucceeded(paymentIntent: PaymentIntent): Promise<void> {
     await this.dispatchNotification(
-      buildNotificationSendJob(
-        NotificationKindEnum.PAYMENT_SUCCEEDED,
-        paymentIntent.livemode,
-        paymentIntent.customerId,
-        { invoiceId: paymentIntent.invoiceId, paymentIntentId: paymentIntent.id },
-      ),
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_SUCCEEDED, paymentIntent.customerId, {
+        invoiceId: paymentIntent.invoiceId,
+        paymentIntentId: paymentIntent.id,
+      }),
     );
   }
 
   async dispatchPaymentFailed(paymentIntent: PaymentIntent): Promise<void> {
     await this.dispatchNotification(
-      buildNotificationSendJob(
-        NotificationKindEnum.PAYMENT_FAILED,
-        paymentIntent.livemode,
-        paymentIntent.customerId,
-        { invoiceId: paymentIntent.invoiceId, paymentIntentId: paymentIntent.id },
-      ),
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_FAILED, paymentIntent.customerId, {
+        invoiceId: paymentIntent.invoiceId,
+        paymentIntentId: paymentIntent.id,
+      }),
     );
   }
 
   async dispatchPaymentAbandoned(invoice: Invoice): Promise<void> {
     await this.dispatchNotification(
-      buildNotificationSendJob(
-        NotificationKindEnum.PAYMENT_ABANDONED,
-        invoice.livemode,
-        invoice.customerId,
-        { invoiceId: invoice.id },
-      ),
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_ABANDONED, invoice.customerId, {
+        invoiceId: invoice.id,
+      }),
     );
   }
 

@@ -22,7 +22,6 @@ export const apiKeySchema = Type.Object({
   name: Type.String(),
   type: Type.Unsafe<ApiKeyType>(Type.Enum(ApiKeyTypeEnum)),
   scopes: Type.Array(Type.Unsafe<ApiKeyScope>(Type.Enum(ApiKeyScopeEnum))),
-  livemode: Type.Boolean(),
   tokenPrefix: Type.String(),
   token: Type.Union([Type.String(), Type.Null()]),
   lastUsedAt: Type.Union([Type.String(), Type.Null()]),
@@ -39,7 +38,6 @@ export const createApiKeySchema = Type.Object(
     name: Type.String({ minLength: 1, maxLength: 100 }),
     type: Type.Unsafe<ApiKeyType>(Type.Enum(ApiKeyTypeEnum)),
     scopes: Type.Array(Type.Unsafe<ApiKeyScope>(Type.Enum(ApiKeyScopeEnum)), { minItems: 1 }),
-    livemode: Type.Boolean(),
   },
   { additionalProperties: false },
 );
@@ -61,5 +59,4 @@ export interface RequestAuth {
   apiKeyId: string;
   type: ApiKeyType;
   scopes: readonly ApiKeyScope[];
-  livemode: boolean;
 }

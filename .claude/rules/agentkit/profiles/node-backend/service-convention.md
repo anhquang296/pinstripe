@@ -68,16 +68,21 @@ No `list*`, no `get*OrNull`, no `…By<Field>` — the key is the parameter name
 
 Beyond reads, prefer a verb that names the domain action over a generic one. `ensure<X>` for idempotent provisioning, `handle<Event>` for an inbound event, `dispatch<X>` for handing work to a queue, `build<X>` for a pure sync constructor, `resolve<X>` for deriving one value from another. A service method called `update<X>` that actually archives something has hidden the interesting part of its own name.
 
-## The service is where `null` becomes an error
+## The service decides what a miss means
 
-The repository returns `null`; the service decides whether that is an error and which one. This is the whole reason the repository has no `OrThrow` variant.
+When a miss is a plain not-found, prefer the repository's `get<Entity>` — it already throws `NotFoundError`. When the service has to decide — a different error class, an extra condition, or no error at all — read with `find<Entity>`, which returns `null`, and make the decision here.
 
 ```ts
-// CORRECT
+// CORRECT — a plain not-found, the repository throws it
 async getRoutine(id: string): Promise<Routine> {
+  return this.fastify.routineRepository.getRoutine(id);
+}
+
+// CORRECT — an extra condition decides the outcome, so the service reads with find
+async getPublishedRoutine(id: string): Promise<Routine> {
   const routine = await this.fastify.routineRepository.findRoutine(id);
 
-  if (routine) {
+  if (routine?.isPublished) {
     return routine;
   }
 

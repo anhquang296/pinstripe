@@ -11,7 +11,6 @@ export interface TaxCalculationLine {
 }
 
 export interface TaxCalculationDraft {
-  livemode: boolean;
   currency: Currency;
   country: string | null;
   state: string | null;

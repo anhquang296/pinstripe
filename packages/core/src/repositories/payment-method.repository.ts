@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 export interface PaymentMethodFilters {
-  livemode?: boolean;
   customerId?: string;
   type?: PaymentMethodType;
   isAttached?: boolean;
@@ -37,7 +36,6 @@ export class PaymentMethodRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<PaymentMethod[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(paymentMethods.livemode, filters.livemode),
       filters.customerId ? eq(paymentMethods.customerId, filters.customerId) : undefined,
       filters.type ? eq(paymentMethods.type, filters.type) : undefined,
       filters.isAttached ? isNull(paymentMethods.detachedAt) : undefined,

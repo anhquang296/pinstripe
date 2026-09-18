@@ -27,7 +27,6 @@ export const paymentIntents = pgTable(
   'payment_intents',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     invoiceId: text('invoice_id').references(() => {
       return invoices.id;
     }),
@@ -77,7 +76,6 @@ export const charges = pgTable(
   'charges',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     paymentIntentId: text('payment_intent_id')
       .notNull()
       .references(() => {
@@ -128,7 +126,6 @@ export const setupIntents = pgTable(
   'setup_intents',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {
@@ -188,7 +185,6 @@ export const refunds = pgTable(
   'refunds',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     paymentIntentId: text('payment_intent_id')
       .notNull()
       .references(() => {
@@ -232,7 +228,6 @@ export const refundTransitions = pgTable(
   'refund_transitions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     refundId: text('refund_id')
       .notNull()
       .references(() => {

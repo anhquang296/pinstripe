@@ -18,13 +18,8 @@ import _ from 'lodash';
 export class PaymentMethodService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPaymentMethod(
-    payload: CreatePaymentMethodPayload,
-    livemode: boolean,
-  ): Promise<PaymentMethodResponse> {
-    const customer = payload.customerId
-      ? await this.getCustomer(payload.customerId, livemode)
-      : null;
+  async createPaymentMethod(payload: CreatePaymentMethodPayload): Promise<PaymentMethodResponse> {
+    const customer = payload.customerId ? await this.getCustomer(payload.customerId) : null;
     const tokenized = await this.fastify.psp.tokenize({
       token: payload.token,
       type: payload.type,
@@ -34,7 +29,6 @@ export class PaymentMethodService {
 
     const createdPaymentMethod = await this.fastify.paymentMethodRepository.createPaymentMethod({
       id,
-      livemode,
       customerId: _.get(customer, 'id', null),
       type: payload.type,
       card: tokenized.card,
@@ -55,10 +49,9 @@ export class PaymentMethodService {
   async attachPaymentMethod(
     id: string,
     payload: AttachPaymentMethodPayload,
-    livemode: boolean,
   ): Promise<PaymentMethodResponse> {
-    const paymentMethod = await this.getPaymentMethodEntity(id, livemode);
-    const customer = await this.getCustomer(payload.customerId, livemode);
+    const paymentMethod = await this.getPaymentMethodEntity(id);
+    const customer = await this.getCustomer(payload.customerId);
 
     if (paymentMethod.customerId && paymentMethod.customerId !== customer.id) {
       throw new ConflictError(
@@ -97,8 +90,8 @@ export class PaymentMethodService {
     throw new NotFoundError(`No such payment method: ${id}`);
   }
 
-  async detachPaymentMethod(id: string, livemode: boolean): Promise<PaymentMethodResponse> {
-    const paymentMethod = await this.getPaymentMethodEntity(id, livemode);
+  async detachPaymentMethod(id: string): Promise<PaymentMethodResponse> {
+    const paymentMethod = await this.getPaymentMethodEntity(id);
 
     if (paymentMethod.detachedAt) {
       throw new ConflictError(`Payment method ${id} is already detached`);
@@ -129,9 +122,8 @@ export class PaymentMethodService {
   async updatePaymentMethod(
     id: string,
     payload: UpdatePaymentMethodPayload,
-    livemode: boolean,
   ): Promise<PaymentMethodResponse> {
-    const paymentMethod = await this.getPaymentMethodEntity(id, livemode);
+    const paymentMethod = await this.getPaymentMethodEntity(id);
     const { card } = paymentMethod;
 
     if (payload.card && !card) {
@@ -159,20 +151,18 @@ export class PaymentMethodService {
     throw new NotFoundError(`No such payment method: ${id}`);
   }
 
-  async getPaymentMethod(id: string, livemode: boolean): Promise<PaymentMethodResponse> {
-    return this.getPaymentMethodEntity(id, livemode);
+  async getPaymentMethod(id: string): Promise<PaymentMethodResponse> {
+    return this.getPaymentMethodEntity(id);
   }
 
   async findPaymentMethods(
     query: FindPaymentMethodsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<PaymentMethodResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter, livemode);
-    const afterAt = await this.resolveCursor(query.endingBefore, livemode);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.paymentMethodRepository.findPaymentMethods(
       {
-        livemode,
         customerId: query.customerId,
         type: query.type,
         beforeAt,
@@ -188,8 +178,8 @@ export class PaymentMethodService {
     };
   }
 
-  async getChargeablePaymentMethod(id: string, livemode: boolean): Promise<PaymentMethod> {
-    const paymentMethod = await this.getPaymentMethodEntity(id, livemode);
+  async getChargeablePaymentMethod(id: string): Promise<PaymentMethod> {
+    const paymentMethod = await this.getPaymentMethodEntity(id);
 
     if (paymentMethod.detachedAt) {
       throw new ConflictError(`Payment method ${id} has been detached and cannot be charged`);
@@ -221,32 +211,29 @@ export class PaymentMethodService {
     );
   }
 
-  private async getCustomer(id: string, livemode: boolean): Promise<Customer> {
+  private async getCustomer(id: string): Promise<Customer> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    if (customer && customer.livemode === livemode) {
+    if (customer) {
       return customer;
     }
 
     throw new NotFoundError(`No such customer: ${id}`);
   }
 
-  private async getPaymentMethodEntity(id: string, livemode: boolean): Promise<PaymentMethod> {
+  private async getPaymentMethodEntity(id: string): Promise<PaymentMethod> {
     const paymentMethod = await this.fastify.paymentMethodRepository.findPaymentMethod(id);
 
-    if (paymentMethod && paymentMethod.livemode === livemode) {
+    if (paymentMethod) {
       return paymentMethod;
     }
 
     throw new NotFoundError(`No such payment method: ${id}`);
   }
 
-  private async resolveCursor(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<RowCursor | undefined> {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const paymentMethod = await this.getPaymentMethodEntity(id, livemode);
+      const paymentMethod = await this.getPaymentMethodEntity(id);
 
       return { createdAt: paymentMethod.createdAt, id: paymentMethod.id };
     }

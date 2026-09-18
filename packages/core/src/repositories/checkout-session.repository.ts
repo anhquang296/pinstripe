@@ -12,7 +12,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 export interface CheckoutSessionFilters {
-  livemode?: boolean;
   customerId?: string;
   status?: CheckoutSessionStatus;
   expiresBeforeAt?: string;
@@ -42,7 +41,6 @@ export class CheckoutSessionRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<CheckoutSession[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(checkoutSessions.livemode, filters.livemode),
       filters.customerId ? eq(checkoutSessions.customerId, filters.customerId) : undefined,
       filters.status ? eq(checkoutSessions.status, filters.status) : undefined,
       filters.expiresBeforeAt

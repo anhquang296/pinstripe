@@ -9,17 +9,13 @@ import {
   updateSubscriptionSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createSubscriptionSchema, response: { 201: subscriptionSchema } } },
     async (request, reply) => {
-      const subscription = await fastify.subscriptionService.createSubscription(
-        request.body,
-        readLivemode(request),
-      );
+      const subscription = await fastify.subscriptionService.createSubscription(request.body);
 
       return ApiResponse.created(reply, subscription);
     },
@@ -34,10 +30,7 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const subscriptions = await fastify.subscriptionService.findSubscriptions(
-        request.query,
-        readLivemode(request),
-      );
+      const subscriptions = await fastify.subscriptionService.findSubscriptions(request.query);
 
       return ApiResponse.success(reply, subscriptions);
     },
@@ -49,7 +42,6 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     async (request, reply) => {
       const subscription = await fastify.subscriptionService.getSubscription(
         request.params.subscriptionId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, subscription);

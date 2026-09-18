@@ -6,7 +6,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 export interface ProductFilters {
-  livemode?: boolean;
   ids?: readonly string[];
   active?: boolean;
   beforeAt?: RowCursor;
@@ -36,7 +35,6 @@ export class ProductRepository {
   ): Promise<Product[]> {
     const where = and(
       isNull(products.deletedAt),
-      filters.livemode === undefined ? undefined : eq(products.livemode, filters.livemode),
       filters.ids ? inArray(products.id, [...filters.ids]) : undefined,
       filters.active === undefined ? undefined : eq(products.active, filters.active),
       filters.beforeAt

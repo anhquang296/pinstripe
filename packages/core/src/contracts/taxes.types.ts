@@ -51,7 +51,6 @@ export type AuthorityStatus = `${AuthorityStatusEnum}`;
 
 export const taxRateSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   displayName: Type.String(),
   description: Type.String(),
   percentage: Type.Number(),
@@ -68,7 +67,6 @@ export const taxRateSchema = Type.Object({
 
 export const taxIdSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
   type: Type.Unsafe<TaxIdType>(Type.Enum(TaxIdTypeEnum)),

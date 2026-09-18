@@ -18,7 +18,7 @@ export const hostedInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
         invoiceId,
         request.query.token,
       );
-      const invoice = await fastify.invoiceService.getInvoice(entity.id, entity.livemode);
+      const invoice = await fastify.invoiceService.getInvoice(entity.id);
       const pdfUrl = fastify.hostedUrlFactory.buildInvoicePdfUrl(entity.id);
 
       return reply.type(HTML_CONTENT_TYPE).send(buildInvoicePage(invoice, pdfUrl));

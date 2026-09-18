@@ -9,17 +9,13 @@ import {
   updateInvoiceItemSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createInvoiceItemSchema, response: { 201: invoiceItemSchema } } },
     async (request, reply) => {
-      const invoiceItem = await fastify.invoiceItemService.createInvoiceItem(
-        request.body,
-        readLivemode(request),
-      );
+      const invoiceItem = await fastify.invoiceItemService.createInvoiceItem(request.body);
 
       return ApiResponse.created(reply, invoiceItem);
     },
@@ -34,10 +30,7 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
       },
     },
     async (request, reply) => {
-      const invoiceItems = await fastify.invoiceItemService.findInvoiceItems(
-        request.query,
-        readLivemode(request),
-      );
+      const invoiceItems = await fastify.invoiceItemService.findInvoiceItems(request.query);
 
       return ApiResponse.success(reply, invoiceItems);
     },
@@ -49,7 +42,6 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     async (request, reply) => {
       const invoiceItem = await fastify.invoiceItemService.getInvoiceItem(
         request.params.invoiceItemId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, invoiceItem);
@@ -69,7 +61,6 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
       const invoiceItem = await fastify.invoiceItemService.updateInvoiceItem(
         request.params.invoiceItemId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, invoiceItem);
@@ -82,7 +73,6 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     async (request, reply) => {
       const deletedInvoiceItem = await fastify.invoiceItemService.deleteInvoiceItem(
         request.params.invoiceItemId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, deletedInvoiceItem);

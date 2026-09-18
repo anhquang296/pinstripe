@@ -8,7 +8,6 @@ import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface InvoiceItemFilters {
-  livemode?: boolean;
   customerId?: string;
   currency?: Currency;
   invoiceId?: string;
@@ -41,7 +40,6 @@ export class InvoiceItemRepository {
   ): Promise<InvoiceItem[]> {
     const where = and(
       isNull(invoiceItems.deletedAt),
-      filters.livemode === undefined ? undefined : eq(invoiceItems.livemode, filters.livemode),
       filters.customerId ? eq(invoiceItems.customerId, filters.customerId) : undefined,
       filters.currency ? eq(invoiceItems.currency, filters.currency) : undefined,
       filters.invoiceId ? eq(invoiceItems.invoiceId, filters.invoiceId) : undefined,

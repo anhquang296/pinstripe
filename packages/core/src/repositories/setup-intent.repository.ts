@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 export interface SetupIntentFilters {
-  livemode?: boolean;
   customerId?: string;
   status?: SetupIntentStatus;
   pspReference?: string;
@@ -37,7 +36,6 @@ export class SetupIntentRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<SetupIntent[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(setupIntents.livemode, filters.livemode),
       filters.customerId ? eq(setupIntents.customerId, filters.customerId) : undefined,
       filters.status ? eq(setupIntents.status, filters.status) : undefined,
       filters.pspReference ? eq(setupIntents.pspReference, filters.pspReference) : undefined,

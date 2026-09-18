@@ -16,7 +16,6 @@ export const taxRates = pgTable(
   'tax_rates',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     displayName: text('display_name').notNull(),
     description: text('description').notNull().default(''),
     percentage: doublePrecision('percentage').notNull(),
@@ -37,7 +36,7 @@ export const taxRates = pgTable(
   (table) => {
     return [
       index('tax_rates_created_at_id_idx').on(table.createdAt, table.id),
-      index('tax_rates_country_state_idx').on(table.livemode, table.country, table.state),
+      index('tax_rates_country_state_idx').on(table.country, table.state),
     ];
   },
 );
@@ -46,7 +45,6 @@ export const taxIds = pgTable(
   'tax_ids',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {
@@ -73,7 +71,7 @@ export const taxIds = pgTable(
       index('tax_ids_customer_id_idx').on(table.customerId),
       index('tax_ids_created_at_id_idx').on(table.createdAt, table.id),
       uniqueIndex('tax_ids_customer_value_idx')
-        .on(table.livemode, table.customerId, table.type, table.value)
+        .on(table.customerId, table.type, table.value)
         .where(sql`deleted_at is null`),
     ];
   },

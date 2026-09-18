@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, gt, isNull, lte, or, sql } from 'drizzle-orm';
 
 export interface DiscountFilters {
-  livemode?: boolean;
   customerId?: string;
   subscriptionId?: string;
   invoiceId?: string;
@@ -41,7 +40,6 @@ export class DiscountRepository {
   ): Promise<Discount[]> {
     const where = and(
       isNull(discounts.deletedAt),
-      filters.livemode === undefined ? undefined : eq(discounts.livemode, filters.livemode),
       filters.customerId ? eq(discounts.customerId, filters.customerId) : undefined,
       filters.subscriptionId ? eq(discounts.subscriptionId, filters.subscriptionId) : undefined,
       filters.invoiceId ? eq(discounts.invoiceId, filters.invoiceId) : undefined,

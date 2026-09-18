@@ -21,18 +21,15 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export class PromotionCodeService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPromotionCode(
-    payload: CreatePromotionCodePayload,
-    livemode: boolean,
-  ): Promise<PromotionCodeResponse> {
-    const coupon = await this.fastify.couponService.getCouponEntity(payload.couponId, livemode);
+  async createPromotionCode(payload: CreatePromotionCodePayload): Promise<PromotionCodeResponse> {
+    const coupon = await this.fastify.couponService.getCouponEntity(payload.couponId);
 
     if (!coupon.valid) {
       throw new ConflictError(`Coupon ${coupon.id} is no longer valid`);
     }
 
     if (payload.customerId) {
-      await this.fastify.customerService.getCustomer(payload.customerId, livemode);
+      await this.fastify.customerService.getCustomer(payload.customerId);
     }
 
     const now = this.fastify.clock.now().toISOString();
@@ -42,7 +39,6 @@ export class PromotionCodeService {
     try {
       const promotionCode = await this.fastify.promotionCodeRepository.createPromotionCode({
         id,
-        livemode,
         code,
         couponId: coupon.id,
         customerId: payload.customerId ?? null,
@@ -79,23 +75,23 @@ export class PromotionCodeService {
       .join('');
   }
 
-  async getPromotionCode(id: string, livemode: boolean): Promise<PromotionCodeResponse> {
-    return this.getPromotionCodeEntity(id, livemode);
+  async getPromotionCode(id: string): Promise<PromotionCodeResponse> {
+    return this.getPromotionCodeEntity(id);
   }
 
-  async getPromotionCodeEntity(id: string, livemode: boolean): Promise<PromotionCode> {
+  async getPromotionCodeEntity(id: string): Promise<PromotionCode> {
     const promotionCode = await this.fastify.promotionCodeRepository.findPromotionCode(id);
 
-    if (promotionCode && promotionCode.livemode === livemode) {
+    if (promotionCode) {
       return promotionCode;
     }
 
     throw new NotFoundError(`No such promotion code: ${id}`);
   }
 
-  async resolvePromotionCode(code: string, livemode: boolean): Promise<PromotionCode> {
+  async resolvePromotionCode(code: string): Promise<PromotionCode> {
     const [promotionCode] = await this.fastify.promotionCodeRepository.findPromotionCodes(
-      { livemode, code: _.toUpper(code) },
+      { code: _.toUpper(code) },
       1,
     );
 
@@ -154,7 +150,7 @@ export class PromotionCodeService {
     customerId: string,
   ): Promise<void> {
     const paidInvoices = await this.fastify.invoiceRepository.findInvoices(
-      { livemode: promotionCode.livemode, customerId, status: InvoiceStatusEnum.PAID },
+      { customerId, status: InvoiceStatusEnum.PAID },
       1,
     );
 
@@ -170,9 +166,8 @@ export class PromotionCodeService {
   async updatePromotionCode(
     id: string,
     payload: UpdatePromotionCodePayload,
-    livemode: boolean,
   ): Promise<PromotionCodeResponse> {
-    const existingPromotionCode = await this.getPromotionCodeEntity(id, livemode);
+    const existingPromotionCode = await this.getPromotionCodeEntity(id);
     const promotionCode = await this.fastify.promotionCodeRepository.updatePromotionCode(id, {
       active: payload.active ?? existingPromotionCode.active,
       metadata: payload.metadata ?? existingPromotionCode.metadata,
@@ -188,15 +183,13 @@ export class PromotionCodeService {
 
   async findPromotionCodes(
     query: FindPromotionCodesQuery,
-    livemode: boolean,
   ): Promise<ListResponse<PromotionCodeResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter, livemode);
-    const afterAt = await this.resolveCursor(query.endingBefore, livemode);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
 
     const rows = await this.fastify.promotionCodeRepository.findPromotionCodes(
       {
-        livemode,
         couponId: query.couponId,
         code: query.code ? _.toUpper(query.code) : undefined,
         active: query.active,
@@ -213,12 +206,9 @@ export class PromotionCodeService {
     };
   }
 
-  private async resolveCursor(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<RowCursor | undefined> {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const promotionCode = await this.getPromotionCodeEntity(id, livemode);
+      const promotionCode = await this.getPromotionCodeEntity(id);
 
       return { createdAt: promotionCode.createdAt, id: promotionCode.id };
     }

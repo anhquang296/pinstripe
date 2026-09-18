@@ -9,7 +9,6 @@ import _ from 'lodash';
 
 interface MaterializeEventPayload {
   id: string;
-  livemode: boolean;
   type: DomainEventType;
   data: Record<string, unknown>;
   occurredAt: string;
@@ -21,7 +20,6 @@ export class EventService {
   async recordEvent(payload: MaterializeEventPayload): Promise<void> {
     await this.fastify.eventRepository.createEvent({
       id: payload.id,
-      livemode: payload.livemode,
       type: payload.type,
       apiVersion: PINSTRIPE_API_VERSION,
       data: { object: payload.data },
@@ -30,25 +28,22 @@ export class EventService {
     });
   }
 
-  async getEvent(id: string, livemode: boolean): Promise<EventResponse> {
+  async getEvent(id: string): Promise<EventResponse> {
     const event = await this.fastify.eventRepository.findEvent(id);
 
-    if (event && event.livemode === livemode) {
+    if (event) {
       return event;
     }
 
     throw new NotFoundError(`No such event: ${id}`);
   }
 
-  async findEvents(
-    query: FindEventsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<EventResponse>> {
+  async findEvents(query: FindEventsQuery): Promise<ListResponse<EventResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.eventRepository.findEvents(
-      { livemode, type: query.type, beforeAt, afterAt },
+      { type: query.type, beforeAt, afterAt },
       limit + 1,
     );
     const hasMore = rows.length > limit;

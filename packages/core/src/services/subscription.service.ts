@@ -54,6 +54,7 @@ const ROLLABLE_STATUSES = [
 
 export interface SubscriptionScanFilters {
   testClockId?: string;
+  testClockIdIsNull?: boolean;
   shardCount?: number;
   shardIndex?: number;
 }
@@ -68,11 +69,8 @@ export interface SubscriptionLifecycleResult {
 export class SubscriptionService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createSubscription(
-    payload: CreateSubscriptionPayload,
-    livemode: boolean,
-  ): Promise<SubscriptionResponse> {
-    const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
+  async createSubscription(payload: CreateSubscriptionPayload): Promise<SubscriptionResponse> {
+    const customer = await this.fastify.customerService.getCustomer(payload.customerId);
     const prices = await this.resolvePrices(_.map(payload.items, 'priceId'));
     const now = await this.fastify.clockService.resolveNow(customer.testClockId);
 
@@ -89,7 +87,6 @@ export class SubscriptionService {
     const subscriptionItems = _.map(payload.items, (subscriptionItem) => {
       return {
         id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
-        livemode: customer.livemode,
         subscriptionId,
         priceId: subscriptionItem.priceId,
         quantity: subscriptionItem.quantity ?? 1,
@@ -103,7 +100,6 @@ export class SubscriptionService {
       (subscriptionItem): NewSubscriptionItemChange => {
         return {
           id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM_CHANGE),
-          livemode: customer.livemode,
           subscriptionId,
           subscriptionItemId: subscriptionItem.id,
           priceId: subscriptionItem.priceId,
@@ -125,7 +121,6 @@ export class SubscriptionService {
       const subscription = await this.fastify.subscriptionRepository.createSubscription(
         {
           id: subscriptionId,
-          livemode: customer.livemode,
           customerId: customer.id,
           status: trialEnd ? SubscriptionStatusEnum.TRIALING : SubscriptionStatusEnum.ACTIVE,
           currency: customer.currency,
@@ -179,13 +174,8 @@ export class SubscriptionService {
     return SubscriptionService.buildSubscription(createdSubscription, subscriptionItems);
   }
 
-  async getSubscription(id: string, livemode: boolean): Promise<SubscriptionResponse> {
+  async getSubscription(id: string): Promise<SubscriptionResponse> {
     const subscription = await this.getSubscriptionRow(id);
-
-    if (subscription.livemode !== livemode) {
-      throw new NotFoundError(`No such subscription: ${id}`);
-    }
-
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [id],
       deletedAtIsNull: true,
@@ -196,12 +186,10 @@ export class SubscriptionService {
 
   async findSubscriptions(
     query: FindSubscriptionsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<SubscriptionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.subscriptionRepository.findSubscriptions(
       {
-        livemode,
         customerId: query.customerId,
         status: query.status,
         beforeAt: await this.resolveCursor(query.startingAfter),
@@ -277,7 +265,7 @@ export class SubscriptionService {
       throw new NotFoundError(`No such subscription: ${id}`);
     });
 
-    return this.getSubscription(updatedSubscription.id, updatedSubscription.livemode);
+    return this.getSubscription(updatedSubscription.id);
   }
 
   async cancelSubscription(
@@ -306,7 +294,7 @@ export class SubscriptionService {
         DomainEventTypeEnum.SUBSCRIPTION_UPDATED,
       );
 
-      return this.getSubscription(scheduled.id, scheduled.livemode);
+      return this.getSubscription(scheduled.id);
     }
 
     const canceledAt = now.toISOString();
@@ -318,7 +306,7 @@ export class SubscriptionService {
         DomainEventTypeEnum.SUBSCRIPTION_UPDATED,
       );
 
-      return this.getSubscription(marked.id, marked.livemode);
+      return this.getSubscription(marked.id);
     }
 
     SubscriptionService.assertTransition(subscription.status, SubscriptionStatusEnum.CANCELED);
@@ -337,7 +325,7 @@ export class SubscriptionService {
       DomainEventTypeEnum.SUBSCRIPTION_CANCELED,
     );
 
-    return this.getSubscription(canceled.id, canceled.livemode);
+    return this.getSubscription(canceled.id);
   }
 
   async runSubscriptionLifecycle(
@@ -356,6 +344,7 @@ export class SubscriptionService {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         statuses: ROLLABLE_STATUSES,
@@ -375,6 +364,7 @@ export class SubscriptionService {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         statuses: ROLLABLE_STATUSES,
@@ -411,6 +401,7 @@ export class SubscriptionService {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         status: SubscriptionStatusEnum.PAUSED,
@@ -450,6 +441,7 @@ export class SubscriptionService {
     const stale = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         status: SubscriptionStatusEnum.INCOMPLETE,
@@ -899,7 +891,6 @@ export class SubscriptionService {
     return {
       aggregateType: AggregateTypeEnum.SUBSCRIPTION,
       aggregateId: subscription.id,
-      livemode: subscription.livemode,
       eventType,
       payload: {
         id: subscription.id,

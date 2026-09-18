@@ -6,7 +6,6 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { TEST_LIVEMODE } from './factories';
 
 let fastify: FastifyInstance;
 
@@ -20,30 +19,25 @@ afterAll(async () => {
 
 async function makeCustomer(): Promise<{ id: string; email: string }> {
   const email = `${generateGid(ObjectPrefixEnum.CUSTOMER)}@portal.test`;
-  const customer = await fastify.customerService.createCustomer(
-    { email, currency: CurrencyEnum.VND, name: 'Portal Tester' },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email,
+    currency: CurrencyEnum.VND,
+    name: 'Portal Tester',
+  });
 
   return { id: customer.id, email };
 }
 
 async function makeActiveSession(): Promise<{ customerId: string; sessionKey: string }> {
   const customer = await makeCustomer();
-  const link = await fastify.portalSessionService.createPortalLink(
-    { email: customer.email },
-    TEST_LIVEMODE,
-  );
+  const link = await fastify.portalSessionService.createPortalLink({ email: customer.email });
   const { linkKey } = link;
 
   if (!linkKey) {
     throw new Error('test fixture did not mint a portal link');
   }
 
-  const portalSession = await fastify.portalSessionService.redeemPortalLink(
-    { linkKey },
-    TEST_LIVEMODE,
-  );
+  const portalSession = await fastify.portalSessionService.redeemPortalLink({ linkKey });
   const { sessionKey } = portalSession;
 
   if (!sessionKey) {
@@ -57,10 +51,7 @@ describe('PortalSessionService.createPortalLink', () => {
   it('mints a pending session for a customer that exists', async () => {
     const customer = await makeCustomer();
 
-    const link = await fastify.portalSessionService.createPortalLink(
-      { email: customer.email },
-      TEST_LIVEMODE,
-    );
+    const link = await fastify.portalSessionService.createPortalLink({ email: customer.email });
 
     const [portalSession] = await fastify.portalSessionRepository.findPortalSessions(
       { customerId: customer.id },
@@ -73,10 +64,9 @@ describe('PortalSessionService.createPortalLink', () => {
   });
 
   it('mints nothing and says nothing when no customer owns the address', async () => {
-    const link = await fastify.portalSessionService.createPortalLink(
-      { email: 'nobody@portal.test' },
-      TEST_LIVEMODE,
-    );
+    const link = await fastify.portalSessionService.createPortalLink({
+      email: 'nobody@portal.test',
+    });
 
     expect(link.linkKey).toBeNull();
     expect(link.linkExpiresAt).toBeInstanceOf(Date);
@@ -86,50 +76,35 @@ describe('PortalSessionService.createPortalLink', () => {
 describe('PortalSessionService.redeemPortalLink', () => {
   it('exchanges a link for a session key exactly once', async () => {
     const customer = await makeCustomer();
-    const link = await fastify.portalSessionService.createPortalLink(
-      { email: customer.email },
-      TEST_LIVEMODE,
-    );
+    const link = await fastify.portalSessionService.createPortalLink({ email: customer.email });
     const linkKey = String(link.linkKey);
 
-    const portalSession = await fastify.portalSessionService.redeemPortalLink(
-      { linkKey },
-      TEST_LIVEMODE,
-    );
+    const portalSession = await fastify.portalSessionService.redeemPortalLink({ linkKey });
 
     expect(portalSession.status).toBe(PortalSessionStatusEnum.ACTIVE);
     expect(portalSession.sessionKey).toEqual(expect.any(String));
 
-    await expect(
-      fastify.portalSessionService.redeemPortalLink({ linkKey }, TEST_LIVEMODE),
-    ).rejects.toThrow(UnauthorizedError);
+    await expect(fastify.portalSessionService.redeemPortalLink({ linkKey })).rejects.toThrow(
+      UnauthorizedError,
+    );
   });
 
   it('refuses a link key that matches nothing', async () => {
     await expect(
-      fastify.portalSessionService.redeemPortalLink(
-        { linkKey: 'not-a-real-link-key-at-all' },
-        TEST_LIVEMODE,
-      ),
+      fastify.portalSessionService.redeemPortalLink({ linkKey: 'not-a-real-link-key-at-all' }),
     ).rejects.toThrow(UnauthorizedError);
   });
 
   it('refuses a link whose deadline has passed', async () => {
     const customer = await makeCustomer();
-    const link = await fastify.portalSessionService.createPortalLink(
-      { email: customer.email },
-      TEST_LIVEMODE,
-    );
+    const link = await fastify.portalSessionService.createPortalLink({ email: customer.email });
 
     await fastify.database.master.execute(
       `update portal_sessions set link_expires_at = now() - interval '1 minute' where customer_id = '${customer.id}'`,
     );
 
     await expect(
-      fastify.portalSessionService.redeemPortalLink(
-        { linkKey: String(link.linkKey) },
-        TEST_LIVEMODE,
-      ),
+      fastify.portalSessionService.redeemPortalLink({ linkKey: String(link.linkKey) }),
     ).rejects.toThrow(UnauthorizedError);
   });
 });
@@ -141,7 +116,6 @@ describe('PortalSessionService.authenticatePortalSession', () => {
     const auth = await fastify.portalSessionService.authenticatePortalSession(sessionKey);
 
     expect(auth.customerId).toBe(customerId);
-    expect(auth.livemode).toBe(TEST_LIVEMODE);
   });
 
   it('refuses a session key that was revoked', async () => {
@@ -170,14 +144,13 @@ describe('PortalSessionService.authenticatePortalSession', () => {
 
 describe('BillingPortalService', () => {
   it('creates a default configuration on demand and keeps exactly one default', async () => {
-    const first = await fastify.billingPortalService.getActiveConfiguration(TEST_LIVEMODE);
-    const second = await fastify.billingPortalService.createConfiguration(
-      { businessName: 'Cửa hàng mới', isDefault: true },
-      TEST_LIVEMODE,
-    );
+    const first = await fastify.billingPortalService.getActiveConfiguration();
+    const second = await fastify.billingPortalService.createConfiguration({
+      businessName: 'Cửa hàng mới',
+      isDefault: true,
+    });
     const defaults =
       await fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations({
-        livemode: TEST_LIVEMODE,
         isDefault: true,
       });
 
@@ -188,27 +161,20 @@ describe('BillingPortalService', () => {
   });
 
   it('moves the default flag when an update promotes another configuration', async () => {
-    const previousDefault = await fastify.billingPortalService.createConfiguration(
-      { businessName: 'Mặc định cũ', isDefault: true },
-      TEST_LIVEMODE,
-    );
-    const candidate = await fastify.billingPortalService.createConfiguration(
-      { businessName: 'Ứng viên' },
-      TEST_LIVEMODE,
-    );
+    const previousDefault = await fastify.billingPortalService.createConfiguration({
+      businessName: 'Mặc định cũ',
+      isDefault: true,
+    });
+    const candidate = await fastify.billingPortalService.createConfiguration({
+      businessName: 'Ứng viên',
+    });
 
-    const promoted = await fastify.billingPortalService.updateConfiguration(
-      candidate.id,
-      { isDefault: true },
-      TEST_LIVEMODE,
-    );
-    const demoted = await fastify.billingPortalService.getConfiguration(
-      previousDefault.id,
-      TEST_LIVEMODE,
-    );
+    const promoted = await fastify.billingPortalService.updateConfiguration(candidate.id, {
+      isDefault: true,
+    });
+    const demoted = await fastify.billingPortalService.getConfiguration(previousDefault.id);
     const defaults =
       await fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations({
-        livemode: TEST_LIVEMODE,
         isDefault: true,
       });
 
@@ -221,10 +187,7 @@ describe('BillingPortalService', () => {
   it('hands a merchant-created session a portal session key the customer can use', async () => {
     const customer = await makeCustomer();
 
-    const session = await fastify.billingPortalService.createSession(
-      { customerId: customer.id },
-      TEST_LIVEMODE,
-    );
+    const session = await fastify.billingPortalService.createSession({ customerId: customer.id });
     const portalSession = await fastify.portalSessionService.getPortalSession(
       session.portalSessionId,
     );

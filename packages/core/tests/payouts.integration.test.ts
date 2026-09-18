@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, settleInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice, settleInvoice } from './factories';
 
 const BASE_AMOUNT = 500_000;
 const EVENT_SCAN_LIMIT = 200;
@@ -33,16 +33,13 @@ async function makeAvailableBalance(): Promise<void> {
 }
 
 async function readAccountBalance(code: LedgerAccountCodeEnum): Promise<number> {
-  const account = await fastify.ledgerService.ensureAccount(code, CurrencyEnum.VND, TEST_LIVEMODE);
+  const account = await fastify.ledgerService.ensureAccount(code, CurrencyEnum.VND);
 
   return account.balance;
 }
 
 async function makeDuePayout() {
-  const payout = await fastify.payoutService.createPayout(
-    { currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
+  const payout = await fastify.payoutService.createPayout({ currency: CurrencyEnum.VND });
 
   await fastify.database.master.execute(
     `update payouts set arrival_at = now() - interval '1 hour' where id = '${payout.id}'`,
@@ -54,10 +51,7 @@ async function makeDuePayout() {
 async function detectEvent(eventType: DomainEventTypeEnum, aggregateId: string): Promise<boolean> {
   await fastify.outboxService.relayOutboxEvents(EVENT_SCAN_LIMIT);
 
-  const published = await fastify.eventService.findEvents(
-    { type: eventType, limit: 100 },
-    TEST_LIVEMODE,
-  );
+  const published = await fastify.eventService.findEvents({ type: eventType, limit: 100 });
 
   return _.some(published.data, (event) => {
     return _.get(event.data.object, 'id') === aggregateId;
@@ -69,10 +63,7 @@ describe('PayoutService.createPayout', () => {
     await makeAvailableBalance();
 
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
-    const payout = await fastify.payoutService.createPayout(
-      { currency: CurrencyEnum.VND },
-      TEST_LIVEMODE,
-    );
+    const payout = await fastify.payoutService.createPayout({ currency: CurrencyEnum.VND });
     const swept = await fastify.balanceTransactionRepository.findBalanceTransactions({
       payoutId: payout.id,
     });
@@ -86,7 +77,7 @@ describe('PayoutService.createPayout', () => {
 
   it('refuses a payout when nothing is available yet', async () => {
     await expect(
-      fastify.payoutService.createPayout({ currency: CurrencyEnum.VND }, TEST_LIVEMODE),
+      fastify.payoutService.createPayout({ currency: CurrencyEnum.VND }),
     ).rejects.toThrow(ConflictError);
   });
 });
@@ -102,7 +93,7 @@ describe('PayoutService.settleDuePayouts', () => {
     await fastify.payoutService.settleDuePayouts();
     await fastify.paymentService.drainProviderEvents();
 
-    const paid = await fastify.payoutService.getPayout(payout.id, TEST_LIVEMODE);
+    const paid = await fastify.payoutService.getPayout(payout.id);
 
     expect(paid.status).toBe(PayoutStatusEnum.PAID);
     expect(paid.paidAt).not.toBeNull();
@@ -117,13 +108,13 @@ describe('PayoutService.settleDuePayouts', () => {
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
     const clearingBefore = await readAccountBalance(LedgerAccountCodeEnum.PAYOUTS_CLEARING);
     const payout = await makeDuePayout();
-    const { pspReference } = await fastify.payoutService.getPayout(payout.id, TEST_LIVEMODE);
+    const { pspReference } = await fastify.payoutService.getPayout(payout.id);
 
     fastify.psp.failPayout(pspReference ?? '');
 
     await fastify.paymentService.drainProviderEvents();
 
-    const failed = await fastify.payoutService.getPayout(payout.id, TEST_LIVEMODE);
+    const failed = await fastify.payoutService.getPayout(payout.id);
     const released = await fastify.balanceTransactionRepository.findBalanceTransactions({
       payoutId: payout.id,
     });

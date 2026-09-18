@@ -163,7 +163,7 @@ mới với key mới.
    `invoiceService.applyInvoicePayment(..., tx)` trong **cùng** transaction.
 
 `settlementReference` là `payment_intent:<id>`, và `invoice_payments` có unique index trên
-`(livemode, settlement_reference)` — một intent chỉ áp vào hoá đơn được một lần, kể cả khi PSP đổi
+`settlement_reference` — một intent chỉ áp vào hoá đơn được một lần, kể cả khi PSP đổi
 `eventId`. Cùng chuỗi ấy là `externalId` của bút toán ledger ([flow 06](./06-invoicing.md)) và là
 khoá đối soát của [flow 11](./11-reporting-reconciliation.md).
 

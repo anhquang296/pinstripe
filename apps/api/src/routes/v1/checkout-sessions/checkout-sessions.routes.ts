@@ -7,17 +7,13 @@ import {
   ListResponseSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const checkoutSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createCheckoutSessionSchema, response: { 201: checkoutSessionSchema } } },
     async (request, reply) => {
-      const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-        request.body,
-        readLivemode(request),
-      );
+      const checkoutSession = await fastify.checkoutService.createCheckoutSession(request.body);
 
       return ApiResponse.created(reply, checkoutSession);
     },
@@ -32,10 +28,7 @@ export const checkoutSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify)
       },
     },
     async (request, reply) => {
-      const checkoutSessions = await fastify.checkoutService.findCheckoutSessions(
-        request.query,
-        readLivemode(request),
-      );
+      const checkoutSessions = await fastify.checkoutService.findCheckoutSessions(request.query);
 
       return ApiResponse.success(reply, checkoutSessions);
     },
@@ -47,7 +40,6 @@ export const checkoutSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify)
     async (request, reply) => {
       const checkoutSession = await fastify.checkoutService.getCheckoutSession(
         request.params.checkoutSessionId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, checkoutSession);

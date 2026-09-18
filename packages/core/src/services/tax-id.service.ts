@@ -34,12 +34,12 @@ const TAX_ID_PATTERNS: Record<TaxIdType, RegExp> = {
 export class TaxIdService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createTaxId(payload: CreateTaxIdPayload, livemode: boolean): Promise<TaxIdResponse> {
-    const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
+  async createTaxId(payload: CreateTaxIdPayload): Promise<TaxIdResponse> {
+    const customer = await this.fastify.customerService.getCustomer(payload.customerId);
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.TAX_ID);
 
-    const createdTaxId = await this.writeTaxId(id, payload, customer.id, now, livemode);
+    const createdTaxId = await this.writeTaxId(id, payload, customer.id, now);
 
     await this.dispatchTaxIdVerification(createdTaxId.id);
 
@@ -51,14 +51,12 @@ export class TaxIdService {
     payload: CreateTaxIdPayload,
     customerId: string,
     now: string,
-    livemode: boolean,
   ): Promise<TaxId> {
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const taxId = await this.fastify.taxIdRepository.createTaxId(
           {
             id,
-            livemode,
             customerId,
             type: payload.type,
             value: payload.value,
@@ -104,11 +102,8 @@ export class TaxIdService {
   }
 
   async verifyTaxId(taxIdId: string): Promise<TaxIdResponse> {
-    const taxId = await this.getTaxIdRow(taxIdId);
-    const customer = await this.fastify.customerService.getCustomer(
-      taxId.customerId,
-      taxId.livemode,
-    );
+    const taxId = await this.getTaxIdEntity(taxIdId);
+    const customer = await this.fastify.customerService.getCustomer(taxId.customerId);
     const now = this.fastify.clock.now().toISOString();
     const status = TaxIdService.resolveVerificationStatus(taxId);
     const isVerified = status === TaxIdVerificationStatusEnum.VERIFIED;
@@ -163,23 +158,13 @@ export class TaxIdService {
     return parts.join(', ');
   }
 
-  async getTaxId(id: string, livemode: boolean): Promise<TaxIdResponse> {
-    const taxId = await this.getTaxIdEntity(id, livemode);
+  async getTaxId(id: string): Promise<TaxIdResponse> {
+    const taxId = await this.getTaxIdEntity(id);
 
     return TaxIdService.buildTaxId(taxId);
   }
 
-  private async getTaxIdEntity(id: string, livemode: boolean): Promise<TaxId> {
-    const taxId = await this.fastify.taxIdRepository.findTaxId(id);
-
-    if (taxId && taxId.livemode === livemode) {
-      return taxId;
-    }
-
-    throw new NotFoundError(`No such tax id: ${id}`);
-  }
-
-  private async getTaxIdRow(id: string): Promise<TaxId> {
+  private async getTaxIdEntity(id: string): Promise<TaxId> {
     const taxId = await this.fastify.taxIdRepository.findTaxId(id);
 
     if (taxId) {
@@ -189,8 +174,8 @@ export class TaxIdService {
     throw new NotFoundError(`No such tax id: ${id}`);
   }
 
-  async deleteTaxId(id: string, livemode: boolean): Promise<DeletedTaxIdResponse> {
-    const taxId = await this.getTaxIdEntity(id, livemode);
+  async deleteTaxId(id: string): Promise<DeletedTaxIdResponse> {
+    const taxId = await this.getTaxIdEntity(id);
     const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
@@ -201,16 +186,13 @@ export class TaxIdService {
     return { id, deleted: true };
   }
 
-  async findTaxIds(
-    query: FindTaxIdsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<TaxIdResponse>> {
+  async findTaxIds(query: FindTaxIdsQuery): Promise<ListResponse<TaxIdResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter, livemode);
-    const afterAt = await this.resolveCursor(query.endingBefore, livemode);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
 
     const rows = await this.fastify.taxIdRepository.findTaxIds(
-      { livemode, customerId: query.customerId, beforeAt, afterAt },
+      { customerId: query.customerId, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -221,12 +203,9 @@ export class TaxIdService {
     };
   }
 
-  private async resolveCursor(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<RowCursor | undefined> {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const taxId = await this.getTaxIdEntity(id, livemode);
+      const taxId = await this.getTaxIdEntity(id);
 
       return { createdAt: taxId.createdAt, id: taxId.id };
     }
@@ -244,7 +223,6 @@ export class TaxIdService {
         {
           aggregateType: AggregateTypeEnum.TAX_ID,
           aggregateId: taxId.id,
-          livemode: taxId.livemode,
           eventType,
           payload: {
             id: taxId.id,
@@ -261,7 +239,6 @@ export class TaxIdService {
   static buildTaxId(entity: TaxId): TaxIdResponse {
     return {
       id: entity.id,
-      livemode: entity.livemode,
       customerId: entity.customerId,
       type: entity.type,
       value: entity.value,

@@ -18,7 +18,7 @@ import _ from 'lodash';
 export class CouponService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createCoupon(payload: CreateCouponPayload, livemode: boolean): Promise<CouponResponse> {
+  async createCoupon(payload: CreateCouponPayload): Promise<CouponResponse> {
     CouponService.assertDiscountKind(payload);
     CouponService.assertDuration(payload);
 
@@ -27,7 +27,6 @@ export class CouponService {
 
     const coupon = await this.fastify.couponRepository.createCoupon({
       id,
-      livemode,
       name: payload.name ?? '',
       percentOff: payload.percentOff ?? null,
       amountOff: payload.amountOff ?? null,
@@ -87,26 +86,22 @@ export class CouponService {
     });
   }
 
-  async getCoupon(id: string, livemode: boolean): Promise<CouponResponse> {
-    return this.getCouponEntity(id, livemode);
+  async getCoupon(id: string): Promise<CouponResponse> {
+    return this.getCouponEntity(id);
   }
 
-  async getCouponEntity(id: string, livemode: boolean): Promise<Coupon> {
+  async getCouponEntity(id: string): Promise<Coupon> {
     const coupon = await this.fastify.couponRepository.findCoupon(id);
 
-    if (coupon && coupon.livemode === livemode) {
+    if (coupon) {
       return coupon;
     }
 
     throw new NotFoundError(`No such coupon: ${id}`);
   }
 
-  async updateCoupon(
-    id: string,
-    payload: UpdateCouponPayload,
-    livemode: boolean,
-  ): Promise<CouponResponse> {
-    const existingCoupon = await this.getCouponEntity(id, livemode);
+  async updateCoupon(id: string, payload: UpdateCouponPayload): Promise<CouponResponse> {
+    const existingCoupon = await this.getCouponEntity(id);
     const coupon = await this.fastify.couponRepository.updateCoupon(id, {
       name: payload.name ?? existingCoupon.name,
       metadata: payload.metadata ?? existingCoupon.metadata,
@@ -120,12 +115,12 @@ export class CouponService {
     throw new NotFoundError(`No such coupon: ${id}`);
   }
 
-  async deleteCoupon(id: string, livemode: boolean): Promise<DeletedCouponResponse> {
-    await this.getCouponEntity(id, livemode);
+  async deleteCoupon(id: string): Promise<DeletedCouponResponse> {
+    await this.getCouponEntity(id);
 
     const now = this.fastify.clock.now().toISOString();
     const activeDiscounts = await this.fastify.discountRepository.findDiscounts(
-      { livemode, couponId: id, activeAt: now },
+      { couponId: id, activeAt: now },
       1,
     );
 
@@ -138,18 +133,12 @@ export class CouponService {
     throw new ConflictError(`Coupon ${id} is still applied to a discount and cannot be deleted`);
   }
 
-  async findCoupons(
-    query: FindCouponsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<CouponResponse>> {
+  async findCoupons(query: FindCouponsQuery): Promise<ListResponse<CouponResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter, livemode);
-    const afterAt = await this.resolveCursor(query.endingBefore, livemode);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
 
-    const rows = await this.fastify.couponRepository.findCoupons(
-      { livemode, beforeAt, afterAt },
-      limit + 1,
-    );
+    const rows = await this.fastify.couponRepository.findCoupons({ beforeAt, afterAt }, limit + 1);
 
     return {
       url: '/v1/coupons',
@@ -158,12 +147,9 @@ export class CouponService {
     };
   }
 
-  private async resolveCursor(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<RowCursor | undefined> {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const coupon = await this.getCouponEntity(id, livemode);
+      const coupon = await this.getCouponEntity(id);
 
       return { createdAt: coupon.createdAt, id: coupon.id };
     }

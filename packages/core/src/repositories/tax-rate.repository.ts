@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
 export interface TaxRateFilters {
-  livemode?: boolean;
   ids?: readonly string[];
   active?: boolean;
   inclusive?: boolean;
@@ -41,7 +40,6 @@ export class TaxRateRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<TaxRate[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(taxRates.livemode, filters.livemode),
       filters.ids ? inArray(taxRates.id, [...filters.ids]) : undefined,
       filters.active === undefined ? undefined : eq(taxRates.active, filters.active),
       filters.inclusive === undefined ? undefined : eq(taxRates.inclusive, filters.inclusive),
@@ -66,13 +64,11 @@ export class TaxRateRepository {
   }
 
   async findJurisdictionTaxRates(
-    livemode: boolean,
     country: string,
     state: string | null,
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<TaxRate[]> {
     const where = and(
-      eq(taxRates.livemode, livemode),
       eq(taxRates.active, true),
       eq(taxRates.country, country),
       state ? or(isNull(taxRates.state), eq(taxRates.state, state)) : isNull(taxRates.state),

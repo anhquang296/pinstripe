@@ -7,7 +7,6 @@ import {
   submitDisputeEvidenceSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -19,10 +18,7 @@ export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const disputes = await fastify.disputeService.findDisputes(
-        request.query,
-        readLivemode(request),
-      );
+      const disputes = await fastify.disputeService.findDisputes(request.query);
 
       return ApiResponse.success(reply, disputes);
     },
@@ -32,10 +28,7 @@ export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:disputeId',
     { schema: { params: disputeParamsSchema, response: { 200: disputeSchema } } },
     async (request, reply) => {
-      const dispute = await fastify.disputeService.getDispute(
-        request.params.disputeId,
-        readLivemode(request),
-      );
+      const dispute = await fastify.disputeService.getDispute(request.params.disputeId);
 
       return ApiResponse.success(reply, dispute);
     },
@@ -54,7 +47,6 @@ export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const dispute = await fastify.disputeService.submitDisputeEvidence(
         request.params.disputeId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, dispute);

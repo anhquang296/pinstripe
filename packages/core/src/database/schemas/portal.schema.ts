@@ -2,13 +2,12 @@ import type { PortalSessionStatus } from '@contracts/portal.types';
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { sql } from 'drizzle-orm';
-import { boolean, index, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { index, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const portalSessions = pgTable(
   'portal_sessions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {

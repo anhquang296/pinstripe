@@ -23,7 +23,6 @@ export const hostedPaymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastif
       const checkoutSession = await fastify.checkoutService.createPaymentLinkCheckoutSession(
         paymentLink.id,
         customerId,
-        paymentLink.livemode,
       );
       const { url } = checkoutSession;
 

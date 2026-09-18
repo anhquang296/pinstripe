@@ -13,14 +13,12 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface WebhookEndpointFilters {
-  livemode?: boolean;
   status?: WebhookEndpointStatus;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
 
 export interface WebhookDeliveryFilters {
-  livemode?: boolean;
   endpointId?: string;
   status?: WebhookDeliveryStatus;
   beforeAt?: RowCursor;
@@ -49,7 +47,6 @@ export class WebhookRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<WebhookEndpoint[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(webhookEndpoints.livemode, filters.livemode),
       filters.status ? eq(webhookEndpoints.status, filters.status) : undefined,
       filters.beforeAt
         ? sql`(${webhookEndpoints.createdAt}, ${webhookEndpoints.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
@@ -101,7 +98,6 @@ export class WebhookRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<WebhookDelivery[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(webhookDeliveries.livemode, filters.livemode),
       filters.endpointId ? eq(webhookDeliveries.endpointId, filters.endpointId) : undefined,
       filters.status ? eq(webhookDeliveries.status, filters.status) : undefined,
       filters.beforeAt

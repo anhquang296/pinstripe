@@ -21,7 +21,6 @@ export type DiscountLevel = `${DiscountLevelEnum}`;
 
 export const couponSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   name: Type.String(),
   percentOff: Type.Union([Type.Number(), Type.Null()]),
   amountOff: Type.Union([Type.Integer(), Type.Null()]),
@@ -45,7 +44,6 @@ export const deletedCouponSchema = Type.Object({
 
 export const promotionCodeSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   code: Type.String(),
   couponId: Type.String(),
   coupon: Type.Optional(Type.Unknown()),
@@ -63,7 +61,6 @@ export const promotionCodeSchema = Type.Object({
 
 export const discountSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   couponId: Type.String(),
   coupon: Type.Optional(Type.Unknown()),
   promotionCodeId: Type.Union([Type.String(), Type.Null()]),

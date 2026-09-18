@@ -41,9 +41,9 @@ The table is a sample, not the list. When you are about to write a loop or a cha
 
 ## Why each one, not just "because lodash"
 
-**`_.get` over `?.` with `??`** — the path is stated once, the default sits at the read, and there is nothing to repeat at the next call site. This is the mandatory form of [nested-access-convention.md](../../core/nested-access-convention.md), and its trigger is the optional read, not the depth: `row?.total ?? 0` is `_.get(row, 'total', 0)` for the same reason `a?.b?.c ?? []` is `_.get(a, 'b.c', [])`. One segment is not an exemption, and neither is a read short enough to look harmless — in a package that ships lodash, `_.get` is the form for **every** optional read with a fallback.
+**`_.get` over `?.` with `??`** — the path is stated once, the default sits at the read, and there is nothing to repeat at the next call site. This is the mandatory form of [nested-access-convention.md](../../core/nested-access-convention.md), and its trigger is the optional read, not the depth: `row?.total ?? 0` is `_.get(row, 'total', 0)` for the same reason `a?.b?.c ?? []` is `_.get(a, 'b.c', [])`. One segment is not an exemption, and neither is a read short enough to look harmless — in a package that ships lodash, `_.get` is the form for **every** read whose path runs through a container that may be absent.
 
-The one `??` that stays is `?? null` at a boundary, which restates `undefined` rather than supplying a value ([nested-access-convention.md § Depth is not the test](../../core/nested-access-convention.md#depth-is-not-the-test)).
+A container that is certainly present — a `payload`, a `config`, a row already narrowed — needs no accessor: its fields are destructured with defaults, `const { isDefault = false } = payload`, as [nested-access-convention.md § A fallback is a destructure default](../../core/nested-access-convention.md#a-fallback-is-a-destructure-default) states. The one `??` that stays is `?? null` at a boundary, which restates `undefined` rather than supplying a value.
 
 **`_.map` / `_.filter` with the iteratee shorthand** — under [brace-style-convention.md § Arrow functions](../../core/brace-style-convention.md#arrow-functions) a native callback is a braced block with an explicit `return`, so `list.map((x) => { return x.id; })` is three lines to read a field. `_.map(list, 'id')` is the same thing in one, and it does not throw when `list` is `null`.
 
@@ -128,6 +128,7 @@ const results = _.map(products, async (product) => {
 
 - Hand-roll an operation lodash already names.
 - Write `?.` with `??` at any depth — that is `_.get`, one segment included.
+- Use `_.get` on a container that is certainly present — destructure its fields with defaults.
 - Write a negated predicate in `_.filter` — use `_.reject`.
 - Chain a single operation, or forget `.value()` on a chain.
 - Pass an `async` iteratee to a lodash collection function.

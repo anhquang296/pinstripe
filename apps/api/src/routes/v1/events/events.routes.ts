@@ -6,7 +6,6 @@ import {
   ListResponseSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const eventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -15,7 +14,7 @@ export const eventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { querystring: findEventsSchema, response: { 200: ListResponseSchema(eventSchema) } },
     },
     async (request, reply) => {
-      const events = await fastify.eventService.findEvents(request.query, readLivemode(request));
+      const events = await fastify.eventService.findEvents(request.query);
 
       return ApiResponse.success(reply, events);
     },
@@ -25,10 +24,7 @@ export const eventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:eventId',
     { schema: { params: eventParamsSchema, response: { 200: eventSchema } } },
     async (request, reply) => {
-      const event = await fastify.eventService.getEvent(
-        request.params.eventId,
-        readLivemode(request),
-      );
+      const event = await fastify.eventService.getEvent(request.params.eventId);
 
       return ApiResponse.success(reply, event);
     },

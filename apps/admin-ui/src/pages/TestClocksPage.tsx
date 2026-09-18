@@ -12,7 +12,7 @@ import {
   useCreateTestClockMutation,
   useTestClocksQuery,
 } from '@pinstripe/sdk/react';
-import { map } from 'lodash-es';
+import { get, map } from 'lodash-es';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -59,6 +59,19 @@ export default function TestClocksPage() {
     },
     [advanceTargets, advanceTestClock],
   );
+
+  const isDisabled = get(error, 'statusCode') === 404;
+
+  if (isDisabled) {
+    return (
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Test clocks</h1>
+        <p className="text-sm text-slate-500">
+          Test clock đang tắt ở môi trường này. Bật bằng TEST_CLOCKS_ENABLED=true trên UAT/staging.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

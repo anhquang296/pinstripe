@@ -5,7 +5,6 @@ import { billingPortalSessions } from '@database/schemas';
 import { and, desc, eq } from 'drizzle-orm';
 
 export interface BillingPortalSessionFilters {
-  livemode?: boolean;
   customerId?: string;
 }
 
@@ -31,9 +30,6 @@ export class BillingPortalSessionRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<BillingPortalSession[]> {
     const where = and(
-      filters.livemode === undefined
-        ? undefined
-        : eq(billingPortalSessions.livemode, filters.livemode),
       filters.customerId ? eq(billingPortalSessions.customerId, filters.customerId) : undefined,
     );
 

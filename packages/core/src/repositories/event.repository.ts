@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 export interface EventFilters {
-  livemode?: boolean;
   type?: DomainEventType;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -28,7 +27,6 @@ export class EventRepository {
 
   async findEvents(filters: EventFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Event[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(events.livemode, filters.livemode),
       filters.type ? eq(events.type, filters.type) : undefined,
       filters.beforeAt
         ? sql`(${events.createdAt}, ${events.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`

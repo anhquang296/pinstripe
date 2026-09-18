@@ -9,7 +9,6 @@ export const billingPortalConfigurations = pgTable(
   'billing_portal_configurations',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     isActive: boolean('is_active').notNull().default(true),
     isDefault: boolean('is_default').notNull().default(false),
     businessName: text('business_name').notNull(),
@@ -26,7 +25,7 @@ export const billingPortalConfigurations = pgTable(
   (table) => {
     return [
       uniqueIndex('billing_portal_configurations_default_idx')
-        .on(table.livemode)
+        .on(table.isDefault)
         .where(sql`is_default`),
       index('billing_portal_configurations_created_at_id_idx').on(table.createdAt, table.id),
     ];
@@ -37,7 +36,6 @@ export const billingPortalSessions = pgTable(
   'billing_portal_sessions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {

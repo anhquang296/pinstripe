@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 export interface EntitlementFilters {
-  livemode?: boolean;
   customerId?: string;
   productId?: string;
   subscriptionId?: string;
@@ -28,7 +27,6 @@ export class EntitlementRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<Entitlement[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(entitlements.livemode, filters.livemode),
       filters.customerId ? eq(entitlements.customerId, filters.customerId) : undefined,
       filters.productId ? eq(entitlements.productId, filters.productId) : undefined,
       filters.subscriptionId ? eq(entitlements.subscriptionId, filters.subscriptionId) : undefined,

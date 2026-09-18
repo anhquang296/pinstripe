@@ -6,7 +6,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, isNull, or, sql } from 'drizzle-orm';
 
 export interface PromotionCodeFilters {
-  livemode?: boolean;
   couponId?: string;
   code?: string;
   active?: boolean;
@@ -36,7 +35,6 @@ export class PromotionCodeRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<PromotionCode[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(promotionCodes.livemode, filters.livemode),
       filters.couponId ? eq(promotionCodes.couponId, filters.couponId) : undefined,
       filters.code ? eq(promotionCodes.code, filters.code) : undefined,
       filters.active === undefined ? undefined : eq(promotionCodes.active, filters.active),

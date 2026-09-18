@@ -9,8 +9,6 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { TEST_LIVEMODE } from './factories';
-
 let fastify: FastifyInstance;
 
 beforeAll(async () => {
@@ -22,32 +20,26 @@ afterAll(async () => {
 });
 
 async function makeCustomer(): Promise<string> {
-  const customer = await fastify.customerService.createCustomer(
-    {
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-    },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+  });
 
   return customer.id;
 }
 
 async function makeUnattachedPaymentMethod(token: string = PspTokenEnum.VISA_OK) {
-  return fastify.paymentMethodService.createPaymentMethod(
-    { type: PaymentMethodTypeEnum.CARD, token },
-    TEST_LIVEMODE,
-  );
+  return fastify.paymentMethodService.createPaymentMethod({
+    type: PaymentMethodTypeEnum.CARD,
+    token,
+  });
 }
 
 describe('SetupIntentService.createSetupIntent', () => {
   it('waits for a payment method when the caller supplied none', async () => {
     const customerId = await makeCustomer();
 
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({ customerId });
 
     expect(setupIntent.status).toBe(SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD);
     expect(setupIntent.usage).toBe(SetupIntentUsageEnum.OFF_SESSION);
@@ -58,10 +50,11 @@ describe('SetupIntentService.createSetupIntent', () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod();
 
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId, paymentMethodId: paymentMethod.id, usage: SetupIntentUsageEnum.ON_SESSION },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({
+      customerId,
+      paymentMethodId: paymentMethod.id,
+      usage: SetupIntentUsageEnum.ON_SESSION,
+    });
 
     expect(setupIntent.status).toBe(SetupIntentStatusEnum.REQUIRES_CONFIRMATION);
     expect(setupIntent.usage).toBe(SetupIntentUsageEnum.ON_SESSION);
@@ -69,7 +62,7 @@ describe('SetupIntentService.createSetupIntent', () => {
 
   it('refuses a customer that does not exist', async () => {
     await expect(
-      fastify.setupIntentService.createSetupIntent({ customerId: 'cus_missing' }, TEST_LIVEMODE),
+      fastify.setupIntentService.createSetupIntent({ customerId: 'cus_missing' }),
     ).rejects.toThrow(NotFoundError);
   });
 });
@@ -78,25 +71,18 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('saves the card and makes it the default once the callback lands', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod();
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId, paymentMethodId: paymentMethod.id },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({
+      customerId,
+      paymentMethodId: paymentMethod.id,
+    });
 
-    const confirmed = await fastify.setupIntentService.confirmSetupIntent(
-      setupIntent.id,
-      {},
-      TEST_LIVEMODE,
-    );
+    const confirmed = await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {});
 
     await fastify.paymentService.drainProviderEvents();
 
-    const saved = await fastify.setupIntentService.getSetupIntent(setupIntent.id, TEST_LIVEMODE);
+    const saved = await fastify.setupIntentService.getSetupIntent(setupIntent.id);
     const customer = await fastify.customerRepository.findCustomer(customerId);
-    const attached = await fastify.paymentMethodService.getPaymentMethod(
-      paymentMethod.id,
-      TEST_LIVEMODE,
-    );
+    const attached = await fastify.paymentMethodService.getPaymentMethod(paymentMethod.id);
 
     expect(confirmed.status).toBe(SetupIntentStatusEnum.PROCESSING);
     expect(saved.status).toBe(SetupIntentStatusEnum.SUCCEEDED);
@@ -107,15 +93,15 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('takes no money while saving the card', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod();
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId, paymentMethodId: paymentMethod.id },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({
+      customerId,
+      paymentMethodId: paymentMethod.id,
+    });
 
-    await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {}, TEST_LIVEMODE);
+    await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {});
     await fastify.paymentService.drainProviderEvents();
 
-    const { data } = await fastify.paymentService.findPaymentIntents({ customerId }, TEST_LIVEMODE);
+    const { data } = await fastify.paymentService.findPaymentIntents({ customerId });
 
     expect(data).toHaveLength(0);
   });
@@ -123,21 +109,17 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('parks a card that needs 3DS and finishes it through the callback', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod(PspTokenEnum.VISA_3DS);
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId, paymentMethodId: paymentMethod.id },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({
+      customerId,
+      paymentMethodId: paymentMethod.id,
+    });
 
-    const confirmed = await fastify.setupIntentService.confirmSetupIntent(
-      setupIntent.id,
-      {},
-      TEST_LIVEMODE,
-    );
+    const confirmed = await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {});
 
     fastify.psp.completeAuthentication(confirmed.pspReference ?? '');
     await fastify.paymentService.drainProviderEvents();
 
-    const saved = await fastify.setupIntentService.getSetupIntent(setupIntent.id, TEST_LIVEMODE);
+    const saved = await fastify.setupIntentService.getSetupIntent(setupIntent.id);
 
     expect(confirmed.status).toBe(SetupIntentStatusEnum.REQUIRES_ACTION);
     expect(confirmed.nextAction?.redirectUrl).toContain(confirmed.pspReference ?? 'no-reference');
@@ -147,15 +129,15 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('sends the caller back for another card when the processor rejects this one', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod(PspTokenEnum.CARD_EXPIRED);
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId, paymentMethodId: paymentMethod.id },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({
+      customerId,
+      paymentMethodId: paymentMethod.id,
+    });
 
-    await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {}, TEST_LIVEMODE);
+    await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {});
     await fastify.paymentService.drainProviderEvents();
 
-    const failed = await fastify.setupIntentService.getSetupIntent(setupIntent.id, TEST_LIVEMODE);
+    const failed = await fastify.setupIntentService.getSetupIntent(setupIntent.id);
     const customer = await fastify.customerRepository.findCustomer(customerId);
 
     expect(failed.status).toBe(SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD);
@@ -165,30 +147,22 @@ describe('SetupIntentService.confirmSetupIntent', () => {
 
   it('refuses to confirm without a payment method to save', async () => {
     const customerId = await makeCustomer();
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({ customerId });
 
-    await expect(
-      fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {}, TEST_LIVEMODE),
-    ).rejects.toThrow(BadRequestError);
+    await expect(fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {})).rejects.toThrow(
+      BadRequestError,
+    );
   });
 });
 
 describe('SetupIntentService.cancelSetupIntent', () => {
   it('keeps the reason the setup was abandoned', async () => {
     const customerId = await makeCustomer();
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({ customerId });
 
-    const canceled = await fastify.setupIntentService.cancelSetupIntent(
-      setupIntent.id,
-      { cancellationReason: PaymentCancellationReasonEnum.ABANDONED },
-      TEST_LIVEMODE,
-    );
+    const canceled = await fastify.setupIntentService.cancelSetupIntent(setupIntent.id, {
+      cancellationReason: PaymentCancellationReasonEnum.ABANDONED,
+    });
 
     expect(canceled.status).toBe(SetupIntentStatusEnum.CANCELED);
     expect(canceled.cancellationReason).toBe(PaymentCancellationReasonEnum.ABANDONED);
@@ -197,16 +171,16 @@ describe('SetupIntentService.cancelSetupIntent', () => {
   it('refuses to cancel a setup that already saved the card', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod();
-    const setupIntent = await fastify.setupIntentService.createSetupIntent(
-      { customerId, paymentMethodId: paymentMethod.id },
-      TEST_LIVEMODE,
-    );
+    const setupIntent = await fastify.setupIntentService.createSetupIntent({
+      customerId,
+      paymentMethodId: paymentMethod.id,
+    });
 
-    await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {}, TEST_LIVEMODE);
+    await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {});
     await fastify.paymentService.drainProviderEvents();
 
-    await expect(
-      fastify.setupIntentService.cancelSetupIntent(setupIntent.id, {}, TEST_LIVEMODE),
-    ).rejects.toThrow(ConflictError);
+    await expect(fastify.setupIntentService.cancelSetupIntent(setupIntent.id, {})).rejects.toThrow(
+      ConflictError,
+    );
   });
 });

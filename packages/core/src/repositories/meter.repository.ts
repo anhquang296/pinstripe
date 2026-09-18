@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 export interface MeterFilters {
-  livemode?: boolean;
   eventName?: string;
   status?: MeterStatus;
   beforeAt?: RowCursor;
@@ -34,7 +33,6 @@ export class MeterRepository {
   async findMeters(filters: MeterFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Meter[]> {
     const where = and(
       isNull(meters.deletedAt),
-      filters.livemode === undefined ? undefined : eq(meters.livemode, filters.livemode),
       filters.eventName ? eq(meters.eventName, filters.eventName) : undefined,
       filters.status ? eq(meters.status, filters.status) : undefined,
       filters.beforeAt

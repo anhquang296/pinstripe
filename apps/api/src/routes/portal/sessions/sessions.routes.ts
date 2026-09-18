@@ -6,18 +6,15 @@ import {
   redeemPortalLinkSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const portalSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/links',
     { schema: { body: createPortalLinkSchema, response: { 202: portalLinkSchema } } },
     async (request, reply) => {
-      const livemode = readLivemode(request);
-      const link = await fastify.portalSessionService.createPortalLink(request.body, livemode);
+      const link = await fastify.portalSessionService.createPortalLink(request.body);
 
       return ApiResponse.accepted(reply, {
-        livemode,
         linkExpiresAt: link.linkExpiresAt.toISOString(),
       });
     },
@@ -27,10 +24,7 @@ export const portalSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/sessions',
     { schema: { body: redeemPortalLinkSchema, response: { 201: portalSessionSchema } } },
     async (request, reply) => {
-      const portalSession = await fastify.portalSessionService.redeemPortalLink(
-        request.body,
-        readLivemode(request),
-      );
+      const portalSession = await fastify.portalSessionService.redeemPortalLink(request.body);
 
       return ApiResponse.created(reply, portalSession);
     },

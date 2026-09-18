@@ -8,7 +8,6 @@ import { and, asc, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface PaymentIntentFilters {
-  livemode?: boolean;
   ids?: readonly string[];
   invoiceId?: string;
   customerId?: string;
@@ -20,7 +19,6 @@ export interface PaymentIntentFilters {
 }
 
 export interface ChargeFilters {
-  livemode?: boolean;
   paymentIntentIds?: readonly string[];
   pspReference?: string;
   status?: ChargeStatus;
@@ -65,7 +63,6 @@ export class PaymentIntentRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<PaymentIntent[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(paymentIntents.livemode, filters.livemode),
       filters.ids ? inArray(paymentIntents.id, [...filters.ids]) : undefined,
       filters.invoiceId ? eq(paymentIntents.invoiceId, filters.invoiceId) : undefined,
       filters.customerId ? eq(paymentIntents.customerId, filters.customerId) : undefined,
@@ -104,7 +101,6 @@ export class PaymentIntentRepository {
     }
 
     const where = and(
-      filters.livemode === undefined ? undefined : eq(charges.livemode, filters.livemode),
       filters.paymentIntentIds
         ? inArray(charges.paymentIntentId, [...filters.paymentIntentIds])
         : undefined,

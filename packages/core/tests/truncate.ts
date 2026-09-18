@@ -31,12 +31,10 @@ export async function truncateDatabase(database: DatabaseClient): Promise<void> 
   const sequenceNames = Object.values(NumberSequenceEnum);
 
   for (const name of sequenceNames) {
-    for (const livemode of [true, false]) {
-      await database.master.execute(sql`
-        insert into number_sequences (livemode, name, next_value)
-        values (${livemode}, ${name}, 1)
-        on conflict (livemode, name) do update set next_value = 1
-      `);
-    }
+    await database.master.execute(sql`
+      insert into number_sequences (name, next_value)
+      values (${name}, 1)
+      on conflict (name) do update set next_value = 1
+    `);
   }
 }

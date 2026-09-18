@@ -1,7 +1,8 @@
 ---
 description: >
-  Read an optional path once into a named local with its fallback at the read — never `?.` and
-  `??` in one expression, at any depth, and never the same path walked twice.
+  Read a path once into a named local, and give a field its fallback by destructuring it with a
+  default — never `<object>.<field> ?? <default>`, with or without `?.`, and never the same path
+  walked twice.
 agentkit:
   id: core/nested-access-convention
   layer: core
@@ -17,7 +18,7 @@ agentkit:
 
 An optional-chain ladder restates the same uncertainty at every step, and again at every call site that copies it — `data?.page?.errors` in four places is one assumption written four times, and when the shape changes three of them get fixed. Reading the path once, into a local with a name, turns four assumptions into one that a reader can check.
 
-The ladder is the loudest case, not the only one. `row?.total ?? 0` is the same unnamed assumption in one segment, and it is the shape that slips through unread because it looks too small to be worth a name.
+The ladder is the loudest case, not the only one. `row?.total ?? 0` is the same unnamed assumption in one segment, and `payload.isDefault ?? false` is the same fallback without even the `?` — both are the shape that slips through unread because it looks too small to be worth a name.
 
 ## Scope
 
@@ -57,19 +58,26 @@ const authorName = data?.page?.author?.name;
 
 Where the stack provides a path accessor, its profile states the exact call to write. The requirement here is the same either way: one read, one name, the default at the read site.
 
-## Depth is not the test
+## A fallback is a destructure default
 
-`?.` says the value may be absent; `??` says what to use when it is. Two statements about one condition, fused into a single expression: there is no name for a reader to check the fallback against, no line for a debugger to stop on, and the next call site that needs the value copies both halves. Counting segments changes none of that, so the number of segments is not what triggers this rule. A one-segment read is in scope exactly as a five-segment one is.
+A field that needs a fallback is destructured with a default — every field of the same object in one destructure, each bound under its own name, then used by shorthand. Never write `<object>.<field> ?? <default>`.
+
+`??` on a property read fuses two statements about one condition — the read and what to use when it misses — into a single expression: there is no name for a reader to check the fallback against, no line for a debugger to stop on, and the next call site that needs the value copies both halves. Neither the number of segments nor the `?.` changes that. A one-segment read is in scope exactly as a five-segment one is, and a read off a container that is certainly present is in scope exactly as an optional one is.
 
 ```ts
-// CORRECT — the read is its own statement, and the fallback belongs to it
-const { total = 0 } = row;
+// CORRECT — one destructure, every default at the read
+const { isDefault = false, businessName = 'default_business_name' } = payload;
 
-// WRONG — one segment, still a read fused to its fallback
+return { isDefault, businessName };
+
+// WRONG — each field read with its own fallback, `?.` or not
+const isDefault = payload.isDefault ?? false;
 const revenue = row?.total ?? 0;
-sum += row?.total ?? 0;
-return formatMoney(row?.total ?? 0);
+
+return { businessName: payload.businessName ?? 'default_business_name' };
 ```
+
+A destructure default fires on `undefined` only; `??` fires on `null` too. That difference is the point. `undefined` is a key that was not supplied — an optional field, a partial payload — and a default is the right answer to it. `null` is a value known to be absent ([nullability-convention.md](./nullability-convention.md#the-type-mirrors-the-column)); replacing it with a default is [the sentinel that rule forbids](./nullability-convention.md#never-encode-unknown-as-a-value), so a `T | null` field is handled with a branch, not a fallback.
 
 Where the container itself may be absent, do not rescue the destructure with `row ?? {}` — that is the same fusion moved one place left, and it invents an object to read a field off. Guard the container first ([statement-convention.md](./statement-convention.md#happy-path-first-positive-conditions)), or use the path accessor the stack provides.
 
@@ -81,6 +89,7 @@ One exception, and it is not a fallback: `?? null` at a boundary, where `undefin
 - Repeat the same optional-chained path at more than one use site.
 - Append the default at every consumer instead of putting it where the read happens.
 - Check `length > 0` and then read `[0]` — take the first element and check it for truthiness.
-- Write `?.` and `??` in the same expression, at any depth — a one-segment read is in scope too.
-- Treat a read as outside this rule because it is short, or because it is not a ladder.
+- Write `<object>.<field> ?? <default>`, with or without `?.`, at any depth — destructure the field with a default.
+- Read several fields of one object each with its own fallback — one destructure holds every default.
+- Treat a read as outside this rule because it is short, because it is not a ladder, or because it has no `?.`.
 - Write `<container> ?? {}` so a destructure can reach through it — guard the container instead.

@@ -13,8 +13,6 @@ const DEFAULT_CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toIS
 const DEFAULT_UNIT_AMOUNT = 500_000;
 const DEFAULT_TOKEN = PspTokenEnum.VISA_OK;
 
-export const TEST_LIVEMODE = false;
-
 export interface SubscriptionOverrides {
   unitAmount?: number;
   token?: string;
@@ -50,36 +48,26 @@ export async function makeSubscription(
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime,
   });
-  const customer = await fastify.customerService.createCustomer(
-    {
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-      testClockId: clock.id,
-    },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+    testClockId: clock.id,
+  });
   const paymentMethod = await makePaymentMethod(fastify, customer.id, token);
-  const product = await fastify.productService.createProduct(
-    { name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}` },
-    TEST_LIVEMODE,
-  );
-  const price = await fastify.priceService.createPrice(
-    {
-      productId: product.id,
-      currency: CurrencyEnum.VND,
-      unitAmount,
-      recurring: { interval: RecurringIntervalEnum.MONTH },
-    },
-    false,
-  );
-  const subscription = await fastify.subscriptionService.createSubscription(
-    {
-      customerId: customer.id,
-      items: [{ priceId: price.id }],
-      billingMode,
-    },
-    false,
-  );
+  const product = await fastify.productService.createProduct({
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+  });
+  const price = await fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
+  const subscription = await fastify.subscriptionService.createSubscription({
+    customerId: customer.id,
+    items: [{ priceId: price.id }],
+    billingMode,
+  });
 
   return {
     subscriptionId: subscription.id,
@@ -96,16 +84,16 @@ export async function makePaymentMethod(
   customerId: string,
   token: string = DEFAULT_TOKEN,
 ): Promise<PaymentMethodResponse> {
-  const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(
-    { type: PaymentMethodTypeEnum.CARD, token, customerId },
-    TEST_LIVEMODE,
-  );
+  const paymentMethod = await fastify.paymentMethodService.createPaymentMethod({
+    type: PaymentMethodTypeEnum.CARD,
+    token,
+    customerId,
+  });
 
-  return fastify.paymentMethodService.attachPaymentMethod(
-    paymentMethod.id,
-    { customerId, shouldBeDefault: true },
-    TEST_LIVEMODE,
-  );
+  return fastify.paymentMethodService.attachPaymentMethod(paymentMethod.id, {
+    customerId,
+    shouldBeDefault: true,
+  });
 }
 
 export interface SettledChargeFixture {
@@ -119,15 +107,12 @@ export async function settleInvoice(
   fastify: FastifyInstance,
   invoiceId: string,
 ): Promise<SettledChargeFixture> {
-  const paymentIntent = await fastify.paymentService.createPaymentIntent(
-    { invoiceId },
-    TEST_LIVEMODE,
-  );
+  const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId });
 
-  await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE);
+  await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
   await fastify.paymentService.drainProviderEvents();
 
-  const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id, TEST_LIVEMODE);
+  const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id);
   const { latestChargeId, pspReference } = settled;
 
   if (latestChargeId && pspReference) {
@@ -147,20 +132,18 @@ export async function makeOpenInvoice(
   overrides: SubscriptionOverrides = {},
 ): Promise<OpenInvoiceFixture> {
   const fixture = await makeSubscription(fastify, overrides);
-  const { data } = await fastify.invoiceService.findInvoices(
-    { subscriptionId: fixture.subscriptionId },
-    TEST_LIVEMODE,
-  );
+  const { data } = await fastify.invoiceService.findInvoices({
+    subscriptionId: fixture.subscriptionId,
+  });
   const [issuedInvoice] = data;
 
   if (issuedInvoice) {
     return { ...fixture, invoiceId: issuedInvoice.id };
   }
 
-  const draft = await fastify.invoiceService.createInvoice(
-    { subscriptionId: fixture.subscriptionId },
-    TEST_LIVEMODE,
-  );
+  const draft = await fastify.invoiceService.createInvoice({
+    subscriptionId: fixture.subscriptionId,
+  });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   return { ...fixture, invoiceId: open.id };

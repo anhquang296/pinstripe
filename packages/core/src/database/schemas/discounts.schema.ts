@@ -20,7 +20,6 @@ export const coupons = pgTable(
   'coupons',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     name: text('name').notNull().default(''),
     percentOff: doublePrecision('percent_off'),
     amountOff: bigint('amount_off', { mode: 'number' }),
@@ -57,7 +56,6 @@ export const promotionCodes = pgTable(
   'promotion_codes',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     code: text('code').notNull(),
     couponId: text('coupon_id')
       .notNull()
@@ -85,7 +83,7 @@ export const promotionCodes = pgTable(
     return [
       index('promotion_codes_coupon_id_idx').on(table.couponId),
       index('promotion_codes_created_at_id_idx').on(table.createdAt, table.id),
-      uniqueIndex('promotion_codes_code_idx').on(table.livemode, table.code),
+      uniqueIndex('promotion_codes_code_idx').on(table.code),
     ];
   },
 );
@@ -94,7 +92,6 @@ export const discounts = pgTable(
   'discounts',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     couponId: text('coupon_id')
       .notNull()
       .references(() => {

@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, settleInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice, settleInvoice } from './factories';
 
 const BASE_AMOUNT = 500_000;
 const UNPAGED_CHARGE_COUNT = 210;
@@ -25,13 +25,10 @@ afterAll(async () => {
 });
 
 async function aggregateReport() {
-  return fastify.reconciliationService.aggregateReconciliationReport(
-    {
-      windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
-      windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
-    },
-    TEST_LIVEMODE,
-  );
+  return fastify.reconciliationService.aggregateReconciliationReport({
+    windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
+    windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
+  });
 }
 
 describe('ReconciliationService.aggregateReconciliationReport', () => {
@@ -70,7 +67,6 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     for (const index of _.range(UNPAGED_CHARGE_COUNT)) {
       await fastify.paymentIntentRepository.createCharge({
         id: generateGid(ObjectPrefixEnum.CHARGE),
-        livemode: TEST_LIVEMODE,
         paymentIntentId,
         customerId,
         paymentMethodId: null,

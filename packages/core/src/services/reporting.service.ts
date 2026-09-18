@@ -34,43 +34,35 @@ export class ReportingService {
 
   async aggregateRevenueSummary(
     query: AggregateRevenueSummaryQuery,
-    livemode: boolean,
   ): Promise<RevenueSummaryResponse> {
     const currency = query.currency ?? CurrencyEnum.VND;
     const now = this.fastify.clock.now();
     const asOf = now.toISOString();
     const { windowStart, windowEnd } = ReportingService.resolveWindow(query, now);
 
-    const commitments = await this.fastify.reportingRepository.findRecurringCommitments(
-      currency,
-      livemode,
-    );
-    const mrr = await this.aggregateDiscountedMrr(commitments, currency, livemode, asOf);
+    const commitments = await this.fastify.reportingRepository.findRecurringCommitments(currency);
+    const mrr = await this.aggregateDiscountedMrr(commitments, currency, asOf);
 
-    const counts = await this.fastify.reportingRepository.countSubscriptions(currency, livemode);
+    const counts = await this.fastify.reportingRepository.countSubscriptions(currency);
     const canceledInWindow = await this.fastify.reportingRepository.countCanceledSubscriptions(
       currency,
       windowStart,
       windowEnd,
-      livemode,
     );
     const invoiceTotals = await this.fastify.reportingRepository.aggregateInvoiceTotals(
       currency,
       windowStart,
       windowEnd,
-      livemode,
     );
     const refundedInWindow = await this.fastify.reportingRepository.aggregateRefundTotal(
       currency,
       windowStart,
       windowEnd,
-      livemode,
     );
     const collectedInWindow = await this.fastify.reportingRepository.aggregateCashMovement(
       currency,
       windowStart,
       windowEnd,
-      livemode,
     );
 
     return {
@@ -112,7 +104,6 @@ export class ReportingService {
   private async aggregateDiscountedMrr(
     commitments: readonly RecurringCommitment[],
     currency: Currency,
-    livemode: boolean,
     activeAt: string,
   ): Promise<number> {
     const lines = _.map(commitments, (commitment): MrrLine => {
@@ -134,7 +125,7 @@ export class ReportingService {
     }
 
     const discounts = await this.fastify.discountRepository.findDiscounts(
-      { livemode, activeAt },
+      { activeAt },
       DISCOUNT_SCAN_LIMIT,
     );
 
@@ -142,7 +133,7 @@ export class ReportingService {
       return _.sumBy(lines, 'amount');
     }
 
-    const couponById = await this.resolveCoupons(_.map(discounts, 'couponId'), livemode);
+    const couponById = await this.resolveCoupons(_.map(discounts, 'couponId'));
 
     for (const discount of discounts) {
       const coupon = couponById[discount.couponId];
@@ -234,12 +225,9 @@ export class ReportingService {
       .value();
   }
 
-  private async resolveCoupons(
-    couponIds: readonly string[],
-    livemode: boolean,
-  ): Promise<Record<string, Coupon>> {
+  private async resolveCoupons(couponIds: readonly string[]): Promise<Record<string, Coupon>> {
     const ids = _.uniq([...couponIds]);
-    const coupons = await this.fastify.couponRepository.findCoupons({ ids, livemode }, ids.length);
+    const coupons = await this.fastify.couponRepository.findCoupons({ ids }, ids.length);
 
     return _.keyBy(coupons, 'id');
   }

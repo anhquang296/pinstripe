@@ -47,6 +47,8 @@ export const envSchema = Type.Object({
   MANAGEMENT_API_KEY: Type.String({ minLength: 16 }),
   PORTAL_API_KEY: Optional(Type.String({ minLength: 16 })),
 
+  TEST_CLOCKS_ENABLED: Default(Type.Boolean(), false),
+
   PUBLIC_BASE_URL: Default(Type.String({ minLength: 1 }), 'http://localhost:3000'),
   PORTAL_BASE_URL: Default(Type.String({ minLength: 1 }), 'http://localhost:3100'),
   HOSTED_URL_SECRET: Default(

@@ -37,12 +37,11 @@ export interface InvoiceLineDiscountAmount {
 export const numberSequences = pgTable(
   'number_sequences',
   {
-    livemode: boolean('livemode').notNull(),
     name: text('name').$type<NumberSequence>().notNull(),
     nextValue: integer('next_value').notNull().default(1),
   },
   (table) => {
-    return [primaryKey({ columns: [table.livemode, table.name] })];
+    return [primaryKey({ columns: [table.name] })];
   },
 );
 
@@ -50,7 +49,6 @@ export const invoices = pgTable(
   'invoices',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     number: text('number'),
     customerId: text('customer_id')
       .notNull()
@@ -111,7 +109,7 @@ export const invoices = pgTable(
       index('invoices_customer_id_idx').on(table.customerId),
       index('invoices_status_idx').on(table.status),
       index('invoices_created_at_id_idx').on(table.createdAt, table.id),
-      uniqueIndex('invoices_number_idx').on(table.livemode, table.number),
+      uniqueIndex('invoices_number_idx').on(table.number),
       uniqueIndex('invoices_subscription_cycle_period_idx')
         .on(table.subscriptionId, table.periodStart)
         .where(sql`${table.billingReason} = 'subscription_cycle'`),
@@ -124,7 +122,6 @@ export const invoiceLineItems = pgTable(
   'invoice_line_items',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     invoiceId: text('invoice_id')
       .notNull()
       .references(() => {
@@ -163,7 +160,6 @@ export const invoiceLineItemTaxAmounts = pgTable(
   'invoice_line_item_tax_amounts',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     invoiceId: text('invoice_id')
       .notNull()
       .references(() => {
@@ -200,7 +196,6 @@ export const creditNotes = pgTable(
   'credit_notes',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     number: text('number').notNull(),
     invoiceId: text('invoice_id')
       .notNull()
@@ -230,7 +225,7 @@ export const creditNotes = pgTable(
     return [
       index('credit_notes_invoice_id_idx').on(table.invoiceId),
       index('credit_notes_created_at_id_idx').on(table.createdAt, table.id),
-      uniqueIndex('credit_notes_number_idx').on(table.livemode, table.number),
+      uniqueIndex('credit_notes_number_idx').on(table.number),
     ];
   },
 );
@@ -239,7 +234,6 @@ export const creditNoteLineItems = pgTable(
   'credit_note_line_items',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     creditNoteId: text('credit_note_id')
       .notNull()
       .references(() => {
@@ -265,7 +259,6 @@ export const creditNoteTransitions = pgTable(
   'credit_note_transitions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     creditNoteId: text('credit_note_id')
       .notNull()
       .references(() => {
@@ -290,7 +283,6 @@ export const invoiceItems = pgTable(
   'invoice_items',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {
@@ -336,7 +328,6 @@ export const invoicePayments = pgTable(
   'invoice_payments',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     invoiceId: text('invoice_id')
       .notNull()
       .references(() => {
@@ -356,7 +347,7 @@ export const invoicePayments = pgTable(
       index('invoice_payments_invoice_id_idx').on(table.invoiceId),
       index('invoice_payments_payment_intent_id_idx').on(table.paymentIntentId),
       uniqueIndex('invoice_payments_settlement_reference_idx')
-        .on(table.livemode, table.settlementReference)
+        .on(table.settlementReference)
         .where(sql`settlement_reference is not null`),
     ];
   },

@@ -7,7 +7,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 
 export interface DisputeFilters {
-  livemode?: boolean;
   chargeId?: string;
   customerId?: string;
   pspReference?: string;
@@ -39,7 +38,6 @@ export class DisputeRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<Dispute[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(disputes.livemode, filters.livemode),
       filters.chargeId ? eq(disputes.chargeId, filters.chargeId) : undefined,
       filters.customerId ? eq(disputes.customerId, filters.customerId) : undefined,
       filters.pspReference ? eq(disputes.pspReference, filters.pspReference) : undefined,

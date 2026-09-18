@@ -6,7 +6,6 @@ import {
   ListResponseSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const balanceTransactionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -20,7 +19,6 @@ export const balanceTransactionsRoutes: FastifyPluginAsyncTypebox = async (fasti
     async (request, reply) => {
       const balanceTransactions = await fastify.balanceService.findBalanceTransactions(
         request.query,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, balanceTransactions);
@@ -38,7 +36,6 @@ export const balanceTransactionsRoutes: FastifyPluginAsyncTypebox = async (fasti
     async (request, reply) => {
       const balanceTransaction = await fastify.balanceService.getBalanceTransaction(
         request.params.balanceTransactionId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, balanceTransaction);

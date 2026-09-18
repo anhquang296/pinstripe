@@ -11,7 +11,6 @@ import {
   reverseLedgerTransactionSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -23,10 +22,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const accounts = await fastify.ledgerService.findAccounts(
-        request.query,
-        readLivemode(request),
-      );
+      const accounts = await fastify.ledgerService.findAccounts(request.query);
 
       return ApiResponse.success(reply, accounts);
     },
@@ -36,10 +32,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/accounts/:accountId',
     { schema: { params: ledgerAccountParamsSchema, response: { 200: ledgerAccountSchema } } },
     async (request, reply) => {
-      const account = await fastify.ledgerService.getAccount(
-        request.params.accountId,
-        readLivemode(request),
-      );
+      const account = await fastify.ledgerService.getAccount(request.params.accountId);
 
       return ApiResponse.success(reply, account);
     },
@@ -54,10 +47,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const transactions = await fastify.ledgerService.findTransactions(
-        request.query,
-        readLivemode(request),
-      );
+      const transactions = await fastify.ledgerService.findTransactions(request.query);
 
       return ApiResponse.success(reply, transactions);
     },
@@ -69,10 +59,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { params: ledgerTransactionParamsSchema, response: { 200: ledgerTransactionSchema } },
     },
     async (request, reply) => {
-      const transaction = await fastify.ledgerService.getTransaction(
-        request.params.transactionId,
-        readLivemode(request),
-      );
+      const transaction = await fastify.ledgerService.getTransaction(request.params.transactionId);
 
       return ApiResponse.success(reply, transaction);
     },
@@ -82,10 +69,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/transactions',
     { schema: { body: postLedgerTransactionSchema, response: { 201: ledgerTransactionSchema } } },
     async (request, reply) => {
-      const transaction = await fastify.ledgerService.postTransaction(
-        request.body,
-        readLivemode(request),
-      );
+      const transaction = await fastify.ledgerService.postTransaction(request.body);
 
       return ApiResponse.created(reply, transaction);
     },

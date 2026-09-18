@@ -25,13 +25,10 @@ const ACCOUNT_SCAN_LIMIT = 100;
 export class BalanceService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async getBalance(livemode: boolean): Promise<BalanceResponse> {
+  async getBalance(): Promise<BalanceResponse> {
     const asOf = this.fastify.clock.now().toISOString();
-    const totals = await this.fastify.balanceTransactionRepository.aggregateBalanceTotals(
-      livemode,
-      asOf,
-    );
-    const reserved = await this.resolveReservedAmounts(livemode);
+    const totals = await this.fastify.balanceTransactionRepository.aggregateBalanceTotals(asOf);
+    const reserved = await this.resolveReservedAmounts();
 
     return {
       asOf,
@@ -45,11 +42,11 @@ export class BalanceService {
     };
   }
 
-  async getBalanceTransaction(id: string, livemode: boolean): Promise<BalanceTransactionResponse> {
+  async getBalanceTransaction(id: string): Promise<BalanceTransactionResponse> {
     const balanceTransaction =
       await this.fastify.balanceTransactionRepository.findBalanceTransaction(id);
 
-    if (balanceTransaction && balanceTransaction.livemode === livemode) {
+    if (balanceTransaction) {
       return balanceTransaction;
     }
 
@@ -58,13 +55,12 @@ export class BalanceService {
 
   async findBalanceTransactions(
     query: FindBalanceTransactionsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<BalanceTransactionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.balanceTransactionRepository.findBalanceTransactions(
-      { livemode, type: query.type, payoutId: query.payoutId, beforeAt, afterAt },
+      { type: query.type, payoutId: query.payoutId, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -117,13 +113,11 @@ export class BalanceService {
           return entry.amount > 0;
         }),
       },
-      charge.livemode,
       tx,
     );
 
     return this.createBalanceTransaction(
       {
-        livemode: charge.livemode,
         type: BalanceTransactionTypeEnum.CHARGE,
         currency: charge.currency,
         gross,
@@ -159,13 +153,11 @@ export class BalanceService {
           },
         ],
       },
-      refund.livemode,
       tx,
     );
 
     return this.createBalanceTransaction(
       {
-        livemode: refund.livemode,
         type: BalanceTransactionTypeEnum.REFUND,
         currency: refund.currency,
         gross: -refund.amount,
@@ -198,13 +190,11 @@ export class BalanceService {
           },
         ],
       },
-      dispute.livemode,
       tx,
     );
 
     return this.createBalanceTransaction(
       {
-        livemode: dispute.livemode,
         type: BalanceTransactionTypeEnum.DISPUTE,
         currency: dispute.currency,
         gross: -dispute.amount,
@@ -240,13 +230,11 @@ export class BalanceService {
           },
         ],
       },
-      dispute.livemode,
       tx,
     );
 
     return this.createBalanceTransaction(
       {
-        livemode: dispute.livemode,
         type: BalanceTransactionTypeEnum.DISPUTE_REVERSAL,
         currency: dispute.currency,
         gross: dispute.amount,
@@ -279,14 +267,12 @@ export class BalanceService {
           },
         ],
       },
-      dispute.livemode,
       tx,
     );
   }
 
   private async createBalanceTransaction(
     payload: {
-      livemode: boolean;
       type: BalanceTransactionTypeEnum;
       currency: Currency;
       gross: number;
@@ -299,11 +285,11 @@ export class BalanceService {
     tx: DatabaseTransaction,
   ): Promise<BalanceTransaction> {
     const id = generateGid(ObjectPrefixEnum.BALANCE_TRANSACTION);
+
     const balanceTransaction =
       await this.fastify.balanceTransactionRepository.createBalanceTransaction(
         {
           id,
-          livemode: payload.livemode,
           type: payload.type,
           currency: payload.currency,
           gross: payload.gross,
@@ -325,9 +311,9 @@ export class BalanceService {
     throw new NotFoundError(`Balance transaction ${id} could not be created`);
   }
 
-  private async resolveReservedAmounts(livemode: boolean): Promise<BalanceAmount[]> {
+  private async resolveReservedAmounts(): Promise<BalanceAmount[]> {
     const accounts = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
-      { livemode, code: LedgerAccountCodeEnum.DISPUTES_HELD },
+      { code: LedgerAccountCodeEnum.DISPUTES_HELD },
       ACCOUNT_SCAN_LIMIT,
     );
 

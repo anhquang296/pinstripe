@@ -8,7 +8,6 @@ import type { Currency } from '@utils/currency';
 import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 export interface PayoutFilters {
-  livemode?: boolean;
   currency?: Currency;
   status?: PayoutStatus;
   statuses?: readonly PayoutStatus[];
@@ -37,7 +36,6 @@ export class PayoutRepository {
 
   async findPayouts(filters: PayoutFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Payout[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(payouts.livemode, filters.livemode),
       filters.currency ? eq(payouts.currency, filters.currency) : undefined,
       filters.status ? eq(payouts.status, filters.status) : undefined,
       filters.statuses ? inArray(payouts.status, [...filters.statuses]) : undefined,

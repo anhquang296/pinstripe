@@ -14,7 +14,7 @@ const MAX_EXPAND_PATHS = 8;
 
 interface ExpansionTarget {
   idField: string;
-  findRelated: (ids: readonly string[], livemode: boolean) => Promise<Map<string, unknown>>;
+  findRelated: (ids: readonly string[]) => Promise<Map<string, unknown>>;
 }
 
 type ExpandableObject = Record<string, unknown>;
@@ -25,29 +25,29 @@ export class ExpansionService {
   constructor(private readonly fastify: FastifyInstance) {
     const customer: ExpansionTarget = {
       idField: 'customerId',
-      findRelated: (ids, livemode) => {
-        return this.findCustomers(ids, livemode);
+      findRelated: (ids) => {
+        return this.findCustomers(ids);
       },
     };
 
     const subscription: ExpansionTarget = {
       idField: 'subscriptionId',
-      findRelated: (ids, livemode) => {
-        return this.findSubscriptions(ids, livemode);
+      findRelated: (ids) => {
+        return this.findSubscriptions(ids);
       },
     };
 
     const product: ExpansionTarget = {
       idField: 'productId',
-      findRelated: (ids, livemode) => {
-        return this.findProducts(ids, livemode);
+      findRelated: (ids) => {
+        return this.findProducts(ids);
       },
     };
 
     const coupon: ExpansionTarget = {
       idField: 'couponId',
-      findRelated: (ids, livemode) => {
-        return this.findCoupons(ids, livemode);
+      findRelated: (ids) => {
+        return this.findCoupons(ids);
       },
     };
 
@@ -67,14 +67,14 @@ export class ExpansionService {
     };
   }
 
-  async expandResponse<T>(payload: T, expand: readonly string[], livemode: boolean): Promise<T> {
+  async expandResponse<T>(payload: T, expand: readonly string[]): Promise<T> {
     const paths = ExpansionService.parsePaths(expand);
 
     if (_.isEmpty(paths)) {
       return payload;
     }
 
-    await this.hydrateLevel(ExpansionService.readRoots(payload), paths, livemode);
+    await this.hydrateLevel(ExpansionService.readRoots(payload), paths);
 
     return payload;
   }
@@ -82,7 +82,6 @@ export class ExpansionService {
   private async hydrateLevel(
     objects: readonly ExpandableObject[],
     paths: readonly string[][],
-    livemode: boolean,
   ): Promise<void> {
     if (_.isEmpty(objects)) {
       return;
@@ -93,7 +92,7 @@ export class ExpansionService {
     });
 
     for (const [field, fieldPaths] of _.toPairs(pathsByField)) {
-      const children = await this.hydrateField(objects, field, livemode);
+      const children = await this.hydrateField(objects, field);
 
       const nestedPaths = _.reject(
         _.map(fieldPaths, (path) => {
@@ -102,14 +101,13 @@ export class ExpansionService {
         _.isEmpty,
       );
 
-      await this.hydrateLevel(children, nestedPaths, livemode);
+      await this.hydrateLevel(children, nestedPaths);
     }
   }
 
   private async hydrateField(
     objects: readonly ExpandableObject[],
     field: string,
-    livemode: boolean,
   ): Promise<ExpandableObject[]> {
     const target = this.resolveTarget(objects, field);
     const ids = _(objects).map(target.idField).filter(_.isString).uniq().value();
@@ -118,7 +116,7 @@ export class ExpansionService {
       return [];
     }
 
-    const relatedById = await target.findRelated(ids, livemode);
+    const relatedById = await target.findRelated(ids);
     const children: ExpandableObject[] = [];
 
     for (const object of objects) {
@@ -149,14 +147,8 @@ export class ExpansionService {
     throw new BadRequestError(`This property cannot be expanded: ${field}`, { param: 'expand' });
   }
 
-  private async findCustomers(
-    ids: readonly string[],
-    livemode: boolean,
-  ): Promise<Map<string, unknown>> {
-    const customers = await this.fastify.customerRepository.findCustomers(
-      { ids, livemode },
-      ids.length,
-    );
+  private async findCustomers(ids: readonly string[]): Promise<Map<string, unknown>> {
+    const customers = await this.fastify.customerRepository.findCustomers({ ids }, ids.length);
 
     return new Map(
       _.map(customers, (customer) => {
@@ -165,11 +157,8 @@ export class ExpansionService {
     );
   }
 
-  private async findCoupons(
-    ids: readonly string[],
-    livemode: boolean,
-  ): Promise<Map<string, unknown>> {
-    const coupons = await this.fastify.couponRepository.findCoupons({ ids, livemode }, ids.length);
+  private async findCoupons(ids: readonly string[]): Promise<Map<string, unknown>> {
+    const coupons = await this.fastify.couponRepository.findCoupons({ ids }, ids.length);
 
     return new Map(
       _.map(coupons, (coupon) => {
@@ -178,14 +167,8 @@ export class ExpansionService {
     );
   }
 
-  private async findProducts(
-    ids: readonly string[],
-    livemode: boolean,
-  ): Promise<Map<string, unknown>> {
-    const products = await this.fastify.productRepository.findProducts(
-      { ids, livemode },
-      ids.length,
-    );
+  private async findProducts(ids: readonly string[]): Promise<Map<string, unknown>> {
+    const products = await this.fastify.productRepository.findProducts({ ids }, ids.length);
 
     return new Map(
       _.map(products, (product) => {
@@ -194,12 +177,9 @@ export class ExpansionService {
     );
   }
 
-  private async findSubscriptions(
-    ids: readonly string[],
-    livemode: boolean,
-  ): Promise<Map<string, unknown>> {
+  private async findSubscriptions(ids: readonly string[]): Promise<Map<string, unknown>> {
     const subscriptions = await this.fastify.subscriptionRepository.findSubscriptions(
-      { ids, livemode },
+      { ids },
       ids.length,
     );
 

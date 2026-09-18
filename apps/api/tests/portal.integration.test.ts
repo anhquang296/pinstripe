@@ -4,8 +4,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
-const TEST_LIVEMODE = false;
-
 let fastify: FastifyInstance;
 let portalKeyHeaders: Record<string, string>;
 
@@ -14,7 +12,6 @@ beforeAll(async () => {
 
   const portalKey = await mintApiKey(fastify, [ApiKeyScopeEnum.PORTAL], {
     type: ApiKeyTypeEnum.PUBLISHABLE,
-    livemode: TEST_LIVEMODE,
   });
 
   portalKeyHeaders = buildAuthHeaders(portalKey.token);
@@ -25,10 +22,11 @@ afterAll(async () => {
 });
 
 async function makeCustomer(email: string): Promise<string> {
-  const customer = await fastify.customerService.createCustomer(
-    { email, currency: CurrencyEnum.VND, name: 'Portal Tester' },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email,
+    currency: CurrencyEnum.VND,
+    name: 'Portal Tester',
+  });
 
   return customer.id;
 }
@@ -36,7 +34,7 @@ async function makeCustomer(email: string): Promise<string> {
 async function makeSessionHeaders(email: string): Promise<Record<string, string>> {
   await makeCustomer(email);
 
-  const link = await fastify.portalSessionService.createPortalLink({ email }, TEST_LIVEMODE);
+  const link = await fastify.portalSessionService.createPortalLink({ email });
   const redeemed = await fastify.inject({
     method: 'POST',
     url: '/portal/sessions',
@@ -68,7 +66,7 @@ describe('portal link surface', () => {
   });
 
   it('rejects a secret key that carries no portal scope', async () => {
-    const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: TEST_LIVEMODE });
+    const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
     const response = await fastify.inject({
       method: 'POST',
@@ -136,7 +134,7 @@ describe('merchant billing portal session', () => {
   it('opens a portal session the customer can use through /portal/me', async () => {
     const email = 'merchant-opened@portal.test';
     const customerId = await makeCustomer(email);
-    const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: TEST_LIVEMODE });
+    const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
     const created = await fastify.inject({
       method: 'POST',
