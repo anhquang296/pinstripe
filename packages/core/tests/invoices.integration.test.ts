@@ -288,7 +288,9 @@ describe('issued invoices are immutable in the database', () => {
       );
     };
 
-    await expect(act()).rejects.toThrow(/immutable/);
+    await expect(act()).rejects.toMatchObject({
+      cause: { message: expect.stringMatching(/immutable/) },
+    });
   });
 
   it('rejects a direct rewrite of a line item', async () => {

@@ -158,7 +158,9 @@ describe('prices table constraints', () => {
       values (${priceId}, ${product.id}, 1, now(), 'vnd', 'one_time', 'per_unit', 'unspecified', now(), now())
     `);
 
-    await expect(act).rejects.toThrowError(/prices_per_unit_shape/);
+    await expect(act).rejects.toMatchObject({
+      cause: { message: expect.stringMatching(/prices_per_unit_shape/) },
+    });
   });
 
   it('refuses a recurring price with no interval', async () => {
@@ -170,6 +172,8 @@ describe('prices table constraints', () => {
       values (${priceId}, ${product.id}, 1, now(), 'vnd', 'recurring', 'per_unit', 1000, 'unspecified', now(), now())
     `);
 
-    await expect(act).rejects.toThrowError(/prices_recurring_shape/);
+    await expect(act).rejects.toMatchObject({
+      cause: { message: expect.stringMatching(/prices_recurring_shape/) },
+    });
   });
 });

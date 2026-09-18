@@ -136,7 +136,9 @@ describe('ledger postings', () => {
       sql`update ledger_postings set amount = 1 where transaction_id = ${transactionId}`,
     );
 
-    await expect(act).rejects.toThrowError(/append-only/);
+    await expect(act).rejects.toMatchObject({
+      cause: { message: expect.stringMatching(/append-only/) },
+    });
   });
 
   it('cannot be deleted either', async () => {
@@ -147,7 +149,9 @@ describe('ledger postings', () => {
       sql`delete from ledger_postings where transaction_id = ${transactionId}`,
     );
 
-    await expect(act).rejects.toThrowError(/append-only/);
+    await expect(act).rejects.toMatchObject({
+      cause: { message: expect.stringMatching(/append-only/) },
+    });
   });
 });
 
