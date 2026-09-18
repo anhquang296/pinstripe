@@ -1,9 +1,11 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   createCreditNoteSchema,
+  creditNoteParamsSchema,
   creditNoteSchema,
   findCreditNotesSchema,
   ListResponseSchema,
+  voidCreditNoteSchema,
 } from '@pinstripe/core/contracts';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
@@ -49,6 +51,26 @@ export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     async (request, reply) => {
       const creditNote = await fastify.creditNoteService.getCreditNote(
         request.params.creditNoteId,
+        readLivemode(request),
+      );
+
+      return ApiResponse.success(reply, creditNote);
+    },
+  );
+
+  fastify.post(
+    '/:creditNoteId/void',
+    {
+      schema: {
+        params: creditNoteParamsSchema,
+        body: voidCreditNoteSchema,
+        response: { 200: creditNoteSchema },
+      },
+    },
+    async (request, reply) => {
+      const creditNote = await fastify.creditNoteService.voidCreditNote(
+        request.params.creditNoteId,
+        request.body,
         readLivemode(request),
       );
 
