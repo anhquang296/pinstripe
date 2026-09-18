@@ -11,6 +11,10 @@ export enum LedgerAccountCodeEnum {
   TAX_PAYABLE = 'tax_payable',
   CUSTOMER_CREDIT_BALANCE = 'customer_credit_balance',
   ROUNDING_DIFFERENCE = 'rounding_difference',
+  PSP_RECEIVABLE = 'psp_receivable',
+  PSP_FEES = 'psp_fees',
+  DISPUTES_HELD = 'disputes_held',
+  PAYOUTS_CLEARING = 'payouts_clearing',
 }
 export type LedgerAccountCode = `${LedgerAccountCodeEnum}`;
 
@@ -68,6 +72,26 @@ export const LEDGER_ACCOUNT_DEFINITIONS: Record<LedgerAccountCode, LedgerAccount
   },
   [LedgerAccountCodeEnum.ROUNDING_DIFFERENCE]: {
     type: LedgerAccountTypeEnum.EXPENSE,
+    normalBalance: PostingDirectionEnum.DEBIT,
+    isPerCustomer: false,
+  },
+  [LedgerAccountCodeEnum.PSP_RECEIVABLE]: {
+    type: LedgerAccountTypeEnum.ASSET,
+    normalBalance: PostingDirectionEnum.DEBIT,
+    isPerCustomer: false,
+  },
+  [LedgerAccountCodeEnum.PSP_FEES]: {
+    type: LedgerAccountTypeEnum.EXPENSE,
+    normalBalance: PostingDirectionEnum.DEBIT,
+    isPerCustomer: false,
+  },
+  [LedgerAccountCodeEnum.DISPUTES_HELD]: {
+    type: LedgerAccountTypeEnum.ASSET,
+    normalBalance: PostingDirectionEnum.DEBIT,
+    isPerCustomer: false,
+  },
+  [LedgerAccountCodeEnum.PAYOUTS_CLEARING]: {
+    type: LedgerAccountTypeEnum.ASSET,
     normalBalance: PostingDirectionEnum.DEBIT,
     isPerCustomer: false,
   },
