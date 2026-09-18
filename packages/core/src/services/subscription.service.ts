@@ -135,7 +135,7 @@ export class SubscriptionService {
           currentPeriodEnd: trialEnd ?? advancePeriod(anchor, interval, intervalCount),
           chargedThroughDate: null,
           defaultTaxRates: payload.defaultTaxRates ?? [],
-          defaultPaymentMethod: payload.defaultPaymentMethod ?? null,
+          defaultPaymentMethodId: payload.defaultPaymentMethodId ?? null,
           trialStart: trialEnd ? now : null,
           trialEnd,
           trialEndBehaviorMissingPaymentMethod: missingPaymentMethod,
@@ -548,8 +548,8 @@ export class SubscriptionService {
       changes.cancelAt = payload.cancelAt ? new Date(payload.cancelAt) : null;
     }
 
-    if (payload.defaultPaymentMethod !== undefined) {
-      changes.defaultPaymentMethod = payload.defaultPaymentMethod;
+    if (payload.defaultPaymentMethodId !== undefined) {
+      changes.defaultPaymentMethodId = payload.defaultPaymentMethodId;
     }
 
     if (payload.trialSettings) {
@@ -737,13 +737,13 @@ export class SubscriptionService {
   }
 
   private async resolvePaymentMethod(subscription: Subscription): Promise<string | null> {
-    if (subscription.defaultPaymentMethod) {
-      return subscription.defaultPaymentMethod;
+    if (subscription.defaultPaymentMethodId) {
+      return subscription.defaultPaymentMethodId;
     }
 
     const customer = await this.fastify.customerRepository.findCustomer(subscription.customerId);
 
-    return _.get(customer, 'defaultPaymentMethod', null);
+    return _.get(customer, 'defaultPaymentMethodId', null);
   }
 
   private async writeSubscription(
@@ -916,7 +916,7 @@ export class SubscriptionService {
         ? entity.chargedThroughDate.toISOString()
         : null,
       defaultTaxRates: entity.defaultTaxRates,
-      defaultPaymentMethod: entity.defaultPaymentMethod,
+      defaultPaymentMethodId: entity.defaultPaymentMethodId,
       trialStart: entity.trialStart ? entity.trialStart.toISOString() : null,
       trialEnd: entity.trialEnd ? entity.trialEnd.toISOString() : null,
       trialSettings: {

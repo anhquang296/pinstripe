@@ -16,8 +16,10 @@ import { InvoiceItemService } from '@services/invoice-item.service';
 import { LedgerService } from '@services/ledger.service';
 import { MeterService } from '@services/meter.service';
 import { MeterEventService } from '@services/meter-event.service';
+import { NotificationService } from '@services/notification.service';
 import { OutboxService } from '@services/outbox.service';
 import { PaymentService } from '@services/payment.service';
+import { PaymentMethodService } from '@services/payment-method.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
 import { PromotionCodeService } from '@services/promotion-code.service';
@@ -25,6 +27,7 @@ import { RatingService } from '@services/rating.service';
 import { ReconciliationService } from '@services/reconciliation.service';
 import { RefundService } from '@services/refund.service';
 import { ReportingService } from '@services/reporting.service';
+import { SetupIntentService } from '@services/setup-intent.service';
 import { SubscriptionService } from '@services/subscription.service';
 import { SubscriptionItemService } from '@services/subscription-item.service';
 import { TaxService } from '@services/tax.service';
@@ -68,7 +71,10 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
     new CustomerBalanceTransactionService(fastify),
   );
   fastify.decorate('creditNoteService', new CreditNoteService(fastify));
+  fastify.decorate('notificationService', new NotificationService(fastify));
+  fastify.decorate('paymentMethodService', new PaymentMethodService(fastify));
   fastify.decorate('paymentService', new PaymentService(fastify));
+  fastify.decorate('setupIntentService', new SetupIntentService(fastify));
   fastify.decorate('refundService', new RefundService(fastify));
   fastify.decorate('webhookService', new WebhookService(fastify));
   fastify.decorate('reportingService', new ReportingService(fastify));
@@ -78,6 +84,7 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
     new DunningService(fastify, {
       batchSize: fastify.workflowSchedules.dunningBatchSize,
       retryDelayDays: fastify.workflowSchedules.dunningRetryDelayDays,
+      inFlightTimeoutMs: fastify.workflowSchedules.dunningInFlightTimeoutMs,
     }),
   );
   fastify.decorate(
