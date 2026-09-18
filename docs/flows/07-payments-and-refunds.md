@@ -212,33 +212,38 @@ Client tự khai báo lỗi riêng (`MockPspUnknownTokenError`, `MockPspChargeNo
 
 [refund.service.ts](../../packages/core/src/services/refund.service.ts):
 
-| Kiểm tra                                   | Lỗi                                              |
-| ------------------------------------------ | ------------------------------------------------ |
-| intent phải `succeeded`                    | `... never took money and has nothing to refund` |
-| phải có `pspReference`                     | `... succeeded without a processor reference`    |
-| `amount <= paymentIntent.amount − đã hoàn` | `BadRequestError`                                |
+| Kiểm tra                                    | Lỗi                                              |
+| ------------------------------------------- | ------------------------------------------------ |
+| charge phải `succeeded`                     | `... never took money and has nothing to refund` |
+| phải có `pspReference`                      | `... settled without a processor reference`      |
+| `amount <= charge.amountCaptured − đã hoàn` | `BadRequestError`                                |
 
-Refund ghi `charge_id = paymentIntent.latestChargeId`, nên nó đã trỏ về charge từ phase này; việc
-chuyển hẳn refund về cấp charge (nhiều refund, `refund.updated`) là phase 19.
+Từ phase 19 refund nhận `chargeId`: một charge chịu được nhiều refund miễn còn phần chưa hoàn, và
+phần đã hoàn tính trên các refund `pending` + `succeeded` của chính charge đó.
 
 Thứ tự: gọi PSP **trước**, ghi DB sau. PSP lỗi thì không có hàng nào được ghi (đúng); DB lỗi sau khi
 PSP thành công thì tiền đã đi mà không có bản ghi — khe hở này ở refund vẫn còn, khác với confirm.
 
-Bút toán: **Nợ** `revenue` / **Có** `cash`. Event `refund.created`.
+Refund sinh ra ở trạng thái `pending` và phát `refund.created`. Callback `refund.succeeded` mới ghi
+bút toán **Nợ** `revenue` / **Có** `psp_receivable`, cộng `charges.amount_refunded`, và phát
+`refund.updated`; `refund.failed` chỉ ghi transition và phát `refund.updated`. Trạng thái sống trong
+`refund_transitions` vì `refunds` là append-only — xem [ADR 0020](../adr/0020-money-flow.md).
 
 ## Bảng DB
 
-| Bảng              | Điểm cần nhớ                                                               |
-| ----------------- | -------------------------------------------------------------------------- |
-| `payment_methods` | chỉ `psp_token` + metadata; `detached_at` là mốc không thể quay lại        |
-| `payment_intents` | unique `psp_reference` — một charge không gắn vào hai intent               |
-| `charges`         | một hàng mỗi lần thử; **không** append-only, capture và refund sửa tại chỗ |
-| `setup_intents`   | unique `psp_reference`                                                     |
-| `psp_events`      | unique `(provider, event_id)` — lớp chống gửi trùng                        |
-| `refunds`         | unique `psp_reference`; chỉ ghi thêm                                       |
+| Bảng                   | Điểm cần nhớ                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| `payment_methods`      | chỉ `psp_token` + metadata; `detached_at` là mốc không thể quay lại                |
+| `payment_intents`      | unique `psp_reference` — một charge không gắn vào hai intent                       |
+| `charges`              | một hàng mỗi lần thử; **không** append-only, capture và refund sửa tại chỗ         |
+| `setup_intents`        | unique `psp_reference`                                                             |
+| `psp_events`           | unique `(provider, event_id)` — lớp chống gửi trùng                                |
+| `refunds`              | unique `psp_reference`; chỉ ghi thêm                                               |
+| `refund_transitions`   | append-only; transition mới nhất là trạng thái hiện tại của refund                 |
+| `balance_transactions` | một hàng cho mỗi chuyển động số dư PSP — xem [ADR 0020](../adr/0020-money-flow.md) |
 
 ## Đọc tiếp
 
 - [09 — Dunning](./09-dunning.md) — nơi gọi lại các hàm này theo lịch, và nơi smart retry sống
 - [10 — Ledger](./10-ledger.md)
-- ADR: [0010 payments](../adr/0010-phase-7-payments.md), [0019 payment model](../adr/0019-payment-model.md)
+- ADR: [0010 payments](../adr/0010-phase-7-payments.md), [0019 payment model](../adr/0019-payment-model.md), [0020 dòng tiền](../adr/0020-money-flow.md)

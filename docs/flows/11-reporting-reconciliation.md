@@ -32,34 +32,42 @@ MRR chỉ quy đổi giá `per_unit` — [buildMonthlyAmount](../../packages/cor
 
 Câu hỏi nó trả lời: **những gì nhà xử lý thanh toán nói đã xảy ra, sổ cái có ghi đủ và đúng không.** Đây là công cụ phát hiện khe hở "PSP đã trừ tiền nhưng DB chưa ghi" nói ở [flow 07](./07-payments-and-refunds.md).
 
+Từ phase 19 nó đối chiếu **ba chiều**: PSP ↔ sổ cái ↔ hoá đơn.
+
 ```mermaid
 flowchart LR
-    A["payment_intents succeeded<br/>+ refunds<br/>trong cửa sổ"] -->|"reference = payment_intent:id<br/>hoặc refund:id"| C{so khớp}
-    B["ledger_postings tài khoản cash<br/>gom theo external_id"] --> C
-    C -->|"khớp số tiền"| M[matched]
+    A["charges succeeded<br/>+ refunds succeeded<br/>trong cửa sổ, phân trang"] -->|"reference = charge:id<br/>hoặc refund:id"| C{so khớp}
+    B["ledger_postings psp_receivable + psp_fees<br/>gom theo external_id trong SQL"] --> C
+    D["invoice_payments theo charge_id"] --> C
+    C -->|"ba chiều khớp"| M[matched]
     C -->|"PSP có, ledger không"| E1[missing_in_ledger]
     C -->|"số tiền lệch"| E2[amount_mismatch]
     C -->|"ledger có, PSP không"| E3[missing_in_processor]
+    C -->|"charge có hoá đơn mà không có invoice_payment"| E4[missing_in_invoices]
 ```
 
-| #   | Nơi xảy ra                                                                                       | Làm gì                                                                                                     |
-| --- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| 1   | [resolveProcessorMovements:99-139](../../packages/core/src/services/reconciliation.service.ts)   | lấy intent `succeeded` (lọc theo `updatedAt`) và refund (lọc theo `createdAt`), tối đa 1000 mỗi loại       |
-| 2   | [reconciliation.service.ts:118, 131](../../packages/core/src/services/reconciliation.service.ts) | dựng `reference` = `payment_intent:<id>` / `refund:<id>`; refund mang **số âm**                            |
-| 3   | [resolveLedgerMovements:141-163](../../packages/core/src/services/reconciliation.service.ts)     | lấy posting tài khoản `cash` trong cửa sổ, gom theo `external_id`, debit cộng / credit trừ                 |
-| 4   | [reconciliation.service.ts:37-65](../../packages/core/src/services/reconciliation.service.ts)    | duyệt phía PSP: không có trong ledger → `missing_in_ledger`; lệch số → `amount_mismatch`; bằng → `matched` |
-| 5   | [reconciliation.service.ts:67-82](../../packages/core/src/services/reconciliation.service.ts)    | duyệt ngược: có trong ledger mà PSP không có → `missing_in_processor`                                      |
+| #   | Nơi xảy ra                                  | Làm gì                                                                                                                                                          |
+| --- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `findSettledCharges` / `findSettledRefunds` | duyệt **từng trang** (`PAGE_SIZE = 200`) theo con trỏ `(createdAt, id)` cho tới khi hết — không còn cắt cụt                                                     |
+| 2   | `resolveProcessorMovements`                 | dựng `reference` = `charge:<id>` / `refund:<id>`; refund mang **số âm**                                                                                         |
+| 3   | `resolveLedgerMovements`                    | tổng hợp posting `psp_receivable` + `psp_fees` **bằng `group by external_id` trong SQL**, debit cộng / credit trừ                                               |
+| 4   | `resolveInvoiceSettlements`                 | tổng `invoice_payments.amount` theo `charge_id` của đúng những charge vừa quét                                                                                  |
+| 5   | `reconcileMovement`                         | không có trong ledger → `missing_in_ledger`; lệch số → `amount_mismatch`; charge có hoá đơn mà không có settlement → `missing_in_invoices`; còn lại → `matched` |
+| 6   | `aggregateReconciliationReport`             | duyệt ngược: có trong ledger mà PSP không có → `missing_in_processor`                                                                                           |
 
-Khoá so khớp chính là `externalId` mà [flow 06](./06-invoicing.md) và [flow 07](./07-payments-and-refunds.md) đặt vào bút toán (`payment_intent:<id>`, `refund:<id>`). Chuỗi này là hợp đồng ngầm giữa ba service — đổi định dạng ở một nơi là làm hỏng đối chiếu ở nơi kia, mà không có test nào bắt được.
+Vì một charge ghi `psp_receivable` phần **net** và `psp_fees` phần **phí**, tổng hai tài khoản mới bằng số gộp mà PSP báo — đó là lý do phía sổ cái đọc cả hai mã tài khoản chứ không chỉ một.
 
-Response trả `processorTotal`, `ledgerTotal`, `difference`, `matched` và danh sách `exceptions`.
+Khoá so khớp chính là `externalId` mà [flow 07](./07-payments-and-refunds.md) đặt vào bút toán (`charge:<id>`, `refund:<id>`). Chuỗi này là hợp đồng ngầm giữa ba service — đổi định dạng ở một nơi là làm hỏng đối chiếu ở nơi kia.
+
+Response trả `processorTotal`, `ledgerTotal`, `invoiceTotal`, `difference`, `scanned`, `matched` và danh sách `exceptions`.
 
 ### Giới hạn
 
-- `SCAN_LIMIT = 1000` — [reconciliation.service.ts:11](../../packages/core/src/services/reconciliation.service.ts) — lấy 1000 hàng **mới nhất rồi mới lọc theo cửa sổ**, nên cửa sổ cũ hoặc dữ liệu nhiều có thể sót. Không phân trang.
-- "Phía PSP" thực ra là bảng nội bộ `payment_intents` / `refunds`, không phải gọi ra PSP thật. Nó bắt được lệch giữa **tầng thanh toán và sổ cái**, chưa bắt được lệch giữa hệ thống và nhà cung cấp.
+- "Phía PSP" thực ra là bảng nội bộ `charges` / `refunds`, không phải gọi ra PSP thật. Nó bắt được lệch giữa **tầng thanh toán, sổ cái và hoá đơn**, chưa bắt được lệch giữa hệ thống và nhà cung cấp.
+- Payout và dispute không nằm trong đối chiếu này: chúng không phải giao dịch của khách, và bút toán của chúng mang `externalId` khác tiền tố nên bị bỏ qua có chủ đích.
 
 ## Đọc tiếp
 
 - [10 — Ledger](./10-ledger.md)
 - ADR: [0012 portal, reporting, reconciliation](../adr/0012-phase-9-portal-reporting.md)
+- ADR: [0020 dòng tiền](../adr/0020-money-flow.md)

@@ -29,8 +29,14 @@ Ngoài ra admin ghi tay được qua `POST /api/v1/admin/ledger/transactions` v�
 | `tax_payable`             | liability | credit       |                 |
 | `customer_credit_balance` | liability | credit       | ✅              |
 | `rounding_difference`     | expense   | debit        |                 |
+| `psp_receivable`          | asset     | debit        |                 |
+| `psp_fees`                | expense   | debit        |                 |
+| `disputes_held`           | asset     | debit        |                 |
+| `payouts_clearing`        | asset     | debit        |                 |
 
-`tax_payable` có bút toán từ phase 15: finalize ghi **Có** phần `totalTaxAmount`, void đảo lại — [ADR 0016](../adr/0016-tax-model.md). `customer_credit_balance` dùng từ phase 13. Còn `deferred_revenue` và `rounding_difference` đã khai báo nhưng **chưa có bút toán nào dùng** — chỗ dành sẵn cho ghi nhận doanh thu theo kỳ.
+`tax_payable` có bút toán từ phase 15: finalize ghi **Có** phần `totalTaxAmount`, void đảo lại — [ADR 0016](../adr/0016-tax-model.md). `customer_credit_balance` dùng từ phase 13. Bốn mã cuối là của phase 19 và mô tả phía quỹ: tiền PSP đang giữ, phí PSP đã trừ, tiền bị giữ vì dispute, tiền đang trên đường về ngân hàng — [ADR 0020](../adr/0020-money-flow.md). Còn `deferred_revenue` và `rounding_difference` đã khai báo nhưng **chưa có bút toán nào dùng** — chỗ dành sẵn cho ghi nhận doanh thu theo kỳ.
+
+Từ phase 19, `cash` chỉ đổi khi một payout về tới ngân hàng hoặc khi có khoản thu / trả ngoài luồng; một lần khách trả tiền đi vào `psp_receivable`.
 
 Tài khoản được tạo lười bằng `ensureAccount` — [ledger.service.ts:34-78](../../packages/core/src/services/ledger.service.ts): kiểm tra `isPerCustomer` khớp với việc có `customerId` hay không, tìm trước, chưa có thì INSERT, đụng unique violation thì đọc lại (an toàn khi chạy song song).
 

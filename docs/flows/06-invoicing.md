@@ -106,14 +106,20 @@ owed = total − amountPaid − amountCredited
 
 `createCreditNote` — [credit-note.service.ts:25-87](../../packages/core/src/services/credit-note.service.ts):
 
-| Kiểm tra                                   | Lý do                                                                        |
-| ------------------------------------------ | ---------------------------------------------------------------------------- |
-| hoá đơn không được là `draft`              | nháp thì sửa thẳng, không cần ghi giảm                                       |
-| `amount <= total − amountPaid − đã credit` | credit note chỉ xoá phần **chưa trả**; tiền đã nhận phải trả lại bằng refund |
+Payload mang `lines[]`; tổng các dòng là `amount` của credit note. `type` do dữ liệu quyết định, người gọi không khai:
 
-Ghi xong: cấp số `CN-000045` từ cùng cơ chế `number_sequences`, bút toán **Nợ** `revenue` / **Có** `accounts_receivable`, event `credit_note.created`. Nếu credit vừa đúng phần còn lại thì `settleInvoice` chuyển hoá đơn sang `paid` và bắn `invoice.paid` — [credit-note.service.ts:79-81, 116-139](../../packages/core/src/services/credit-note.service.ts).
+| `type`         | Khi nào                   | Kiểm tra                                                     | Bút toán                                                                                                     |
+| -------------- | ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `pre_payment`  | hoá đơn chưa trả đồng nào | `amount <= amountDue − amountPaid − đã credit`               | **Nợ** `revenue` / **Có** `accounts_receivable`                                                              |
+| `post_payment` | hoá đơn đã trả            | `amount <= amountPaid − đã credit`, `refund + oob <= amount` | phần hoàn tiền do refund ghi; `outOfBandAmount` **Có** `cash`; phần còn lại **Có** `customer_credit_balance` |
 
-Ranh giới credit note ↔ refund là điểm hay lẫn: **chưa thu thì credit, đã thu thì refund.**
+Hoá đơn không được là `draft` — nháp thì sửa thẳng, không cần ghi giảm.
+
+Ghi xong: cấp số `CN-000045` từ cùng cơ chế `number_sequences`, event `credit_note.created`. Với `pre_payment`, nếu credit vừa đúng phần còn lại thì hoá đơn chuyển sang `paid` và bắn `invoice.paid`.
+
+`POST /v1/credit_notes/:id/void` đảo đúng ledger transaction của credit note và ghi transition `void`; chỉ void được credit note chưa trả lại đồng nào, trên hoá đơn còn `open`. Trạng thái sống trong `credit_note_transitions` vì `credit_notes` là append-only — [ADR 0020](../adr/0020-money-flow.md).
+
+Ranh giới credit note ↔ refund là điểm hay lẫn: **chưa thu thì credit, đã thu thì chọn hoàn tiền, trả ngoài luồng, hay ghi vào số dư khách — cả ba đi qua một credit note `post_payment`.**
 
 ## Các con số trong response
 
@@ -137,7 +143,9 @@ Chúng được tính lại mỗi lần đọc, không lưu — nên không bao 
 | `invoice_line_item_tax_amounts` | dòng thuế; mang snapshot `percentage`/`isInclusive`/`taxType`, tắt rate không đổi hoá đơn cũ   |
 | `tax_rates`                     | `percentage` và `inclusive` bất biến; đổi thuế suất là tạo rate mới                            |
 | `tax_ids`                       | `verification` do `TaxQueue` ghi; hôm nay verify là stub kiểm format                           |
-| `credit_notes`                  | chỉ ghi thêm, không sửa                                                                        |
+| `credit_notes`                  | chỉ ghi thêm, không sửa; giữ `refund_id` và `ledger_transaction_id` để void đảo đúng bút toán  |
+| `credit_note_line_items`        | append-only; tổng `amount` của các dòng là `amount` của credit note                            |
+| `credit_note_transitions`       | append-only; transition mới nhất là trạng thái (`issued` / `void`)                             |
 
 ## Thuế
 
