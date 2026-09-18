@@ -1,0 +1,50 @@
+---
+title: Idempotency và retry
+description: Gửi lại request ghi mà không tạo bản ghi trùng.
+sidebar:
+  order: 4
+---
+
+## Idempotency key
+
+Mọi request `POST` / `DELETE` có thể mang header `Idempotency-Key`. API lưu response của lần gọi đầu tiên; gọi lại với cùng key trả đúng response đó, kèm header `idempotent-replayed: true`, và không thực thi lần hai.
+
+SDK tự sinh một key (UUID) cho mỗi request ghi. Muốn tự quản key — ví dụ để retry xuyên qua nhiều lần chạy job — truyền nó qua `options`:
+
+```ts
+await pinstripe.invoices.pay(
+  invoiceId,
+  {},
+  { idempotencyKey: `pay-${invoiceId}-${attemptNumber}` },
+);
+```
+
+Tắt hẳn việc tự sinh key:
+
+```ts
+const pinstripe = new PinstripeClient({ shouldGenerateIdempotencyKey: false });
+```
+
+Dùng lại một key với payload khác sẽ nhận lỗi `idempotency_error`.
+
+## Retry
+
+SDK tự retry khi gặp lỗi mạng hoặc status `408`, `429`, `500`, `502`, `503`, `504`:
+
+- `GET` luôn được retry.
+- Request ghi chỉ được retry khi có idempotency key — mặc định là có.
+- Backoff theo cấp số nhân có jitter, tối đa 5 giây, và tôn trọng header `Retry-After`.
+
+Số lần retry chỉnh ở client (`maxRetries`) hoặc từng request:
+
+```ts
+await pinstripe.customers.get(customerId, { maxRetries: 0 });
+```
+
+Hủy một request đang chạy bằng `AbortSignal`:
+
+```ts
+const controller = new AbortController();
+
+await pinstripe.customers.find({}, { signal: controller.signal });
+```

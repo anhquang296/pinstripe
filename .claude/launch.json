@@ -18,6 +18,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@pinstripe/portal-ui", "dev"],
       "port": 3100
+    },
+    {
+      "name": "docs",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@pinstripe/docs", "dev"],
+      "port": 4321
     }
   ]
 }

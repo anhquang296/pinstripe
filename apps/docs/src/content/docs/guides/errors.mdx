@@ -1,0 +1,47 @@
+---
+title: Xử lý lỗi
+description: PinstripeError, PinstripeConnectionError và envelope lỗi của API.
+sidebar:
+  order: 2
+---
+
+API trả lỗi trong một envelope cố định:
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "message": "No such customer: cus_123",
+    "requestId": "req_8f2k1c9d0a1b"
+  }
+}
+```
+
+`code` và `param` chỉ có mặt khi lỗi gắn với một mã hoặc một tham số cụ thể. SDK chuyển envelope này thành `PinstripeError`, với các field `statusCode`, `type`, `code`, `param`, `requestId` (`code` / `param` là `null` khi vắng).
+
+| `type`                  | Ý nghĩa                                          |
+| ----------------------- | ------------------------------------------------ |
+| `invalid_request_error` | Tham số sai, resource không tồn tại              |
+| `authentication_error`  | Thiếu hoặc sai API key                           |
+| `idempotency_error`     | Idempotency key bị dùng lại với payload khác     |
+| `rate_limit_error`      | Vượt giới hạn request — xem header `ratelimit-*` |
+| `card_error`            | Phương thức thanh toán bị từ chối                |
+| `api_error`             | Lỗi phía server                                  |
+
+Không nhận được response nào (mất mạng, timeout, bị abort) thì SDK ném `PinstripeConnectionError`.
+
+```ts
+import { PinstripeConnectionError, PinstripeError } from '@pinstripe/sdk';
+
+try {
+  await pinstripe.invoices.pay(invoiceId);
+} catch (error) {
+  if (error instanceof PinstripeError) {
+    logger.error({ error, requestId: error.requestId }, 'payInvoice() error');
+  }
+
+  throw error;
+}
+```
+
+Khi báo lỗi cho đội vận hành, gửi kèm `requestId`.

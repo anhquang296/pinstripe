@@ -1,0 +1,36 @@
+---
+title: Webhooks
+description: Nhận event và xác minh chữ ký.
+sidebar:
+  order: 6
+---
+
+Đăng ký một endpoint để nhận event:
+
+```ts
+const webhookEndpoint = await pinstripe.webhookEndpoints.create({
+  url: 'https://example.com/webhooks/pinstripe',
+  enabledEvents: ['invoice.paid', 'invoice.voided'],
+});
+```
+
+Mỗi request gửi tới endpoint mang header `pinstripe-signature`. Xác minh nó trên **raw body** — body đã parse lại thành JSON sẽ không khớp chữ ký:
+
+```ts
+import { WEBHOOK_SIGNATURE_HEADER, webhooks } from '@pinstripe/sdk/node';
+
+app.post('/webhooks/pinstripe', async (request, reply) => {
+  const signatureHeader = request.headers[WEBHOOK_SIGNATURE_HEADER];
+  const event = webhooks.constructEvent(request.rawBody, signatureHeader, webhookSecret);
+
+  await handleEvent(event);
+
+  return reply.code(200).send();
+});
+```
+
+`constructEvent` ném `PinstripeSignatureVerificationError` khi chữ ký sai hoặc quá hạn. Chỉ cần kiểm tra mà không parse thì dùng `webhooks.isSignatureValid(...)`.
+
+Độ lệch thời gian cho phép mặc định là `300` giây (`DEFAULT_WEBHOOK_TOLERANCE_SECONDS`), chỉnh qua tham số `options` cuối cùng.
+
+Delivery thất bại được retry với backoff. Xem lịch sử bằng `pinstripe.webhookDeliveries.find()`.

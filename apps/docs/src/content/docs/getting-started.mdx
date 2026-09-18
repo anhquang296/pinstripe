@@ -1,0 +1,84 @@
+---
+title: Bắt đầu
+description: Cài đặt SDK, tạo client và gọi request đầu tiên.
+---
+
+## Cài đặt
+
+```bash
+pnpm add @pinstripe/sdk
+```
+
+SDK có ba entry:
+
+| Import                 | Dùng cho                                                            |
+| ---------------------- | ------------------------------------------------------------------- |
+| `@pinstripe/sdk`       | `PinstripeClient`, error class, toàn bộ type — chạy ở mọi runtime   |
+| `@pinstripe/sdk/node`  | `createPinstripeClient()` đọc env, và `webhooks` để xác minh chữ ký |
+| `@pinstripe/sdk/react` | `PinstripeProvider` và các hook React Query                         |
+
+## Tạo client trên server
+
+`createPinstripeClient()` đọc cấu hình từ biến môi trường:
+
+| Biến                       | Ý nghĩa                                               |
+| -------------------------- | ----------------------------------------------------- |
+| `PINSTRIPE_API_URL`        | Base URL của API, ví dụ `https://billing.example.com` |
+| `PINSTRIPE_SECRET_API_KEY` | Secret key, gửi dưới dạng `Authorization: Bearer …`   |
+| `PINSTRIPE_MAX_RETRIES`    | Số lần retry tối đa, mặc định `2`                     |
+| `PINSTRIPE_TIMEOUT_MS`     | Timeout mỗi request, mặc định `30000`                 |
+
+```ts
+import { createPinstripeClient } from '@pinstripe/sdk/node';
+
+const pinstripe = createPinstripeClient();
+
+const customer = await pinstripe.customers.create({
+  email: 'khachhang@example.com',
+  name: 'Nguyễn Văn A',
+  currency: 'vnd',
+});
+```
+
+Giá trị truyền vào ghi đè env:
+
+```ts
+const pinstripe = createPinstripeClient({ maxRetries: 0, timeoutMs: 10_000 });
+```
+
+## Tạo client ở mọi runtime
+
+Ngoài Node, dựng `PinstripeClient` trực tiếp với cấu hình tường minh:
+
+```ts
+import { PinstripeClient } from '@pinstripe/sdk';
+
+const pinstripe = new PinstripeClient({
+  baseUrl: 'https://billing.example.com',
+  apiKey: secretApiKey,
+});
+```
+
+| Option                         | Mặc định           |
+| ------------------------------ | ------------------ |
+| `baseUrl`                      | `''` (cùng origin) |
+| `apiKey`                       | không gửi header   |
+| `fetch`                        | `globalThis.fetch` |
+| `maxRetries`                   | `2`                |
+| `timeoutMs`                    | `30000`            |
+| `shouldGenerateIdempotencyKey` | `true`             |
+
+## Cách gọi
+
+Method nằm trên resource, tên method không lặp lại tên entity:
+
+```ts
+const customers = await pinstripe.customers.find({ limit: 20 });
+const customer = await pinstripe.customers.get('cus_123');
+const invoice = await pinstripe.invoices.finalize('in_123');
+const clock = await pinstripe.testHelpers.testClocks.advance('clock_123', {
+  frozenTime: '2026-10-01T00:00:00Z',
+});
+```
+
+`get` ném `PinstripeError` khi không tìm thấy; `find` trả về một list, rỗng nếu không có gì. Danh sách đầy đủ ở trang [Resources](/resources/).

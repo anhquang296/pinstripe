@@ -1,0 +1,22 @@
+---
+title: Xác thực
+description: API key và cách gửi nó.
+sidebar:
+  order: 1
+---
+
+Mọi request tới `/v1` phải mang secret key trong header `Authorization`:
+
+```bash
+curl https://billing.example.com/v1/customers \
+  -H "Authorization: Bearer $PINSTRIPE_SECRET_API_KEY"
+```
+
+SDK tự thêm header này từ `apiKey` (hoặc `PINSTRIPE_SECRET_API_KEY` khi dùng `createPinstripeClient()`).
+
+| Status | Khi nào                                        | `error.type`            |
+| ------ | ---------------------------------------------- | ----------------------- |
+| `401`  | Thiếu header, hoặc key không tồn tại           | `authentication_error`  |
+| `403`  | Key hợp lệ nhưng không có quyền gọi surface v1 | `invalid_request_error` |
+
+Secret key chỉ được dùng ở server. Không nhúng nó vào bundle frontend.

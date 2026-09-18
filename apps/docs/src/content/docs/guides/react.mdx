@@ -1,0 +1,75 @@
+---
+title: React
+description: PinstripeProvider và các hook React Query dựng sẵn.
+sidebar:
+  order: 7
+---
+
+`@pinstripe/sdk/react` cung cấp hook cho từng resource, dựng trên TanStack Query. Cần cài thêm `@tanstack/react-query` và `@lukemorales/query-key-factory`.
+
+## Provider
+
+Bọc app một lần. `onMutationError` / `onMutationSuccess` là nơi duy nhất nối toast của app vào SDK:
+
+```tsx
+import { PinstripeClient } from '@pinstripe/sdk';
+import { PinstripeProvider } from '@pinstripe/sdk/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const pinstripe = new PinstripeClient({ baseUrl: '/api' });
+const queryClient = new QueryClient();
+
+export default function AppProvider({ children }: AppProviderProps) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <PinstripeProvider
+        client={pinstripe}
+        onMutationError={handleOnMutationError}
+        onMutationSuccess={handleOnMutationSuccess}
+      >
+        {children}
+      </PinstripeProvider>
+    </QueryClientProvider>
+  );
+}
+```
+
+## Query
+
+```tsx
+const { data: customers, isLoading } = useCustomersQuery({ limit: 20 });
+const { data: customer } = useCustomerQuery(customerId);
+```
+
+Tham số cuối là `{ enabled, hasPlaceholder }` — `hasPlaceholder` giữ trang cũ trong lúc tải trang mới.
+
+## Mutation
+
+```tsx
+const { mutateAsync: createCustomer, isPending } = useCreateCustomerMutation({
+  successMessage: 'Đã tạo khách hàng.',
+});
+
+await createCustomer(payload);
+```
+
+Mutation tự invalidate các query liên quan. `successMessage` nhận chuỗi, hoặc hàm nhận kết quả:
+
+```tsx
+useFinalizeInvoiceMutation({
+  successMessage: (invoice) => {
+    return `Đã phát hành ${invoice.number}.`;
+  },
+});
+```
+
+Không truyền `successMessage` thì không toast. Lỗi luôn đi qua `onMutationError` với một `PinstripeError`.
+
+## Tự dựng query
+
+Cần query chưa có hook sẵn, dùng key factory từ provider:
+
+```tsx
+const queries = usePinstripeQueries();
+const { data: invoice } = useQuery({ ...queries.invoice.invoice(invoiceId) });
+```

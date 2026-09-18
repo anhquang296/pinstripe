@@ -1,0 +1,48 @@
+---
+title: Phân trang
+description: Cursor pagination với limit, startingAfter và endingBefore.
+sidebar:
+  order: 3
+---
+
+Mọi method `find` trả về `ListResponse<T>`:
+
+```ts
+interface ListResponse<T> {
+  url: string;
+  hasMore: boolean;
+  data: T[];
+}
+```
+
+| Tham số         | Ý nghĩa                                        |
+| --------------- | ---------------------------------------------- |
+| `limit`         | Số phần tử mỗi trang, `1`–`100`, mặc định `10` |
+| `startingAfter` | Lấy các phần tử **sau** id này                 |
+| `endingBefore`  | Lấy các phần tử **trước** id này               |
+
+Duyệt hết một collection:
+
+```ts
+let startingAfter: string | undefined;
+
+for (;;) {
+  const page = await pinstripe.customers.find({ limit: 100, startingAfter });
+
+  for (const customer of page.data) {
+    await syncCustomer(customer);
+  }
+
+  const lastCustomer = page.data.at(-1);
+
+  if (page.hasMore && lastCustomer) {
+    startingAfter = lastCustomer.id;
+
+    continue;
+  }
+
+  break;
+}
+```
+
+Danh sách rỗng là một kết quả hợp lệ — `find` không bao giờ ném lỗi vì không có gì để trả.

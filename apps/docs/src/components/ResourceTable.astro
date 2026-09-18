@@ -1,0 +1,87 @@
+---
+import { PinstripeClient } from '@pinstripe/sdk';
+
+import openapi from '../data/openapi.json';
+
+interface Operation {
+  operationId: string;
+  tags: string[];
+}
+
+interface ResourceRow {
+  httpMethod: string;
+  path: string;
+  operationId: string;
+  hasSdkMethod: boolean;
+}
+
+const client = new PinstripeClient();
+
+function resolveSdkMethod(operationId: string): unknown {
+  return operationId.split('.').reduce<unknown>((receiver, key) => {
+    if (receiver && typeof receiver === 'object') {
+      return Reflect.get(receiver, key);
+    }
+
+    return undefined;
+  }, client);
+}
+
+const rowsByTag = new Map<string, ResourceRow[]>();
+
+for (const [path, operations] of Object.entries(openapi.paths)) {
+  for (const [httpMethod, operation] of Object.entries(operations as Record<string, Operation>)) {
+    const { operationId, tags } = operation;
+    const [tag = operationId] = tags;
+    const tagRows = rowsByTag.get(tag) ?? [];
+
+    rowsByTag.set(tag, [
+      ...tagRows,
+      {
+        httpMethod: httpMethod.toUpperCase(),
+        path,
+        operationId,
+        hasSdkMethod: typeof resolveSdkMethod(operationId) === 'function',
+      },
+    ]);
+  }
+}
+---
+
+{
+  [...rowsByTag.entries()].map(([tag, rows]) => {
+    return (
+      <section>
+        <h2>{tag}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>SDK</th>
+              <th>HTTP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => {
+              return (
+                <tr>
+                  <td>
+                    {row.hasSdkMethod ? (
+                      <code>pinstripe.{row.operationId}()</code>
+                    ) : (
+                      <span>Chưa có trong SDK</span>
+                    )}
+                  </td>
+                  <td>
+                    <code>
+                      {row.httpMethod} {row.path}
+                    </code>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+    );
+  })
+}
