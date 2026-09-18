@@ -1,6 +1,22 @@
-import type { PaymentAttemptOutcome, PaymentIntentStatus } from '@contracts/payments.types';
+import type {
+  CaptureMethod,
+  ChargeOutcome,
+  ChargeStatus,
+  DeclineCode,
+  FailureCode,
+  NextAction,
+  PaymentCancellationReason,
+  PaymentIntentStatus,
+  PaymentMethodDetails,
+  PspEventType,
+  PspProvider,
+} from '@contracts/payments.types';
+import { CaptureMethodEnum } from '@contracts/payments.types';
+import type { SetupIntentStatus, SetupIntentUsage } from '@contracts/setup-intents.types';
+import { SetupIntentUsageEnum } from '@contracts/setup-intents.types';
 import { customers } from '@database/schemas/customers.schema';
 import { invoices } from '@database/schemas/invoices.schema';
+import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import type { Currency } from '@utils/currency';
 import {
   bigint,
@@ -29,9 +45,21 @@ export const paymentIntents = pgTable(
     status: text('status').$type<PaymentIntentStatus>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     amount: bigint('amount', { mode: 'number' }).notNull(),
-    paymentMethod: text('payment_method'),
+    amountCapturable: bigint('amount_capturable', { mode: 'number' }).notNull().default(0),
+    amountReceived: bigint('amount_received', { mode: 'number' }).notNull().default(0),
+    captureMethod: text('capture_method')
+      .$type<CaptureMethod>()
+      .notNull()
+      .default(CaptureMethodEnum.AUTOMATIC),
+    paymentMethodId: text('payment_method_id').references(() => {
+      return paymentMethods.id;
+    }),
+    latestChargeId: text('latest_charge_id'),
+    nextAction: jsonb('next_action').$type<NextAction>(),
+    cancellationReason: text('cancellation_reason').$type<PaymentCancellationReason>(),
     pspReference: text('psp_reference'),
-    failureCode: text('failure_code'),
+    failureCode: text('failure_code').$type<FailureCode>(),
+    declineCode: text('decline_code').$type<DeclineCode>(),
     failureMessage: text('failure_message'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -47,8 +75,8 @@ export const paymentIntents = pgTable(
   },
 );
 
-export const paymentAttempts = pgTable(
-  'payment_attempts',
+export const charges = pgTable(
+  'charges',
   {
     id: text('id').primaryKey(),
     livemode: boolean('livemode').notNull(),
@@ -57,14 +85,94 @@ export const paymentAttempts = pgTable(
       .references(() => {
         return paymentIntents.id;
       }),
-    paymentMethod: text('payment_method').notNull(),
-    outcome: text('outcome').$type<PaymentAttemptOutcome>().notNull(),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => {
+        return customers.id;
+      }),
+    paymentMethodId: text('payment_method_id').references(() => {
+      return paymentMethods.id;
+    }),
+    currency: text('currency').$type<Currency>().notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    amountCaptured: bigint('amount_captured', { mode: 'number' }).notNull().default(0),
+    amountRefunded: bigint('amount_refunded', { mode: 'number' }).notNull().default(0),
+    captured: boolean('captured').notNull().default(false),
+    status: text('status').$type<ChargeStatus>().notNull(),
+    outcome: text('outcome').$type<ChargeOutcome>().notNull(),
+    balanceTransactionId: text('balance_transaction_id'),
+    paymentMethodDetails: jsonb('payment_method_details')
+      .$type<PaymentMethodDetails>()
+      .notNull()
+      .default({}),
+    failureCode: text('failure_code').$type<FailureCode>(),
+    declineCode: text('decline_code').$type<DeclineCode>(),
+    failureMessage: text('failure_message'),
     pspReference: text('psp_reference'),
-    failureCode: text('failure_code'),
+    metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => {
-    return [index('payment_attempts_payment_intent_id_idx').on(table.paymentIntentId)];
+    return [
+      index('charges_payment_intent_id_idx').on(table.paymentIntentId),
+      index('charges_customer_id_idx').on(table.customerId),
+      index('charges_created_at_id_idx').on(table.createdAt, table.id),
+    ];
+  },
+);
+
+export const setupIntents = pgTable(
+  'setup_intents',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => {
+        return customers.id;
+      }),
+    status: text('status').$type<SetupIntentStatus>().notNull(),
+    usage: text('usage')
+      .$type<SetupIntentUsage>()
+      .notNull()
+      .default(SetupIntentUsageEnum.OFF_SESSION),
+    paymentMethodId: text('payment_method_id').references(() => {
+      return paymentMethods.id;
+    }),
+    nextAction: jsonb('next_action').$type<NextAction>(),
+    cancellationReason: text('cancellation_reason').$type<PaymentCancellationReason>(),
+    pspReference: text('psp_reference'),
+    failureCode: text('failure_code').$type<FailureCode>(),
+    failureMessage: text('failure_message'),
+    metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      index('setup_intents_customer_id_idx').on(table.customerId),
+      index('setup_intents_created_at_id_idx').on(table.createdAt, table.id),
+      uniqueIndex('setup_intents_psp_reference_idx').on(table.pspReference),
+    ];
+  },
+);
+
+export const pspEvents = pgTable(
+  'psp_events',
+  {
+    id: text('id').primaryKey(),
+    provider: text('provider').$type<PspProvider>().notNull(),
+    eventId: text('event_id').notNull(),
+    type: text('type').$type<PspEventType>().notNull(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default({}),
+    receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      uniqueIndex('psp_events_provider_event_id_idx').on(table.provider, table.eventId),
+      index('psp_events_received_at_id_idx').on(table.receivedAt, table.id),
+    ];
   },
 );
 
@@ -78,6 +186,9 @@ export const refunds = pgTable(
       .references(() => {
         return paymentIntents.id;
       }),
+    chargeId: text('charge_id').references(() => {
+      return charges.id;
+    }),
     invoiceId: text('invoice_id').references(() => {
       return invoices.id;
     }),
@@ -97,6 +208,7 @@ export const refunds = pgTable(
     return [
       index('refunds_invoice_id_idx').on(table.invoiceId),
       index('refunds_payment_intent_id_idx').on(table.paymentIntentId),
+      index('refunds_charge_id_idx').on(table.chargeId),
       index('refunds_created_at_id_idx').on(table.createdAt, table.id),
       uniqueIndex('refunds_psp_reference_idx').on(table.pspReference),
     ];
@@ -105,7 +217,11 @@ export const refunds = pgTable(
 
 export type PaymentIntent = typeof paymentIntents.$inferSelect;
 export type NewPaymentIntent = typeof paymentIntents.$inferInsert;
-export type PaymentAttempt = typeof paymentAttempts.$inferSelect;
-export type NewPaymentAttempt = typeof paymentAttempts.$inferInsert;
+export type Charge = typeof charges.$inferSelect;
+export type NewCharge = typeof charges.$inferInsert;
+export type SetupIntent = typeof setupIntents.$inferSelect;
+export type NewSetupIntent = typeof setupIntents.$inferInsert;
+export type PspEvent = typeof pspEvents.$inferSelect;
+export type NewPspEvent = typeof pspEvents.$inferInsert;
 export type Refund = typeof refunds.$inferSelect;
 export type NewRefund = typeof refunds.$inferInsert;

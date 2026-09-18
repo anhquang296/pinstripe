@@ -263,6 +263,7 @@ export const invoicePayments = pgTable(
         return invoices.id;
       }),
     paymentIntentId: text('payment_intent_id'),
+    chargeId: text('charge_id'),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     settlementReference: text('settlement_reference'),
     paidAt: timestamp('paid_at', { withTimezone: true }).notNull(),
@@ -272,6 +273,9 @@ export const invoicePayments = pgTable(
     return [
       index('invoice_payments_invoice_id_idx').on(table.invoiceId),
       index('invoice_payments_payment_intent_id_idx').on(table.paymentIntentId),
+      uniqueIndex('invoice_payments_settlement_reference_idx')
+        .on(table.livemode, table.settlementReference)
+        .where(sql`settlement_reference is not null`),
     ];
   },
 );
