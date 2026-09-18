@@ -91,6 +91,12 @@ Tag không khai tay: `v1.routes.ts` gán tag từ prefix, và route không tag b
 - `queries` đến từ `usePinstripeQueries()` chứ không phải một module import — vì `queryFn` cần client, và client là instance của provider.
 - Tên hook, hình dạng key và mọi site invalidate `_def` giữ nguyên như rule mô tả.
 
+**Mỗi method của resource phải có ít nhất một hook gọi tới.** `src/react/hook-coverage.test.ts` duyệt
+mọi resource của `PinstripeClient` rồi khẳng định điều đó, nên thêm một method mà không thêm hook là
+một test đỏ. Ngoại lệ duy nhất là `portal.*` — trừ `portal.links.create`, phần còn lại là bề mặt của
+`portal-ui`, và danh sách ngoại lệ nằm ngay trong test đó. App không bao giờ gọi thẳng resource: đường
+duy nhất tới dữ liệu là hook.
+
 Toast: một package không import được `sonner`. Mutation hook trong SDK tự invalidate rồi gọi `onMutationError` / `onMutationSuccess` từ provider; app nối `toast` vào đó **một lần** (`apps/admin-ui/src/lib/pinstripe.tsx`). Yêu cầu "đúng một toast entry point" của rule được thoả về mặt cấu trúc, và chuỗi text ở lại trong app — SDK không sở hữu chữ tiếng Việt nào.
 
 `MutationProps<TData>.successMessage` thay `shouldBeSuccessToast`: call site truyền chữ, SDK không biết chữ. Nó nhận `string`, hoặc `(data: TData) => string` khi chữ cần nội dung của kết quả (`Đã phát hành ${invoice.number}.`). Không truyền gì thì không toast — mặc định im lặng, không phải mặc định bật.
