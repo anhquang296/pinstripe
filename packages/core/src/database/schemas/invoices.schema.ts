@@ -118,6 +118,7 @@ export const invoiceLineItems = pgTable(
         return invoices.id;
       }),
     subscriptionItemId: text('subscription_item_id'),
+    subscriptionItemChangeId: text('subscription_item_change_id'),
     invoiceItemId: text('invoice_item_id'),
     priceId: text('price_id').references(() => {
       return prices.id;

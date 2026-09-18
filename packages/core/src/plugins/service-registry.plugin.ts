@@ -1,5 +1,6 @@
 import { ApiKeyService } from '@services/api-key.service';
 import { BillingRunService } from '@services/billing-run.service';
+import { ClockService } from '@services/clock.service';
 import { CouponService } from '@services/coupon.service';
 import { CreditNoteService } from '@services/credit-note.service';
 import { CustomerService } from '@services/customer.service';
@@ -25,6 +26,7 @@ import { ReconciliationService } from '@services/reconciliation.service';
 import { RefundService } from '@services/refund.service';
 import { ReportingService } from '@services/reporting.service';
 import { SubscriptionService } from '@services/subscription.service';
+import { SubscriptionItemService } from '@services/subscription-item.service';
 import { TaxService } from '@services/tax.service';
 import { TaxIdService } from '@services/tax-id.service';
 import { TaxRateService } from '@services/tax-rate.service';
@@ -46,7 +48,9 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('priceService', new PriceService(fastify));
   fastify.decorate('ledgerService', new LedgerService(fastify));
   fastify.decorate('entitlementService', new EntitlementService(fastify));
+  fastify.decorate('clockService', new ClockService(fastify));
   fastify.decorate('subscriptionService', new SubscriptionService(fastify));
+  fastify.decorate('subscriptionItemService', new SubscriptionItemService(fastify));
   fastify.decorate('ratingService', new RatingService(fastify));
   fastify.decorate(
     'invoiceService',

@@ -1,4 +1,11 @@
-import type { CollectionMethod, SubscriptionStatus } from '@contracts/subscriptions.types';
+import type {
+  CancellationReason,
+  CollectionMethod,
+  PauseCollectionBehavior,
+  SubscriptionStatus,
+  TrialEndBehavior,
+} from '@contracts/subscriptions.types';
+import { TrialEndBehaviorEnum } from '@contracts/subscriptions.types';
 import { customers } from '@database/schemas/customers.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { testClocks } from '@database/schemas/test-clocks.schema';
@@ -34,8 +41,19 @@ export const subscriptions = pgTable(
     chargedThroughDate: timestamp('charged_through_date', { withTimezone: true }),
     trialStart: timestamp('trial_start', { withTimezone: true }),
     trialEnd: timestamp('trial_end', { withTimezone: true }),
+    trialEndBehaviorMissingPaymentMethod: text('trial_end_behavior_missing_payment_method')
+      .$type<TrialEndBehavior>()
+      .notNull()
+      .default(TrialEndBehaviorEnum.CREATE_INVOICE),
     defaultTaxRates: jsonb('default_tax_rates').$type<string[]>().notNull().default([]),
+    defaultPaymentMethod: text('default_payment_method'),
+    pauseCollectionBehavior: text('pause_collection_behavior').$type<PauseCollectionBehavior>(),
+    pauseCollectionResumesAt: timestamp('pause_collection_resumes_at', { withTimezone: true }),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
+    cancelAt: timestamp('cancel_at', { withTimezone: true }),
+    cancellationReason: text('cancellation_reason').$type<CancellationReason>(),
+    cancellationComment: text('cancellation_comment'),
+    cancellationFeedback: text('cancellation_feedback'),
     canceledAt: timestamp('canceled_at', { withTimezone: true }),
     endedAt: timestamp('ended_at', { withTimezone: true }),
     testClockId: text('test_clock_id').references(() => {
@@ -50,6 +68,9 @@ export const subscriptions = pgTable(
       index('subscriptions_customer_id_idx').on(table.customerId),
       index('subscriptions_created_at_id_idx').on(table.createdAt, table.id),
       index('subscriptions_status_current_period_end_idx').on(table.status, table.currentPeriodEnd),
+      index('subscriptions_status_updated_at_idx').on(table.status, table.updatedAt),
+      index('subscriptions_cancel_at_idx').on(table.cancelAt),
+      index('subscriptions_pause_collection_resumes_at_idx').on(table.pauseCollectionResumesAt),
       index('subscriptions_test_clock_id_idx').on(table.testClockId),
       check(
         'subscriptions_test_clock_is_test_mode',
@@ -79,12 +100,44 @@ export const subscriptionItems = pgTable(
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
-    billedFrom: timestamp('billed_from', { withTimezone: true }).notNull().defaultNow(),
-    billedThrough: timestamp('billed_through', { withTimezone: true }),
-    invoicedThrough: timestamp('invoiced_through', { withTimezone: true }),
   },
   (table) => {
     return [index('subscription_items_subscription_id_idx').on(table.subscriptionId)];
+  },
+);
+
+export const subscriptionItemChanges = pgTable(
+  'subscription_item_changes',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    subscriptionId: text('subscription_id')
+      .notNull()
+      .references(() => {
+        return subscriptions.id;
+      }),
+    subscriptionItemId: text('subscription_item_id')
+      .notNull()
+      .references(() => {
+        return subscriptionItems.id;
+      }),
+    priceId: text('price_id')
+      .notNull()
+      .references(() => {
+        return prices.id;
+      }),
+    quantity: integer('quantity').notNull().default(1),
+    billedFrom: timestamp('billed_from', { withTimezone: true }).notNull(),
+    billedThrough: timestamp('billed_through', { withTimezone: true }),
+    invoicedThrough: timestamp('invoiced_through', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      index('subscription_item_changes_subscription_id_idx').on(table.subscriptionId),
+      index('subscription_item_changes_subscription_item_id_idx').on(table.subscriptionItemId),
+      index('subscription_item_changes_billed_from_idx').on(table.subscriptionId, table.billedFrom),
+    ];
   },
 );
 
@@ -92,3 +145,5 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
 export type SubscriptionItem = typeof subscriptionItems.$inferSelect;
 export type NewSubscriptionItem = typeof subscriptionItems.$inferInsert;
+export type SubscriptionItemChange = typeof subscriptionItemChanges.$inferSelect;
+export type NewSubscriptionItemChange = typeof subscriptionItemChanges.$inferInsert;

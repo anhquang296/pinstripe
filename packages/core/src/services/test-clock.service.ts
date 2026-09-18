@@ -89,7 +89,7 @@ export class TestClockService {
 
     try {
       await this.fastify.testClockRepository.updateTestClock(id, { frozenTime: target });
-      await this.fastify.subscriptionService.advanceSubscriptions(id, target);
+      await this.fastify.subscriptionService.runSubscriptionLifecycle({ testClockId: id }, target);
     } catch (error) {
       await this.fastify.testClockRepository.updateTestClock(id, {
         status: TestClockStatusEnum.READY,

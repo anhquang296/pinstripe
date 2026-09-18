@@ -276,7 +276,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
     await expect(act).rejects.toThrowError(BadRequestError);
   });
 
-  it('records the swap instant as the billing boundary on both the removed and the replacement item', async () => {
+  it('records the swap instant as the billing boundary on both the closed and the replacement window', async () => {
     const { customer, price, clockId } = await buildScenario();
     const subscription = await fastify.subscriptionService.createSubscription(
       {
@@ -286,25 +286,27 @@ describe('SubscriptionService.updateSubscription proration', () => {
       false,
     );
 
+    const [itemBefore] = subscription.items;
+
     await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_AT });
-    await fastify.subscriptionService.updateSubscription(subscription.id, {
-      items: [{ priceId: price.id }],
+    const updated = await fastify.subscriptionService.updateSubscription(subscription.id, {
+      items: [{ priceId: price.id, quantity: 4 }],
     });
 
-    const items = await fastify.subscriptionRepository.findSubscriptionItems({
+    const changes = await fastify.subscriptionRepository.findSubscriptionItemChanges({
       subscriptionIds: [subscription.id],
     });
-    const removedItem = _.find(items, (item) => {
-      return item.deletedAt !== null;
+    const closedChange = _.find(changes, (change) => {
+      return change.billedThrough !== null;
     });
-    const liveItem = _.find(items, (item) => {
-      return item.deletedAt === null;
+    const openChange = _.find(changes, (change) => {
+      return change.billedThrough === null;
     });
 
-    const billedThrough = _.get(removedItem, 'billedThrough', null);
-
-    expect(billedThrough?.toISOString()).toBe(SWAP_AT);
-    expect(liveItem?.billedFrom.toISOString()).toBe(SWAP_AT);
+    expect(_.map(updated.items, 'id')).toEqual([itemBefore?.id]);
+    expect(_.get(closedChange, 'billedThrough')?.toISOString()).toBe(SWAP_AT);
+    expect(_.get(openChange, 'billedFrom')?.toISOString()).toBe(SWAP_AT);
+    expect(_.get(openChange, 'quantity')).toBe(4);
   });
 
   it('records the period start as the billing boundary when no proration is wanted', async () => {
@@ -319,18 +321,18 @@ describe('SubscriptionService.updateSubscription proration', () => {
 
     await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_AT });
     await fastify.subscriptionService.updateSubscription(subscription.id, {
-      items: [{ priceId: price.id }],
+      items: [{ priceId: price.id, quantity: 2 }],
       prorationBehavior: ProrationBehaviorEnum.NONE,
     });
 
-    const items = await fastify.subscriptionRepository.findSubscriptionItems({
+    const changes = await fastify.subscriptionRepository.findSubscriptionItemChanges({
       subscriptionIds: [subscription.id],
     });
-    const liveItem = _.find(items, (item) => {
-      return item.deletedAt === null;
+    const openChange = _.find(changes, (change) => {
+      return change.billedThrough === null;
     });
 
-    expect(liveItem?.billedFrom.toISOString()).toBe(subscription.currentPeriodStart);
+    expect(_.get(openChange, 'billedFrom')?.toISOString()).toBe(subscription.currentPeriodStart);
   });
 
   it('leaves no invoice behind when an always_invoice update is rejected', async () => {

@@ -37,6 +37,7 @@ export interface RatingPrice {
 
 export interface RatingLine {
   subscriptionItemId: string;
+  subscriptionItemChangeId: string;
   price: RatingPrice;
   type: LineItemType;
   quantity: number;
@@ -49,6 +50,7 @@ export interface RatingLine {
 
 export interface RatedLineItem {
   subscriptionItemId: string;
+  subscriptionItemChangeId: string;
   priceId: string;
   type: LineItemType;
   quantity: number;
@@ -221,6 +223,7 @@ export function rateLine(line: RatingLine): RatedLineItem {
 
   return {
     subscriptionItemId: line.subscriptionItemId,
+    subscriptionItemChangeId: line.subscriptionItemChangeId,
     priceId: line.price.id,
     type: line.type,
     quantity: line.quantity,

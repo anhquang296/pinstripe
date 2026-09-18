@@ -7,8 +7,6 @@ import type { DunningRunShardJob } from '@queues/dunning.queue';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
-const DEFAULT_PAYMENT_METHOD = 'pm_card_ok';
-const PAYMENT_METHOD_METADATA_KEY = 'defaultPaymentMethod';
 const REUSABLE_INTENT_STATUSES = [
   PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD,
   PaymentIntentStatusEnum.REQUIRES_CONFIRMATION,
@@ -84,18 +82,29 @@ export class DunningService {
   }
 
   private async collectInvoice(invoice: Invoice, runAt: Date): Promise<DunningOutcome> {
+    const now = await this.resolveDunningNow(invoice, runAt);
     const owed = await this.fastify.invoiceService.getInvoice(invoice.id, invoice.livemode);
 
     if (owed.amountRemaining <= 0) {
       await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
         nextAttemptAt: null,
-        updatedAt: runAt,
+        updatedAt: now,
       });
 
       return DunningOutcomeEnum.SETTLED;
     }
 
-    const paymentMethod = await this.resolvePaymentMethod(invoice.customerId);
+    const paymentMethod = await this.resolvePaymentMethod(invoice);
+
+    if (!paymentMethod) {
+      this.fastify.log.warn(
+        { invoiceId: invoice.id, customerId: invoice.customerId },
+        '[DunningService] collectInvoice() no default payment method to charge',
+      );
+
+      return this.failAttempt(invoice, now, null);
+    }
+
     const paymentIntentId = await this.resolveCollectionIntentId(invoice, paymentMethod);
     const confirmed = await this.fastify.paymentService.confirmPaymentIntent(
       paymentIntentId,
@@ -106,33 +115,84 @@ export class DunningService {
     if (confirmed.status === PaymentIntentStatusEnum.SUCCEEDED) {
       await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
         nextAttemptAt: null,
-        updatedAt: runAt,
+        updatedAt: now,
       });
+
+      await this.settleSubscription(invoice, now);
 
       return DunningOutcomeEnum.COLLECTED;
     }
 
+    return this.failAttempt(invoice, now, confirmed.failureCode);
+  }
+
+  private async failAttempt(
+    invoice: Invoice,
+    now: Date,
+    failureCode: string | null,
+  ): Promise<DunningOutcome> {
     const attemptCount = invoice.attemptCount + 1;
     const nextDelayDays = this.config.retryDelayDays[attemptCount];
 
     if (_.isNil(nextDelayDays)) {
-      await this.abandonInvoice(invoice, runAt, attemptCount);
+      await this.abandonInvoice(invoice, now, attemptCount);
+      await this.markSubscriptionFailed(invoice, now, true);
 
       return DunningOutcomeEnum.ABANDONED;
     }
 
     await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
       attemptCount,
-      nextAttemptAt: new Date(runAt.getTime() + nextDelayDays * MILLISECONDS_PER_DAY),
-      updatedAt: runAt,
+      nextAttemptAt: new Date(now.getTime() + nextDelayDays * MILLISECONDS_PER_DAY),
+      updatedAt: now,
     });
 
+    await this.markSubscriptionFailed(invoice, now, false);
+
     this.fastify.log.info(
-      { invoiceId: invoice.id, attemptCount, failureCode: confirmed.failureCode },
-      '[DunningService] collectInvoice() scheduled another attempt',
+      { invoiceId: invoice.id, attemptCount, failureCode },
+      '[DunningService] failAttempt() scheduled another attempt',
     );
 
     return DunningOutcomeEnum.RETRIED;
+  }
+
+  private async resolveDunningNow(invoice: Invoice, runAt: Date): Promise<Date> {
+    const invoiceNow = await this.fastify.clockService.resolveInvoiceNow(invoice);
+
+    if (invoiceNow.getTime() > runAt.getTime()) {
+      return invoiceNow;
+    }
+
+    return runAt;
+  }
+
+  private async settleSubscription(invoice: Invoice, now: Date): Promise<void> {
+    const { subscriptionId } = invoice;
+
+    if (subscriptionId) {
+      await this.fastify.subscriptionService.handleInvoicePaymentSucceeded(
+        subscriptionId,
+        now,
+        invoice.periodEnd,
+      );
+    }
+  }
+
+  private async markSubscriptionFailed(
+    invoice: Invoice,
+    now: Date,
+    isFinalAttempt: boolean,
+  ): Promise<void> {
+    const { subscriptionId } = invoice;
+
+    if (subscriptionId) {
+      await this.fastify.subscriptionService.handleInvoicePaymentFailed(
+        subscriptionId,
+        now,
+        isFinalAttempt,
+      );
+    }
   }
 
   private async resolveCollectionIntentId(
@@ -156,13 +216,25 @@ export class DunningService {
     return createdIntent.id;
   }
 
-  private async resolvePaymentMethod(customerId: string): Promise<string> {
-    const customer = await this.fastify.customerRepository.findCustomer(customerId);
+  private async resolvePaymentMethod(invoice: Invoice): Promise<string | null> {
+    const { subscriptionId } = invoice;
 
-    return _.get(customer, ['metadata', PAYMENT_METHOD_METADATA_KEY], DEFAULT_PAYMENT_METHOD);
+    if (subscriptionId) {
+      const subscription =
+        await this.fastify.subscriptionRepository.findSubscription(subscriptionId);
+      const subscriptionPaymentMethod = _.get(subscription, 'defaultPaymentMethod', null);
+
+      if (subscriptionPaymentMethod) {
+        return subscriptionPaymentMethod;
+      }
+    }
+
+    const customer = await this.fastify.customerRepository.findCustomer(invoice.customerId);
+
+    return _.get(customer, 'defaultPaymentMethod', null);
   }
 
-  private async abandonInvoice(invoice: Invoice, runAt: Date, attemptCount: number): Promise<void> {
+  private async abandonInvoice(invoice: Invoice, now: Date, attemptCount: number): Promise<void> {
     await this.fastify.database.master.transaction(async (tx) => {
       const abandoned = await this.fastify.invoiceRepository.updateInvoice(
         invoice.id,
@@ -170,7 +242,7 @@ export class DunningService {
           status: InvoiceStatusEnum.UNCOLLECTIBLE,
           attemptCount,
           nextAttemptAt: null,
-          updatedAt: runAt,
+          updatedAt: now,
         },
         tx,
       );

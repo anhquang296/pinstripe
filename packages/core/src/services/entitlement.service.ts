@@ -17,10 +17,12 @@ const ENTITLEMENT_CACHE_TTL_SECONDS = 300;
 
 const ENTITLEMENT_BY_SUBSCRIPTION_STATUS: Record<SubscriptionStatus, EntitlementStatus> = {
   [SubscriptionStatusEnum.INCOMPLETE]: EntitlementStatusEnum.BLOCKED,
+  [SubscriptionStatusEnum.INCOMPLETE_EXPIRED]: EntitlementStatusEnum.REVOKED,
   [SubscriptionStatusEnum.TRIALING]: EntitlementStatusEnum.ACTIVE,
   [SubscriptionStatusEnum.ACTIVE]: EntitlementStatusEnum.ACTIVE,
   [SubscriptionStatusEnum.PAST_DUE]: EntitlementStatusEnum.ACTIVE,
   [SubscriptionStatusEnum.UNPAID]: EntitlementStatusEnum.BLOCKED,
+  [SubscriptionStatusEnum.PAUSED]: EntitlementStatusEnum.ACTIVE,
   [SubscriptionStatusEnum.CANCELED]: EntitlementStatusEnum.REVOKED,
 };
 

@@ -64,7 +64,12 @@ nhau, và trước migration 0015 chúng bị gộp làm một:
 | `billed_through`   | ngừng phát sinh tiền lúc nào; `NULL` = chưa | rating                       |
 | `invoiced_through` | phần cửa sổ **đã xuất hoá đơn** tới đâu     | rating, để không thu hai lần |
 
-([subscriptions.schema.ts:62-66](../../packages/core/src/database/schemas/subscriptions.schema.ts))
+([subscriptions.schema.ts](../../packages/core/src/database/schemas/subscriptions.schema.ts))
+
+> **Đã đổi ở phase 16.** Ba cột cửa sổ (`billed_from` / `billed_through` / `invoiced_through`) không
+> còn nằm trên `subscription_items` mà ở bảng riêng `subscription_item_changes`, mỗi hàng một cửa sổ
+> mang `price_id` và `quantity` của chính nó — nên đổi quantity giữ nguyên id item. Cách tính cửa sổ
+> mô tả bên dưới giữ nguyên, chỉ đổi chỗ đọc. Xem [ADR 0017](../adr/0017-subscription-lifecycle.md).
 
 Tách ra là vì `prorationBehavior` là tham số của **lần thay đổi**, không phải thuộc tính của product,
 price hay subscription — nhưng rating chạy **trễ**, ở lúc finalize hoá đơn, có khi nhiều tuần sau. Ý

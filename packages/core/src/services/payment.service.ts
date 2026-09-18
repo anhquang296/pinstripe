@@ -24,8 +24,6 @@ import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
-const DEFAULT_PAYMENT_METHOD = 'pm_card_ok';
-
 export class PaymentService {
   constructor(private readonly fastify: FastifyInstance) {}
 
@@ -103,8 +101,7 @@ export class PaymentService {
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.SUCCEEDED);
 
-    const paymentMethod =
-      payload.paymentMethod ?? paymentIntent.paymentMethod ?? DEFAULT_PAYMENT_METHOD;
+    const paymentMethod = await this.resolvePaymentMethod(paymentIntent, payload);
     const charge = await this.fastify.psp.createCharge({
       paymentMethod,
       amount: paymentIntent.amount,
@@ -373,6 +370,29 @@ export class PaymentService {
     ]);
 
     return PaymentService.buildPaymentIntentWithAttempts(paymentIntent, attempts);
+  }
+
+  private async resolvePaymentMethod(
+    paymentIntent: PaymentIntent,
+    payload: ConfirmPaymentIntentPayload,
+  ): Promise<string> {
+    const requested = payload.paymentMethod ?? paymentIntent.paymentMethod;
+
+    if (requested) {
+      return requested;
+    }
+
+    const customer = await this.fastify.customerRepository.findCustomer(paymentIntent.customerId);
+    const defaultPaymentMethod = _.get(customer, 'defaultPaymentMethod', null);
+
+    if (defaultPaymentMethod) {
+      return defaultPaymentMethod;
+    }
+
+    throw new BadRequestError(
+      `Payment intent ${paymentIntent.id} has no payment method to charge`,
+      { param: 'paymentMethod' },
+    );
   }
 
   private static assertTransition(from: PaymentIntentStatus, to: PaymentIntentStatus): void {

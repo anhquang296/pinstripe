@@ -10,6 +10,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildTestContext } from './context';
 import { TEST_LIVEMODE } from './factories';
 
+const APPROVED_METHOD = 'pm_card_ok';
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const MONTHLY_AMOUNT = 500_000;
 const MONTHS_PER_YEAR = 12;
@@ -36,6 +37,7 @@ async function makeActiveSubscription(
     {
       email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
+      defaultPaymentMethod: APPROVED_METHOD,
       testClockId: clock.id,
     },
     false,
