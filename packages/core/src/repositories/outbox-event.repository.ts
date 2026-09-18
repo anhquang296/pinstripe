@@ -15,7 +15,7 @@ interface ClaimedOutboxEventRow {
   eventType: DomainEventType;
   payload: Record<string, unknown>;
   attemptCount: number;
-  occurredAt: string | Date;
+  occurredAt: string;
 }
 
 export interface ClaimedOutboxEvent {
@@ -26,7 +26,7 @@ export interface ClaimedOutboxEvent {
   eventType: DomainEventType;
   payload: Record<string, unknown>;
   attemptCount: number;
-  occurredAt: Date;
+  occurredAt: string;
 }
 
 export class OutboxEventRepository {
@@ -90,12 +90,12 @@ export class OutboxEventRepository {
         eventType: row.eventType,
         payload: row.payload,
         attemptCount: row.attemptCount,
-        occurredAt: new Date(row.occurredAt),
+        occurredAt: new Date(row.occurredAt).toISOString(),
       };
     });
   }
 
-  async publishOutboxEvents(ids: readonly string[], publishedAt: Date): Promise<void> {
+  async publishOutboxEvents(ids: readonly string[], publishedAt: string): Promise<void> {
     if (_.isEmpty(ids)) {
       return;
     }

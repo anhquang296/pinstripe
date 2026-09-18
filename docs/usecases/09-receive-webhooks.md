@@ -71,18 +71,18 @@ toast mà chưa copy thì phải tạo endpoint mới. Không có đường nào
 
 ## Kịch bản chính — một event đi ra
 
-| #   | Ở đâu                                                                                                                     | Chuyện gì xảy ra                                                                                                                |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 7   | bất kỳ service                                                                                                            | ghi `outbox_events` trong cùng transaction với nghiệp vụ — [flow 02](../flows/02-event-pipeline.md)                             |
-| 8   | Worker `outbox`                                                                                                           | claim bằng `FOR UPDATE SKIP LOCKED`, đẩy `DomainEventQueue` với `jobId = event.id`                                              |
-| 9   | Service [webhook.service.ts:130-136](../../packages/core/src/services/webhook.service.ts)                                 | lấy tối đa **200** endpoint `enabled`, lọc `enabledEvents` chứa `eventType`                                                     |
-| 10  | Service [webhook.service.ts:142-166](../../packages/core/src/services/webhook.service.ts)                                 | payload `{ id, object: 'event', type, createdAt, data: { object } }`; INSERT một `webhook_deliveries` cho **mỗi** endpoint khớp |
-| 11  | Service [webhook.service.ts:177-188](../../packages/core/src/services/webhook.service.ts)                                 | đẩy job với `attempts: WEBHOOK_MAX_ATTEMPTS` (5), backoff mũ từ `WEBHOOK_BACKOFF_MS` (2s)                                       |
-| 12  | Service [webhook.service.ts:203](../../packages/core/src/services/webhook.service.ts)                                     | ký **tại thời điểm gửi**, bằng secret hiện tại của endpoint                                                                     |
-| 13  | Util [webhook-signature.ts:10-15](../../packages/core/src/utils/webhook-signature.ts)                                     | HMAC-SHA256 trên `<unix timestamp>.<body>`, header dạng `t=…,v1=<hex>`                                                          |
-| 14  | Processor [webhook-delivery.processor.ts:45-53](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts) | `fetch` POST, timeout `WEBHOOK_TIMEOUT_MS` (5s)                                                                                 |
-| 15  | Service [webhook.service.ts:207-220](../../packages/core/src/services/webhook.service.ts)                                 | chỉ `response.ok` (2xx) là `succeeded` + `delivered_at`; còn lại `failed` + `last_error`                                        |
-| 16  | Processor [webhook-delivery.processor.ts:36](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts)    | thất bại thì `throw` để BullMQ retry                                                                                            |
+| #   | Ở đâu                                                                                                                     | Chuyện gì xảy ra                                                                                               |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 7   | bất kỳ service                                                                                                            | ghi `outbox_events` trong cùng transaction với nghiệp vụ — [flow 02](../flows/02-event-pipeline.md)            |
+| 8   | Worker `outbox`                                                                                                           | claim bằng `FOR UPDATE SKIP LOCKED`, đẩy `DomainEventQueue` với `jobId = event.id`                             |
+| 9   | Service [webhook.service.ts:130-136](../../packages/core/src/services/webhook.service.ts)                                 | lấy tối đa **200** endpoint `enabled`, lọc `enabledEvents` chứa `eventType`                                    |
+| 10  | Service [webhook.service.ts:142-166](../../packages/core/src/services/webhook.service.ts)                                 | payload `{ id, type, createdAt, data: { object } }`; INSERT một `webhook_deliveries` cho **mỗi** endpoint khớp |
+| 11  | Service [webhook.service.ts:177-188](../../packages/core/src/services/webhook.service.ts)                                 | đẩy job với `attempts: WEBHOOK_MAX_ATTEMPTS` (5), backoff mũ từ `WEBHOOK_BACKOFF_MS` (2s)                      |
+| 12  | Service [webhook.service.ts:203](../../packages/core/src/services/webhook.service.ts)                                     | ký **tại thời điểm gửi**, bằng secret hiện tại của endpoint                                                    |
+| 13  | Util [webhook-signature.ts:10-15](../../packages/core/src/utils/webhook-signature.ts)                                     | HMAC-SHA256 trên `<unix timestamp>.<body>`, header dạng `t=…,v1=<hex>`                                         |
+| 14  | Processor [webhook-delivery.processor.ts:45-53](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts) | `fetch` POST, timeout `WEBHOOK_TIMEOUT_MS` (5s)                                                                |
+| 15  | Service [webhook.service.ts:207-220](../../packages/core/src/services/webhook.service.ts)                                 | chỉ `response.ok` (2xx) là `succeeded` + `delivered_at`; còn lại `failed` + `last_error`                       |
+| 16  | Processor [webhook-delivery.processor.ts:36](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts)    | thất bại thì `throw` để BullMQ retry                                                                           |
 
 `attemptCount` lấy từ `job.attemptsMade + 1`, nên cột "Số lần thử" trên UI phản ánh đúng lần thứ mấy.
 
@@ -196,7 +196,7 @@ Lấy `signature` và `body` mà server in ra, rồi tự tính lại:
 ```bash
 SECRET='whsec_...'
 SIG='t=1736956800,v1=abc...'
-BODY='{"id":"evt_...","object":"event",...}'
+BODY='{"id":"evt_...","type":"invoice.paid",...}'
 
 TS=$(echo "$SIG" | sed -E 's/^t=([0-9]+).*/\1/')
 V1=$(echo "$SIG" | sed -E 's/.*v1=([0-9a-f]+).*/\1/')

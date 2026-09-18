@@ -13,7 +13,7 @@ import type {
   WebhookEndpointResponse,
 } from '@contracts/webhooks.types';
 import { WebhookDeliveryStatusEnum, WebhookEndpointStatusEnum } from '@contracts/webhooks.types';
-import type { WebhookDelivery, WebhookEndpoint } from '@database/schemas';
+import type { WebhookEndpoint } from '@database/schemas';
 import { ConflictError, NotFoundError, TooManyRequestsError } from '@errors/app.error';
 import type { DomainEventDispatchJob } from '@queues/domain-event.queue';
 import { QueueNameEnum } from '@queues/queue-name';
@@ -45,7 +45,7 @@ export class WebhookService {
     payload: CreateWebhookEndpointPayload,
     livemode: boolean,
   ): Promise<WebhookEndpointResponse> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.WEBHOOK_ENDPOINT);
     const createdEndpoint = await this.fastify.webhookRepository.createWebhookEndpoint({
       id,
@@ -78,7 +78,7 @@ export class WebhookService {
       enabledEvents: payload.enabledEvents ? [...payload.enabledEvents] : undefined,
       description: payload.description,
       metadata: payload.metadata,
-      updatedAt: this.fastify.clock.now(),
+      updatedAt: this.fastify.clock.now().toISOString(),
     });
 
     if (updatedEndpoint) {
@@ -111,7 +111,6 @@ export class WebhookService {
     );
 
     return {
-      object: 'list',
       url: '/v1/webhook_endpoints',
       hasMore: rows.length > limit,
       data: _.map(_.take(rows, limit), (endpoint) => {
@@ -131,10 +130,9 @@ export class WebhookService {
     );
 
     return {
-      object: 'list',
       url: '/v1/webhook_deliveries',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(WebhookService.buildDelivery).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -151,10 +149,9 @@ export class WebhookService {
       return 0;
     }
 
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const payload: PinstripeEvent = {
       id: event.eventId,
-      object: 'event',
       type: event.eventType,
       createdAt: event.occurredAt,
       data: { object: event.payload },
@@ -173,7 +170,7 @@ export class WebhookService {
           lastError: null,
           payload,
           deliveredAt: null,
-          createdAt: now,
+          createdAt,
         };
       }),
     );
@@ -259,13 +256,14 @@ export class WebhookService {
   ): Promise<void> {
     const isSucceeded = result.error === null;
     const isExhausted = result.attemptCount >= this.fastify.workflowSchedules.webhookMaxAttempts;
+    const deliveredAt = isSucceeded ? this.fastify.clock.now().toISOString() : null;
 
     await this.fastify.webhookRepository.updateWebhookDelivery(deliveryId, {
       status: WebhookService.resolveDeliveryStatus(isSucceeded, isExhausted),
       attemptCount: result.attemptCount,
       responseStatus: result.responseStatus,
       lastError: result.error,
-      deliveredAt: isSucceeded ? this.fastify.clock.now() : null,
+      deliveredAt,
     });
   }
 
@@ -298,7 +296,7 @@ export class WebhookService {
     await this.removeQueuedDelivery(deliveryId);
     await this.dispatchWebhookDelivery(deliveryId);
 
-    return WebhookService.buildDelivery(replayed);
+    return replayed;
   }
 
   private static resolveDeliveryStatus(
@@ -341,7 +339,6 @@ export class WebhookService {
     options: { hasSecret: boolean },
   ): WebhookEndpointResponse {
     return {
-      object: 'webhook_endpoint',
       id: entity.id,
       url: entity.url,
       status: entity.status,
@@ -349,24 +346,8 @@ export class WebhookService {
       description: entity.description,
       secret: options.hasSecret ? entity.secret : null,
       metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
-  }
-
-  private static buildDelivery(entity: WebhookDelivery): WebhookDeliveryResponse {
-    return {
-      object: 'webhook_delivery',
-      id: entity.id,
-      endpointId: entity.endpointId,
-      eventId: entity.eventId,
-      eventType: entity.eventType,
-      status: entity.status,
-      attemptCount: entity.attemptCount,
-      responseStatus: entity.responseStatus,
-      lastError: entity.lastError,
-      deliveredAt: entity.deliveredAt ? entity.deliveredAt.toISOString() : null,
-      createdAt: entity.createdAt.toISOString(),
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
     };
   }
 }

@@ -34,17 +34,14 @@ export class RatingService {
 
   async rateUpcomingInvoice(subscriptionId: string): Promise<RatedInvoiceResponse> {
     const subscription = await this.getSubscription(subscriptionId);
+    const { periodStart, periodEnd } = RatingService.readCurrentPeriod(subscription);
 
     if (subscription.billingMode === BillingModeEnum.ARREARS) {
-      return this.rateInvoicePeriod(
-        subscriptionId,
-        subscription.currentPeriodStart,
-        subscription.currentPeriodEnd,
-      );
+      return this.rateInvoicePeriod(subscriptionId, periodStart, periodEnd);
     }
 
     const { interval, intervalCount } = await this.resolveSubscriptionInterval(subscriptionId);
-    const nextPeriodStart = subscription.currentPeriodEnd;
+    const nextPeriodStart = periodEnd;
 
     return this.rateInvoicePeriod(
       subscriptionId,
@@ -75,10 +72,7 @@ export class RatingService {
     executor?: DatabaseTransaction,
   ): Promise<RatedInvoiceResponse> {
     const subscription = await this.getSubscription(subscriptionId);
-    const period: RatingPeriod = {
-      periodStart: subscription.currentPeriodStart,
-      periodEnd: subscription.currentPeriodEnd,
-    };
+    const period = RatingService.readCurrentPeriod(subscription);
 
     if (subscription.billingMode === BillingModeEnum.ADVANCE) {
       const changes = await this.findPeriodChanges(subscriptionId, period, executor);
@@ -91,8 +85,8 @@ export class RatingService {
       {
         subscriptionIds: [subscriptionId],
         billedThroughIsNull: false,
-        billedFromBeforeAt: period.periodEnd,
-        billedThroughAfterAt: period.periodStart,
+        billedFromBeforeAt: period.periodEnd.toISOString(),
+        billedThroughAfterAt: period.periodStart.toISOString(),
       },
       executor,
     );
@@ -136,13 +130,7 @@ export class RatingService {
       const price = RatingService.readPrice(priceById, change.priceId);
 
       if (price.usageType !== UsageTypeEnum.METERED) {
-        const window = resolveBillingWindow(
-          change.billedFrom,
-          change.billedThrough,
-          change.invoicedThrough,
-          period.periodStart,
-          period.periodEnd,
-        );
+        const window = RatingService.resolveChangeWindow(change, period);
 
         if (window) {
           lines.push(RatingService.buildLicensedLine(change, price, window, period, false));
@@ -163,13 +151,7 @@ export class RatingService {
 
     for (const change of changes) {
       const price = RatingService.readPrice(priceById, change.priceId);
-      const window = resolveBillingWindow(
-        change.billedFrom,
-        change.billedThrough,
-        change.invoicedThrough,
-        period.periodStart,
-        period.periodEnd,
-      );
+      const window = RatingService.resolveChangeWindow(change, period);
 
       if (price.usageType === UsageTypeEnum.METERED) {
         if (window) {
@@ -184,8 +166,8 @@ export class RatingService {
       }
 
       const creditWindow = resolveCreditWindow(
-        change.billedThrough,
-        change.invoicedThrough,
+        RatingService.resolveInstant(change.billedThrough),
+        RatingService.resolveInstant(change.invoicedThrough),
         period.periodStart,
         period.periodEnd,
       );
@@ -206,8 +188,8 @@ export class RatingService {
     return this.fastify.subscriptionRepository.findSubscriptionItemChanges(
       {
         subscriptionIds: [subscriptionId],
-        billedFromBeforeAt: period.periodEnd,
-        billedThroughAfterAt: period.periodStart,
+        billedFromBeforeAt: period.periodEnd.toISOString(),
+        billedThroughAfterAt: period.periodStart.toISOString(),
       },
       executor,
     );
@@ -253,7 +235,6 @@ export class RatingService {
     const { lineItems, total } = rateLines(lines, subscription.currency);
 
     return {
-      object: 'rated_invoice',
       subscriptionId: subscription.id,
       customerId: subscription.customerId,
       currency: subscription.currency,
@@ -274,13 +255,7 @@ export class RatingService {
 
     for (const change of changes) {
       const price = RatingService.readPrice(priceById, change.priceId);
-      const window = resolveBillingWindow(
-        change.billedFrom,
-        change.billedThrough,
-        change.invoicedThrough,
-        period.periodStart,
-        period.periodEnd,
-      );
+      const window = RatingService.resolveChangeWindow(change, period);
 
       if (window) {
         if (price.usageType === UsageTypeEnum.METERED) {
@@ -387,6 +362,34 @@ export class RatingService {
     throw new NotFoundError(`No such price: ${priceId}`);
   }
 
+  private static readCurrentPeriod(subscription: Subscription): RatingPeriod {
+    return {
+      periodStart: new Date(subscription.currentPeriodStart),
+      periodEnd: new Date(subscription.currentPeriodEnd),
+    };
+  }
+
+  private static resolveChangeWindow(
+    change: SubscriptionItemChange,
+    period: RatingPeriod,
+  ): BillingWindow | null {
+    return resolveBillingWindow(
+      new Date(change.billedFrom),
+      RatingService.resolveInstant(change.billedThrough),
+      RatingService.resolveInstant(change.invoicedThrough),
+      period.periodStart,
+      period.periodEnd,
+    );
+  }
+
+  private static resolveInstant(instant: string | null): Date | null {
+    if (instant) {
+      return new Date(instant);
+    }
+
+    return null;
+  }
+
   private static resolveLineItemType(isPartial: boolean): LineItemType {
     if (isPartial) {
       return LineItemTypeEnum.PRORATION;
@@ -409,7 +412,6 @@ export class RatingService {
 
   private static buildLineItem(lineItem: RatedLineItem): RatedInvoiceResponse['lineItems'][number] {
     return {
-      object: 'rated_line_item',
       subscriptionItemId: lineItem.subscriptionItemId,
       subscriptionItemChangeId: lineItem.subscriptionItemChangeId,
       priceId: lineItem.priceId,

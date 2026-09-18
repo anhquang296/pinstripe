@@ -35,7 +35,6 @@ export const CHECKOUT_SESSION_TRANSITIONS: Record<CheckoutSessionStatus, Checkou
   };
 
 export const checkoutSessionSchema = Type.Object({
-  object: Type.Literal('checkout.session'),
   id: Type.String(),
   livemode: Type.Boolean(),
   mode: Type.Unsafe<CheckoutSessionMode>(Type.Enum(CheckoutSessionModeEnum)),
@@ -56,7 +55,6 @@ export const checkoutSessionSchema = Type.Object({
   setupIntentId: Type.Union([Type.String(), Type.Null()]),
   lineItems: Type.Array(
     Type.Object({
-      object: Type.Literal('checkout.session.line_item'),
       id: Type.String(),
       priceId: Type.String(),
       quantity: Type.Integer(),

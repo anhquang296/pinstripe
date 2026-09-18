@@ -50,10 +50,10 @@ export class TaxRateRepository {
       filters.stateIsNull ? isNull(taxRates.state) : undefined,
       filters.taxType ? eq(taxRates.taxType, filters.taxType) : undefined,
       filters.beforeAt
-        ? sql`(${taxRates.createdAt}, ${taxRates.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${taxRates.createdAt}, ${taxRates.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${taxRates.createdAt}, ${taxRates.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${taxRates.createdAt}, ${taxRates.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

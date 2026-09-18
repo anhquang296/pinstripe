@@ -40,6 +40,10 @@ export class IdempotencyService {
     const requestHash = IdempotencyService.buildRequestHash(payload);
 
     const now = this.fastify.clock.now();
+    const lockedAt = now.toISOString();
+    const expiresAt = new Date(
+      now.getTime() + this.config.retentionHours * MILLISECONDS_PER_HOUR,
+    ).toISOString();
 
     const createdIdempotencyKey = await this.fastify.idempotencyKeyRepository.createIdempotencyKey({
       id: generateGid(ObjectPrefixEnum.REQUEST),
@@ -48,10 +52,10 @@ export class IdempotencyService {
       route: payload.route,
       requestHash,
       status: IdempotencyStatusEnum.IN_PROGRESS,
-      lockedAt: now,
-      createdAt: now,
-      updatedAt: now,
-      expiresAt: new Date(now.getTime() + this.config.retentionHours * MILLISECONDS_PER_HOUR),
+      lockedAt,
+      createdAt: lockedAt,
+      updatedAt: lockedAt,
+      expiresAt,
     });
 
     if (createdIdempotencyKey) {
@@ -91,7 +95,7 @@ export class IdempotencyService {
 
   async deleteExpiredRequests(): Promise<void> {
     await this.fastify.idempotencyKeyRepository.deleteExpiredIdempotencyKeys(
-      this.fastify.clock.now(),
+      this.fastify.clock.now().toISOString(),
     );
   }
 

@@ -1,5 +1,7 @@
 import type { ApiKeyScope, ApiKeyType } from '@contracts/api-keys.types';
-import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
+import { sql } from 'drizzle-orm';
+import { boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const apiKeys = pgTable(
   'api_keys',
@@ -11,10 +13,14 @@ export const apiKeys = pgTable(
     livemode: boolean('livemode').notNull(),
     tokenPrefix: text('token_prefix').notNull(),
     tokenHash: text('token_hash').notNull(),
-    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
-    revokedAt: timestamp('revoked_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: isoTimestamp('last_used_at'),
+    revokedAt: isoTimestamp('revoked_at'),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

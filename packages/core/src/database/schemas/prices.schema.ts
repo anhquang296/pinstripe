@@ -7,6 +7,7 @@ import type {
   TiersMode,
   UsageType,
 } from '@contracts/prices.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { meters } from '@database/schemas/meters.schema';
 import { products } from '@database/schemas/products.schema';
 import type { Currency } from '@utils/currency';
@@ -20,7 +21,6 @@ import {
   jsonb,
   pgTable,
   text,
-  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -36,7 +36,7 @@ export const prices = pgTable(
       }),
     lookupKey: text('lookup_key'),
     version: integer('version').notNull().default(1),
-    effectiveAt: timestamp('effective_at', { withTimezone: true }).notNull(),
+    effectiveAt: isoTimestamp('effective_at').notNull(),
     active: boolean('active').notNull().default(true),
     nickname: text('nickname').notNull().default(''),
     currency: text('currency').$type<Currency>().notNull(),
@@ -55,8 +55,12 @@ export const prices = pgTable(
     transformQuantity:
       jsonb('transform_quantity').$type<NonNullable<PriceContract['transformQuantity']>>(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

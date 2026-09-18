@@ -6,7 +6,6 @@ import type { Currency } from '@utils/currency';
 import { CurrencyEnum } from '@utils/currency';
 
 export const paymentLinkSchema = Type.Object({
-  object: Type.Literal('payment_link'),
   id: Type.String(),
   livemode: Type.Boolean(),
   isActive: Type.Boolean(),
@@ -16,7 +15,6 @@ export const paymentLinkSchema = Type.Object({
   successUrl: Type.String(),
   lineItems: Type.Array(
     Type.Object({
-      object: Type.Literal('payment_link.line_item'),
       id: Type.String(),
       priceId: Type.String(),
       quantity: Type.Integer(),

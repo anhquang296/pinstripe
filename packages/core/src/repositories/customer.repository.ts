@@ -40,10 +40,10 @@ export class CustomerRepository {
       filters.ids ? inArray(customers.id, [...filters.ids]) : undefined,
       filters.email ? eq(customers.email, filters.email) : undefined,
       filters.beforeAt
-        ? sql`(${customers.createdAt}, ${customers.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${customers.createdAt}, ${customers.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${customers.createdAt}, ${customers.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${customers.createdAt}, ${customers.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -93,7 +93,7 @@ export class CustomerRepository {
 
   async archiveCustomer(
     id: string,
-    deletedAt: Date,
+    deletedAt: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;

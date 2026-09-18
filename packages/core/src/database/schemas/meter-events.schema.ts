@@ -1,3 +1,4 @@
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { meters } from '@database/schemas/meters.schema';
 import {
@@ -7,7 +8,6 @@ import {
   jsonb,
   pgTable,
   text,
-  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -30,8 +30,8 @@ export const meterEvents = pgTable(
     eventName: text('event_name').notNull(),
     value: doublePrecision('value').notNull(),
     payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default({}),
-    timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
-    receivedAt: timestamp('received_at', { withTimezone: true }).notNull(),
+    timestamp: isoTimestamp('timestamp').notNull(),
+    receivedAt: isoTimestamp('received_at').notNull(),
   },
   (table) => {
     return [

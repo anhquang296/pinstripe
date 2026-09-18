@@ -62,3 +62,7 @@ export function generateGid(prefix: ObjectPrefix): string {
 export function hasPrefix(gid: string, prefix: ObjectPrefix): boolean {
   return _.startsWith(gid, `${prefix}_`);
 }
+
+export function resolveGidPrefix(gid: string): string {
+  return _.join(_.dropRight(_.split(gid, '_')), '_');
+}

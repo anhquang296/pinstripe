@@ -15,7 +15,6 @@ export enum CustomerBalanceTransactionTypeEnum {
 export type CustomerBalanceTransactionType = `${CustomerBalanceTransactionTypeEnum}`;
 
 export const customerSchema = Type.Object({
-  object: Type.Literal('customer'),
   id: Type.String(),
   livemode: Type.Boolean(),
   email: Type.Union([Type.String(), Type.Null()]),
@@ -109,13 +108,11 @@ export const findCustomersSchema = Type.Object(
 );
 
 export const deletedCustomerSchema = Type.Object({
-  object: Type.Literal('customer'),
   id: Type.String(),
   deleted: Type.Literal(true),
 });
 
 export const customerBalanceTransactionSchema = Type.Object({
-  object: Type.Literal('customer_balance_transaction'),
   id: Type.String(),
   livemode: Type.Boolean(),
   customerId: Type.String(),

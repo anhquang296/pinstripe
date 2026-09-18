@@ -50,7 +50,6 @@ export enum AuthorityStatusEnum {
 export type AuthorityStatus = `${AuthorityStatusEnum}`;
 
 export const taxRateSchema = Type.Object({
-  object: Type.Literal('tax_rate'),
   id: Type.String(),
   livemode: Type.Boolean(),
   displayName: Type.String(),
@@ -68,7 +67,6 @@ export const taxRateSchema = Type.Object({
 });
 
 export const taxIdSchema = Type.Object({
-  object: Type.Literal('tax_id'),
   id: Type.String(),
   livemode: Type.Boolean(),
   customerId: Type.String(),
@@ -88,7 +86,6 @@ export const taxIdSchema = Type.Object({
 });
 
 export const deletedTaxIdSchema = Type.Object({
-  object: Type.Literal('tax_id'),
   id: Type.String(),
   deleted: Type.Literal(true),
 });

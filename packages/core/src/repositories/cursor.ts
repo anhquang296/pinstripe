@@ -1,4 +1,4 @@
 export interface RowCursor {
-  createdAt: Date;
+  createdAt: string;
   id: string;
 }

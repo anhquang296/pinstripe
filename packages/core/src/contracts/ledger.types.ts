@@ -98,7 +98,6 @@ export const LEDGER_ACCOUNT_DEFINITIONS: Record<LedgerAccountCode, LedgerAccount
 };
 
 export const ledgerAccountSchema = Type.Object({
-  object: Type.Literal('ledger_account'),
   id: Type.String(),
   code: Type.Unsafe<LedgerAccountCode>(Type.Enum(LedgerAccountCodeEnum)),
   type: Type.Unsafe<LedgerAccountType>(Type.Enum(LedgerAccountTypeEnum)),
@@ -112,7 +111,6 @@ export const ledgerAccountSchema = Type.Object({
 });
 
 export const ledgerPostingSchema = Type.Object({
-  object: Type.Literal('ledger_posting'),
   id: Type.String(),
   transactionId: Type.String(),
   accountId: Type.String(),
@@ -124,7 +122,6 @@ export const ledgerPostingSchema = Type.Object({
 });
 
 export const ledgerTransactionSchema = Type.Object({
-  object: Type.Literal('ledger_transaction'),
   id: Type.String(),
   description: Type.String(),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),

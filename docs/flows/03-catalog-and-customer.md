@@ -60,7 +60,7 @@ Kiểu Stripe, không dùng offset:
 2. Repo so sánh bộ đôi: `(created_at, id) < (cursor.createdAt, cursor.id)` — [customer.repository.ts:38-43](../../packages/core/src/repositories/customer.repository.ts). Index `customers_created_at_id_idx` phục vụ đúng thứ tự này.
 3. Service query `limit + 1` hàng, `hasMore = rows.length > limit`, rồi cắt về `limit` — [customer.service.ts:158-169](../../packages/core/src/services/customer.service.ts).
 
-Vỏ response luôn là `{ object: 'list', url, hasMore, data }`.
+Vỏ response luôn là `{ url, hasMore, data }`. Không có trường `object`, xem [ADR 0021](../adr/0021-iso-timestamps-and-no-object-field.md).
 
 ## Product
 

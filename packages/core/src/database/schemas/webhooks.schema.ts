@@ -1,5 +1,7 @@
 import type { WebhookDeliveryStatus, WebhookEndpointStatus } from '@contracts/webhooks.types';
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
+import { sql } from 'drizzle-orm';
+import { boolean, index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const webhookEndpoints = pgTable(
   'webhook_endpoints',
@@ -12,8 +14,12 @@ export const webhookEndpoints = pgTable(
     description: text('description').notNull().default(''),
     secret: text('secret').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -40,8 +46,10 @@ export const webhookDeliveries = pgTable(
     responseStatus: integer('response_status'),
     lastError: text('last_error'),
     payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
-    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    deliveredAt: isoTimestamp('delivered_at'),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

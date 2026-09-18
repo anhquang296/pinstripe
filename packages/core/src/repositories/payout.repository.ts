@@ -13,7 +13,7 @@ export interface PayoutFilters {
   status?: PayoutStatus;
   statuses?: readonly PayoutStatus[];
   pspReference?: string;
-  arrivalBeforeAt?: Date;
+  arrivalBeforeAt?: string;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
@@ -44,10 +44,10 @@ export class PayoutRepository {
       filters.pspReference ? eq(payouts.pspReference, filters.pspReference) : undefined,
       filters.arrivalBeforeAt ? lte(payouts.arrivalAt, filters.arrivalBeforeAt) : undefined,
       filters.beforeAt
-        ? sql`(${payouts.createdAt}, ${payouts.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${payouts.createdAt}, ${payouts.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${payouts.createdAt}, ${payouts.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${payouts.createdAt}, ${payouts.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

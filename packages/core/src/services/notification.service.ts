@@ -147,6 +147,7 @@ export class NotificationService {
     const invoice = await this.resolveInvoice(job.invoiceId);
     const paymentIntent = await this.resolvePaymentIntent(job.paymentIntentId);
     const amount = NotificationService.resolveAmount(job.kind, invoice, paymentIntent);
+    const nextAttemptAt = NotificationService.resolveNextAttemptAt(invoice);
 
     return {
       customerName: customer.name,
@@ -154,7 +155,7 @@ export class NotificationService {
       amount,
       currency: customer.currency,
       declineCode: _.get(paymentIntent, 'declineCode', null),
-      nextAttemptAt: _.get(invoice, 'nextAttemptAt', null),
+      nextAttemptAt,
       url: job.url,
     };
   }
@@ -201,5 +202,15 @@ export class NotificationService {
     }
 
     return _.get(invoice, 'amountDue', 0);
+  }
+
+  private static resolveNextAttemptAt(invoice: Invoice | null): Date | null {
+    const nextAttemptAt = _.get(invoice, 'nextAttemptAt', null);
+
+    if (nextAttemptAt) {
+      return new Date(nextAttemptAt);
+    }
+
+    return null;
   }
 }

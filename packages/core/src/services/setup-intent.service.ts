@@ -32,7 +32,7 @@ export class SetupIntentService {
   ): Promise<SetupIntentResponse> {
     const customer = await this.getCustomer(payload.customerId, livemode);
     const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload, livemode);
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.SETUP_INTENT);
 
     const createdSetupIntent = await this.fastify.setupIntentRepository.createSetupIntent({
@@ -50,12 +50,12 @@ export class SetupIntentService {
       failureCode: null,
       failureMessage: null,
       metadata: payload.metadata ?? {},
-      createdAt: now,
-      updatedAt: now,
+      createdAt,
+      updatedAt: createdAt,
     });
 
     if (createdSetupIntent) {
-      return SetupIntentService.buildSetupIntent(createdSetupIntent);
+      return createdSetupIntent;
     }
 
     throw new NotFoundError(`Setup intent ${id} could not be created`);
@@ -86,7 +86,6 @@ export class SetupIntentService {
       token: paymentMethod.pspToken,
       idempotencyKey: `setup:${setupIntent.id}`,
     });
-    const now = this.fastify.clock.now();
     const isAwaitingAction = confirmation.status === PspIntentStatusEnum.REQUIRES_ACTION;
 
     const confirmedSetupIntent = await this.fastify.setupIntentRepository.updateSetupIntent(
@@ -101,12 +100,12 @@ export class SetupIntentService {
         failureCode: null,
         failureMessage: null,
         metadata: { ...setupIntent.metadata, ...(payload.metadata ?? {}) },
-        updatedAt: now,
+        updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
 
     if (confirmedSetupIntent) {
-      return SetupIntentService.buildSetupIntent(confirmedSetupIntent);
+      return confirmedSetupIntent;
     }
 
     throw new NotFoundError(`No such setup intent: ${id}`);
@@ -121,7 +120,6 @@ export class SetupIntentService {
 
     SetupIntentService.assertTransition(setupIntent.status, SetupIntentStatusEnum.CANCELED);
 
-    const now = this.fastify.clock.now();
     const canceledSetupIntent = await this.fastify.setupIntentRepository.updateSetupIntent(
       setupIntent.id,
       {
@@ -130,21 +128,19 @@ export class SetupIntentService {
           payload.cancellationReason ?? PaymentCancellationReasonEnum.REQUESTED_BY_CUSTOMER,
         nextAction: null,
         metadata: { ...setupIntent.metadata, ...(payload.metadata ?? {}) },
-        updatedAt: now,
+        updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
 
     if (canceledSetupIntent) {
-      return SetupIntentService.buildSetupIntent(canceledSetupIntent);
+      return canceledSetupIntent;
     }
 
     throw new NotFoundError(`No such setup intent: ${id}`);
   }
 
   async getSetupIntent(id: string, livemode: boolean): Promise<SetupIntentResponse> {
-    const setupIntent = await this.getSetupIntentEntity(id, livemode);
-
-    return SetupIntentService.buildSetupIntent(setupIntent);
+    return this.getSetupIntentEntity(id, livemode);
   }
 
   async findSetupIntents(
@@ -160,10 +156,9 @@ export class SetupIntentService {
     );
 
     return {
-      object: 'list',
       url: '/v1/setup_intents',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(SetupIntentService.buildSetupIntent).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -174,7 +169,7 @@ export class SetupIntentService {
       return;
     }
 
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
     const { paymentMethodId } = setupIntent;
 
     await this.fastify.database.master.transaction(async (tx) => {
@@ -185,7 +180,7 @@ export class SetupIntentService {
           nextAction: null,
           failureCode: null,
           failureMessage: null,
-          updatedAt: now,
+          updatedAt,
         },
         tx,
       );
@@ -193,12 +188,12 @@ export class SetupIntentService {
       if (paymentMethodId) {
         await this.fastify.paymentMethodRepository.updatePaymentMethod(
           paymentMethodId,
-          { customerId: setupIntent.customerId, updatedAt: now },
+          { customerId: setupIntent.customerId, updatedAt },
           tx,
         );
         await this.fastify.customerRepository.updateCustomer(
           setupIntent.customerId,
-          { defaultPaymentMethodId: paymentMethodId, updatedAt: now },
+          { defaultPaymentMethodId: paymentMethodId, updatedAt },
           tx,
         );
       }
@@ -215,14 +210,13 @@ export class SetupIntentService {
     failure: { failureCode: FailureCode | null; failureMessage: string | null },
   ): Promise<void> {
     const setupIntent = await this.getCallbackSetupIntent(pspReference);
-    const now = this.fastify.clock.now();
 
     await this.fastify.setupIntentRepository.updateSetupIntent(setupIntent.id, {
       status: SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD,
       nextAction: null,
       failureCode: failure.failureCode,
       failureMessage: failure.failureMessage,
-      updatedAt: now,
+      updatedAt: this.fastify.clock.now().toISOString(),
     });
 
     this.fastify.log.warn(
@@ -301,24 +295,5 @@ export class SetupIntentService {
     }
 
     throw new ConflictError(`A setup intent cannot move from ${from} to ${to}`);
-  }
-
-  private static buildSetupIntent(entity: SetupIntent): SetupIntentResponse {
-    return {
-      object: 'setup_intent',
-      id: entity.id,
-      customerId: entity.customerId,
-      status: entity.status,
-      usage: entity.usage,
-      paymentMethodId: entity.paymentMethodId,
-      nextAction: entity.nextAction,
-      cancellationReason: entity.cancellationReason,
-      pspReference: entity.pspReference,
-      failureCode: entity.failureCode,
-      failureMessage: entity.failureMessage,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

@@ -1,4 +1,5 @@
 import type { PostingDirection } from '@contracts/ledger.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { ledgerAccounts } from '@database/schemas/ledger-accounts.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
@@ -10,7 +11,6 @@ import {
   jsonb,
   pgTable,
   text,
-  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -22,11 +22,13 @@ export const ledgerTransactions = pgTable(
     description: text('description').notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     externalId: text('external_id'),
-    effectiveAt: timestamp('effective_at', { withTimezone: true }).notNull(),
+    effectiveAt: isoTimestamp('effective_at').notNull(),
     reversesTransactionId: text('reverses_transaction_id'),
     reversedByTransactionId: text('reversed_by_transaction_id'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -55,7 +57,9 @@ export const ledgerPostings = pgTable(
     direction: text('direction').$type<PostingDirection>().notNull(),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     currency: text('currency').$type<Currency>().notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

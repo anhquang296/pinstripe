@@ -78,9 +78,9 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
 
   fastify.get(
     '/ping',
-    { schema: { response: { 200: Type.Object({ object: Type.String(), now: Type.String() }) } } },
+    { schema: { response: { 200: Type.Object({ now: Type.String() }) } } },
     async (_request, reply) => {
-      return ApiResponse.success(reply, { object: 'ping', now: fastify.clock.now().toISOString() });
+      return ApiResponse.success(reply, { now: fastify.clock.now().toISOString() });
     },
   );
 }

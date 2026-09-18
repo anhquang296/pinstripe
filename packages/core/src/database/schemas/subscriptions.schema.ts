@@ -7,22 +7,14 @@ import type {
   TrialEndBehavior,
 } from '@contracts/subscriptions.types';
 import { BillingModeEnum, TrialEndBehaviorEnum } from '@contracts/subscriptions.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { testClocks } from '@database/schemas/test-clocks.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import {
-  boolean,
-  check,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-} from 'drizzle-orm/pg-core';
+import { boolean, check, index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const subscriptions = pgTable(
   'subscriptions',
@@ -41,12 +33,12 @@ export const subscriptions = pgTable(
       .$type<BillingMode>()
       .notNull()
       .default(BillingModeEnum.ADVANCE),
-    billingCycleAnchor: timestamp('billing_cycle_anchor', { withTimezone: true }).notNull(),
-    currentPeriodStart: timestamp('current_period_start', { withTimezone: true }).notNull(),
-    currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }).notNull(),
-    chargedThroughDate: timestamp('charged_through_date', { withTimezone: true }),
-    trialStart: timestamp('trial_start', { withTimezone: true }),
-    trialEnd: timestamp('trial_end', { withTimezone: true }),
+    billingCycleAnchor: isoTimestamp('billing_cycle_anchor').notNull(),
+    currentPeriodStart: isoTimestamp('current_period_start').notNull(),
+    currentPeriodEnd: isoTimestamp('current_period_end').notNull(),
+    chargedThroughDate: isoTimestamp('charged_through_date'),
+    trialStart: isoTimestamp('trial_start'),
+    trialEnd: isoTimestamp('trial_end'),
     trialEndBehaviorMissingPaymentMethod: text('trial_end_behavior_missing_payment_method')
       .$type<TrialEndBehavior>()
       .notNull()
@@ -56,20 +48,24 @@ export const subscriptions = pgTable(
       return paymentMethods.id;
     }),
     pauseCollectionBehavior: text('pause_collection_behavior').$type<PauseCollectionBehavior>(),
-    pauseCollectionResumesAt: timestamp('pause_collection_resumes_at', { withTimezone: true }),
+    pauseCollectionResumesAt: isoTimestamp('pause_collection_resumes_at'),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
-    cancelAt: timestamp('cancel_at', { withTimezone: true }),
+    cancelAt: isoTimestamp('cancel_at'),
     cancellationReason: text('cancellation_reason').$type<CancellationReason>(),
     cancellationComment: text('cancellation_comment'),
     cancellationFeedback: text('cancellation_feedback'),
-    canceledAt: timestamp('canceled_at', { withTimezone: true }),
-    endedAt: timestamp('ended_at', { withTimezone: true }),
+    canceledAt: isoTimestamp('canceled_at'),
+    endedAt: isoTimestamp('ended_at'),
     testClockId: text('test_clock_id').references(() => {
       return testClocks.id;
     }),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -106,8 +102,10 @@ export const subscriptionItems = pgTable(
     quantity: integer('quantity').notNull().default(1),
     taxRates: jsonb('tax_rates').$type<string[]>().notNull().default([]),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [index('subscription_items_subscription_id_idx').on(table.subscriptionId)];
@@ -135,10 +133,12 @@ export const subscriptionItemChanges = pgTable(
         return prices.id;
       }),
     quantity: integer('quantity').notNull().default(1),
-    billedFrom: timestamp('billed_from', { withTimezone: true }).notNull(),
-    billedThrough: timestamp('billed_through', { withTimezone: true }),
-    invoicedThrough: timestamp('invoiced_through', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    billedFrom: isoTimestamp('billed_from').notNull(),
+    billedThrough: isoTimestamp('billed_through'),
+    invoicedThrough: isoTimestamp('invoiced_through'),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

@@ -15,20 +15,13 @@ import type {
 import { CaptureMethodEnum } from '@contracts/payments.types';
 import type { SetupIntentStatus, SetupIntentUsage } from '@contracts/setup-intents.types';
 import { SetupIntentUsageEnum } from '@contracts/setup-intents.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { invoices } from '@database/schemas/invoices.schema';
 import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import type { Currency } from '@utils/currency';
-import {
-  bigint,
-  boolean,
-  index,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { bigint, boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const paymentIntents = pgTable(
   'payment_intents',
@@ -63,8 +56,12 @@ export const paymentIntents = pgTable(
     declineCode: text('decline_code').$type<DeclineCode>(),
     failureMessage: text('failure_message'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -111,8 +108,12 @@ export const charges = pgTable(
     failureMessage: text('failure_message'),
     pspReference: text('psp_reference'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -147,8 +148,12 @@ export const setupIntents = pgTable(
     failureCode: text('failure_code').$type<FailureCode>(),
     failureMessage: text('failure_message'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -167,7 +172,9 @@ export const pspEvents = pgTable(
     eventId: text('event_id').notNull(),
     type: text('type').$type<PspEventType>().notNull(),
     payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default({}),
-    receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
+    receivedAt: isoTimestamp('received_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -206,7 +213,9 @@ export const refunds = pgTable(
     reason: text('reason').notNull(),
     pspReference: text('psp_reference').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -231,8 +240,10 @@ export const refundTransitions = pgTable(
       }),
     status: text('status').$type<RefundStatus>().notNull(),
     failureReason: text('failure_reason'),
-    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    occurredAt: isoTimestamp('occurred_at').notNull(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

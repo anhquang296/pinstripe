@@ -14,7 +14,6 @@ export const paginationSchema = Type.Object({
 
 export function ListResponseSchema<T extends TSchema>(item: T) {
   return Type.Object({
-    object: Type.Literal('list'),
     url: Type.String(),
     hasMore: Type.Boolean(),
     data: Type.Array(item),
@@ -22,7 +21,6 @@ export function ListResponseSchema<T extends TSchema>(item: T) {
 }
 
 export interface ListResponse<T> {
-  object: 'list';
   url: string;
   hasMore: boolean;
   data: T[];

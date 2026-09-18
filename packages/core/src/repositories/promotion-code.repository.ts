@@ -41,10 +41,10 @@ export class PromotionCodeRepository {
       filters.code ? eq(promotionCodes.code, filters.code) : undefined,
       filters.active === undefined ? undefined : eq(promotionCodes.active, filters.active),
       filters.beforeAt
-        ? sql`(${promotionCodes.createdAt}, ${promotionCodes.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${promotionCodes.createdAt}, ${promotionCodes.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${promotionCodes.createdAt}, ${promotionCodes.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${promotionCodes.createdAt}, ${promotionCodes.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

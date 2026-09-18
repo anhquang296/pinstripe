@@ -26,7 +26,7 @@ export class BalanceService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async getBalance(livemode: boolean): Promise<BalanceResponse> {
-    const asOf = this.fastify.clock.now();
+    const asOf = this.fastify.clock.now().toISOString();
     const totals = await this.fastify.balanceTransactionRepository.aggregateBalanceTotals(
       livemode,
       asOf,
@@ -34,8 +34,7 @@ export class BalanceService {
     const reserved = await this.resolveReservedAmounts(livemode);
 
     return {
-      object: 'balance',
-      asOf: asOf.toISOString(),
+      asOf,
       available: _.map(totals, (total): BalanceAmount => {
         return { currency: total.currency, amount: total.available };
       }),
@@ -51,7 +50,7 @@ export class BalanceService {
       await this.fastify.balanceTransactionRepository.findBalanceTransaction(id);
 
     if (balanceTransaction && balanceTransaction.livemode === livemode) {
-      return BalanceService.buildBalanceTransaction(balanceTransaction);
+      return balanceTransaction;
     }
 
     throw new NotFoundError(`No such balance transaction: ${id}`);
@@ -70,10 +69,9 @@ export class BalanceService {
     );
 
     return {
-      object: 'list',
       url: '/v1/balance_transactions',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(BalanceService.buildBalanceTransaction).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -175,7 +173,7 @@ export class BalanceService {
         net: -refund.amount,
         sourceType: BalanceSourceTypeEnum.REFUND,
         sourceId: refund.id,
-        createdAt: this.fastify.clock.now(),
+        createdAt: this.fastify.clock.now().toISOString(),
       },
       tx,
     );
@@ -214,7 +212,7 @@ export class BalanceService {
         net: -dispute.amount,
         sourceType: BalanceSourceTypeEnum.DISPUTE,
         sourceId: dispute.id,
-        createdAt: this.fastify.clock.now(),
+        createdAt: this.fastify.clock.now().toISOString(),
       },
       tx,
     );
@@ -256,7 +254,7 @@ export class BalanceService {
         net: dispute.amount,
         sourceType: BalanceSourceTypeEnum.DISPUTE,
         sourceId: dispute.id,
-        createdAt: this.fastify.clock.now(),
+        createdAt: this.fastify.clock.now().toISOString(),
       },
       tx,
     );
@@ -296,7 +294,7 @@ export class BalanceService {
       net: number;
       sourceType: BalanceSourceTypeEnum;
       sourceId: string;
-      createdAt: Date;
+      createdAt: string;
     },
     tx: DatabaseTransaction,
   ): Promise<BalanceTransaction> {
@@ -353,24 +351,9 @@ export class BalanceService {
     return undefined;
   }
 
-  private static resolveAvailableOn(createdAt: Date): Date {
-    return new Date(createdAt.getTime() + BALANCE_AVAILABILITY_DAYS * MILLISECONDS_PER_DAY);
-  }
+  private static resolveAvailableOn(createdAt: string): string {
+    const createdAtMs = new Date(createdAt).getTime();
 
-  private static buildBalanceTransaction(entity: BalanceTransaction): BalanceTransactionResponse {
-    return {
-      object: 'balance_transaction',
-      id: entity.id,
-      type: entity.type,
-      currency: entity.currency,
-      gross: entity.gross,
-      fee: entity.fee,
-      net: entity.net,
-      availableOn: entity.availableOn.toISOString(),
-      sourceType: entity.sourceType,
-      sourceId: entity.sourceId,
-      payoutId: entity.payoutId,
-      createdAt: entity.createdAt.toISOString(),
-    };
+    return new Date(createdAtMs + BALANCE_AVAILABILITY_DAYS * MILLISECONDS_PER_DAY).toISOString();
   }
 }

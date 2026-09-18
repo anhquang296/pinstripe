@@ -50,18 +50,22 @@ export class IdempotencyKeyRepository {
   ): Promise<void> {
     await this._db.master
       .update(idempotencyKeys)
-      .set({ status, responseStatusCode, responseBody, updatedAt: new Date() })
+      .set({ status, responseStatusCode, responseBody, updatedAt: new Date().toISOString() })
       .where(eq(idempotencyKeys.id, id));
   }
 
   async releaseIdempotencyKey(id: string): Promise<void> {
     await this._db.master
       .update(idempotencyKeys)
-      .set({ status: IdempotencyStatusEnum.FAILED, lockedAt: null, updatedAt: new Date() })
+      .set({
+        status: IdempotencyStatusEnum.FAILED,
+        lockedAt: null,
+        updatedAt: new Date().toISOString(),
+      })
       .where(eq(idempotencyKeys.id, id));
   }
 
-  async deleteExpiredIdempotencyKeys(before: Date): Promise<void> {
+  async deleteExpiredIdempotencyKeys(before: string): Promise<void> {
     await this._db.master.delete(idempotencyKeys).where(lt(idempotencyKeys.expiresAt, before));
   }
 }

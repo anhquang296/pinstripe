@@ -111,8 +111,8 @@ export class ReportingRepository {
 
   async countCanceledSubscriptions(
     currency: Currency,
-    windowStart: Date,
-    windowEnd: Date,
+    windowStart: string,
+    windowEnd: string,
     livemode: boolean,
   ): Promise<number> {
     const [row] = await this._db.master
@@ -133,8 +133,8 @@ export class ReportingRepository {
 
   async aggregateInvoiceTotals(
     currency: Currency,
-    windowStart: Date,
-    windowEnd: Date,
+    windowStart: string,
+    windowEnd: string,
     livemode: boolean,
   ): Promise<InvoiceWindowTotals> {
     const [row] = await this._db.master
@@ -158,8 +158,8 @@ export class ReportingRepository {
 
   async aggregateRefundTotal(
     currency: Currency,
-    windowStart: Date,
-    windowEnd: Date,
+    windowStart: string,
+    windowEnd: string,
     livemode: boolean,
   ): Promise<number> {
     const [row] = await this._db.master
@@ -179,8 +179,8 @@ export class ReportingRepository {
 
   async aggregateCashMovement(
     currency: Currency,
-    windowStart: Date,
-    windowEnd: Date,
+    windowStart: string,
+    windowEnd: string,
     livemode: boolean,
   ): Promise<number> {
     const [row] = await this._db.master
@@ -205,8 +205,8 @@ export class ReportingRepository {
 
   async aggregateLedgerMovements(
     codes: readonly LedgerAccountCode[],
-    windowStart: Date,
-    windowEnd: Date,
+    windowStart: string,
+    windowEnd: string,
     livemode: boolean,
   ): Promise<LedgerMovement[]> {
     return this._db.master

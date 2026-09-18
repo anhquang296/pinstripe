@@ -1,4 +1,5 @@
 import type { CouponDuration, DiscountLevel } from '@contracts/discounts.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
@@ -12,7 +13,6 @@ import {
   jsonb,
   pgTable,
   text,
-  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -29,13 +29,17 @@ export const coupons = pgTable(
     durationInMonths: integer('duration_in_months'),
     maxRedemptions: integer('max_redemptions'),
     timesRedeemed: integer('times_redeemed').notNull().default(0),
-    redeemBy: timestamp('redeem_by', { withTimezone: true }),
+    redeemBy: isoTimestamp('redeem_by'),
     appliesToProductIds: jsonb('applies_to_product_ids').$type<string[]>().notNull().default([]),
     valid: boolean('valid').notNull().default(true),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [
@@ -66,12 +70,16 @@ export const promotionCodes = pgTable(
     active: boolean('active').notNull().default(true),
     maxRedemptions: integer('max_redemptions'),
     timesRedeemed: integer('times_redeemed').notNull().default(0),
-    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    expiresAt: isoTimestamp('expires_at'),
     firstTimeTransaction: boolean('first_time_transaction').notNull().default(false),
     minimumAmount: bigint('minimum_amount', { mode: 'number' }),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -105,12 +113,16 @@ export const discounts = pgTable(
     subscriptionItemId: text('subscription_item_id'),
     invoiceId: text('invoice_id'),
     invoiceItemId: text('invoice_item_id'),
-    startAt: timestamp('start_at', { withTimezone: true }).notNull(),
-    endAt: timestamp('end_at', { withTimezone: true }),
+    startAt: isoTimestamp('start_at').notNull(),
+    endAt: isoTimestamp('end_at'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [

@@ -1,5 +1,7 @@
 import type { IdempotencyStatus } from '@contracts/idempotency.types';
-import { index, jsonb, pgTable, smallint, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
+import { sql } from 'drizzle-orm';
+import { index, jsonb, pgTable, smallint, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const idempotencyKeys = pgTable(
   'idempotency_keys',
@@ -12,10 +14,14 @@ export const idempotencyKeys = pgTable(
     status: text('status').$type<IdempotencyStatus>().notNull(),
     responseStatusCode: smallint('response_status_code'),
     responseBody: jsonb('response_body'),
-    lockedAt: timestamp('locked_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    lockedAt: isoTimestamp('locked_at'),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    expiresAt: isoTimestamp('expires_at').notNull(),
   },
   (table) => {
     return [

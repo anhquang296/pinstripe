@@ -133,7 +133,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
     const rolled = await readSubscription(subscription.id);
 
     expect(invoice.status).toBe(InvoiceStatusEnum.PAID);
-    expect(invoice.periodStart.toISOString()).toBe(subscription.currentPeriodStart);
+    expect(invoice.periodStart).toBe(subscription.currentPeriodStart);
     expect(rolled.status).toBe(SubscriptionStatusEnum.ACTIVE);
     expect(rolled.currentPeriodStart).toBe(subscription.currentPeriodEnd);
     expect(rolled.chargedThroughDate).toBe(subscription.currentPeriodEnd);
@@ -195,9 +195,10 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
         status: InvoiceStatusEnum.OPEN,
       });
 
-      const nextAttemptAt = _.get(openInvoice, 'nextAttemptAt', runAt) ?? runAt;
+      const nextAttemptAt = _.get(openInvoice, 'nextAttemptAt', null);
+      const retryAt = nextAttemptAt ? new Date(nextAttemptAt) : runAt;
 
-      runAt = new Date(nextAttemptAt.getTime() + MILLISECONDS_PER_HOUR);
+      runAt = new Date(retryAt.getTime() + MILLISECONDS_PER_HOUR);
 
       await runBilling(runAt);
     }

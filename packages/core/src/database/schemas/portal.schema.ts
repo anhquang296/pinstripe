@@ -1,7 +1,8 @@
 import type { PortalSessionStatus } from '@contracts/portal.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { sql } from 'drizzle-orm';
-import { boolean, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, index, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const portalSessions = pgTable(
   'portal_sessions',
@@ -16,11 +17,15 @@ export const portalSessions = pgTable(
     status: text('status').$type<PortalSessionStatus>().notNull(),
     linkTokenHash: text('link_token_hash').notNull(),
     sessionTokenHash: text('session_token_hash'),
-    linkExpiresAt: timestamp('link_expires_at', { withTimezone: true }).notNull(),
-    sessionExpiresAt: timestamp('session_expires_at', { withTimezone: true }),
-    redeemedAt: timestamp('redeemed_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    linkExpiresAt: isoTimestamp('link_expires_at').notNull(),
+    sessionExpiresAt: isoTimestamp('session_expires_at'),
+    redeemedAt: isoTimestamp('redeemed_at'),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

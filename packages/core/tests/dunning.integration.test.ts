@@ -74,7 +74,7 @@ async function readDueAt(invoiceId: string): Promise<Date> {
   const { dueAt } = invoice;
 
   if (dueAt) {
-    return dueAt;
+    return new Date(dueAt);
   }
 
   throw new Error(`test fixture left invoice ${invoiceId} without a due date`);
@@ -103,7 +103,7 @@ describe('DunningService.runDunningShard', () => {
 
     expect(untouched.status).toBe(InvoiceStatusEnum.OPEN);
     expect(untouched.attemptCount).toBe(0);
-    expect(untouched.nextAttemptAt).toEqual(dueAt);
+    expect(untouched.nextAttemptAt).toBe(dueAt.toISOString());
   });
 
   it('collects an overdue invoice and stops chasing it', async () => {
@@ -163,7 +163,7 @@ describe('DunningService.runDunningShard', () => {
       await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
       const retried = await readInvoiceRow(invoiceId);
       const nextAttemptAt = _.get(retried, 'nextAttemptAt', null);
-      const delayMs = (nextAttemptAt ? nextAttemptAt.getTime() : 0) - failedAt;
+      const delayMs = (nextAttemptAt ? Date.parse(nextAttemptAt) : 0) - failedAt;
 
       expect(retried.status).toBe(InvoiceStatusEnum.OPEN);
       expect(retried.attemptCount).toBe(1);
@@ -197,8 +197,9 @@ describe('DunningService.runDunningShard', () => {
       await runShard(runAt);
 
       const { nextAttemptAt } = await readInvoiceRow(invoiceId);
+      const retryAt = nextAttemptAt ? new Date(nextAttemptAt) : runAt;
 
-      runAt = new Date((nextAttemptAt ?? runAt).getTime() + MILLISECONDS_PER_DAY);
+      runAt = new Date(retryAt.getTime() + MILLISECONDS_PER_DAY);
     }
 
     const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
@@ -221,8 +222,9 @@ describe('DunningService.runDunningShard', () => {
       await runShard(runAt);
 
       const { nextAttemptAt } = await readInvoiceRow(invoiceId);
+      const retryAt = nextAttemptAt ? new Date(nextAttemptAt) : runAt;
 
-      runAt = new Date((nextAttemptAt ?? runAt).getTime() + MILLISECONDS_PER_DAY);
+      runAt = new Date(retryAt.getTime() + MILLISECONDS_PER_DAY);
     }
 
     const abandoned = await readInvoiceRow(invoiceId);
@@ -386,7 +388,6 @@ describe('WebhookService.handleDomainEvent', () => {
 
     expect(JSON.parse(attempt.body)).toMatchObject({
       id: eventId,
-      object: 'event',
       type: DomainEventTypeEnum.REFUND_CREATED,
     });
   });

@@ -52,7 +52,7 @@ export class DunningService {
     const due = await this.fastify.invoiceRepository.findInvoices(
       {
         status: InvoiceStatusEnum.OPEN,
-        nextAttemptBeforeAt: runAt,
+        nextAttemptBeforeAt: job.runAt,
         shardCount: job.shardCount,
         shardIndex: job.shardIndex,
       },
@@ -132,10 +132,12 @@ export class DunningService {
       return DunningOutcomeEnum.ABANDONED;
     }
 
+    const nextAttemptAt = new Date(now.getTime() + nextDelayDays * MILLISECONDS_PER_DAY);
+
     await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
       attemptCount,
-      nextAttemptAt: new Date(now.getTime() + nextDelayDays * MILLISECONDS_PER_DAY),
-      updatedAt: now,
+      nextAttemptAt: nextAttemptAt.toISOString(),
+      updatedAt: now.toISOString(),
     });
 
     await this.markSubscriptionFailed(invoice, now, false);
@@ -155,7 +157,7 @@ export class DunningService {
     if (owed.amountRemaining <= 0) {
       await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
         nextAttemptAt: null,
-        updatedAt: now,
+        updatedAt: now.toISOString(),
       });
 
       return DunningOutcomeEnum.SETTLED;
@@ -198,9 +200,11 @@ export class DunningService {
   }
 
   private async deferAttempt(invoice: Invoice, now: Date): Promise<void> {
+    const nextAttemptAt = new Date(now.getTime() + this.config.inFlightTimeoutMs);
+
     await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
-      nextAttemptAt: new Date(now.getTime() + this.config.inFlightTimeoutMs),
-      updatedAt: now,
+      nextAttemptAt: nextAttemptAt.toISOString(),
+      updatedAt: now.toISOString(),
     });
   }
 
@@ -216,10 +220,12 @@ export class DunningService {
       return DunningOutcomeEnum.ABANDONED;
     }
 
+    const nextAttemptAt = new Date(now.getTime() + nextDelayDays * MILLISECONDS_PER_DAY);
+
     await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
       attemptCount,
-      nextAttemptAt: new Date(now.getTime() + nextDelayDays * MILLISECONDS_PER_DAY),
-      updatedAt: now,
+      nextAttemptAt: nextAttemptAt.toISOString(),
+      updatedAt: now.toISOString(),
     });
 
     await this.markSubscriptionFailed(invoice, now, false);
@@ -326,7 +332,7 @@ export class DunningService {
           status: InvoiceStatusEnum.UNCOLLECTIBLE,
           attemptCount,
           nextAttemptAt: null,
-          updatedAt: now,
+          updatedAt: now.toISOString(),
         },
         tx,
       );

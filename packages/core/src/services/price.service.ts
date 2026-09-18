@@ -43,7 +43,7 @@ export class PriceService {
       await this.fastify.meterService.getMeter(payload.meterId, livemode);
     }
 
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PRICE);
     const version = await this.resolveNextVersion(payload.lookupKey);
 
@@ -64,9 +64,11 @@ export class PriceService {
     payload: CreatePricePayload,
     billingScheme: BillingScheme,
     version: number,
-    now: Date,
+    now: string,
     livemode: boolean,
   ): Promise<Price> {
+    const effectiveAt = PriceService.resolveEffectiveAt(payload.effectiveAt, now);
+
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const price = await this.fastify.priceRepository.createPrice(
@@ -76,7 +78,7 @@ export class PriceService {
             productId: payload.productId,
             lookupKey: payload.lookupKey ?? null,
             version,
-            effectiveAt: payload.effectiveAt ? new Date(payload.effectiveAt) : now,
+            effectiveAt,
             active: true,
             nickname: payload.nickname ?? '',
             currency: payload.currency,
@@ -157,7 +159,7 @@ export class PriceService {
           active: payload.active,
           nickname: payload.nickname,
           metadata: payload.metadata,
-          updatedAt: this.fastify.clock.now(),
+          updatedAt: this.fastify.clock.now().toISOString(),
         },
         tx,
       );
@@ -186,7 +188,10 @@ export class PriceService {
   }
 
   async resolvePrice(lookupKey: string, at: Date): Promise<PriceResponse> {
-    const price = await this.fastify.priceRepository.findEffectivePrice(lookupKey, at);
+    const price = await this.fastify.priceRepository.findEffectivePrice(
+      lookupKey,
+      at.toISOString(),
+    );
 
     if (price) {
       return PriceService.buildPrice(price);
@@ -218,7 +223,6 @@ export class PriceService {
     const hasMore = rows.length > limit;
 
     return {
-      object: 'list',
       url: '/v1/prices',
       hasMore,
       data: _(rows).take(limit).map(PriceService.buildPrice).value(),
@@ -291,14 +295,21 @@ export class PriceService {
     }
   }
 
+  private static resolveEffectiveAt(effectiveAt: string | undefined, now: string): string {
+    if (effectiveAt) {
+      return new Date(effectiveAt).toISOString();
+    }
+
+    return now;
+  }
+
   private static buildPrice(entity: Price): PriceResponse {
     return {
-      object: 'price',
       id: entity.id,
       productId: entity.productId,
       lookupKey: entity.lookupKey,
       version: entity.version,
-      effectiveAt: entity.effectiveAt.toISOString(),
+      effectiveAt: entity.effectiveAt,
       active: entity.active,
       nickname: entity.nickname,
       currency: entity.currency,
@@ -319,7 +330,7 @@ export class PriceService {
       tiers: entity.tiers,
       transformQuantity: entity.transformQuantity,
       metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
+      createdAt: entity.createdAt,
     };
   }
 }

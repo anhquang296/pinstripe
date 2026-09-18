@@ -72,6 +72,13 @@ tìm trong toàn bộ codebase.
   [ADR 0013](./adr/0013-arrears-proration.md).
 - `prorationBehavior: none` trên một item **metered** bỏ hẳn usage của kỳ khi item thay thế trỏ
   **meter khác**. Cùng meter thì không mất gì. Đây là đánh đổi có chủ ý, không phải lỗi.
+- Mọi cột thời gian đọc ra là **ISO string**, không phải `Date`
+  ([ADR 0021](./adr/0021-iso-timestamps-and-no-object-field.md)). Cần tính kỳ, so khoảng thì
+  `new Date(row.x)` trước. So sánh chuỗi (`a < b`) chỉ đúng khi cả hai vế đều do `toISOString()`
+  sinh ra: UTC, hậu tố `Z`, đủ 3 chữ số millisecond. Một chuỗi từ client hoặc từ raw SQL phải parse
+  và đổi lại trước khi so.
+- Raw SQL (`db.execute`) và `sql<…>` tự viết **không** đi qua `isoTimestamp.fromDriver`, nên nhận
+  chuỗi thô của driver (`2026-09-18 10:00:00.123456+00`). Tự chuẩn hoá ở repository.
 
 ## 3. Sổ cái và hợp đồng ngầm `externalId`
 

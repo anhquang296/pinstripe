@@ -1,8 +1,11 @@
+import { customerSchema } from '@contracts/customers.types';
+import { couponSchema } from '@contracts/discounts.types';
+import { productSchema } from '@contracts/products.types';
+import { subscriptionSchema } from '@contracts/subscriptions.types';
 import { BadRequestError } from '@errors/app.error';
-import { CouponService } from '@services/coupon.service';
-import { CustomerService } from '@services/customer.service';
-import { ProductService } from '@services/product.service';
 import { SubscriptionService } from '@services/subscription.service';
+import { Value } from '@sinclair/typebox/value';
+import { ObjectPrefixEnum, resolveGidPrefix } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
@@ -17,7 +20,7 @@ interface ExpansionTarget {
 type ExpandableObject = Record<string, unknown>;
 
 export class ExpansionService {
-  private readonly targetsByObject: Record<string, Record<string, ExpansionTarget>>;
+  private readonly targetsByPrefix: Record<string, Record<string, ExpansionTarget>>;
 
   constructor(private readonly fastify: FastifyInstance) {
     const customer: ExpansionTarget = {
@@ -48,19 +51,19 @@ export class ExpansionService {
       },
     };
 
-    this.targetsByObject = {
-      invoice: { customer, subscription },
-      discount: { customer, coupon },
-      promotion_code: { coupon },
-      invoiceitem: { customer },
-      tax_id: { customer },
-      customer_balance_transaction: { customer },
-      subscription: { customer },
-      payment_intent: { customer },
-      refund: { customer },
-      credit_note: { customer },
-      entitlement: { customer, product },
-      price: { product },
+    this.targetsByPrefix = {
+      [ObjectPrefixEnum.INVOICE]: { customer, subscription },
+      [ObjectPrefixEnum.DISCOUNT]: { customer, coupon },
+      [ObjectPrefixEnum.PROMOTION_CODE]: { coupon },
+      [ObjectPrefixEnum.INVOICE_ITEM]: { customer },
+      [ObjectPrefixEnum.TAX_ID]: { customer },
+      [ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION]: { customer },
+      [ObjectPrefixEnum.SUBSCRIPTION]: { customer },
+      [ObjectPrefixEnum.PAYMENT_INTENT]: { customer },
+      [ObjectPrefixEnum.REFUND]: { customer },
+      [ObjectPrefixEnum.CREDIT_NOTE]: { customer },
+      [ObjectPrefixEnum.ENTITLEMENT]: { customer, product },
+      [ObjectPrefixEnum.PRICE]: { product },
     };
   }
 
@@ -136,8 +139,8 @@ export class ExpansionService {
   }
 
   private resolveTarget(objects: readonly ExpandableObject[], field: string): ExpansionTarget {
-    const objectType = _.get(objects, '0.object', '');
-    const target = _.get(this.targetsByObject, [String(objectType), field], null);
+    const id = _.get(objects, '0.id', '');
+    const target = _.get(this.targetsByPrefix, [resolveGidPrefix(String(id)), field], null);
 
     if (target) {
       return target;
@@ -157,7 +160,7 @@ export class ExpansionService {
 
     return new Map(
       _.map(customers, (customer) => {
-        return [customer.id, CustomerService.buildCustomer(customer)];
+        return [customer.id, Value.Clean(customerSchema, customer)];
       }),
     );
   }
@@ -170,7 +173,7 @@ export class ExpansionService {
 
     return new Map(
       _.map(coupons, (coupon) => {
-        return [coupon.id, CouponService.buildCoupon(coupon)];
+        return [coupon.id, Value.Clean(couponSchema, coupon)];
       }),
     );
   }
@@ -186,7 +189,7 @@ export class ExpansionService {
 
     return new Map(
       _.map(products, (product) => {
-        return [product.id, ProductService.buildProduct(product)];
+        return [product.id, Value.Clean(productSchema, product)];
       }),
     );
   }
@@ -211,7 +214,9 @@ export class ExpansionService {
       _.map(subscriptions, (subscription) => {
         const items = _.get(itemsBySubscriptionId, subscription.id, []);
 
-        return [subscription.id, SubscriptionService.buildSubscription(subscription, items)];
+        const expandedSubscription = SubscriptionService.buildSubscription(subscription, items);
+
+        return [subscription.id, Value.Clean(subscriptionSchema, expandedSubscription)];
       }),
     );
   }
@@ -224,7 +229,7 @@ export class ExpansionService {
     const root = payload as ExpandableObject;
     const listed = _.get(root, 'data');
 
-    if (_.get(root, 'object') === 'list' && _.isArray(listed)) {
+    if (_.has(root, 'hasMore') && _.isArray(listed)) {
       return _.filter(listed, _.isPlainObject) as ExpandableObject[];
     }
 

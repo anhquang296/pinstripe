@@ -1,8 +1,9 @@
 import type { BillingPortalFeatures } from '@contracts/billing-portal.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { portalSessions } from '@database/schemas/portal.schema';
 import { sql } from 'drizzle-orm';
-import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const billingPortalConfigurations = pgTable(
   'billing_portal_configurations',
@@ -15,8 +16,12 @@ export const billingPortalConfigurations = pgTable(
     defaultReturnUrl: text('default_return_url'),
     features: jsonb('features').$type<BillingPortalFeatures>().notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -50,8 +55,10 @@ export const billingPortalSessions = pgTable(
       }),
     url: text('url').notNull(),
     returnUrl: text('return_url'),
-    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: isoTimestamp('expires_at').notNull(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

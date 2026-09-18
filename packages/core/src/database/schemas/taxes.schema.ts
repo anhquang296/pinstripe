@@ -1,4 +1,5 @@
 import type { TaxIdType, TaxIdVerificationStatus, TaxType } from '@contracts/taxes.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { sql } from 'drizzle-orm';
 import {
@@ -8,7 +9,6 @@ import {
   jsonb,
   pgTable,
   text,
-  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -27,8 +27,12 @@ export const taxRates = pgTable(
     taxType: text('tax_type').$type<TaxType>().notNull(),
     active: boolean('active').notNull().default(true),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -54,11 +58,15 @@ export const taxIds = pgTable(
     verificationStatus: text('verification_status').$type<TaxIdVerificationStatus>().notNull(),
     verifiedName: text('verified_name'),
     verifiedAddress: text('verified_address'),
-    verificationAttemptedAt: timestamp('verification_attempted_at', { withTimezone: true }),
+    verificationAttemptedAt: isoTimestamp('verification_attempted_at'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [

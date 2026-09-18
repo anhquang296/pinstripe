@@ -38,10 +38,10 @@ export class MeterRepository {
       filters.eventName ? eq(meters.eventName, filters.eventName) : undefined,
       filters.status ? eq(meters.status, filters.status) : undefined,
       filters.beforeAt
-        ? sql`(${meters.createdAt}, ${meters.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${meters.createdAt}, ${meters.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${meters.createdAt}, ${meters.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${meters.createdAt}, ${meters.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

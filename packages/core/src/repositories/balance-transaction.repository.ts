@@ -16,7 +16,7 @@ export interface BalanceTransactionFilters {
   sourceId?: string;
   payoutId?: string;
   payoutIdIsNull?: boolean;
-  availableBeforeAt?: Date;
+  availableBeforeAt?: string;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
@@ -59,7 +59,7 @@ export class BalanceTransactionRepository {
   async findSweepableBalanceTransactions(
     currency: Currency,
     livemode: boolean,
-    availableBeforeAt: Date,
+    availableBeforeAt: string,
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<BalanceTransaction[]> {
     return this._db.master
@@ -77,12 +77,12 @@ export class BalanceTransactionRepository {
       .limit(limit);
   }
 
-  async aggregateBalanceTotals(livemode: boolean, asOf: Date): Promise<BalanceTotal[]> {
+  async aggregateBalanceTotals(livemode: boolean, asOf: string): Promise<BalanceTotal[]> {
     return this._db.master
       .select({
         currency: sql<Currency>`${balanceTransactions.currency}`,
-        available: sql<number>`coalesce(sum(case when ${balanceTransactions.availableOn} <= ${asOf.toISOString()}::timestamptz then ${balanceTransactions.net} else 0 end), 0)::int`,
-        pending: sql<number>`coalesce(sum(case when ${balanceTransactions.availableOn} > ${asOf.toISOString()}::timestamptz then ${balanceTransactions.net} else 0 end), 0)::int`,
+        available: sql<number>`coalesce(sum(case when ${balanceTransactions.availableOn} <= ${asOf}::timestamptz then ${balanceTransactions.net} else 0 end), 0)::int`,
+        pending: sql<number>`coalesce(sum(case when ${balanceTransactions.availableOn} > ${asOf}::timestamptz then ${balanceTransactions.net} else 0 end), 0)::int`,
       })
       .from(balanceTransactions)
       .where(and(eq(balanceTransactions.livemode, livemode), isNull(balanceTransactions.payoutId)))
@@ -133,10 +133,10 @@ export class BalanceTransactionRepository {
         ? lte(balanceTransactions.availableOn, filters.availableBeforeAt)
         : undefined,
       filters.beforeAt
-        ? sql`(${balanceTransactions.createdAt}, ${balanceTransactions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${balanceTransactions.createdAt}, ${balanceTransactions.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${balanceTransactions.createdAt}, ${balanceTransactions.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${balanceTransactions.createdAt}, ${balanceTransactions.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
   }

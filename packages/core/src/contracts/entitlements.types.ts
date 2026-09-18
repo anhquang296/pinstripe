@@ -9,7 +9,6 @@ export enum EntitlementStatusEnum {
 export type EntitlementStatus = `${EntitlementStatusEnum}`;
 
 export const entitlementSchema = Type.Object({
-  object: Type.Literal('entitlement'),
   id: Type.String(),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),

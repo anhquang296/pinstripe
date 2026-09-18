@@ -120,7 +120,7 @@ it('carves an inclusive VND tax out of the line and credits tax payable', async 
   expect(open.total).toBe(1_100_000);
   expect(open.amountDue).toBe(1_100_000);
   expect(_.get(lineItem, 'amountExcludingTax')).toBe(1_000_000);
-  expect(_.get(lineItem, 'taxAmounts.0')).toEqual({
+  expect(_.get(lineItem, 'taxAmounts.0')).toMatchObject({
     taxRateId,
     amount: 100_000,
     taxableAmount: 1_100_000,

@@ -20,17 +20,16 @@ export class MeterService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createMeter(payload: CreateMeterPayload, livemode: boolean): Promise<MeterResponse> {
-    const now = this.fastify.clock.now();
-    const createdMeter = await this.writeMeter(payload, now, livemode);
+    const now = this.fastify.clock.now().toISOString();
 
-    return MeterService.buildMeter(createdMeter);
+    return this.writeMeter(payload, now, livemode);
   }
 
   async getMeter(id: string, livemode: boolean): Promise<MeterResponse> {
     const meter = await this.fastify.meterRepository.findMeter(id);
 
     if (meter && meter.livemode === livemode) {
-      return MeterService.buildMeter(meter);
+      return meter;
     }
 
     throw new NotFoundError(`No such meter: ${id}`);
@@ -58,11 +57,11 @@ export class MeterService {
 
     const updatedMeter = await this.fastify.meterRepository.updateMeter(id, {
       ...payload,
-      updatedAt: this.fastify.clock.now(),
+      updatedAt: this.fastify.clock.now().toISOString(),
     });
 
     if (updatedMeter) {
-      return MeterService.buildMeter(updatedMeter);
+      return updatedMeter;
     }
 
     throw new NotFoundError(`No such meter: ${id}`);
@@ -85,16 +84,15 @@ export class MeterService {
     const hasMore = meterRows.length > limit;
 
     return {
-      object: 'list',
       url: '/v1/billing/meters',
       hasMore,
-      data: _(meterRows).take(limit).map(MeterService.buildMeter).value(),
+      data: _.take(meterRows, limit),
     };
   }
 
   private async writeMeter(
     payload: CreateMeterPayload,
-    now: Date,
+    now: string,
     livemode: boolean,
   ): Promise<Meter> {
     const DEFAULT_VALUE_KEY = 'value';
@@ -161,20 +159,5 @@ export class MeterService {
     }
 
     return undefined;
-  }
-
-  private static buildMeter(meter: Meter): MeterResponse {
-    return {
-      object: 'meter',
-      id: meter.id,
-      displayName: meter.displayName,
-      eventName: meter.eventName,
-      aggregation: meter.aggregation,
-      valueKey: meter.valueKey,
-      status: meter.status,
-      metadata: meter.metadata,
-      createdAt: meter.createdAt.toISOString(),
-      updatedAt: meter.updatedAt.toISOString(),
-    };
   }
 }

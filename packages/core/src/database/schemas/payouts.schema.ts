@@ -1,16 +1,8 @@
 import type { PayoutStatus } from '@contracts/payouts.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import {
-  bigint,
-  boolean,
-  index,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { bigint, boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const payouts = pgTable(
   'payouts',
@@ -21,14 +13,18 @@ export const payouts = pgTable(
     amount: bigint('amount', { mode: 'number' }).notNull(),
     status: text('status').$type<PayoutStatus>().notNull(),
     statementDescriptor: text('statement_descriptor'),
-    arrivalAt: timestamp('arrival_at', { withTimezone: true }).notNull(),
-    paidAt: timestamp('paid_at', { withTimezone: true }),
+    arrivalAt: isoTimestamp('arrival_at').notNull(),
+    paidAt: isoTimestamp('paid_at'),
     failureCode: text('failure_code'),
     failureMessage: text('failure_message'),
     pspReference: text('psp_reference'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

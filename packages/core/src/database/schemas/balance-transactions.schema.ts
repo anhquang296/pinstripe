@@ -1,6 +1,8 @@
 import type { BalanceSourceType, BalanceTransactionType } from '@contracts/balance.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import type { Currency } from '@utils/currency';
-import { bigint, boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { bigint, boolean, index, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const balanceTransactions = pgTable(
   'balance_transactions',
@@ -12,11 +14,13 @@ export const balanceTransactions = pgTable(
     gross: bigint('gross', { mode: 'number' }).notNull(),
     fee: bigint('fee', { mode: 'number' }).notNull().default(0),
     net: bigint('net', { mode: 'number' }).notNull(),
-    availableOn: timestamp('available_on', { withTimezone: true }).notNull(),
+    availableOn: isoTimestamp('available_on').notNull(),
     sourceType: text('source_type').$type<BalanceSourceType>().notNull(),
     sourceId: text('source_id').notNull(),
     payoutId: text('payout_id'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

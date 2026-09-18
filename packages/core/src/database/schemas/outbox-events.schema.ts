@@ -1,6 +1,8 @@
 import type { DomainEventType, OutboxStatus } from '@contracts/events.types';
 import { OutboxStatusEnum } from '@contracts/events.types';
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
+import { sql } from 'drizzle-orm';
+import { boolean, index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const outboxEvents = pgTable(
   'outbox_events',
@@ -14,9 +16,11 @@ export const outboxEvents = pgTable(
     status: text('status').$type<OutboxStatus>().notNull().default(OutboxStatusEnum.PENDING),
     attemptCount: integer('attempt_count').notNull().default(0),
     lastError: text('last_error'),
-    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
-    publishedAt: timestamp('published_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    occurredAt: isoTimestamp('occurred_at').notNull(),
+    publishedAt: isoTimestamp('published_at'),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

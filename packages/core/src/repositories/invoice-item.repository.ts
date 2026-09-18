@@ -57,10 +57,10 @@ export class InvoiceItemRepository {
           )
         : undefined,
       filters.beforeAt
-        ? sql`(${invoiceItems.createdAt}, ${invoiceItems.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${invoiceItems.createdAt}, ${invoiceItems.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${invoiceItems.createdAt}, ${invoiceItems.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${invoiceItems.createdAt}, ${invoiceItems.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -100,7 +100,7 @@ export class InvoiceItemRepository {
   async attachInvoiceItems(
     ids: readonly string[],
     invoiceId: string,
-    attachedAt: Date,
+    attachedAt: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     if (_.isEmpty(ids)) {
@@ -117,7 +117,7 @@ export class InvoiceItemRepository {
 
   async archiveInvoiceItem(
     id: string,
-    deletedAt: Date,
+    deletedAt: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;

@@ -4,6 +4,7 @@ import type {
 } from '@contracts/customers.types';
 import type { TaxExempt } from '@contracts/taxes.types';
 import { TaxExemptEnum } from '@contracts/taxes.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
@@ -16,7 +17,6 @@ import {
   jsonb,
   pgTable,
   text,
-  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -39,9 +39,13 @@ export const customers = pgTable(
     testClockId: text('test_clock_id'),
     balance: bigint('balance', { mode: 'number' }).notNull().default(0),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [
@@ -72,7 +76,9 @@ export const customerBalanceTransactions = pgTable(
     endingBalance: bigint('ending_balance', { mode: 'number' }).notNull(),
     description: text('description').notNull().default(''),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

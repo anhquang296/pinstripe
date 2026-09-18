@@ -24,19 +24,17 @@ export class CustomerService {
     payload: CreateCustomerPayload,
     livemode: boolean,
   ): Promise<CustomerResponse> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
 
     const id = generateGid(ObjectPrefixEnum.CUSTOMER);
 
-    const createdCustomer = await this.writeCustomer(id, payload, now, livemode);
-
-    return CustomerService.buildCustomer(createdCustomer);
+    return this.writeCustomer(id, payload, now, livemode);
   }
 
   private async writeCustomer(
     id: string,
     payload: CreateCustomerPayload,
-    now: Date,
+    now: string,
     livemode: boolean,
   ): Promise<Customer> {
     try {
@@ -97,7 +95,7 @@ export class CustomerService {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
     if (customer && customer.livemode === livemode) {
-      return CustomerService.buildCustomer(customer);
+      return customer;
     }
 
     throw new NotFoundError(`No such customer: ${id}`);
@@ -113,7 +111,7 @@ export class CustomerService {
     const updatedCustomer = await this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.updateCustomer(
         id,
-        { ...payload, updatedAt: this.fastify.clock.now() },
+        { ...payload, updatedAt: this.fastify.clock.now().toISOString() },
         tx,
       );
 
@@ -137,14 +135,15 @@ export class CustomerService {
       throw new NotFoundError(`No such customer: ${id}`);
     });
 
-    return CustomerService.buildCustomer(updatedCustomer);
+    return updatedCustomer;
   }
 
   async deleteCustomer(id: string, livemode: boolean): Promise<DeletedCustomerResponse> {
     const customer = await this.getCustomer(id, livemode);
+    const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
-      await this.fastify.customerRepository.archiveCustomer(id, this.fastify.clock.now(), tx);
+      await this.fastify.customerRepository.archiveCustomer(id, deletedAt, tx);
 
       await this.fastify.outboxService.recordEvents(
         [
@@ -160,7 +159,7 @@ export class CustomerService {
       );
     });
 
-    return { object: 'customer', id, deleted: true };
+    return { id, deleted: true };
   }
 
   async findCustomers(
@@ -180,10 +179,9 @@ export class CustomerService {
     const hasMore = rows.length > limit;
 
     return {
-      object: 'list',
       url: '/v1/customers',
       hasMore,
-      data: _(rows).take(limit).map(CustomerService.buildCustomer).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -199,27 +197,5 @@ export class CustomerService {
     }
 
     return undefined;
-  }
-
-  static buildCustomer(entity: Customer): CustomerResponse {
-    return {
-      object: 'customer',
-      id: entity.id,
-      livemode: entity.livemode,
-      email: entity.email,
-      name: entity.name,
-      description: entity.description,
-      phone: entity.phone,
-      taxId: entity.taxId,
-      taxExempt: entity.taxExempt,
-      address: entity.address,
-      currency: entity.currency,
-      defaultPaymentMethodId: entity.defaultPaymentMethodId,
-      testClockId: entity.testClockId,
-      balance: entity.balance,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

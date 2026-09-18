@@ -23,7 +23,6 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       const portalSession = await fastify.portalSessionService.getPortalSession(portalSessionId);
 
       return ApiResponse.success(reply, {
-        object: 'portal_identity' as const,
         customerId: customer.id,
         email: customer.email,
         name: customer.name,

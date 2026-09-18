@@ -15,7 +15,7 @@ export interface CheckoutSessionFilters {
   livemode?: boolean;
   customerId?: string;
   status?: CheckoutSessionStatus;
-  expiresBeforeAt?: Date;
+  expiresBeforeAt?: string;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
@@ -49,10 +49,10 @@ export class CheckoutSessionRepository {
         ? lte(checkoutSessions.expiresAt, filters.expiresBeforeAt)
         : undefined,
       filters.beforeAt
-        ? sql`(${checkoutSessions.createdAt}, ${checkoutSessions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${checkoutSessions.createdAt}, ${checkoutSessions.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${checkoutSessions.createdAt}, ${checkoutSessions.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${checkoutSessions.createdAt}, ${checkoutSessions.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

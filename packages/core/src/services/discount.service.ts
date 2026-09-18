@@ -27,7 +27,7 @@ const PERCENT_DIVISOR = 100;
 
 interface DiscountTarget {
   customerId: string;
-  startAt: Date | null;
+  startAt: string | null;
   level: DiscountLevelEnum;
   subscriptionId: string | null;
   subscriptionItemId: string | null;
@@ -45,11 +45,11 @@ export class DiscountService {
     const target = await this.resolveTarget(payload, livemode);
     const { coupon, promotionCodeId } = await this.redeemCoupon(payload, target, livemode);
 
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const startAt = target.startAt ?? now;
     const id = generateGid(ObjectPrefixEnum.DISCOUNT);
 
-    const createdDiscount = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const discount = await this.fastify.discountRepository.createDiscount(
         {
           id,
@@ -79,15 +79,15 @@ export class DiscountService {
 
       throw new NotFoundError(`Discount ${id} could not be created`);
     });
-
-    return DiscountService.buildDiscount(createdDiscount);
   }
 
-  private static resolveEndAt(coupon: Coupon, startAt: Date): Date | null {
+  private static resolveEndAt(coupon: Coupon, startAt: string): string | null {
     const { duration, durationInMonths } = coupon;
 
     if (duration === CouponDurationEnum.REPEATING && durationInMonths !== null) {
-      return advancePeriod(startAt, RecurringIntervalEnum.MONTH, durationInMonths);
+      const endAt = advancePeriod(new Date(startAt), RecurringIntervalEnum.MONTH, durationInMonths);
+
+      return endAt.toISOString();
     }
 
     return null;
@@ -142,7 +142,7 @@ export class DiscountService {
 
       return {
         customerId: subscription.customerId,
-        startAt: new Date(subscription.currentPeriodStart),
+        startAt: subscription.currentPeriodStart,
         level: DiscountLevelEnum.SUBSCRIPTION,
         subscriptionId,
         subscriptionItemId: null,
@@ -187,7 +187,7 @@ export class DiscountService {
 
     return {
       customerId: subscription.customerId,
-      startAt: new Date(subscription.currentPeriodStart),
+      startAt: subscription.currentPeriodStart,
       level: DiscountLevelEnum.SUBSCRIPTION_ITEM,
       subscriptionId: subscription.id,
       subscriptionItemId,
@@ -239,7 +239,7 @@ export class DiscountService {
     const coupon = await this.fastify.couponService.getCouponEntity(couponId, livemode);
     const { redeemBy } = coupon;
 
-    if (redeemBy && redeemBy.getTime() <= now.getTime()) {
+    if (redeemBy && new Date(redeemBy).getTime() <= now.getTime()) {
       throw new ConflictError(`Coupon ${couponId} is past its redeem by date`);
     }
 
@@ -298,7 +298,7 @@ export class DiscountService {
   private async findApplicableDiscounts(
     invoice: Invoice,
     lines: readonly InvoiceDraftLine[],
-    activeAt: Date,
+    activeAt: string,
   ): Promise<Discount[]> {
     const discounts = await this.fastify.discountRepository.findDiscounts({
       livemode: invoice.livemode,
@@ -466,7 +466,7 @@ export class DiscountService {
   private async closeOnceDiscount(
     discount: Discount,
     coupon: Coupon,
-    activeAt: Date,
+    activeAt: string,
     tx: DatabaseTransaction,
   ): Promise<void> {
     if (coupon.duration !== CouponDurationEnum.ONCE) {
@@ -516,9 +516,7 @@ export class DiscountService {
   }
 
   async getDiscount(id: string, livemode: boolean): Promise<DiscountResponse> {
-    const discount = await this.getDiscountEntity(id, livemode);
-
-    return DiscountService.buildDiscount(discount);
+    return this.getDiscountEntity(id, livemode);
   }
 
   private async getDiscountEntity(id: string, livemode: boolean): Promise<Discount> {
@@ -537,12 +535,12 @@ export class DiscountService {
     livemode: boolean,
   ): Promise<DiscountResponse> {
     const existingDiscount = await this.getDiscountEntity(id, livemode);
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
-    const updatedDiscount = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const discount = await this.fastify.discountRepository.updateDiscount(
         id,
-        { metadata: payload.metadata ?? existingDiscount.metadata, updatedAt: now },
+        { metadata: payload.metadata ?? existingDiscount.metadata, updatedAt },
         tx,
       );
 
@@ -554,20 +552,18 @@ export class DiscountService {
 
       throw new NotFoundError(`No such discount: ${id}`);
     });
-
-    return DiscountService.buildDiscount(updatedDiscount);
   }
 
   async deleteDiscount(id: string, livemode: boolean): Promise<DeletedDiscountResponse> {
     const discount = await this.getDiscountEntity(id, livemode);
-    const now = this.fastify.clock.now();
+    const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
-      await this.fastify.discountRepository.archiveDiscount(id, now, tx);
+      await this.fastify.discountRepository.archiveDiscount(id, deletedAt, tx);
       await this.recordDiscountEvent(discount, DomainEventTypeEnum.CUSTOMER_DISCOUNT_DELETED, tx);
     });
 
-    return { object: 'discount', id, deleted: true };
+    return { id, deleted: true };
   }
 
   async findDiscounts(
@@ -593,10 +589,9 @@ export class DiscountService {
     );
 
     return {
-      object: 'list',
       url: '/v1/discounts',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(DiscountService.buildDiscount).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -635,26 +630,5 @@ export class DiscountService {
       ],
       tx,
     );
-  }
-
-  static buildDiscount(entity: Discount): DiscountResponse {
-    return {
-      object: 'discount',
-      id: entity.id,
-      livemode: entity.livemode,
-      couponId: entity.couponId,
-      promotionCodeId: entity.promotionCodeId,
-      customerId: entity.customerId,
-      level: entity.level,
-      subscriptionId: entity.subscriptionId,
-      subscriptionItemId: entity.subscriptionItemId,
-      invoiceId: entity.invoiceId,
-      invoiceItemId: entity.invoiceItemId,
-      startAt: entity.startAt.toISOString(),
-      endAt: entity.endAt ? entity.endAt.toISOString() : null,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

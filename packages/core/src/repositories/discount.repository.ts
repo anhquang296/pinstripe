@@ -13,7 +13,7 @@ export interface DiscountFilters {
   invoiceId?: string;
   couponId?: string;
   level?: DiscountLevel;
-  activeAt?: Date;
+  activeAt?: string;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
@@ -54,10 +54,10 @@ export class DiscountRepository {
           )
         : undefined,
       filters.beforeAt
-        ? sql`(${discounts.createdAt}, ${discounts.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${discounts.createdAt}, ${discounts.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${discounts.createdAt}, ${discounts.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${discounts.createdAt}, ${discounts.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -96,7 +96,7 @@ export class DiscountRepository {
 
   async archiveDiscount(
     id: string,
-    deletedAt: Date,
+    deletedAt: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;

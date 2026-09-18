@@ -44,8 +44,8 @@ describe('BalanceService.recordChargeSettlement', () => {
     expect(balanceTransaction?.gross).toBe(BASE_AMOUNT);
     expect(balanceTransaction?.fee).toBe(fee);
     expect(balanceTransaction?.net).toBe(BASE_AMOUNT - fee);
-    expect(balanceTransaction?.availableOn.getTime()).toBeGreaterThan(
-      balanceTransaction ? balanceTransaction.createdAt.getTime() : 0,
+    expect(Date.parse(_.get(balanceTransaction, 'availableOn', ''))).toBeGreaterThan(
+      Date.parse(_.get(balanceTransaction, 'createdAt', '')),
     );
   });
 

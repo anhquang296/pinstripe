@@ -18,7 +18,6 @@ export enum WebhookDeliveryStatusEnum {
 export type WebhookDeliveryStatus = `${WebhookDeliveryStatusEnum}`;
 
 export const webhookEndpointSchema = Type.Object({
-  object: Type.Literal('webhook_endpoint'),
   id: Type.String(),
   url: Type.String(),
   status: Type.Unsafe<WebhookEndpointStatus>(Type.Enum(WebhookEndpointStatusEnum)),
@@ -31,7 +30,6 @@ export const webhookEndpointSchema = Type.Object({
 });
 
 export const webhookDeliverySchema = Type.Object({
-  object: Type.Literal('webhook_delivery'),
   id: Type.String(),
   endpointId: Type.String(),
   eventId: Type.String(),
@@ -97,7 +95,6 @@ export const findWebhookDeliveriesSchema = Type.Object(
 
 export type PinstripeEvent<T = unknown> = {
   id: string;
-  object: 'event';
   type: DomainEventType;
   createdAt: string;
   data: { object: T };

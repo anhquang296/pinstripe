@@ -48,7 +48,7 @@ export class PaymentLinkService {
       });
     }
 
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_LINK);
     const lineItems = _.map(payload.lineItems, (lineItem): NewPaymentLinkLineItem => {
       return {
@@ -57,7 +57,7 @@ export class PaymentLinkService {
         paymentLinkId: id,
         priceId: lineItem.priceId,
         quantity: lineItem.quantity ?? DEFAULT_QUANTITY,
-        createdAt: now,
+        createdAt,
       };
     });
 
@@ -72,8 +72,8 @@ export class PaymentLinkService {
           url: this.fastify.hostedUrlFactory.buildPaymentLinkUrl(id),
           successUrl: payload.successUrl,
           metadata: payload.metadata ?? {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt,
+          updatedAt: createdAt,
         },
         tx,
       );
@@ -97,7 +97,7 @@ export class PaymentLinkService {
     livemode: boolean,
   ): Promise<PaymentLinkResponse> {
     const paymentLink = await this.getPaymentLinkEntity(id, livemode);
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
     const updatedPaymentLink = await this.fastify.database.master.transaction(async (tx) => {
       const revisedPaymentLink = await this.fastify.paymentLinkRepository.updatePaymentLink(
@@ -106,7 +106,7 @@ export class PaymentLinkService {
           isActive: payload.isActive ?? paymentLink.isActive,
           successUrl: payload.successUrl ?? paymentLink.successUrl,
           metadata: { ...paymentLink.metadata, ...payload.metadata },
-          updatedAt: now,
+          updatedAt,
         },
         tx,
       );
@@ -148,7 +148,6 @@ export class PaymentLinkService {
     const lineItemsByPaymentLinkId = await this.resolveLineItems(_.map(page, 'id'));
 
     return {
-      object: 'list',
       url: '/v1/payment_links',
       hasMore: rows.length > limit,
       data: _.map(page, (paymentLink) => {
@@ -240,29 +239,9 @@ export class PaymentLinkService {
   }
 
   private static buildPaymentLinkWithLineItems(
-    entity: PaymentLink,
-    lineItems: readonly PaymentLinkLineItem[],
+    paymentLink: PaymentLink,
+    lineItems: PaymentLinkLineItem[],
   ): PaymentLinkResponse {
-    return {
-      object: 'payment_link',
-      id: entity.id,
-      livemode: entity.livemode,
-      isActive: entity.isActive,
-      mode: entity.mode,
-      currency: entity.currency,
-      url: entity.url,
-      successUrl: entity.successUrl,
-      lineItems: _.map(lineItems, (lineItem) => {
-        return {
-          object: 'payment_link.line_item' as const,
-          id: lineItem.id,
-          priceId: lineItem.priceId,
-          quantity: lineItem.quantity,
-        };
-      }),
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
+    return { ...paymentLink, lineItems };
   }
 }

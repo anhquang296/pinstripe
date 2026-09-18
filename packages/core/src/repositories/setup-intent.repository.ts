@@ -42,10 +42,10 @@ export class SetupIntentRepository {
       filters.status ? eq(setupIntents.status, filters.status) : undefined,
       filters.pspReference ? eq(setupIntents.pspReference, filters.pspReference) : undefined,
       filters.beforeAt
-        ? sql`(${setupIntents.createdAt}, ${setupIntents.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${setupIntents.createdAt}, ${setupIntents.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${setupIntents.createdAt}, ${setupIntents.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${setupIntents.createdAt}, ${setupIntents.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

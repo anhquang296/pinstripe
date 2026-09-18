@@ -59,7 +59,9 @@ it('creates a tax rate and reads it back', async () => {
   });
 
   expect(created.statusCode).toBe(201);
-  expect(taxRate.object).toBe('tax_rate');
+  expect(taxRate.id).toMatch(/^txr_/);
+  expect(taxRate.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  expect(taxRate).not.toHaveProperty('object');
   expect(taxRate.percentage).toBe(10);
   expect(read.json().id).toBe(taxRate.id);
 });
@@ -179,6 +181,6 @@ it('reports a deleted tax id as gone', async () => {
     headers: authHeaders,
   });
 
-  expect(deleted.json()).toEqual({ object: 'tax_id', id: taxId.id, deleted: true });
+  expect(deleted.json()).toEqual({ id: taxId.id, deleted: true });
   expect(read.statusCode).toBe(404);
 });

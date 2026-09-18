@@ -155,10 +155,10 @@ export class CreditNoteRepository {
       filters.customerId ? eq(creditNotes.customerId, filters.customerId) : undefined,
       CreditNoteRepository.buildStatusFilter(filters.excludedStatuses),
       filters.beforeAt
-        ? sql`(${creditNotes.createdAt}, ${creditNotes.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${creditNotes.createdAt}, ${creditNotes.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${creditNotes.createdAt}, ${creditNotes.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${creditNotes.createdAt}, ${creditNotes.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
   }

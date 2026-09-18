@@ -45,7 +45,8 @@ it('materialises a public event when the outbox relays a domain event', async ()
 
   const event = await fastify.eventService.getEvent(eventId, false);
 
-  expect(event.object).toBe('event');
+  expect(event.id).toMatch(/^evt_/);
+  expect(event).not.toHaveProperty('object');
   expect(event.type).toBe(DomainEventTypeEnum.CUSTOMER_CREATED);
   expect(event.apiVersion).toBe(PINSTRIPE_API_VERSION);
   expect(event.livemode).toBe(false);

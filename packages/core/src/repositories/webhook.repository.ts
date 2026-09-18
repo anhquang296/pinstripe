@@ -52,10 +52,10 @@ export class WebhookRepository {
       filters.livemode === undefined ? undefined : eq(webhookEndpoints.livemode, filters.livemode),
       filters.status ? eq(webhookEndpoints.status, filters.status) : undefined,
       filters.beforeAt
-        ? sql`(${webhookEndpoints.createdAt}, ${webhookEndpoints.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${webhookEndpoints.createdAt}, ${webhookEndpoints.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${webhookEndpoints.createdAt}, ${webhookEndpoints.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${webhookEndpoints.createdAt}, ${webhookEndpoints.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -105,10 +105,10 @@ export class WebhookRepository {
       filters.endpointId ? eq(webhookDeliveries.endpointId, filters.endpointId) : undefined,
       filters.status ? eq(webhookDeliveries.status, filters.status) : undefined,
       filters.beforeAt
-        ? sql`(${webhookDeliveries.createdAt}, ${webhookDeliveries.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${webhookDeliveries.createdAt}, ${webhookDeliveries.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${webhookDeliveries.createdAt}, ${webhookDeliveries.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${webhookDeliveries.createdAt}, ${webhookDeliveries.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

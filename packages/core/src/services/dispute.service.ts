@@ -39,7 +39,7 @@ export class DisputeService {
     const dispute = await this.fastify.disputeRepository.findDispute(id);
 
     if (dispute && dispute.livemode === livemode) {
-      return DisputeService.buildDispute(dispute);
+      return dispute;
     }
 
     throw new NotFoundError(`No such dispute: ${id}`);
@@ -65,10 +65,9 @@ export class DisputeService {
     );
 
     return {
-      object: 'list',
       url: '/v1/disputes',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(DisputeService.buildDispute).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -81,16 +80,16 @@ export class DisputeService {
 
     DisputeService.assertTransition(dispute.status, DisputeStatusEnum.UNDER_REVIEW);
 
-    const now = this.fastify.clock.now();
+    const evidenceSubmittedAt = this.fastify.clock.now().toISOString();
     const reviewedDispute = await this.fastify.database.master.transaction(async (tx) => {
       const updatedDispute = await this.fastify.disputeRepository.updateDispute(
         dispute.id,
         {
           status: DisputeStatusEnum.UNDER_REVIEW,
           evidence: { ...dispute.evidence, ...payload.evidence },
-          evidenceSubmittedAt: now,
+          evidenceSubmittedAt,
           metadata: { ...dispute.metadata, ...(payload.metadata ?? {}) },
-          updatedAt: now,
+          updatedAt: evidenceSubmittedAt,
         },
         tx,
       );
@@ -104,7 +103,7 @@ export class DisputeService {
       return updatedDispute;
     });
 
-    return DisputeService.buildDispute(reviewedDispute);
+    return reviewedDispute;
   }
 
   async handleDisputeOpened(payload: DisputeOpenedPayload): Promise<void> {
@@ -123,7 +122,7 @@ export class DisputeService {
     }
 
     const charge = await this.getSettledCharge(payload.chargeReference);
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.DISPUTE);
     const invoiceId = await this.resolveInvoiceId(charge.paymentIntentId);
 
@@ -145,8 +144,8 @@ export class DisputeService {
           closedAt: null,
           pspReference: payload.pspReference,
           metadata: {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt,
+          updatedAt: createdAt,
         },
         tx,
       );
@@ -176,11 +175,11 @@ export class DisputeService {
 
     DisputeService.assertTransition(dispute.status, status);
 
-    const now = this.fastify.clock.now();
+    const closedAt = this.fastify.clock.now().toISOString();
     const closedDispute = await this.fastify.database.master.transaction(async (tx) => {
       const updatedDispute = await this.fastify.disputeRepository.updateDispute(
         dispute.id,
-        { status, closedAt: now, updatedAt: now },
+        { status, closedAt, updatedAt: closedAt },
         tx,
       );
 
@@ -238,10 +237,12 @@ export class DisputeService {
       return;
     }
 
+    const periodEnd = new Date(invoice.periodEnd);
+
     await this.fastify.subscriptionService.handleInvoicePaymentSucceeded(
       subscriptionId,
       this.fastify.clock.now(),
-      invoice.periodEnd,
+      periodEnd,
     );
     await this.fastify.entitlementService.handleSubscriptionChanged(subscriptionId);
   }
@@ -346,29 +347,5 @@ export class DisputeService {
     }
 
     throw new ConflictError(`A dispute cannot move from ${from} to ${to}`);
-  }
-
-  private static buildDispute(entity: Dispute): DisputeResponse {
-    return {
-      object: 'dispute',
-      id: entity.id,
-      chargeId: entity.chargeId,
-      paymentIntentId: entity.paymentIntentId,
-      invoiceId: entity.invoiceId,
-      customerId: entity.customerId,
-      currency: entity.currency,
-      amount: entity.amount,
-      status: entity.status,
-      reason: entity.reason,
-      evidence: entity.evidence,
-      evidenceSubmittedAt: entity.evidenceSubmittedAt
-        ? entity.evidenceSubmittedAt.toISOString()
-        : null,
-      closedAt: entity.closedAt ? entity.closedAt.toISOString() : null,
-      pspReference: entity.pspReference,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

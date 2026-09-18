@@ -55,10 +55,10 @@ export class LedgerTransactionRepository {
         : undefined,
       filters.externalId ? eq(ledgerTransactions.externalId, filters.externalId) : undefined,
       filters.beforeAt
-        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${ledgerTransactions.createdAt}, ${ledgerTransactions.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

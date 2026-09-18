@@ -24,8 +24,8 @@ export interface ChargeFilters {
   paymentIntentIds?: readonly string[];
   pspReference?: string;
   status?: ChargeStatus;
-  createdAfterAt?: Date;
-  createdBeforeAt?: Date;
+  createdAfterAt?: string;
+  createdBeforeAt?: string;
   afterAt?: RowCursor;
 }
 
@@ -73,10 +73,10 @@ export class PaymentIntentRepository {
       filters.statuses ? inArray(paymentIntents.status, [...filters.statuses]) : undefined,
       filters.pspReference ? eq(paymentIntents.pspReference, filters.pspReference) : undefined,
       filters.beforeAt
-        ? sql`(${paymentIntents.createdAt}, ${paymentIntents.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${paymentIntents.createdAt}, ${paymentIntents.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${paymentIntents.createdAt}, ${paymentIntents.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${paymentIntents.createdAt}, ${paymentIntents.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -113,7 +113,7 @@ export class PaymentIntentRepository {
       filters.createdAfterAt ? gte(charges.createdAt, filters.createdAfterAt) : undefined,
       filters.createdBeforeAt ? lt(charges.createdAt, filters.createdBeforeAt) : undefined,
       filters.afterAt
-        ? sql`(${charges.createdAt}, ${charges.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${charges.createdAt}, ${charges.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

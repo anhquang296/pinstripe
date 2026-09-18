@@ -29,7 +29,7 @@ function readCall(fetchImpl: ReturnType<typeof vi.fn>, index = 0) {
 }
 
 it('builds a relative url when baseUrl is empty', async () => {
-  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
+  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
   const { client } = setup(fetchImpl);
 
   await client.customers.find();
@@ -47,7 +47,7 @@ it('encodes a path parameter', async () => {
 });
 
 it('keeps falsy query values and drops undefined ones', async () => {
-  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
+  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
   const { client } = setup(fetchImpl);
 
   await client.customers.find({ limit: 0, email: '', startingAfter: undefined } as never);
@@ -56,7 +56,7 @@ it('keeps falsy query values and drops undefined ones', async () => {
 });
 
 it('sends the authorization header when an apiKey is configured', async () => {
-  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
+  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
   const { client } = setup(fetchImpl, { apiKey: 'sk_test_1' });
 
   await client.customers.find();
@@ -65,7 +65,7 @@ it('sends the authorization header when an apiKey is configured', async () => {
 });
 
 it('omits the authorization header when no apiKey is configured', async () => {
-  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
+  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
   const { client } = setup(fetchImpl);
 
   await client.customers.find();
@@ -83,9 +83,7 @@ it('generates an idempotency key for a mutating request', async () => {
 });
 
 it('omits content-type on a request that carries no body', async () => {
-  const fetchImpl = vi
-    .fn()
-    .mockResolvedValue(jsonResponse({ object: 'customer', id: 'cus_1', deleted: true }));
+  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: 'cus_1', deleted: true }));
   const { client } = setup(fetchImpl);
 
   await client.customers.delete('cus_1');
@@ -106,7 +104,7 @@ it('sends content-type on a request that carries a body', async () => {
 });
 
 it('does not send an idempotency key on a read', async () => {
-  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ object: 'list', data: [] }));
+  const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
   const { client } = setup(fetchImpl);
 
   await client.customers.find();
@@ -195,7 +193,7 @@ describe('retry policy', () => {
     const fetchImpl = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse({ error: { type: 'api_error' } }, statusCode))
-      .mockResolvedValueOnce(jsonResponse({ object: 'list', data: [] }));
+      .mockResolvedValueOnce(jsonResponse({ hasMore: false, data: [] }));
     const { client } = setup(fetchImpl, { maxRetries: 1 });
 
     await client.customers.find();
@@ -236,7 +234,7 @@ describe('retry policy', () => {
       .mockResolvedValueOnce(
         jsonResponse({ error: { type: 'api_error' } }, 429, { 'retry-after': '0' }),
       )
-      .mockResolvedValueOnce(jsonResponse({ object: 'list', data: [] }));
+      .mockResolvedValueOnce(jsonResponse({ hasMore: false, data: [] }));
     const { client } = setup(fetchImpl, { maxRetries: 1 });
 
     await client.customers.find();

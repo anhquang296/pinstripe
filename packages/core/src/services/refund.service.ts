@@ -88,7 +88,7 @@ export class RefundService {
       reason,
       pspReference: pspRefund.reference,
       metadata,
-      createdAt: this.fastify.clock.now(),
+      createdAt: this.fastify.clock.now().toISOString(),
     };
   }
 
@@ -176,7 +176,6 @@ export class RefundService {
     );
 
     return {
-      object: 'list',
       url: '/v1/refunds',
       hasMore: rows.length > limit,
       data: await this.buildRefunds(_.take(rows, limit)),
@@ -234,7 +233,7 @@ export class RefundService {
       charge.id,
       {
         amountRefunded: charge.amountRefunded + refund.amount,
-        updatedAt: this.fastify.clock.now(),
+        updatedAt: this.fastify.clock.now().toISOString(),
       },
       tx,
     );
@@ -253,7 +252,7 @@ export class RefundService {
         refundId: refund.id,
         status,
         failureReason,
-        occurredAt: this.fastify.clock.now(),
+        occurredAt: this.fastify.clock.now().toISOString(),
       },
       tx,
     );
@@ -344,22 +343,6 @@ export class RefundService {
     status: RefundStatus,
     failureReason: string | null = null,
   ): RefundResponse {
-    return {
-      object: 'refund',
-      id: entity.id,
-      chargeId: entity.chargeId,
-      paymentIntentId: entity.paymentIntentId,
-      invoiceId: entity.invoiceId,
-      creditNoteId: entity.creditNoteId,
-      customerId: entity.customerId,
-      currency: entity.currency,
-      amount: entity.amount,
-      status,
-      reason: entity.reason,
-      failureReason,
-      pspReference: entity.pspReference,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-    };
+    return { ...entity, status, failureReason };
   }
 }

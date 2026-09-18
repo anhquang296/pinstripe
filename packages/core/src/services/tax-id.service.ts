@@ -36,7 +36,7 @@ export class TaxIdService {
 
   async createTaxId(payload: CreateTaxIdPayload, livemode: boolean): Promise<TaxIdResponse> {
     const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.TAX_ID);
 
     const createdTaxId = await this.writeTaxId(id, payload, customer.id, now, livemode);
@@ -50,7 +50,7 @@ export class TaxIdService {
     id: string,
     payload: CreateTaxIdPayload,
     customerId: string,
-    now: Date,
+    now: string,
     livemode: boolean,
   ): Promise<TaxId> {
     try {
@@ -109,7 +109,7 @@ export class TaxIdService {
       taxId.customerId,
       taxId.livemode,
     );
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const status = TaxIdService.resolveVerificationStatus(taxId);
     const isVerified = status === TaxIdVerificationStatusEnum.VERIFIED;
 
@@ -191,14 +191,14 @@ export class TaxIdService {
 
   async deleteTaxId(id: string, livemode: boolean): Promise<DeletedTaxIdResponse> {
     const taxId = await this.getTaxIdEntity(id, livemode);
-    const now = this.fastify.clock.now();
+    const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
-      await this.fastify.taxIdRepository.archiveTaxId(id, now, tx);
+      await this.fastify.taxIdRepository.archiveTaxId(id, deletedAt, tx);
       await this.recordTaxIdEvent(taxId, DomainEventTypeEnum.TAX_ID_DELETED, tx);
     });
 
-    return { object: 'tax_id', id, deleted: true };
+    return { id, deleted: true };
   }
 
   async findTaxIds(
@@ -215,7 +215,6 @@ export class TaxIdService {
     );
 
     return {
-      object: 'list',
       url: '/v1/tax_ids',
       hasMore: rows.length > limit,
       data: _(rows).take(limit).map(TaxIdService.buildTaxId).value(),
@@ -261,7 +260,6 @@ export class TaxIdService {
 
   static buildTaxId(entity: TaxId): TaxIdResponse {
     return {
-      object: 'tax_id',
       id: entity.id,
       livemode: entity.livemode,
       customerId: entity.customerId,
@@ -272,13 +270,11 @@ export class TaxIdService {
         status: entity.verificationStatus,
         verifiedName: entity.verifiedName,
         verifiedAddress: entity.verifiedAddress,
-        attemptedAt: entity.verificationAttemptedAt
-          ? entity.verificationAttemptedAt.toISOString()
-          : null,
+        attemptedAt: entity.verificationAttemptedAt,
       },
       metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
     };
   }
 }

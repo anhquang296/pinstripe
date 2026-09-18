@@ -1,6 +1,7 @@
 import type { MeterAggregation, MeterStatus } from '@contracts/meters.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { sql } from 'drizzle-orm';
-import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const meters = pgTable(
   'meters',
@@ -13,9 +14,13 @@ export const meters = pgTable(
     valueKey: text('value_key').notNull(),
     status: text('status').$type<MeterStatus>().notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [

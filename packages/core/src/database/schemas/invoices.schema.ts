@@ -8,6 +8,7 @@ import type {
 import type { CollectionMethod } from '@contracts/subscriptions.types';
 import type { AuthorityStatus, AutomaticTaxStatus, TaxType } from '@contracts/taxes.types';
 import { AuthorityStatusEnum, AutomaticTaxStatusEnum } from '@contracts/taxes.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
@@ -25,7 +26,6 @@ import {
   pgTable,
   primaryKey,
   text,
-  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -67,8 +67,8 @@ export const invoices = pgTable(
     autoAdvance: boolean('auto_advance').notNull().default(true),
     daysUntilDue: integer('days_until_due'),
     attempted: boolean('attempted').notNull().default(false),
-    periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
-    periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
+    periodStart: isoTimestamp('period_start').notNull(),
+    periodEnd: isoTimestamp('period_end').notNull(),
     subtotal: bigint('subtotal', { mode: 'number' }).notNull().default(0),
     subtotalExcludingTax: bigint('subtotal_excluding_tax', { mode: 'number' }).notNull().default(0),
     totalDiscountAmount: bigint('total_discount_amount', { mode: 'number' }).notNull().default(0),
@@ -91,16 +91,20 @@ export const invoices = pgTable(
       .default(AuthorityStatusEnum.NOT_SUBMITTED),
     hostedInvoiceUrl: text('hosted_invoice_url'),
     invoicePdf: text('invoice_pdf'),
-    sentAt: timestamp('sent_at', { withTimezone: true }),
-    dueAt: timestamp('due_at', { withTimezone: true }),
+    sentAt: isoTimestamp('sent_at'),
+    dueAt: isoTimestamp('due_at'),
     attemptCount: integer('attempt_count').notNull().default(0),
-    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
-    finalizedAt: timestamp('finalized_at', { withTimezone: true }),
-    paidAt: timestamp('paid_at', { withTimezone: true }),
-    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    nextAttemptAt: isoTimestamp('next_attempt_at'),
+    finalizedAt: isoTimestamp('finalized_at'),
+    paidAt: isoTimestamp('paid_at'),
+    voidedAt: isoTimestamp('voided_at'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -143,10 +147,12 @@ export const invoiceLineItems = pgTable(
       .$type<InvoiceLineDiscountAmount[]>()
       .notNull()
       .default([]),
-    periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
-    periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
+    periodStart: isoTimestamp('period_start').notNull(),
+    periodEnd: isoTimestamp('period_end').notNull(),
     prorationFactor: doublePrecision('proration_factor').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [index('invoice_line_items_invoice_id_idx').on(table.invoiceId)];
@@ -178,7 +184,9 @@ export const invoiceLineItemTaxAmounts = pgTable(
     isInclusive: boolean('is_inclusive').notNull(),
     percentage: doublePrecision('percentage').notNull(),
     taxType: text('tax_type').$type<TaxType>().notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -214,7 +222,9 @@ export const creditNotes = pgTable(
     ledgerTransactionId: text('ledger_transaction_id'),
     reason: text('reason').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -242,7 +252,9 @@ export const creditNoteLineItems = pgTable(
     quantity: doublePrecision('quantity').notNull().default(1),
     unitAmount: bigint('unit_amount', { mode: 'number' }),
     amount: bigint('amount', { mode: 'number' }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [index('credit_note_line_items_credit_note_id_idx').on(table.creditNoteId)];
@@ -261,8 +273,10 @@ export const creditNoteTransitions = pgTable(
       }),
     status: text('status').$type<CreditNoteStatus>().notNull(),
     reason: text('reason'),
-    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    occurredAt: isoTimestamp('occurred_at').notNull(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -298,12 +312,16 @@ export const invoiceItems = pgTable(
     amount: bigint('amount', { mode: 'number' }).notNull(),
     discountable: boolean('discountable').notNull().default(true),
     taxRates: jsonb('tax_rates').$type<string[]>().notNull().default([]),
-    periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
-    periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
+    periodStart: isoTimestamp('period_start').notNull(),
+    periodEnd: isoTimestamp('period_end').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [
@@ -328,8 +346,10 @@ export const invoicePayments = pgTable(
     chargeId: text('charge_id'),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     settlementReference: text('settlement_reference'),
-    paidAt: timestamp('paid_at', { withTimezone: true }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    paidAt: isoTimestamp('paid_at').notNull(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

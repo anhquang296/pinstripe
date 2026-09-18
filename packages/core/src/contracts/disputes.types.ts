@@ -48,7 +48,6 @@ export const disputeEvidenceSchema = Type.Object({
 });
 
 export const disputeSchema = Type.Object({
-  object: Type.Literal('dispute'),
   id: Type.String(),
   chargeId: Type.String(),
   paymentIntentId: Type.String(),

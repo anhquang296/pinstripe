@@ -76,8 +76,8 @@ export interface InvoiceDraftLine {
   taxAmounts: LineTaxAmount[];
   taxRateIds: string[];
   taxBehavior: TaxBehavior;
-  periodStart: Date;
-  periodEnd: Date;
+  periodStart: string;
+  periodEnd: string;
   prorationFactor: number;
   isCredit: boolean;
 }
@@ -142,6 +142,7 @@ export class InvoiceService {
   ): Promise<Invoice> {
     const customer = await this.fastify.customerService.getCustomer(customerId, livemode);
     const now = await this.fastify.clockService.resolveCustomerNow(customerId);
+    const createdAt = now.toISOString();
     const id = generateGid(ObjectPrefixEnum.INVOICE);
 
     const {
@@ -164,13 +165,13 @@ export class InvoiceService {
           collectionMethod,
           autoAdvance,
           daysUntilDue,
-          periodStart: now,
-          periodEnd: now,
+          periodStart: createdAt,
+          periodEnd: createdAt,
           defaultTaxRates: payload.defaultTaxRates ?? [],
           automaticTaxEnabled: _.get(payload.automaticTax, 'enabled', false),
           metadata: payload.metadata ?? {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt,
+          updatedAt: createdAt,
         },
         tx,
       );
@@ -190,7 +191,8 @@ export class InvoiceService {
     metadata: Record<string, string>,
     period: RatingPeriod,
   ): Promise<EnsuredInvoice> {
-    const existingInvoice = await this.findPeriodInvoice(subscription, period.periodStart);
+    const periodStart = period.periodStart.toISOString();
+    const existingInvoice = await this.findPeriodInvoice(subscription, periodStart);
 
     if (existingInvoice) {
       return { invoice: existingInvoice, isCreated: false };
@@ -198,6 +200,7 @@ export class InvoiceService {
 
     const id = generateGid(ObjectPrefixEnum.INVOICE);
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+    const createdAt = now.toISOString();
 
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
@@ -214,8 +217,8 @@ export class InvoiceService {
             collectionMethod: subscription.collectionMethod,
             autoAdvance: true,
             daysUntilDue: null,
-            periodStart: period.periodStart,
-            periodEnd: period.periodEnd,
+            periodStart,
+            periodEnd: period.periodEnd.toISOString(),
             subtotal: 0,
             total: 0,
             amountPaid: 0,
@@ -224,8 +227,8 @@ export class InvoiceService {
             paidAt: null,
             voidedAt: null,
             metadata,
-            createdAt: now,
-            updatedAt: now,
+            createdAt,
+            updatedAt: createdAt,
           },
           tx,
         );
@@ -240,7 +243,7 @@ export class InvoiceService {
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
-        const racedInvoice = await this.findPeriodInvoice(subscription, period.periodStart);
+        const racedInvoice = await this.findPeriodInvoice(subscription, periodStart);
 
         if (racedInvoice) {
           return { invoice: racedInvoice, isCreated: false };
@@ -312,7 +315,7 @@ export class InvoiceService {
     now: Date,
   ): Promise<InvoiceResponse> {
     const id = generateGid(ObjectPrefixEnum.INVOICE);
-    const period = InvoiceService.readCurrentPeriod(subscription);
+    const createdAt = now.toISOString();
 
     const draft = await this.fastify.database.master.transaction(async (tx) => {
       const invoice = await this.fastify.invoiceRepository.createInvoice(
@@ -328,12 +331,12 @@ export class InvoiceService {
           collectionMethod: subscription.collectionMethod,
           autoAdvance: true,
           daysUntilDue: null,
-          periodStart: period.periodStart,
-          periodEnd: period.periodEnd,
+          periodStart: subscription.currentPeriodStart,
+          periodEnd: subscription.currentPeriodEnd,
           defaultTaxRates: subscription.defaultTaxRates,
           metadata: {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt,
+          updatedAt: createdAt,
         },
         tx,
       );
@@ -362,7 +365,7 @@ export class InvoiceService {
 
     await this.fastify.subscriptionRepository.closeSubscriptionItemChanges(
       _.map(subscriptionItems, 'id'),
-      endedAt,
+      endedAt.toISOString(),
     );
 
     const period: RatingPeriod = {
@@ -390,8 +393,8 @@ export class InvoiceService {
 
   private static readCurrentPeriod(subscription: Subscription): RatingPeriod {
     return {
-      periodStart: subscription.currentPeriodStart,
-      periodEnd: subscription.currentPeriodEnd,
+      periodStart: new Date(subscription.currentPeriodStart),
+      periodEnd: new Date(subscription.currentPeriodEnd),
     };
   }
 
@@ -408,7 +411,7 @@ export class InvoiceService {
         {
           status: InvoiceStatusEnum.UNCOLLECTIBLE,
           nextAttemptAt: null,
-          updatedAt: now,
+          updatedAt: now.toISOString(),
         },
         tx,
       );
@@ -446,7 +449,7 @@ export class InvoiceService {
     const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
     const held = await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
       autoAdvance: false,
-      updatedAt: now,
+      updatedAt: now.toISOString(),
     });
 
     if (held) {
@@ -471,10 +474,12 @@ export class InvoiceService {
     }
 
     const subscription = await this.getSubscription(subscriptionId);
+    const periodStart = new Date(invoice.periodStart);
+    const periodEnd = new Date(invoice.periodEnd);
     const rated = await this.fastify.ratingService.rateInvoicePeriod(
       subscriptionId,
-      invoice.periodStart,
-      invoice.periodEnd,
+      periodStart,
+      periodEnd,
     );
 
     return this.buildSubscriptionLines(subscription, rated.lineItems);
@@ -511,8 +516,8 @@ export class InvoiceService {
         taxAmounts: [],
         taxRateIds: itemTaxRateIds,
         taxBehavior: _.get(taxBehaviorByPriceId, lineItem.priceId, TaxBehaviorEnum.UNSPECIFIED),
-        periodStart: new Date(lineItem.periodStart),
-        periodEnd: new Date(lineItem.periodEnd),
+        periodStart: lineItem.periodStart,
+        periodEnd: lineItem.periodEnd,
         prorationFactor: lineItem.prorationFactor,
         isCredit: lineItem.isCredit,
       };
@@ -613,6 +618,7 @@ export class InvoiceService {
     }
 
     const id = generateGid(ObjectPrefixEnum.INVOICE);
+    const createdAt = now.toISOString();
     const invoice = await this.fastify.invoiceRepository.createInvoice(
       {
         id,
@@ -636,8 +642,8 @@ export class InvoiceService {
         paidAt: null,
         voidedAt: null,
         metadata: {},
-        createdAt: now,
-        updatedAt: now,
+        createdAt,
+        updatedAt: createdAt,
       },
       tx,
     );
@@ -667,7 +673,8 @@ export class InvoiceService {
       discountedLines,
     );
     const totals = InvoiceService.assembleInvoiceTotals(taxedLines, customer.balance);
-    const dueAt = this.resolveDueAt(invoice, now);
+    const finalizedAt = now.toISOString();
+    const dueAt = this.resolveDueAt(invoice, now).toISOString();
 
     const lineItems = _.map(taxedLines, (line): NewInvoiceLineItem => {
       return {
@@ -690,10 +697,15 @@ export class InvoiceService {
         periodStart: line.periodStart,
         periodEnd: line.periodEnd,
         prorationFactor: line.prorationFactor,
-        createdAt: now,
+        createdAt: finalizedAt,
       };
     });
-    const taxAmounts = InvoiceService.buildLineItemTaxAmounts(invoice, taxedLines, lineItems, now);
+    const taxAmounts = InvoiceService.buildLineItemTaxAmounts(
+      invoice,
+      taxedLines,
+      lineItems,
+      finalizedAt,
+    );
 
     const sequenceValue = await this.fastify.numberSequenceRepository.claimNumberSequence(
       NumberSequenceEnum.INVOICE,
@@ -710,7 +722,7 @@ export class InvoiceService {
     await this.fastify.invoiceItemRepository.attachInvoiceItems(
       _.compact(_.map(lines, 'invoiceItemId')),
       invoice.id,
-      now,
+      finalizedAt,
       tx,
     );
 
@@ -723,16 +735,16 @@ export class InvoiceService {
         invoicePdf: this.fastify.hostedUrlFactory.buildInvoicePdfUrl(invoice.id),
         ...totals,
         automaticTaxStatus,
-        finalizedAt: now,
+        finalizedAt,
         dueAt,
         nextAttemptAt: InvoiceService.resolveNextAttemptAt(invoice, dueAt),
-        updatedAt: now,
+        updatedAt: finalizedAt,
       },
       tx,
     );
 
     if (updatedInvoice) {
-      await this.applyCustomerBalance(updatedInvoice, totals, now, tx);
+      await this.applyCustomerBalance(updatedInvoice, totals, finalizedAt, tx);
       await this.postReceivable(updatedInvoice, totals, tx);
       await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_FINALIZED, tx);
 
@@ -766,14 +778,12 @@ export class InvoiceService {
       return;
     }
 
-    const chargesByPeriodEnd = _.groupBy(_.reject(lines, 'isCredit'), (line) => {
-      return line.periodEnd.toISOString();
-    });
+    const chargesByPeriodEnd = _.groupBy(_.reject(lines, 'isCredit'), 'periodEnd');
 
     for (const [periodEnd, chargedLines] of _.toPairs(chargesByPeriodEnd)) {
       await this.fastify.subscriptionRepository.invoiceSubscriptionItemChanges(
         _.compact(_.map(chargedLines, 'subscriptionItemChangeId')),
-        new Date(periodEnd),
+        periodEnd,
         tx,
       );
     }
@@ -788,7 +798,7 @@ export class InvoiceService {
     invoice: Invoice,
     lines: readonly InvoiceDraftLine[],
     lineItems: readonly NewInvoiceLineItem[],
-    now: Date,
+    createdAt: string,
   ): NewInvoiceLineItemTaxAmount[] {
     return _.flatMap(lines, (line, index): NewInvoiceLineItemTaxAmount[] => {
       const lineItem = lineItems[index];
@@ -809,13 +819,13 @@ export class InvoiceService {
           isInclusive: taxAmount.isInclusive,
           percentage: taxAmount.percentage,
           taxType: taxAmount.taxType,
-          createdAt: now,
+          createdAt,
         };
       });
     });
   }
 
-  private static resolveNextAttemptAt(invoice: Invoice, dueAt: Date): Date | null {
+  private static resolveNextAttemptAt(invoice: Invoice, dueAt: string): string | null {
     if (invoice.collectionMethod === CollectionMethodEnum.CHARGE_AUTOMATICALLY) {
       return dueAt;
     }
@@ -833,7 +843,7 @@ export class InvoiceService {
       {
         status: InvoiceStatusEnum.DRAFT,
         autoAdvance: true,
-        createdBeforeAt: finalizeBeforeAt,
+        createdBeforeAt: finalizeBeforeAt.toISOString(),
         shardCount,
         shardIndex,
       },
@@ -880,7 +890,7 @@ export class InvoiceService {
   private async applyCustomerBalance(
     invoice: Invoice,
     totals: InvoiceTotals,
-    now: Date,
+    appliedAt: string,
     tx: DatabaseTransaction,
   ): Promise<void> {
     const movement = totals.endingBalance - totals.startingBalance;
@@ -891,7 +901,7 @@ export class InvoiceService {
 
     await this.fastify.customerRepository.updateCustomer(
       invoice.customerId,
-      { balance: totals.endingBalance, updatedAt: now },
+      { balance: totals.endingBalance, updatedAt: appliedAt },
       tx,
     );
 
@@ -908,7 +918,7 @@ export class InvoiceService {
         endingBalance: totals.endingBalance,
         description: `Applied to invoice ${invoice.number}`,
         metadata: {},
-        createdAt: now,
+        createdAt: appliedAt,
       },
       tx,
     );
@@ -964,6 +974,7 @@ export class InvoiceService {
 
     const amountPaid = invoice.amountPaid + amount;
     const isSettled = amountPaid + amountCredited >= invoice.amountDue;
+    const paidAt = now.toISOString();
 
     const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
       invoice.id,
@@ -971,9 +982,9 @@ export class InvoiceService {
         amountPaid,
         attempted: true,
         status: isSettled ? InvoiceStatusEnum.PAID : invoice.status,
-        paidAt: isSettled ? now : null,
+        paidAt: isSettled ? paidAt : null,
         nextAttemptAt: isSettled ? null : invoice.nextAttemptAt,
-        updatedAt: now,
+        updatedAt: paidAt,
       },
       tx,
     );
@@ -988,8 +999,8 @@ export class InvoiceService {
           chargeId: payload.chargeId ?? null,
           amount,
           settlementReference: payload.settlementReference ?? null,
-          paidAt: now,
-          createdAt: now,
+          paidAt,
+          createdAt: paidAt,
         },
         tx,
       );
@@ -1020,15 +1031,16 @@ export class InvoiceService {
     }
 
     const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
+    const voidedAt = now.toISOString();
 
     const voidedInvoice = await this.fastify.database.master.transaction(async (tx) => {
       const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
         invoice.id,
         {
           status: InvoiceStatusEnum.VOID,
-          voidedAt: now,
+          voidedAt,
           metadata: { ...invoice.metadata, ...(payload.metadata ?? {}) },
-          updatedAt: now,
+          updatedAt: voidedAt,
         },
         tx,
       );
@@ -1036,7 +1048,7 @@ export class InvoiceService {
       if (updatedInvoice) {
         if (invoice.status === InvoiceStatusEnum.OPEN) {
           await this.reverseReceivable(updatedInvoice, tx);
-          await this.restoreCustomerBalance(updatedInvoice, now, tx);
+          await this.restoreCustomerBalance(updatedInvoice, voidedAt, tx);
         }
 
         if (invoice.billingReason === BillingReasonEnum.SUBSCRIPTION_UPDATE) {
@@ -1090,7 +1102,6 @@ export class InvoiceService {
     const refundedByInvoiceId = await this.resolveRefundedAmounts(invoiceIds);
 
     return {
-      object: 'list',
       url: '/v1/invoices',
       hasMore: rows.length > limit,
       data: _.map(page, (invoice) => {
@@ -1118,7 +1129,7 @@ export class InvoiceService {
 
   private async findPeriodInvoice(
     subscription: Subscription,
-    periodStart: Date,
+    periodStart: string,
   ): Promise<Invoice | null> {
     const [invoice] = await this.fastify.invoiceRepository.findInvoices(
       {
@@ -1274,7 +1285,7 @@ export class InvoiceService {
 
   private async restoreCustomerBalance(
     invoice: Invoice,
-    now: Date,
+    unappliedAt: string,
     tx: DatabaseTransaction,
   ): Promise<void> {
     const movement = invoice.endingBalance - invoice.startingBalance;
@@ -1288,7 +1299,7 @@ export class InvoiceService {
 
     await this.fastify.customerRepository.updateCustomer(
       invoice.customerId,
-      { balance: endingBalance, updatedAt: now },
+      { balance: endingBalance, updatedAt: unappliedAt },
       tx,
     );
 
@@ -1305,7 +1316,7 @@ export class InvoiceService {
         endingBalance,
         description: `Unapplied from invoice ${invoice.number}`,
         metadata: {},
-        createdAt: now,
+        createdAt: unappliedAt,
       },
       tx,
     );
@@ -1449,78 +1460,20 @@ export class InvoiceService {
     amountRefunded: number,
   ): InvoiceResponse {
     return {
-      object: 'invoice',
-      id: invoice.id,
-      number: invoice.number,
-      customerId: invoice.customerId,
-      subscriptionId: invoice.subscriptionId,
-      status: invoice.status,
-      billingReason: invoice.billingReason,
-      currency: invoice.currency,
-      collectionMethod: invoice.collectionMethod,
-      autoAdvance: invoice.autoAdvance,
-      daysUntilDue: invoice.daysUntilDue,
-      attempted: invoice.attempted,
-      periodStart: invoice.periodStart.toISOString(),
-      periodEnd: invoice.periodEnd.toISOString(),
-      subtotal: invoice.subtotal,
-      subtotalExcludingTax: invoice.subtotalExcludingTax,
-      totalDiscountAmount: invoice.totalDiscountAmount,
-      totalTaxAmount: invoice.totalTaxAmount,
-      total: invoice.total,
-      startingBalance: invoice.startingBalance,
-      endingBalance: invoice.endingBalance,
-      amountDue: invoice.amountDue,
-      amountPaid: invoice.amountPaid,
-      defaultTaxRates: invoice.defaultTaxRates,
+      ...invoice,
       automaticTax: {
         enabled: invoice.automaticTaxEnabled,
         status: invoice.automaticTaxStatus,
       },
-      authorityInvoiceNumber: invoice.authorityInvoiceNumber,
-      authorityStatus: invoice.authorityStatus,
       amountCredited,
       amountRefunded,
       amountRemaining: invoice.amountDue - invoice.amountPaid - amountCredited,
       lineItems: _.map(lineItems, (lineItem) => {
         return {
-          object: 'line_item' as const,
-          id: lineItem.id,
-          subscriptionItemId: lineItem.subscriptionItemId,
-          invoiceItemId: lineItem.invoiceItemId,
-          priceId: lineItem.priceId,
-          type: lineItem.type,
-          description: lineItem.description,
-          quantity: lineItem.quantity,
-          unitAmount: lineItem.unitAmount,
-          amount: lineItem.amount,
-          amountExcludingTax: lineItem.amountExcludingTax,
-          discountable: lineItem.discountable,
-          discountAmounts: lineItem.discountAmounts,
-          taxAmounts: _.map(_.get(taxAmountsByLineItemId, lineItem.id, []), (taxAmount) => {
-            return {
-              taxRateId: taxAmount.taxRateId,
-              amount: taxAmount.amount,
-              taxableAmount: taxAmount.taxableAmount,
-              isInclusive: taxAmount.isInclusive,
-              percentage: taxAmount.percentage,
-              taxType: taxAmount.taxType,
-            };
-          }),
-          periodStart: lineItem.periodStart.toISOString(),
-          periodEnd: lineItem.periodEnd.toISOString(),
-          prorationFactor: lineItem.prorationFactor,
+          ...lineItem,
+          taxAmounts: _.get(taxAmountsByLineItemId, lineItem.id, []),
         };
       }),
-      hostedInvoiceUrl: invoice.hostedInvoiceUrl,
-      invoicePdf: invoice.invoicePdf,
-      sentAt: invoice.sentAt ? invoice.sentAt.toISOString() : null,
-      finalizedAt: invoice.finalizedAt ? invoice.finalizedAt.toISOString() : null,
-      paidAt: invoice.paidAt ? invoice.paidAt.toISOString() : null,
-      voidedAt: invoice.voidedAt ? invoice.voidedAt.toISOString() : null,
-      metadata: invoice.metadata,
-      createdAt: invoice.createdAt.toISOString(),
-      updatedAt: invoice.updatedAt.toISOString(),
     };
   }
 }

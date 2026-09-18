@@ -18,7 +18,6 @@ export enum ApiKeyScopeEnum {
 export type ApiKeyScope = `${ApiKeyScopeEnum}`;
 
 export const apiKeySchema = Type.Object({
-  object: Type.Literal('api_key'),
   id: Type.String(),
   name: Type.String(),
   type: Type.Unsafe<ApiKeyType>(Type.Enum(ApiKeyTypeEnum)),

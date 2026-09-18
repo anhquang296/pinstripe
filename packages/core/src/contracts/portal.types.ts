@@ -9,7 +9,6 @@ export enum PortalSessionStatusEnum {
 export type PortalSessionStatus = `${PortalSessionStatusEnum}`;
 
 export const portalSessionSchema = Type.Object({
-  object: Type.Literal('portal_session'),
   id: Type.String(),
   livemode: Type.Boolean(),
   customerId: Type.String(),
@@ -22,13 +21,11 @@ export const portalSessionSchema = Type.Object({
 });
 
 export const portalLinkSchema = Type.Object({
-  object: Type.Literal('portal_link'),
   livemode: Type.Boolean(),
   linkExpiresAt: Type.String(),
 });
 
 export const portalIdentitySchema = Type.Object({
-  object: Type.Literal('portal_identity'),
   customerId: Type.String(),
   email: Type.Union([Type.String(), Type.Null()]),
   name: Type.String(),

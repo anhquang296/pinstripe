@@ -45,10 +45,10 @@ export class BillingPortalConfigurationRepository {
         ? undefined
         : eq(billingPortalConfigurations.isDefault, filters.isDefault),
       filters.beforeAt
-        ? sql`(${billingPortalConfigurations.createdAt}, ${billingPortalConfigurations.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${billingPortalConfigurations.createdAt}, ${billingPortalConfigurations.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${billingPortalConfigurations.createdAt}, ${billingPortalConfigurations.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${billingPortalConfigurations.createdAt}, ${billingPortalConfigurations.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

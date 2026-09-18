@@ -19,10 +19,10 @@ export class TaxRateService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createTaxRate(payload: CreateTaxRatePayload, livemode: boolean): Promise<TaxRateResponse> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.TAX_RATE);
 
-    const createdTaxRate = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const taxRate = await this.fastify.taxRateRepository.createTaxRate(
         {
           id,
@@ -51,14 +51,10 @@ export class TaxRateService {
 
       throw new NotFoundError(`Tax rate ${id} could not be created`);
     });
-
-    return TaxRateService.buildTaxRate(createdTaxRate);
   }
 
   async getTaxRate(id: string, livemode: boolean): Promise<TaxRateResponse> {
-    const taxRate = await this.getTaxRateEntity(id, livemode);
-
-    return TaxRateService.buildTaxRate(taxRate);
+    return this.getTaxRateEntity(id, livemode);
   }
 
   async getTaxRateEntity(id: string, livemode: boolean): Promise<TaxRate> {
@@ -77,9 +73,9 @@ export class TaxRateService {
     livemode: boolean,
   ): Promise<TaxRateResponse> {
     const existingTaxRate = await this.getTaxRateEntity(id, livemode);
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
-    const updatedTaxRate = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const taxRate = await this.fastify.taxRateRepository.updateTaxRate(
         id,
         {
@@ -88,7 +84,7 @@ export class TaxRateService {
           jurisdiction: payload.jurisdiction ?? existingTaxRate.jurisdiction,
           active: payload.active ?? existingTaxRate.active,
           metadata: payload.metadata ?? existingTaxRate.metadata,
-          updatedAt: now,
+          updatedAt,
         },
         tx,
       );
@@ -101,8 +97,6 @@ export class TaxRateService {
 
       throw new NotFoundError(`No such tax rate: ${id}`);
     });
-
-    return TaxRateService.buildTaxRate(updatedTaxRate);
   }
 
   async findTaxRates(
@@ -127,10 +121,9 @@ export class TaxRateService {
     );
 
     return {
-      object: 'list',
       url: '/v1/tax_rates',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(TaxRateService.buildTaxRate).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -169,25 +162,5 @@ export class TaxRateService {
       ],
       tx,
     );
-  }
-
-  static buildTaxRate(entity: TaxRate): TaxRateResponse {
-    return {
-      object: 'tax_rate',
-      id: entity.id,
-      livemode: entity.livemode,
-      displayName: entity.displayName,
-      description: entity.description,
-      percentage: entity.percentage,
-      inclusive: entity.inclusive,
-      jurisdiction: entity.jurisdiction,
-      country: entity.country,
-      state: entity.state,
-      taxType: entity.taxType,
-      active: entity.active,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

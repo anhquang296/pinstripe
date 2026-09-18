@@ -2,7 +2,6 @@ import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 
 export const billingPortalConfigurationSchema = Type.Object({
-  object: Type.Literal('billing_portal.configuration'),
   id: Type.String(),
   livemode: Type.Boolean(),
   isActive: Type.Boolean(),
@@ -20,7 +19,6 @@ export const billingPortalConfigurationSchema = Type.Object({
 });
 
 export const billingPortalSessionSchema = Type.Object({
-  object: Type.Literal('billing_portal.session'),
   id: Type.String(),
   livemode: Type.Boolean(),
   customerId: Type.String(),

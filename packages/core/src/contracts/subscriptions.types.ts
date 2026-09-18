@@ -98,7 +98,6 @@ export const BILLABLE_SUBSCRIPTION_STATUSES: SubscriptionStatus[] = [
 ];
 
 export const subscriptionItemSchema = Type.Object({
-  object: Type.Literal('subscription_item'),
   id: Type.String(),
   subscriptionId: Type.String(),
   priceId: Type.String(),
@@ -109,7 +108,6 @@ export const subscriptionItemSchema = Type.Object({
 });
 
 export const subscriptionSchema = Type.Object({
-  object: Type.Literal('subscription'),
   id: Type.String(),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
@@ -300,7 +298,6 @@ export const findSubscriptionItemsSchema = Type.Object(
 );
 
 export const deletedSubscriptionItemSchema = Type.Object({
-  object: Type.Literal('subscription_item'),
   id: Type.String(),
   deleted: Type.Literal(true),
 });

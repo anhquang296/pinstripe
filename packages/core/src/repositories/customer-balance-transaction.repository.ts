@@ -43,10 +43,10 @@ export class CustomerBalanceTransactionRepository {
         : undefined,
       filters.invoiceId ? eq(customerBalanceTransactions.invoiceId, filters.invoiceId) : undefined,
       filters.beforeAt
-        ? sql`(${customerBalanceTransactions.createdAt}, ${customerBalanceTransactions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${customerBalanceTransactions.createdAt}, ${customerBalanceTransactions.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${customerBalanceTransactions.createdAt}, ${customerBalanceTransactions.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${customerBalanceTransactions.createdAt}, ${customerBalanceTransactions.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

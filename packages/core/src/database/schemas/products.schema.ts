@@ -1,4 +1,6 @@
-import { boolean, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
+import { sql } from 'drizzle-orm';
+import { boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const products = pgTable(
   'products',
@@ -10,9 +12,13 @@ export const products = pgTable(
     active: boolean('active').notNull().default(true),
     unitLabel: text('unit_label').notNull().default(''),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    deletedAt: isoTimestamp('deleted_at'),
   },
   (table) => {
     return [index('products_created_at_id_idx').on(table.createdAt, table.id)];

@@ -28,11 +28,11 @@ export interface InvoiceFilters {
   status?: InvoiceStatus;
   statuses?: readonly InvoiceStatus[];
   billingReason?: BillingReason;
-  periodStart?: Date;
-  periodEndBeforeAt?: Date;
-  nextAttemptBeforeAt?: Date;
+  periodStart?: string;
+  periodEndBeforeAt?: string;
+  nextAttemptBeforeAt?: string;
   autoAdvance?: boolean;
-  createdBeforeAt?: Date;
+  createdBeforeAt?: string;
   shardCount?: number;
   shardIndex?: number;
   beforeAt?: RowCursor;
@@ -193,10 +193,10 @@ export class InvoiceRepository {
         ? sql`abs(hashtext(${invoices.customerId})) % ${filters.shardCount} = ${filters.shardIndex}`
         : undefined,
       filters.beforeAt
-        ? sql`(${invoices.createdAt}, ${invoices.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${invoices.createdAt}, ${invoices.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${invoices.createdAt}, ${invoices.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${invoices.createdAt}, ${invoices.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
   }

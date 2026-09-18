@@ -88,8 +88,8 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
         failureMessage: null,
         pspReference: null,
         metadata: {},
-        createdAt: new Date(now.getTime() + index),
-        updatedAt: now,
+        createdAt: new Date(now.getTime() + index).toISOString(),
+        updatedAt: now.toISOString(),
       });
     }
 

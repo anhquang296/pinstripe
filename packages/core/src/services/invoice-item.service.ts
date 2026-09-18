@@ -26,7 +26,7 @@ export class InvoiceItemService {
   ): Promise<InvoiceItemResponse> {
     const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
 
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
 
     const id = generateGid(ObjectPrefixEnum.INVOICE_ITEM);
 
@@ -35,7 +35,7 @@ export class InvoiceItemService {
 
     await this.assertInvoiceIsDraft(payload.invoiceId, livemode);
 
-    const createdInvoiceItem = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const invoiceItem = await this.fastify.invoiceItemRepository.createInvoiceItem(
         {
           id,
@@ -51,8 +51,8 @@ export class InvoiceItemService {
           amount,
           discountable: payload.discountable ?? true,
           taxRates: payload.taxRates ?? [],
-          periodStart: payload.periodStart ? new Date(payload.periodStart) : now,
-          periodEnd: payload.periodEnd ? new Date(payload.periodEnd) : now,
+          periodStart: payload.periodStart ?? now,
+          periodEnd: payload.periodEnd ?? now,
           metadata: payload.metadata ?? {},
           createdAt: now,
           updatedAt: now,
@@ -68,8 +68,6 @@ export class InvoiceItemService {
 
       throw new NotFoundError(`Invoice item ${id} could not be created`);
     });
-
-    return InvoiceItemService.buildInvoiceItem(createdInvoiceItem);
   }
 
   private async resolveAmount(
@@ -126,7 +124,7 @@ export class InvoiceItemService {
     const invoiceItem = await this.fastify.invoiceItemRepository.findInvoiceItem(id);
 
     if (invoiceItem && invoiceItem.livemode === livemode) {
-      return InvoiceItemService.buildInvoiceItem(invoiceItem);
+      return invoiceItem;
     }
 
     throw new NotFoundError(`No such invoice item: ${id}`);
@@ -151,9 +149,9 @@ export class InvoiceItemService {
       existingInvoiceItem.amount,
     );
 
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
-    const updatedInvoiceItem = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const invoiceItem = await this.fastify.invoiceItemRepository.updateInvoiceItem(
         id,
         {
@@ -164,7 +162,7 @@ export class InvoiceItemService {
           discountable: payload.discountable ?? existingInvoiceItem.discountable,
           taxRates: payload.taxRates ?? existingInvoiceItem.taxRates,
           metadata: payload.metadata ?? existingInvoiceItem.metadata,
-          updatedAt: now,
+          updatedAt,
         },
         tx,
       );
@@ -177,8 +175,6 @@ export class InvoiceItemService {
 
       throw new NotFoundError(`No such invoice item: ${id}`);
     });
-
-    return InvoiceItemService.buildInvoiceItem(updatedInvoiceItem);
   }
 
   private static resolveUpdatedAmount(
@@ -203,10 +199,10 @@ export class InvoiceItemService {
 
     await this.assertInvoiceIsDraft(invoiceItem.invoiceId ?? undefined, livemode);
 
-    const now = this.fastify.clock.now();
+    const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
-      await this.fastify.invoiceItemRepository.archiveInvoiceItem(id, now, tx);
+      await this.fastify.invoiceItemRepository.archiveInvoiceItem(id, deletedAt, tx);
 
       await this.fastify.outboxService.recordEvents(
         [
@@ -222,7 +218,7 @@ export class InvoiceItemService {
       );
     });
 
-    return { object: 'invoiceitem', id, deleted: true };
+    return { id, deleted: true };
   }
 
   async findInvoiceItems(
@@ -247,10 +243,9 @@ export class InvoiceItemService {
     );
 
     return {
-      object: 'list',
       url: '/v1/invoiceitems',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(InvoiceItemService.buildInvoiceItem).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -285,29 +280,5 @@ export class InvoiceItemService {
       ],
       tx,
     );
-  }
-
-  static buildInvoiceItem(entity: InvoiceItem): InvoiceItemResponse {
-    return {
-      object: 'invoiceitem',
-      id: entity.id,
-      livemode: entity.livemode,
-      customerId: entity.customerId,
-      invoiceId: entity.invoiceId,
-      subscriptionId: entity.subscriptionId,
-      priceId: entity.priceId,
-      currency: entity.currency,
-      description: entity.description,
-      quantity: entity.quantity,
-      unitAmount: entity.unitAmount,
-      amount: entity.amount,
-      discountable: entity.discountable,
-      taxRates: entity.taxRates,
-      periodStart: entity.periodStart.toISOString(),
-      periodEnd: entity.periodEnd.toISOString(),
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

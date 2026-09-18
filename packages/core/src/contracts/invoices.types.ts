@@ -59,7 +59,6 @@ export const INVOICE_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
 };
 
 export const invoiceSchema = Type.Object({
-  object: Type.Literal('invoice'),
   id: Type.String(),
   number: Type.Union([Type.String(), Type.Null()]),
   customerId: Type.String(),
@@ -96,7 +95,6 @@ export const invoiceSchema = Type.Object({
   amountRemaining: Type.Integer(),
   lineItems: Type.Array(
     Type.Object({
-      object: Type.Literal('line_item'),
       id: Type.String(),
       subscriptionItemId: Type.Union([Type.String(), Type.Null()]),
       invoiceItemId: Type.Union([Type.String(), Type.Null()]),
@@ -138,7 +136,6 @@ export const invoiceSchema = Type.Object({
 });
 
 export const creditNoteSchema = Type.Object({
-  object: Type.Literal('credit_note'),
   id: Type.String(),
   number: Type.String(),
   invoiceId: Type.String(),
@@ -155,7 +152,6 @@ export const creditNoteSchema = Type.Object({
   reason: Type.String(),
   lines: Type.Array(
     Type.Object({
-      object: Type.Literal('credit_note_line_item'),
       id: Type.String(),
       creditNoteId: Type.String(),
       invoiceLineItemId: Type.Union([Type.String(), Type.Null()]),
@@ -190,7 +186,6 @@ export const createInvoiceSchema = Type.Object(
 );
 
 export const invoiceItemSchema = Type.Object({
-  object: Type.Literal('invoiceitem'),
   id: Type.String(),
   livemode: Type.Boolean(),
   customerId: Type.String(),
@@ -213,7 +208,6 @@ export const invoiceItemSchema = Type.Object({
 });
 
 export const deletedInvoiceItemSchema = Type.Object({
-  object: Type.Literal('invoiceitem'),
   id: Type.String(),
   deleted: Type.Literal(true),
 });

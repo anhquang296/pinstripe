@@ -25,7 +25,7 @@ export class OutboxService {
     events: readonly RecordEventPayload[],
     executor?: DatabaseTransaction,
   ): Promise<string[]> {
-    const occurredAt = this.fastify.clock.now();
+    const occurredAt = this.fastify.clock.now().toISOString();
     const outboxRows: NewOutboxEvent[] = _.map(events, (event) => {
       return {
         id: generateGid(ObjectPrefixEnum.EVENT),
@@ -79,7 +79,7 @@ export class OutboxService {
 
     await this.fastify.outboxEventRepository.publishOutboxEvents(
       published,
-      this.fastify.clock.now(),
+      this.fastify.clock.now().toISOString(),
     );
 
     return published.length;
@@ -88,6 +88,7 @@ export class OutboxService {
   private async dispatchDomainEvent(
     event: ClaimedOutboxEvent,
   ): Promise<Job<DomainEventDispatchJob>> {
+    const occurredAt = new Date(event.occurredAt);
     const job = buildDomainEventDispatchJob({
       eventId: event.id,
       livemode: event.livemode,
@@ -95,7 +96,7 @@ export class OutboxService {
       aggregateId: event.aggregateId,
       eventType: event.eventType,
       payload: event.payload,
-      occurredAt: event.occurredAt,
+      occurredAt,
     });
 
     return this.fastify.queues

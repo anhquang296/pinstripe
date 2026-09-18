@@ -19,7 +19,6 @@ export const PAYOUT_TRANSITIONS: Record<PayoutStatus, PayoutStatus[]> = {
 };
 
 export const payoutSchema = Type.Object({
-  object: Type.Literal('payout'),
   id: Type.String(),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   amount: Type.Integer(),

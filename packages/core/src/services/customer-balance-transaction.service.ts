@@ -24,11 +24,11 @@ export class CustomerBalanceTransactionService {
     payload: CreateCustomerBalanceTransactionPayload,
     livemode: boolean,
   ): Promise<CustomerBalanceTransactionResponse> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
 
     const id = generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION);
 
-    const createdBalanceTransaction = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.lockCustomer(customerId, tx);
 
       if (!customer || customer.livemode !== livemode) {
@@ -83,10 +83,6 @@ export class CustomerBalanceTransactionService {
 
       throw new NotFoundError(`Customer balance transaction ${id} could not be created`);
     });
-
-    return CustomerBalanceTransactionService.buildCustomerBalanceTransaction(
-      createdBalanceTransaction,
-    );
   }
 
   private async postBalanceAdjustment(
@@ -133,7 +129,7 @@ export class CustomerBalanceTransactionService {
       await this.fastify.customerBalanceTransactionRepository.findCustomerBalanceTransaction(id);
 
     if (balanceTransaction && balanceTransaction.livemode === livemode) {
-      return CustomerBalanceTransactionService.buildCustomerBalanceTransaction(balanceTransaction);
+      return balanceTransaction;
     }
 
     throw new NotFoundError(`No such customer balance transaction: ${id}`);
@@ -158,13 +154,9 @@ export class CustomerBalanceTransactionService {
       );
 
     return {
-      object: 'list',
       url: `/v1/customers/${customerId}/balance_transactions`,
       hasMore: rows.length > limit,
-      data: _(rows)
-        .take(limit)
-        .map(CustomerBalanceTransactionService.buildCustomerBalanceTransaction)
-        .value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -181,25 +173,5 @@ export class CustomerBalanceTransactionService {
     }
 
     return undefined;
-  }
-
-  static buildCustomerBalanceTransaction(
-    entity: CustomerBalanceTransaction,
-  ): CustomerBalanceTransactionResponse {
-    return {
-      object: 'customer_balance_transaction',
-      id: entity.id,
-      livemode: entity.livemode,
-      customerId: entity.customerId,
-      invoiceId: entity.invoiceId,
-      creditNoteId: entity.creditNoteId,
-      type: entity.type,
-      currency: entity.currency,
-      amount: entity.amount,
-      endingBalance: entity.endingBalance,
-      description: entity.description,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-    };
   }
 }

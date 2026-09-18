@@ -17,7 +17,6 @@ export enum CardFundingEnum {
 export type CardFunding = `${CardFundingEnum}`;
 
 export const paymentMethodSchema = Type.Object({
-  object: Type.Literal('payment_method'),
   id: Type.String(),
   customerId: Type.Union([Type.String(), Type.Null()]),
   customer: Type.Optional(Type.Unknown()),

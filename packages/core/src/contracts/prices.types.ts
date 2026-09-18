@@ -49,7 +49,6 @@ export enum RoundingModeEnum {
 export type RoundingMode = `${RoundingModeEnum}`;
 
 export const priceSchema = Type.Object({
-  object: Type.Literal('price'),
   id: Type.String(),
   productId: Type.String(),
   product: Type.Optional(Type.Unknown()),

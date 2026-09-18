@@ -7,7 +7,6 @@ import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
   CancelPaymentIntentPayload,
   CapturePaymentIntentPayload,
-  ChargeResponse,
   ConfirmPaymentIntentPayload,
   CreatePaymentIntentPayload,
   DeclineCode,
@@ -57,7 +56,7 @@ export class PaymentService {
   ): Promise<PaymentIntentResponse> {
     const target = await this.resolveTarget(payload, livemode);
     const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload, livemode);
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_INTENT);
 
     const createdPaymentIntent = await this.fastify.paymentIntentRepository.createPaymentIntent({
@@ -82,8 +81,8 @@ export class PaymentService {
       declineCode: null,
       failureMessage: null,
       metadata: payload.metadata ?? {},
-      createdAt: now,
-      updatedAt: now,
+      createdAt,
+      updatedAt: createdAt,
     });
 
     if (createdPaymentIntent) {
@@ -113,7 +112,6 @@ export class PaymentService {
       captureMethod: paymentIntent.captureMethod,
       idempotencyKey: `charge:${paymentIntent.id}:${previousCharges.length}`,
     });
-    const now = this.fastify.clock.now();
     const isAwaitingAction = confirmation.status === PspIntentStatusEnum.REQUIRES_ACTION;
 
     const confirmedPaymentIntent = await this.fastify.paymentIntentRepository.updatePaymentIntent(
@@ -129,7 +127,7 @@ export class PaymentService {
         declineCode: null,
         failureMessage: null,
         metadata: { ...paymentIntent.metadata, ...(payload.metadata ?? {}) },
-        updatedAt: now,
+        updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
 
@@ -176,13 +174,12 @@ export class PaymentService {
       idempotencyKey: `capture:${paymentIntent.id}:${amount}`,
     });
 
-    const now = this.fastify.clock.now();
     const capturingPaymentIntent = await this.fastify.paymentIntentRepository.updatePaymentIntent(
       paymentIntent.id,
       {
         status: PaymentIntentStatusEnum.PROCESSING,
         metadata: { ...paymentIntent.metadata, ...(payload.metadata ?? {}) },
-        updatedAt: now,
+        updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
 
@@ -202,7 +199,6 @@ export class PaymentService {
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.CANCELED);
 
-    const now = this.fastify.clock.now();
     const canceledPaymentIntent = await this.fastify.paymentIntentRepository.updatePaymentIntent(
       paymentIntent.id,
       {
@@ -212,7 +208,7 @@ export class PaymentService {
         nextAction: null,
         amountCapturable: 0,
         metadata: { ...paymentIntent.metadata, ...(payload.metadata ?? {}) },
-        updatedAt: now,
+        updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
 
@@ -251,7 +247,6 @@ export class PaymentService {
     const chargesByIntentId = await this.resolveCharges(_.map(page, 'id'));
 
     return {
-      object: 'list',
       url: '/v1/payment_intents',
       hasMore: rows.length > limit,
       data: _.map(page, (paymentIntent) => {
@@ -272,7 +267,7 @@ export class PaymentService {
       eventId: payload.id,
       type: payload.type,
       payload: { ...payload },
-      receivedAt: this.fastify.clock.now(),
+      receivedAt: this.fastify.clock.now().toISOString(),
     });
 
     if (!recorded) {
@@ -281,12 +276,12 @@ export class PaymentService {
         '[PaymentService] handleProviderEvent() skipped, this event was already applied',
       );
 
-      return { object: 'psp_callback_receipt', provider, eventId: payload.id, isDuplicate: true };
+      return { provider, eventId: payload.id, isDuplicate: true };
     }
 
     await this.applyProviderEvent(payload);
 
-    return { object: 'psp_callback_receipt', provider, eventId: payload.id, isDuplicate: false };
+    return { provider, eventId: payload.id, isDuplicate: false };
   }
 
   async drainProviderEvents(): Promise<number> {
@@ -393,6 +388,7 @@ export class PaymentService {
     const isAuthorizationOnly = payload.type === PspEventTypeEnum.PAYMENT_AUTHORIZED;
     const amount = payload.amount ?? paymentIntent.amount;
     const now = this.fastify.clock.now();
+    const chargedAt = now.toISOString();
 
     const settled = await this.fastify.database.master.transaction(async (tx) => {
       const locked = await this.getLockedPaymentIntent(paymentIntent.id, tx);
@@ -413,7 +409,7 @@ export class PaymentService {
           failureCode: null,
           declineCode: null,
           failureMessage: null,
-          createdAt: now,
+          createdAt: chargedAt,
         },
         tx,
       );
@@ -431,7 +427,7 @@ export class PaymentService {
           failureCode: null,
           declineCode: null,
           failureMessage: null,
-          updatedAt: now,
+          updatedAt: chargedAt,
         },
         tx,
       );
@@ -489,6 +485,7 @@ export class PaymentService {
     const paymentIntent = await this.getCallbackPaymentIntent(payload.reference);
     const declineCode = mapPspDeclineCode(payload.declineCode ?? null);
     const now = this.fastify.clock.now();
+    const failedAt = now.toISOString();
 
     const failed = await this.fastify.database.master.transaction(async (tx) => {
       const locked = await this.getLockedPaymentIntent(paymentIntent.id, tx);
@@ -509,7 +506,7 @@ export class PaymentService {
           failureCode: payload.failureCode ?? null,
           declineCode,
           failureMessage: payload.failureMessage ?? null,
-          createdAt: now,
+          createdAt: failedAt,
         },
         tx,
       );
@@ -524,7 +521,7 @@ export class PaymentService {
           failureCode: payload.failureCode ?? null,
           declineCode,
           failureMessage: payload.failureMessage ?? null,
-          updatedAt: now,
+          updatedAt: failedAt,
         },
         tx,
       );
@@ -559,7 +556,7 @@ export class PaymentService {
       failureCode: FailureCode | null;
       declineCode: DeclineCode | null;
       failureMessage: string | null;
-      createdAt: Date;
+      createdAt: string;
     },
     tx: DatabaseTransaction,
   ): Promise<Charge> {
@@ -609,10 +606,12 @@ export class PaymentService {
     const subscriptionId = _.get(invoice, 'subscriptionId', null);
 
     if (invoice && subscriptionId) {
+      const periodEnd = new Date(invoice.periodEnd);
+
       await this.fastify.subscriptionService.handleInvoicePaymentSucceeded(
         subscriptionId,
         now,
-        invoice.periodEnd,
+        periodEnd,
       );
     }
   }
@@ -866,58 +865,10 @@ export class PaymentService {
     throw new ConflictError(`A payment intent cannot move from ${from} to ${to}`);
   }
 
-  private static buildCharge(charge: Charge): ChargeResponse {
-    return {
-      object: 'charge',
-      id: charge.id,
-      paymentIntentId: charge.paymentIntentId,
-      customerId: charge.customerId,
-      paymentMethodId: charge.paymentMethodId,
-      currency: charge.currency,
-      amount: charge.amount,
-      amountCaptured: charge.amountCaptured,
-      amountRefunded: charge.amountRefunded,
-      captured: charge.captured,
-      status: charge.status,
-      outcome: charge.outcome,
-      balanceTransactionId: charge.balanceTransactionId,
-      paymentMethodDetails: charge.paymentMethodDetails,
-      failureCode: charge.failureCode,
-      declineCode: charge.declineCode,
-      failureMessage: charge.failureMessage,
-      pspReference: charge.pspReference,
-      createdAt: charge.createdAt.toISOString(),
-      updatedAt: charge.updatedAt.toISOString(),
-    };
-  }
-
   private static buildPaymentIntentWithCharges(
     paymentIntent: PaymentIntent,
-    intentCharges: readonly Charge[],
+    charges: Charge[],
   ): PaymentIntentResponse {
-    return {
-      object: 'payment_intent',
-      id: paymentIntent.id,
-      invoiceId: paymentIntent.invoiceId,
-      customerId: paymentIntent.customerId,
-      status: paymentIntent.status,
-      currency: paymentIntent.currency,
-      amount: paymentIntent.amount,
-      amountCapturable: paymentIntent.amountCapturable,
-      amountReceived: paymentIntent.amountReceived,
-      captureMethod: paymentIntent.captureMethod,
-      paymentMethodId: paymentIntent.paymentMethodId,
-      latestChargeId: paymentIntent.latestChargeId,
-      nextAction: paymentIntent.nextAction,
-      cancellationReason: paymentIntent.cancellationReason,
-      pspReference: paymentIntent.pspReference,
-      failureCode: paymentIntent.failureCode,
-      declineCode: paymentIntent.declineCode,
-      failureMessage: paymentIntent.failureMessage,
-      charges: _.map(intentCharges, PaymentService.buildCharge),
-      metadata: paymentIntent.metadata,
-      createdAt: paymentIntent.createdAt.toISOString(),
-      updatedAt: paymentIntent.updatedAt.toISOString(),
-    };
+    return { ...paymentIntent, charges };
   }
 }

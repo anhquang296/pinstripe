@@ -52,19 +52,14 @@ export class SubscriptionItemService {
     });
 
     return {
-      object: 'list',
       url: '/v1/subscription_items',
       hasMore: rows.length > limit,
-      data: _.map(_.take(rows, limit), (subscriptionItem) => {
-        return SubscriptionService.buildSubscriptionItem(subscriptionItem, subscription.createdAt);
-      }),
+      data: _.take(rows, limit),
     };
   }
 
   async getSubscriptionItem(id: string, livemode: boolean): Promise<SubscriptionItemResponse> {
-    const subscriptionItem = await this.getSubscriptionItemRow(id, livemode);
-
-    return SubscriptionService.buildSubscriptionItem(subscriptionItem, subscriptionItem.createdAt);
+    return this.getSubscriptionItemRow(id, livemode);
   }
 
   async createSubscriptionItem(
@@ -95,7 +90,7 @@ export class SubscriptionItemService {
       return subscriptionItem;
     });
 
-    return SubscriptionService.buildSubscriptionItem(createdSubscriptionItem, timing.now);
+    return createdSubscriptionItem;
   }
 
   async updateSubscriptionItem(
@@ -131,7 +126,7 @@ export class SubscriptionItemService {
       return next;
     });
 
-    return SubscriptionService.buildSubscriptionItem(changedSubscriptionItem, timing.now);
+    return changedSubscriptionItem;
   }
 
   async deleteSubscriptionItem(
@@ -159,7 +154,7 @@ export class SubscriptionItemService {
       await this.settleChange(subscription, payload.prorationBehavior, timing, tx);
     });
 
-    return { object: 'subscription_item', id, deleted: true };
+    return { id, deleted: true };
   }
 
   async syncSubscriptionItems(
@@ -206,8 +201,8 @@ export class SubscriptionItemService {
     line: SubscriptionItemLine,
     timing: SubscriptionChangeTiming,
     tx: DatabaseTransaction,
-  ): Promise<NewSubscriptionItem> {
-    const subscriptionItem: NewSubscriptionItem = {
+  ): Promise<SubscriptionItemResponse> {
+    const subscriptionItem = {
       id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
       livemode: subscription.livemode,
       subscriptionId: subscription.id,
@@ -215,8 +210,8 @@ export class SubscriptionItemService {
       quantity: line.quantity ?? 1,
       taxRates: line.taxRates ?? [],
       metadata: line.metadata ?? {},
-      createdAt: timing.now,
-    };
+      createdAt: timing.now.toISOString(),
+    } satisfies NewSubscriptionItem;
 
     await this.fastify.subscriptionRepository.createSubscriptionItems([subscriptionItem], tx);
     await this.fastify.subscriptionRepository.createSubscriptionItemChanges(
@@ -225,7 +220,7 @@ export class SubscriptionItemService {
           subscription,
           subscriptionItem.id,
           line.priceId,
-          line.quantity ?? 1,
+          subscriptionItem.quantity,
           timing,
         ),
       ],
@@ -249,7 +244,7 @@ export class SubscriptionItemService {
     if (isRebilled) {
       await this.fastify.subscriptionRepository.closeSubscriptionItemChanges(
         [subscriptionItem.id],
-        timing.boundary,
+        timing.boundary.toISOString(),
         tx,
       );
       await this.fastify.subscriptionRepository.createSubscriptionItemChanges(
@@ -291,12 +286,12 @@ export class SubscriptionItemService {
   ): Promise<void> {
     await this.fastify.subscriptionRepository.closeSubscriptionItemChanges(
       [subscriptionItem.id],
-      timing.boundary,
+      timing.boundary.toISOString(),
       tx,
     );
     await this.fastify.subscriptionRepository.deleteSubscriptionItems(
       [subscriptionItem.id],
-      timing.now,
+      timing.now.toISOString(),
       tx,
     );
   }
@@ -313,7 +308,7 @@ export class SubscriptionItemService {
 
     const next = await this.fastify.subscriptionRepository.updateSubscription(
       subscription.id,
-      { updatedAt: timing.now },
+      { updatedAt: timing.now.toISOString() },
       tx,
     );
 
@@ -342,7 +337,11 @@ export class SubscriptionItemService {
     const isProrated =
       (prorationBehavior ?? ProrationBehaviorEnum.CREATE_PRORATIONS) !== ProrationBehaviorEnum.NONE;
 
-    return { now, boundary: isProrated ? now : subscription.currentPeriodStart };
+    if (isProrated) {
+      return { now, boundary: now };
+    }
+
+    return { now, boundary: new Date(subscription.currentPeriodStart) };
   }
 
   private async getSubscription(id: string, livemode: boolean): Promise<Subscription> {
@@ -430,10 +429,10 @@ export class SubscriptionItemService {
       subscriptionItemId,
       priceId,
       quantity,
-      billedFrom: timing.boundary,
+      billedFrom: timing.boundary.toISOString(),
       billedThrough: null,
       invoicedThrough: null,
-      createdAt: timing.now,
+      createdAt: timing.now.toISOString(),
     };
   }
 }

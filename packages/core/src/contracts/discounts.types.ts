@@ -20,7 +20,6 @@ export enum DiscountLevelEnum {
 export type DiscountLevel = `${DiscountLevelEnum}`;
 
 export const couponSchema = Type.Object({
-  object: Type.Literal('coupon'),
   id: Type.String(),
   livemode: Type.Boolean(),
   name: Type.String(),
@@ -40,13 +39,11 @@ export const couponSchema = Type.Object({
 });
 
 export const deletedCouponSchema = Type.Object({
-  object: Type.Literal('coupon'),
   id: Type.String(),
   deleted: Type.Literal(true),
 });
 
 export const promotionCodeSchema = Type.Object({
-  object: Type.Literal('promotion_code'),
   id: Type.String(),
   livemode: Type.Boolean(),
   code: Type.String(),
@@ -65,7 +62,6 @@ export const promotionCodeSchema = Type.Object({
 });
 
 export const discountSchema = Type.Object({
-  object: Type.Literal('discount'),
   id: Type.String(),
   livemode: Type.Boolean(),
   couponId: Type.String(),
@@ -86,7 +82,6 @@ export const discountSchema = Type.Object({
 });
 
 export const deletedDiscountSchema = Type.Object({
-  object: Type.Literal('discount'),
   id: Type.String(),
   deleted: Type.Literal(true),
 });

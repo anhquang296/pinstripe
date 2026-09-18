@@ -27,11 +27,12 @@ export class PayoutService {
 
   async createPayout(payload: CreatePayoutPayload, livemode: boolean): Promise<PayoutResponse> {
     const now = this.fastify.clock.now();
+    const createdAt = now.toISOString();
     const sweepable =
       await this.fastify.balanceTransactionRepository.findSweepableBalanceTransactions(
         payload.currency,
         livemode,
-        now,
+        createdAt,
         SWEEP_LIMIT,
       );
     const amount = _.sumBy(sweepable, 'net');
@@ -58,14 +59,16 @@ export class PayoutService {
           amount,
           status: PayoutStatusEnum.IN_TRANSIT,
           statementDescriptor: payload.statementDescriptor ?? null,
-          arrivalAt: new Date(now.getTime() + PAYOUT_ARRIVAL_DAYS * MILLISECONDS_PER_DAY),
+          arrivalAt: new Date(
+            now.getTime() + PAYOUT_ARRIVAL_DAYS * MILLISECONDS_PER_DAY,
+          ).toISOString(),
           paidAt: null,
           failureCode: null,
           failureMessage: null,
           pspReference: pspPayout.reference,
           metadata: payload.metadata ?? {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt,
+          updatedAt: createdAt,
         },
         tx,
       );
@@ -90,14 +93,14 @@ export class PayoutService {
       '[PayoutService] createPayout() swept the available balance',
     );
 
-    return PayoutService.buildPayout(createdPayout);
+    return createdPayout;
   }
 
   async getPayout(id: string, livemode: boolean): Promise<PayoutResponse> {
     const payout = await this.fastify.payoutRepository.findPayout(id);
 
     if (payout && payout.livemode === livemode) {
-      return PayoutService.buildPayout(payout);
+      return payout;
     }
 
     throw new NotFoundError(`No such payout: ${id}`);
@@ -116,17 +119,18 @@ export class PayoutService {
     );
 
     return {
-      object: 'list',
       url: '/v1/payouts',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(PayoutService.buildPayout).value(),
+      data: _.take(rows, limit),
     };
   }
 
   async settleDuePayouts(): Promise<number> {
-    const now = this.fastify.clock.now();
     const due = await this.fastify.payoutRepository.findPayouts(
-      { status: PayoutStatusEnum.IN_TRANSIT, arrivalBeforeAt: now },
+      {
+        status: PayoutStatusEnum.IN_TRANSIT,
+        arrivalBeforeAt: this.fastify.clock.now().toISOString(),
+      },
       DUE_PAYOUT_LIMIT,
     );
 
@@ -146,12 +150,12 @@ export class PayoutService {
 
     PayoutService.assertTransition(payout.status, PayoutStatusEnum.PAID);
 
-    const now = this.fastify.clock.now();
+    const paidAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
       const paidPayout = await this.fastify.payoutRepository.updatePayout(
         payout.id,
-        { status: PayoutStatusEnum.PAID, paidAt: now, updatedAt: now },
+        { status: PayoutStatusEnum.PAID, paidAt, updatedAt: paidAt },
         tx,
       );
 
@@ -174,7 +178,7 @@ export class PayoutService {
 
     PayoutService.assertTransition(payout.status, PayoutStatusEnum.FAILED);
 
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
       const failedPayout = await this.fastify.payoutRepository.updatePayout(
@@ -183,7 +187,7 @@ export class PayoutService {
           status: PayoutStatusEnum.FAILED,
           failureCode: failure.failureCode,
           failureMessage: failure.failureMessage,
-          updatedAt: now,
+          updatedAt,
         },
         tx,
       );
@@ -339,24 +343,5 @@ export class PayoutService {
     }
 
     throw new ConflictError(`A payout cannot move from ${from} to ${to}`);
-  }
-
-  private static buildPayout(entity: Payout): PayoutResponse {
-    return {
-      object: 'payout',
-      id: entity.id,
-      currency: entity.currency,
-      amount: entity.amount,
-      status: entity.status,
-      statementDescriptor: entity.statementDescriptor,
-      arrivalAt: entity.arrivalAt.toISOString(),
-      paidAt: entity.paidAt ? entity.paidAt.toISOString() : null,
-      failureCode: entity.failureCode,
-      failureMessage: entity.failureMessage,
-      pspReference: entity.pspReference,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

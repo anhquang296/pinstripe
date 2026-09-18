@@ -36,10 +36,10 @@ export class PriceRepository {
       filters.lookupKey ? eq(prices.lookupKey, filters.lookupKey) : undefined,
       filters.active === undefined ? undefined : eq(prices.active, filters.active),
       filters.beforeAt
-        ? sql`(${prices.createdAt}, ${prices.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${prices.createdAt}, ${prices.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${prices.createdAt}, ${prices.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${prices.createdAt}, ${prices.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -62,7 +62,7 @@ export class PriceRepository {
     return price ?? null;
   }
 
-  async findEffectivePrice(lookupKey: string, at: Date): Promise<Price | null> {
+  async findEffectivePrice(lookupKey: string, at: string): Promise<Price | null> {
     const [price] = await this._db.master
       .select()
       .from(prices)

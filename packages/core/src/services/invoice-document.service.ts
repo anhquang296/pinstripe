@@ -39,14 +39,14 @@ export class InvoiceDocumentService {
 
     await this.fastify.fileStorage.createObject(storageKey, document);
 
-    const now = this.fastify.clock.now();
+    const sentAt = this.fastify.clock.now().toISOString();
     const hostedInvoiceUrl = this.fastify.hostedUrlFactory.buildInvoiceUrl(invoice.id);
     const invoicePdf = this.fastify.hostedUrlFactory.buildInvoicePdfUrl(invoice.id);
 
     const sentInvoice = await this.fastify.database.master.transaction(async (tx) => {
       const markedInvoice = await this.fastify.invoiceRepository.updateInvoice(
         invoice.id,
-        { sentAt: now, updatedAt: now },
+        { sentAt, updatedAt: sentAt },
         tx,
       );
 
@@ -160,7 +160,7 @@ export class InvoiceDocumentService {
       { text: `Billed to: ${buildCustomerLabel(customer)}` },
       { text: `Status: ${invoice.status}` },
       {
-        text: `Period: ${invoice.periodStart.toISOString()} to ${invoice.periodEnd.toISOString()}`,
+        text: `Period: ${invoice.periodStart} to ${invoice.periodEnd}`,
       },
       { text: '' },
       ..._.map(lineItems, (lineItem): PdfLine => {

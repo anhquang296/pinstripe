@@ -34,10 +34,10 @@ export class EntitlementRepository {
       filters.subscriptionId ? eq(entitlements.subscriptionId, filters.subscriptionId) : undefined,
       filters.status ? eq(entitlements.status, filters.status) : undefined,
       filters.beforeAt
-        ? sql`(${entitlements.createdAt}, ${entitlements.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${entitlements.createdAt}, ${entitlements.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${entitlements.createdAt}, ${entitlements.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${entitlements.createdAt}, ${entitlements.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -62,7 +62,7 @@ export class EntitlementRepository {
         set: {
           status: payload.status,
           revokedAt: payload.revokedAt ?? null,
-          updatedAt: payload.updatedAt ?? new Date(),
+          updatedAt: payload.updatedAt ?? new Date().toISOString(),
         },
       })
       .returning();
@@ -73,7 +73,7 @@ export class EntitlementRepository {
   async revokeEntitlements(
     subscriptionId: string,
     status: EntitlementStatus,
-    revokedAt: Date,
+    revokedAt: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;

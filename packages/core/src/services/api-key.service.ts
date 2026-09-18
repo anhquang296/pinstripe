@@ -39,7 +39,7 @@ export class ApiKeyService {
 
   async createApiKey(payload: CreateApiKeyPayload): Promise<ApiKeyResponse> {
     const token = ApiKeyService.buildToken(payload.type, payload.livemode);
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const createdApiKey = await this.fastify.apiKeyRepository.createApiKey({
       id: generateGid(ObjectPrefixEnum.API_KEY),
       name: payload.name,
@@ -69,7 +69,6 @@ export class ApiKeyService {
     const hasMore = rows.length > limit;
 
     return {
-      object: 'list',
       url: '/api/v1/admin/api_keys',
       hasMore,
       data: _(rows)
@@ -83,7 +82,7 @@ export class ApiKeyService {
 
   async revokeApiKey(id: string): Promise<ApiKeyResponse> {
     const apiKey = await this.getApiKeyEntity(id);
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const revokedApiKey = await this.fastify.apiKeyRepository.updateApiKey(apiKey.id, {
       revokedAt: apiKey.revokedAt ?? now,
       updatedAt: now,
@@ -104,7 +103,7 @@ export class ApiKeyService {
 
     if (apiKey && !apiKey.revokedAt) {
       await this.fastify.apiKeyRepository.updateApiKey(apiKey.id, {
-        lastUsedAt: this.fastify.clock.now(),
+        lastUsedAt: this.fastify.clock.now().toISOString(),
       });
 
       return {
@@ -119,7 +118,7 @@ export class ApiKeyService {
   }
 
   async ensureBootstrapApiKeys(bootstrapKeys: readonly BootstrapApiKey[]): Promise<number> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
 
     let createdCount = 0;
 
@@ -184,7 +183,6 @@ export class ApiKeyService {
 
   private static buildApiKey(apiKey: ApiKey, token: string | null): ApiKeyResponse {
     return {
-      object: 'api_key',
       id: apiKey.id,
       name: apiKey.name,
       type: apiKey.type,
@@ -192,9 +190,9 @@ export class ApiKeyService {
       livemode: apiKey.livemode,
       tokenPrefix: apiKey.tokenPrefix,
       token,
-      lastUsedAt: apiKey.lastUsedAt ? apiKey.lastUsedAt.toISOString() : null,
-      revokedAt: apiKey.revokedAt ? apiKey.revokedAt.toISOString() : null,
-      createdAt: apiKey.createdAt.toISOString(),
+      lastUsedAt: apiKey.lastUsedAt,
+      revokedAt: apiKey.revokedAt,
+      createdAt: apiKey.createdAt,
     };
   }
 }

@@ -1,6 +1,7 @@
 import type { TestClockStatus } from '@contracts/test-clocks.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { sql } from 'drizzle-orm';
-import { boolean, check, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, check, index, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const testClocks = pgTable(
   'test_clocks',
@@ -8,10 +9,14 @@ export const testClocks = pgTable(
     id: text('id').primaryKey(),
     livemode: boolean('livemode').notNull().default(false),
     name: text('name').notNull(),
-    frozenTime: timestamp('frozen_time', { withTimezone: true }).notNull(),
+    frozenTime: isoTimestamp('frozen_time').notNull(),
     status: text('status').$type<TestClockStatus>().notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

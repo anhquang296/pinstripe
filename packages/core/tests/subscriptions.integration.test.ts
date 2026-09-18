@@ -308,8 +308,8 @@ describe('SubscriptionService.updateSubscription proration', () => {
     });
 
     expect(_.map(updated.items, 'id')).toEqual([itemBefore?.id]);
-    expect(_.get(closedChange, 'billedThrough')?.toISOString()).toBe(SWAP_AT);
-    expect(_.get(openChange, 'billedFrom')?.toISOString()).toBe(SWAP_AT);
+    expect(_.get(closedChange, 'billedThrough')).toBe(SWAP_AT);
+    expect(_.get(openChange, 'billedFrom')).toBe(SWAP_AT);
     expect(_.get(openChange, 'quantity')).toBe(4);
   });
 
@@ -336,7 +336,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
       return change.billedThrough === null;
     });
 
-    expect(_.get(openChange, 'billedFrom')?.toISOString()).toBe(subscription.currentPeriodStart);
+    expect(_.get(openChange, 'billedFrom')).toBe(subscription.currentPeriodStart);
   });
 
   it('leaves no invoice behind when an always_invoice update is rejected', async () => {

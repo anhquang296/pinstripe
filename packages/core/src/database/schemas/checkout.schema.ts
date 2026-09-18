@@ -3,6 +3,7 @@ import type {
   CheckoutSessionMode,
   CheckoutSessionStatus,
 } from '@contracts/checkout.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { invoices } from '@database/schemas/invoices.schema';
 import { paymentLinks } from '@database/schemas/payment-links.schema';
@@ -10,7 +11,8 @@ import { paymentIntents, setupIntents } from '@database/schemas/payments.schema'
 import { prices } from '@database/schemas/prices.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
 import type { Currency } from '@utils/currency';
-import { bigint, boolean, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { bigint, boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const checkoutSessions = pgTable(
   'checkout_sessions',
@@ -47,11 +49,15 @@ export const checkoutSessions = pgTable(
     setupIntentId: text('setup_intent_id').references(() => {
       return setupIntents.id;
     }),
-    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-    completedAt: timestamp('completed_at', { withTimezone: true }),
+    expiresAt: isoTimestamp('expires_at').notNull(),
+    completedAt: isoTimestamp('completed_at'),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [
@@ -80,7 +86,9 @@ export const checkoutSessionLineItems = pgTable(
     quantity: bigint('quantity', { mode: 'number' }).notNull(),
     amountSubtotal: bigint('amount_subtotal', { mode: 'number' }).notNull(),
     amountTotal: bigint('amount_total', { mode: 'number' }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [index('checkout_session_line_items_session_id_idx').on(table.checkoutSessionId)];

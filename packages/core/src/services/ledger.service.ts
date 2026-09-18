@@ -28,7 +28,7 @@ import _ from 'lodash';
 
 const SINGLE_ROW_LIMIT = 1;
 
-type PostedLedgerPosting = NewLedgerPosting & { createdAt: Date };
+type PostedLedgerPosting = NewLedgerPosting & { createdAt: string };
 
 export class LedgerService {
   constructor(private readonly fastify: FastifyInstance) {}
@@ -64,7 +64,7 @@ export class LedgerService {
         normalBalance: definition.normalBalance,
         currency,
         customerId: customerId ?? null,
-        createdAt: this.fastify.clock.now(),
+        createdAt: this.fastify.clock.now().toISOString(),
       });
     } catch (error) {
       if (!isUniqueViolation(error)) {
@@ -88,9 +88,9 @@ export class LedgerService {
   ): Promise<LedgerTransactionResponse> {
     LedgerService.assertBalanced(payload);
 
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const transactionId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
-    const postings = await this.buildPostings(transactionId, payload, now, livemode);
+    const postings = await this.buildPostings(transactionId, payload, createdAt, livemode);
 
     const postedTransaction = await this.writeTransaction(
       {
@@ -99,11 +99,11 @@ export class LedgerService {
         description: payload.description,
         currency: payload.currency,
         externalId: payload.externalId ?? null,
-        effectiveAt: payload.effectiveAt ? new Date(payload.effectiveAt) : now,
+        effectiveAt: payload.effectiveAt ? new Date(payload.effectiveAt).toISOString() : createdAt,
         reversesTransactionId: null,
         reversedByTransactionId: null,
         metadata: payload.metadata ?? {},
-        createdAt: now,
+        createdAt,
       },
       postings,
       DomainEventTypeEnum.LEDGER_TRANSACTION_POSTED,
@@ -157,7 +157,6 @@ export class LedgerService {
     });
 
     return {
-      object: 'list',
       url: '/api/v1/admin/ledger/transactions',
       hasMore,
       data: transactions,
@@ -168,7 +167,7 @@ export class LedgerService {
     const account = await this.fastify.ledgerAccountRepository.findLedgerAccount(id);
 
     if (account && account.livemode === livemode) {
-      return LedgerService.buildAccount(account);
+      return account;
     }
 
     throw new NotFoundError(`No such ledger account: ${id}`);
@@ -186,10 +185,9 @@ export class LedgerService {
     const hasMore = accountRows.length > limit;
 
     return {
-      object: 'list',
       url: '/api/v1/admin/ledger/accounts',
       hasMore,
-      data: _(accountRows).take(limit).map(LedgerService.buildAccount).value(),
+      data: _.take(accountRows, limit),
     };
   }
 
@@ -208,7 +206,7 @@ export class LedgerService {
     const originalPostings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([
       id,
     ]);
-    const now = this.fastify.clock.now();
+    const reversedAt = this.fastify.clock.now().toISOString();
     const reversalId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
     const postings: PostedLedgerPosting[] = _.map(originalPostings, (posting) => {
       return {
@@ -222,7 +220,7 @@ export class LedgerService {
             : PostingDirectionEnum.DEBIT,
         amount: posting.amount,
         currency: posting.currency,
-        createdAt: now,
+        createdAt: reversedAt,
       };
     });
 
@@ -233,11 +231,11 @@ export class LedgerService {
         description: `Reversal of ${id}: ${payload.reason}`,
         currency: original.currency,
         externalId: null,
-        effectiveAt: now,
+        effectiveAt: reversedAt,
         reversesTransactionId: id,
         reversedByTransactionId: null,
         metadata: original.metadata,
-        createdAt: now,
+        createdAt: reversedAt,
       },
       postings,
       DomainEventTypeEnum.LEDGER_TRANSACTION_REVERSED,
@@ -321,7 +319,7 @@ export class LedgerService {
   private async buildPostings(
     transactionId: string,
     payload: PostLedgerTransactionPayload,
-    now: Date,
+    createdAt: string,
     livemode: boolean,
   ): Promise<PostedLedgerPosting[]> {
     const postings: PostedLedgerPosting[] = [];
@@ -343,7 +341,7 @@ export class LedgerService {
         direction: entry.direction,
         amount: entry.amount,
         currency: payload.currency,
-        createdAt: now,
+        createdAt,
       });
     }
 
@@ -453,19 +451,10 @@ export class LedgerService {
     accountCodesById: Record<string, LedgerAccountCode>,
   ): LedgerTransactionResponse {
     return {
-      object: 'ledger_transaction',
-      id: entity.id,
-      description: entity.description,
-      currency: entity.currency,
-      externalId: entity.externalId,
-      effectiveAt: entity.effectiveAt.toISOString(),
-      reversesTransactionId: entity.reversesTransactionId,
-      reversedByTransactionId: entity.reversedByTransactionId,
-      metadata: entity.metadata,
+      ...entity,
       postings: _.map(postings, (posting) => {
         return LedgerService.buildPosting(posting, accountCodesById[posting.accountId]);
       }),
-      createdAt: entity.createdAt.toISOString(),
     };
   }
 
@@ -474,36 +463,10 @@ export class LedgerService {
     accountCode: LedgerAccountCode | undefined,
   ): LedgerPostingResponse {
     if (accountCode) {
-      return {
-        object: 'ledger_posting',
-        id: posting.id,
-        transactionId: posting.transactionId,
-        accountId: posting.accountId,
-        accountCode,
-        direction: posting.direction,
-        amount: posting.amount,
-        currency: posting.currency,
-        createdAt: posting.createdAt.toISOString(),
-      };
+      return { ...posting, accountCode };
     }
 
     throw new NotFoundError(`No such ledger account: ${posting.accountId}`);
-  }
-
-  private static buildAccount(account: LedgerAccountWithBalance): LedgerAccountResponse {
-    return {
-      object: 'ledger_account',
-      id: account.id,
-      code: account.code,
-      type: account.type,
-      normalBalance: account.normalBalance,
-      currency: account.currency,
-      customerId: account.customerId,
-      debits: account.debits,
-      credits: account.credits,
-      balance: account.balance,
-      createdAt: account.createdAt.toISOString(),
-    };
   }
 
   private static assertBalanced(payload: PostLedgerTransactionPayload): void {

@@ -1,18 +1,11 @@
 import type { DisputeEvidence, DisputeReason, DisputeStatus } from '@contracts/disputes.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { invoices } from '@database/schemas/invoices.schema';
 import { charges, paymentIntents } from '@database/schemas/payments.schema';
 import type { Currency } from '@utils/currency';
-import {
-  bigint,
-  boolean,
-  index,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { bigint, boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const disputes = pgTable(
   'disputes',
@@ -42,12 +35,16 @@ export const disputes = pgTable(
     status: text('status').$type<DisputeStatus>().notNull(),
     reason: text('reason').$type<DisputeReason>().notNull(),
     evidence: jsonb('evidence').$type<DisputeEvidence>().notNull().default({}),
-    evidenceSubmittedAt: timestamp('evidence_submitted_at', { withTimezone: true }),
-    closedAt: timestamp('closed_at', { withTimezone: true }),
+    evidenceSubmittedAt: isoTimestamp('evidence_submitted_at'),
+    closedAt: isoTimestamp('closed_at'),
     pspReference: text('psp_reference').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

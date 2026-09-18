@@ -10,7 +10,7 @@ export class ClockService {
       const testClock = await this.fastify.testClockRepository.findTestClock(testClockId);
 
       if (testClock) {
-        return testClock.frozenTime;
+        return new Date(testClock.frozenTime);
       }
 
       throw new NotFoundError(`No such test clock: ${testClockId}`);

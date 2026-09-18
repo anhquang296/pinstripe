@@ -3,18 +3,10 @@ import type {
   LedgerAccountType,
   PostingDirection,
 } from '@contracts/ledger.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import {
-  bigint,
-  boolean,
-  index,
-  pgTable,
-  pgView,
-  text,
-  timestamp,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { bigint, boolean, index, pgTable, pgView, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const ledgerAccounts = pgTable(
   'ledger_accounts',
@@ -26,7 +18,9 @@ export const ledgerAccounts = pgTable(
     normalBalance: text('normal_balance').$type<PostingDirection>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     customerId: text('customer_id'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

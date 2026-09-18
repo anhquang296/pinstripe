@@ -8,7 +8,6 @@ export enum TestClockStatusEnum {
 export type TestClockStatus = `${TestClockStatusEnum}`;
 
 export const testClockSchema = Type.Object({
-  object: Type.Literal('test_clock'),
   id: Type.String(),
   name: Type.String(),
   frozenTime: Type.String(),

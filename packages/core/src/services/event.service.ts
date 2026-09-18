@@ -2,7 +2,6 @@ import { PINSTRIPE_API_VERSION } from '@constants/api-version';
 import type { DomainEventType, EventResponse, FindEventsQuery } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
-import type { Event } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import type { FastifyInstance } from 'fastify';
@@ -13,7 +12,7 @@ interface MaterializeEventPayload {
   livemode: boolean;
   type: DomainEventType;
   data: Record<string, unknown>;
-  occurredAt: Date;
+  occurredAt: string;
 }
 
 export class EventService {
@@ -35,7 +34,7 @@ export class EventService {
     const event = await this.fastify.eventRepository.findEvent(id);
 
     if (event && event.livemode === livemode) {
-      return EventService.buildEvent(event);
+      return event;
     }
 
     throw new NotFoundError(`No such event: ${id}`);
@@ -55,10 +54,9 @@ export class EventService {
     const hasMore = rows.length > limit;
 
     return {
-      object: 'list',
       url: '/v1/events',
       hasMore,
-      data: _(rows).take(limit).map(EventService.buildEvent).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -74,18 +72,5 @@ export class EventService {
     }
 
     return undefined;
-  }
-
-  private static buildEvent(entity: Event): EventResponse {
-    return {
-      object: 'event',
-      id: entity.id,
-      livemode: entity.livemode,
-      type: entity.type,
-      apiVersion: entity.apiVersion,
-      data: entity.data,
-      requestId: entity.requestId,
-      createdAt: entity.createdAt.toISOString(),
-    };
   }
 }

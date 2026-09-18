@@ -6,7 +6,6 @@ import type { LineItemType } from '@utils/rating';
 import { LineItemTypeEnum } from '@utils/rating';
 
 export const ratedInvoiceSchema = Type.Object({
-  object: Type.Literal('rated_invoice'),
   subscriptionId: Type.String(),
   customerId: Type.String(),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
@@ -15,7 +14,6 @@ export const ratedInvoiceSchema = Type.Object({
   total: Type.Integer(),
   lineItems: Type.Array(
     Type.Object({
-      object: Type.Literal('rated_line_item'),
       subscriptionItemId: Type.String(),
       subscriptionItemChangeId: Type.String(),
       priceId: Type.String(),

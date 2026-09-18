@@ -6,7 +6,7 @@ import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type { SubscriptionStatus } from '@contracts/subscriptions.types';
 import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
-import type { Entitlement, Subscription } from '@database/schemas';
+import type { Subscription } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { RedisNamespaceEnum } from '@utils/redis-key-factory';
@@ -34,7 +34,7 @@ export class EntitlementService {
 
     const status = ENTITLEMENT_BY_SUBSCRIPTION_STATUS[subscription.status];
 
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
 
     if (status === EntitlementStatusEnum.REVOKED) {
       const revokedEntitlements = await this.fastify.entitlementRepository.findEntitlements(
@@ -118,10 +118,9 @@ export class EntitlementService {
     const hasMore = entitlementRows.length > limit;
 
     return {
-      object: 'list',
       url: '/v1/entitlements',
       hasMore,
-      data: _(entitlementRows).take(limit).map(EntitlementService.buildEntitlement).value(),
+      data: _.take(entitlementRows, limit),
     };
   }
 
@@ -149,19 +148,5 @@ export class EntitlementService {
     });
 
     await this.fastify.redis.del(...keys);
-  }
-
-  private static buildEntitlement(entity: Entitlement): EntitlementResponse {
-    return {
-      object: 'entitlement',
-      id: entity.id,
-      customerId: entity.customerId,
-      subscriptionId: entity.subscriptionId,
-      productId: entity.productId,
-      status: entity.status,
-      grantedAt: entity.grantedAt.toISOString(),
-      revokedAt: entity.revokedAt ? entity.revokedAt.toISOString() : null,
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

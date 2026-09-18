@@ -20,7 +20,6 @@ export enum BalanceSourceTypeEnum {
 export type BalanceSourceType = `${BalanceSourceTypeEnum}`;
 
 export const balanceTransactionSchema = Type.Object({
-  object: Type.Literal('balance_transaction'),
   id: Type.String(),
   type: Type.Unsafe<BalanceTransactionType>(Type.Enum(BalanceTransactionTypeEnum)),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
@@ -35,7 +34,6 @@ export const balanceTransactionSchema = Type.Object({
 });
 
 export const balanceSchema = Type.Object({
-  object: Type.Literal('balance'),
   asOf: Type.String(),
   available: Type.Array(
     Type.Object({

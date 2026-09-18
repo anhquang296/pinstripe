@@ -185,7 +185,6 @@ export const DECLINE_TAXONOMY: Record<
 };
 
 export const chargeSchema = Type.Object({
-  object: Type.Literal('charge'),
   id: Type.String(),
   paymentIntentId: Type.String(),
   customerId: Type.String(),
@@ -208,7 +207,6 @@ export const chargeSchema = Type.Object({
 });
 
 export const paymentIntentSchema = Type.Object({
-  object: Type.Literal('payment_intent'),
   id: Type.String(),
   invoiceId: Type.Union([Type.String(), Type.Null()]),
   customerId: Type.String(),
@@ -243,7 +241,6 @@ export const paymentIntentSchema = Type.Object({
 });
 
 export const refundSchema = Type.Object({
-  object: Type.Literal('refund'),
   id: Type.String(),
   chargeId: Type.String(),
   paymentIntentId: Type.String(),
@@ -363,7 +360,6 @@ export const pspCallbackParamsSchema = Type.Object({
 });
 
 export const pspCallbackResponseSchema = Type.Object({
-  object: Type.Literal('psp_callback_receipt'),
   provider: Type.Unsafe<PspProvider>(Type.Enum(PspProviderEnum)),
   eventId: Type.String(),
   isDuplicate: Type.Boolean(),

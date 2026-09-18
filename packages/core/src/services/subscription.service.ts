@@ -32,7 +32,6 @@ import type {
   NewSubscriptionItemChange,
   Price,
   Subscription,
-  SubscriptionItem,
 } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
@@ -85,7 +84,9 @@ export class SubscriptionService {
       ? new Date(payload.billingCycleAnchor)
       : (trialEnd ?? now);
     const { interval, intervalCount } = resolveInterval(prices);
-    const subscriptionItems: NewSubscriptionItem[] = _.map(payload.items, (subscriptionItem) => {
+    const createdAt = now.toISOString();
+    const currentPeriodEnd = trialEnd ?? advancePeriod(anchor, interval, intervalCount);
+    const subscriptionItems = _.map(payload.items, (subscriptionItem) => {
       return {
         id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
         livemode: customer.livemode,
@@ -94,8 +95,8 @@ export class SubscriptionService {
         quantity: subscriptionItem.quantity ?? 1,
         taxRates: subscriptionItem.taxRates ?? [],
         metadata: subscriptionItem.metadata ?? {},
-        createdAt: now,
-      };
+        createdAt,
+      } satisfies NewSubscriptionItem;
     });
     const itemChanges: NewSubscriptionItemChange[] = _.map(
       subscriptionItems,
@@ -106,11 +107,11 @@ export class SubscriptionService {
           subscriptionId,
           subscriptionItemId: subscriptionItem.id,
           priceId: subscriptionItem.priceId,
-          quantity: subscriptionItem.quantity ?? 1,
-          billedFrom: now,
+          quantity: subscriptionItem.quantity,
+          billedFrom: createdAt,
           billedThrough: null,
           invoicedThrough: null,
-          createdAt: now,
+          createdAt,
         };
       },
     );
@@ -130,19 +131,19 @@ export class SubscriptionService {
           currency: customer.currency,
           collectionMethod: payload.collectionMethod ?? CollectionMethodEnum.CHARGE_AUTOMATICALLY,
           billingMode: payload.billingMode ?? BillingModeEnum.ADVANCE,
-          billingCycleAnchor: anchor,
-          currentPeriodStart: now,
-          currentPeriodEnd: trialEnd ?? advancePeriod(anchor, interval, intervalCount),
+          billingCycleAnchor: anchor.toISOString(),
+          currentPeriodStart: createdAt,
+          currentPeriodEnd: currentPeriodEnd.toISOString(),
           chargedThroughDate: null,
           defaultTaxRates: payload.defaultTaxRates ?? [],
           defaultPaymentMethodId: payload.defaultPaymentMethodId ?? null,
-          trialStart: trialEnd ? now : null,
-          trialEnd,
+          trialStart: trialEnd ? createdAt : null,
+          trialEnd: trialEnd ? trialEnd.toISOString() : null,
           trialEndBehaviorMissingPaymentMethod: missingPaymentMethod,
           pauseCollectionBehavior: null,
           pauseCollectionResumesAt: null,
           cancelAtPeriodEnd: false,
-          cancelAt: payload.cancelAt ? new Date(payload.cancelAt) : null,
+          cancelAt: payload.cancelAt ?? null,
           cancellationReason: null,
           cancellationComment: null,
           cancellationFeedback: null,
@@ -150,8 +151,8 @@ export class SubscriptionService {
           endedAt: null,
           testClockId: customer.testClockId,
           metadata: payload.metadata ?? {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt,
+          updatedAt: createdAt,
         },
         subscriptionItems,
         itemChanges,
@@ -216,7 +217,6 @@ export class SubscriptionService {
     });
 
     return {
-      object: 'list',
       url: '/v1/subscriptions',
       hasMore,
       data: _.map(page, (subscription) => {
@@ -245,7 +245,7 @@ export class SubscriptionService {
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
     const prorationBehavior = payload.prorationBehavior ?? ProrationBehaviorEnum.CREATE_PRORATIONS;
     const isProrated = prorationBehavior !== ProrationBehaviorEnum.NONE;
-    const boundary = isProrated ? now : subscription.currentPeriodStart;
+    const boundary = isProrated ? now : new Date(subscription.currentPeriodStart);
     const changes = this.resolveUpdateChanges(subscription, payload, now);
 
     const updatedSubscription = await this.fastify.database.master.transaction(async (tx) => {
@@ -302,17 +302,19 @@ export class SubscriptionService {
     if (payload.cancelAt) {
       const scheduled = await this.writeSubscription(
         id,
-        { ...details, cancelAt: new Date(payload.cancelAt), updatedAt: now },
+        { ...details, cancelAt: payload.cancelAt, updatedAt: now.toISOString() },
         DomainEventTypeEnum.SUBSCRIPTION_UPDATED,
       );
 
       return this.getSubscription(scheduled.id, scheduled.livemode);
     }
 
+    const canceledAt = now.toISOString();
+
     if (payload.cancelAtPeriodEnd) {
       const marked = await this.writeSubscription(
         id,
-        { ...details, cancelAtPeriodEnd: true, canceledAt: now, updatedAt: now },
+        { ...details, cancelAtPeriodEnd: true, canceledAt, updatedAt: canceledAt },
         DomainEventTypeEnum.SUBSCRIPTION_UPDATED,
       );
 
@@ -326,11 +328,11 @@ export class SubscriptionService {
       {
         ...details,
         status: SubscriptionStatusEnum.CANCELED,
-        canceledAt: now,
-        endedAt: now,
+        canceledAt,
+        endedAt: canceledAt,
         cancelAtPeriodEnd: false,
         cancelAt: null,
-        updatedAt: now,
+        updatedAt: canceledAt,
       },
       DomainEventTypeEnum.SUBSCRIPTION_CANCELED,
     );
@@ -357,7 +359,7 @@ export class SubscriptionService {
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         statuses: ROLLABLE_STATUSES,
-        currentPeriodEndTo: now,
+        currentPeriodEndTo: now.toISOString(),
       },
       ADVANCE_BATCH_SIZE,
     );
@@ -376,16 +378,16 @@ export class SubscriptionService {
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         statuses: ROLLABLE_STATUSES,
-        cancelAtTo: now,
+        cancelAtTo: now.toISOString(),
       },
       ADVANCE_BATCH_SIZE,
     );
 
     for (const subscription of due) {
       const subscriptionNow = await this.resolveScanNow(subscription, now);
-      const cancelAt = subscription.cancelAt;
+      const { cancelAt } = subscription;
 
-      if (cancelAt && cancelAt.getTime() <= subscriptionNow.getTime()) {
+      if (cancelAt && new Date(cancelAt).getTime() <= subscriptionNow.getTime()) {
         await this.writeSubscription(
           subscription.id,
           {
@@ -395,7 +397,7 @@ export class SubscriptionService {
             cancelAtPeriodEnd: false,
             cancellationReason:
               subscription.cancellationReason ?? CancellationReasonEnum.CANCELLATION_REQUESTED,
-            updatedAt: subscriptionNow,
+            updatedAt: subscriptionNow.toISOString(),
           },
           DomainEventTypeEnum.SUBSCRIPTION_CANCELED,
         );
@@ -412,7 +414,7 @@ export class SubscriptionService {
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         status: SubscriptionStatusEnum.PAUSED,
-        pauseResumesAtTo: now,
+        pauseResumesAtTo: now.toISOString(),
       },
       ADVANCE_BATCH_SIZE,
     );
@@ -421,14 +423,14 @@ export class SubscriptionService {
       const subscriptionNow = await this.resolveScanNow(subscription, now);
       const resumesAt = subscription.pauseCollectionResumesAt;
 
-      if (resumesAt && resumesAt.getTime() <= subscriptionNow.getTime()) {
+      if (resumesAt && new Date(resumesAt).getTime() <= subscriptionNow.getTime()) {
         await this.writeSubscription(
           subscription.id,
           {
             status: SubscriptionStatusEnum.ACTIVE,
             pauseCollectionBehavior: null,
             pauseCollectionResumesAt: null,
-            updatedAt: subscriptionNow,
+            updatedAt: subscriptionNow.toISOString(),
           },
           DomainEventTypeEnum.SUBSCRIPTION_RESUMED,
         );
@@ -451,23 +453,26 @@ export class SubscriptionService {
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         status: SubscriptionStatusEnum.INCOMPLETE,
-        updatedAtTo: expireBeforeAt,
+        updatedAtTo: expireBeforeAt.toISOString(),
       },
       ADVANCE_BATCH_SIZE,
     );
 
     for (const subscription of stale) {
       const subscriptionNow = await this.resolveScanNow(subscription, now);
-      const ageMs = subscriptionNow.getTime() - subscription.updatedAt.getTime();
+      const updatedAt = new Date(subscription.updatedAt);
+      const ageMs = subscriptionNow.getTime() - updatedAt.getTime();
 
       if (ageMs >= INCOMPLETE_EXPIRY_HOURS * MILLISECONDS_PER_HOUR) {
+        const endedAt = subscriptionNow.toISOString();
+
         await this.writeSubscription(
           subscription.id,
           {
             status: SubscriptionStatusEnum.INCOMPLETE_EXPIRED,
-            endedAt: subscriptionNow,
+            endedAt,
             cancellationReason: CancellationReasonEnum.PAYMENT_FAILED,
-            updatedAt: subscriptionNow,
+            updatedAt: endedAt,
           },
           DomainEventTypeEnum.SUBSCRIPTION_INCOMPLETE_EXPIRED,
         );
@@ -495,7 +500,7 @@ export class SubscriptionService {
 
     await this.writeSubscription(
       subscriptionId,
-      { status, updatedAt: failedAt },
+      { status, updatedAt: failedAt.toISOString() },
       DomainEventTypeEnum.SUBSCRIPTION_UPDATED,
     );
 
@@ -524,8 +529,8 @@ export class SubscriptionService {
       subscriptionId,
       {
         status: isRecovering ? SubscriptionStatusEnum.ACTIVE : subscription.status,
-        chargedThroughDate,
-        updatedAt: paidAt,
+        chargedThroughDate: chargedThroughDate.toISOString(),
+        updatedAt: paidAt.toISOString(),
       },
       DomainEventTypeEnum.SUBSCRIPTION_UPDATED,
     );
@@ -541,11 +546,11 @@ export class SubscriptionService {
       collectionMethod: payload.collectionMethod ?? subscription.collectionMethod,
       defaultTaxRates: payload.defaultTaxRates ?? subscription.defaultTaxRates,
       metadata: payload.metadata ?? subscription.metadata,
-      updatedAt: now,
+      updatedAt: now.toISOString(),
     };
 
     if (payload.cancelAt !== undefined) {
-      changes.cancelAt = payload.cancelAt ? new Date(payload.cancelAt) : null;
+      changes.cancelAt = payload.cancelAt;
     }
 
     if (payload.defaultPaymentMethodId !== undefined) {
@@ -568,7 +573,7 @@ export class SubscriptionService {
 
       changes.status = SubscriptionStatusEnum.PAUSED;
       changes.pauseCollectionBehavior = behavior;
-      changes.pauseCollectionResumesAt = resumesAt ? new Date(resumesAt) : null;
+      changes.pauseCollectionResumesAt = resumesAt ?? null;
 
       return changes;
     }
@@ -603,7 +608,10 @@ export class SubscriptionService {
     let current = subscription;
     let rolls = 0;
 
-    while (current.currentPeriodEnd.getTime() <= now.getTime() && rolls < MAX_PERIOD_ROLLS) {
+    while (
+      new Date(current.currentPeriodEnd).getTime() <= now.getTime() &&
+      rolls < MAX_PERIOD_ROLLS
+    ) {
       current = await this.rollPeriod(current, interval, intervalCount);
       rolls += 1;
 
@@ -619,19 +627,21 @@ export class SubscriptionService {
     intervalCount: number,
   ): Promise<Subscription> {
     const periodEnd = subscription.currentPeriodEnd;
-    const cancelAt = subscription.cancelAt;
+    const { cancelAt } = subscription;
     const isAdvance = subscription.billingMode === BillingModeEnum.ADVANCE;
     const isBillable = _.includes(BILLABLE_SUBSCRIPTION_STATUSES, subscription.status);
+    const isCancelDue =
+      cancelAt !== null && new Date(cancelAt).getTime() <= new Date(periodEnd).getTime();
 
     if (!isAdvance && isBillable) {
       await this.fastify.invoiceService.ensureBillableDraft(subscription);
     }
 
-    if (subscription.cancelAtPeriodEnd || (cancelAt && cancelAt.getTime() <= periodEnd.getTime())) {
-      const endedAt = cancelAt && cancelAt.getTime() <= periodEnd.getTime() ? cancelAt : periodEnd;
+    if (subscription.cancelAtPeriodEnd || isCancelDue) {
+      const endedAt = isCancelDue ? cancelAt : periodEnd;
 
       if (isAdvance && isBillable) {
-        await this.fastify.invoiceService.issueTrailingInvoice(subscription, endedAt, {
+        await this.fastify.invoiceService.issueTrailingInvoice(subscription, new Date(endedAt), {
           interval,
           intervalCount,
         });
@@ -660,7 +670,11 @@ export class SubscriptionService {
             {
               status: SubscriptionStatusEnum.ACTIVE,
               currentPeriodStart: periodEnd,
-              currentPeriodEnd: advancePeriod(periodEnd, interval, intervalCount),
+              currentPeriodEnd: advancePeriod(
+                new Date(periodEnd),
+                interval,
+                intervalCount,
+              ).toISOString(),
               updatedAt: periodEnd,
             },
             DomainEventTypeEnum.SUBSCRIPTION_RENEWED,
@@ -679,6 +693,7 @@ export class SubscriptionService {
     intervalCount: number,
   ): Promise<Subscription> {
     const periodEnd = subscription.currentPeriodEnd;
+    const nextPeriodEnd = advancePeriod(new Date(periodEnd), interval, intervalCount).toISOString();
     const behavior = await this.resolveTrialEndBehavior(subscription);
 
     if (behavior === TrialEndBehaviorEnum.CANCEL) {
@@ -703,7 +718,7 @@ export class SubscriptionService {
           pauseCollectionBehavior: PauseCollectionBehaviorEnum.KEEP_AS_DRAFT,
           pauseCollectionResumesAt: null,
           currentPeriodStart: periodEnd,
-          currentPeriodEnd: advancePeriod(periodEnd, interval, intervalCount),
+          currentPeriodEnd: nextPeriodEnd,
           updatedAt: periodEnd,
         },
         DomainEventTypeEnum.SUBSCRIPTION_PAUSED,
@@ -715,7 +730,7 @@ export class SubscriptionService {
       {
         status: SubscriptionStatusEnum.ACTIVE,
         currentPeriodStart: periodEnd,
-        currentPeriodEnd: advancePeriod(periodEnd, interval, intervalCount),
+        currentPeriodEnd: nextPeriodEnd,
         updatedAt: periodEnd,
       },
       DomainEventTypeEnum.SUBSCRIPTION_TRIAL_ENDED,
@@ -896,69 +911,46 @@ export class SubscriptionService {
 
   static buildSubscription(
     entity: Subscription,
-    subscriptionItems: readonly (SubscriptionItem | NewSubscriptionItem)[],
+    subscriptionItems: SubscriptionItemResponse[],
   ): SubscriptionResponse {
     return {
-      object: 'subscription',
       id: entity.id,
       customerId: entity.customerId,
       status: entity.status,
       currency: entity.currency,
       collectionMethod: entity.collectionMethod,
       billingMode: entity.billingMode,
-      items: _.map(subscriptionItems, (subscriptionItem) => {
-        return SubscriptionService.buildSubscriptionItem(subscriptionItem, entity.createdAt);
-      }),
-      billingCycleAnchor: entity.billingCycleAnchor.toISOString(),
-      currentPeriodStart: entity.currentPeriodStart.toISOString(),
-      currentPeriodEnd: entity.currentPeriodEnd.toISOString(),
-      chargedThroughDate: entity.chargedThroughDate
-        ? entity.chargedThroughDate.toISOString()
-        : null,
+      items: subscriptionItems,
+      billingCycleAnchor: entity.billingCycleAnchor,
+      currentPeriodStart: entity.currentPeriodStart,
+      currentPeriodEnd: entity.currentPeriodEnd,
+      chargedThroughDate: entity.chargedThroughDate,
       defaultTaxRates: entity.defaultTaxRates,
       defaultPaymentMethodId: entity.defaultPaymentMethodId,
-      trialStart: entity.trialStart ? entity.trialStart.toISOString() : null,
-      trialEnd: entity.trialEnd ? entity.trialEnd.toISOString() : null,
+      trialStart: entity.trialStart,
+      trialEnd: entity.trialEnd,
       trialSettings: {
         endBehavior: { missingPaymentMethod: entity.trialEndBehaviorMissingPaymentMethod },
       },
       pauseCollection: entity.pauseCollectionBehavior
         ? {
             behavior: entity.pauseCollectionBehavior,
-            resumesAt: entity.pauseCollectionResumesAt
-              ? entity.pauseCollectionResumesAt.toISOString()
-              : null,
+            resumesAt: entity.pauseCollectionResumesAt,
           }
         : null,
       cancelAtPeriodEnd: entity.cancelAtPeriodEnd,
-      cancelAt: entity.cancelAt ? entity.cancelAt.toISOString() : null,
+      cancelAt: entity.cancelAt,
       cancellationDetails: {
         reason: entity.cancellationReason,
         comment: entity.cancellationComment,
         feedback: entity.cancellationFeedback,
       },
-      canceledAt: entity.canceledAt ? entity.canceledAt.toISOString() : null,
-      endedAt: entity.endedAt ? entity.endedAt.toISOString() : null,
+      canceledAt: entity.canceledAt,
+      endedAt: entity.endedAt,
       testClockId: entity.testClockId,
       metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
-  }
-
-  static buildSubscriptionItem(
-    subscriptionItem: SubscriptionItem | NewSubscriptionItem,
-    fallbackCreatedAt: Date,
-  ): SubscriptionItemResponse {
-    return {
-      object: 'subscription_item',
-      id: subscriptionItem.id,
-      subscriptionId: subscriptionItem.subscriptionId,
-      priceId: subscriptionItem.priceId,
-      quantity: subscriptionItem.quantity ?? 1,
-      taxRates: subscriptionItem.taxRates ?? [],
-      metadata: subscriptionItem.metadata ?? {},
-      createdAt: (subscriptionItem.createdAt ?? fallbackCreatedAt).toISOString(),
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
     };
   }
 }

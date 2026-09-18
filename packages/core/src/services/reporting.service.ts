@@ -38,16 +38,14 @@ export class ReportingService {
   ): Promise<RevenueSummaryResponse> {
     const currency = query.currency ?? CurrencyEnum.VND;
     const now = this.fastify.clock.now();
-    const windowEnd = query.windowEnd ? new Date(query.windowEnd) : now;
-    const windowStart = query.windowStart
-      ? new Date(query.windowStart)
-      : new Date(windowEnd.getTime() - DEFAULT_WINDOW_DAYS * MILLISECONDS_PER_DAY);
+    const asOf = now.toISOString();
+    const { windowStart, windowEnd } = ReportingService.resolveWindow(query, now);
 
     const commitments = await this.fastify.reportingRepository.findRecurringCommitments(
       currency,
       livemode,
     );
-    const mrr = await this.aggregateDiscountedMrr(commitments, currency, livemode, now);
+    const mrr = await this.aggregateDiscountedMrr(commitments, currency, livemode, asOf);
 
     const counts = await this.fastify.reportingRepository.countSubscriptions(currency, livemode);
     const canceledInWindow = await this.fastify.reportingRepository.countCanceledSubscriptions(
@@ -76,9 +74,8 @@ export class ReportingService {
     );
 
     return {
-      object: 'revenue_summary',
       currency,
-      asOf: now.toISOString(),
+      asOf,
       mrr,
       arr: mrr * MONTHS_PER_YEAR,
       activeSubscriptions: counts.active,
@@ -89,16 +86,34 @@ export class ReportingService {
       collectedInWindow,
       refundedInWindow,
       outstanding: invoiceTotals.outstanding,
-      windowStart: windowStart.toISOString(),
-      windowEnd: windowEnd.toISOString(),
+      windowStart,
+      windowEnd,
     };
+  }
+
+  private static resolveWindow(
+    query: AggregateRevenueSummaryQuery,
+    now: Date,
+  ): { windowStart: string; windowEnd: string } {
+    const windowEnd = query.windowEnd ? new Date(query.windowEnd) : now;
+
+    if (query.windowStart) {
+      return {
+        windowStart: new Date(query.windowStart).toISOString(),
+        windowEnd: windowEnd.toISOString(),
+      };
+    }
+
+    const windowStart = new Date(windowEnd.getTime() - DEFAULT_WINDOW_DAYS * MILLISECONDS_PER_DAY);
+
+    return { windowStart: windowStart.toISOString(), windowEnd: windowEnd.toISOString() };
   }
 
   private async aggregateDiscountedMrr(
     commitments: readonly RecurringCommitment[],
     currency: Currency,
     livemode: boolean,
-    now: Date,
+    activeAt: string,
   ): Promise<number> {
     const lines = _.map(commitments, (commitment): MrrLine => {
       return {
@@ -119,7 +134,7 @@ export class ReportingService {
     }
 
     const discounts = await this.fastify.discountRepository.findDiscounts(
-      { livemode, activeAt: now },
+      { livemode, activeAt },
       DISCOUNT_SCAN_LIMIT,
     );
 

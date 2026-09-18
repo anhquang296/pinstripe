@@ -22,7 +22,7 @@ export class CouponService {
     CouponService.assertDiscountKind(payload);
     CouponService.assertDuration(payload);
 
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.COUPON);
 
     const coupon = await this.fastify.couponRepository.createCoupon({
@@ -36,7 +36,7 @@ export class CouponService {
       durationInMonths: payload.durationInMonths ?? null,
       maxRedemptions: payload.maxRedemptions ?? null,
       timesRedeemed: 0,
-      redeemBy: payload.redeemBy ? new Date(payload.redeemBy) : null,
+      redeemBy: payload.redeemBy ?? null,
       appliesToProductIds: payload.appliesToProductIds ?? [],
       valid: true,
       metadata: payload.metadata ?? {},
@@ -45,7 +45,7 @@ export class CouponService {
     });
 
     if (coupon) {
-      return CouponService.buildCoupon(coupon);
+      return coupon;
     }
 
     throw new NotFoundError(`Coupon ${id} could not be created`);
@@ -88,9 +88,7 @@ export class CouponService {
   }
 
   async getCoupon(id: string, livemode: boolean): Promise<CouponResponse> {
-    const coupon = await this.getCouponEntity(id, livemode);
-
-    return CouponService.buildCoupon(coupon);
+    return this.getCouponEntity(id, livemode);
   }
 
   async getCouponEntity(id: string, livemode: boolean): Promise<Coupon> {
@@ -109,16 +107,14 @@ export class CouponService {
     livemode: boolean,
   ): Promise<CouponResponse> {
     const existingCoupon = await this.getCouponEntity(id, livemode);
-    const now = this.fastify.clock.now();
-
     const coupon = await this.fastify.couponRepository.updateCoupon(id, {
       name: payload.name ?? existingCoupon.name,
       metadata: payload.metadata ?? existingCoupon.metadata,
-      updatedAt: now,
+      updatedAt: this.fastify.clock.now().toISOString(),
     });
 
     if (coupon) {
-      return CouponService.buildCoupon(coupon);
+      return coupon;
     }
 
     throw new NotFoundError(`No such coupon: ${id}`);
@@ -127,15 +123,16 @@ export class CouponService {
   async deleteCoupon(id: string, livemode: boolean): Promise<DeletedCouponResponse> {
     await this.getCouponEntity(id, livemode);
 
+    const now = this.fastify.clock.now().toISOString();
     const activeDiscounts = await this.fastify.discountRepository.findDiscounts(
-      { livemode, couponId: id, activeAt: this.fastify.clock.now() },
+      { livemode, couponId: id, activeAt: now },
       1,
     );
 
     if (_.isEmpty(activeDiscounts)) {
-      await this.fastify.couponRepository.archiveCoupon(id, this.fastify.clock.now());
+      await this.fastify.couponRepository.archiveCoupon(id, now);
 
-      return { object: 'coupon', id, deleted: true };
+      return { id, deleted: true };
     }
 
     throw new ConflictError(`Coupon ${id} is still applied to a discount and cannot be deleted`);
@@ -155,10 +152,9 @@ export class CouponService {
     );
 
     return {
-      object: 'list',
       url: '/v1/coupons',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(CouponService.buildCoupon).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -173,27 +169,5 @@ export class CouponService {
     }
 
     return undefined;
-  }
-
-  static buildCoupon(entity: Coupon): CouponResponse {
-    return {
-      object: 'coupon',
-      id: entity.id,
-      livemode: entity.livemode,
-      name: entity.name,
-      percentOff: entity.percentOff,
-      amountOff: entity.amountOff,
-      currency: entity.currency,
-      duration: entity.duration,
-      durationInMonths: entity.durationInMonths,
-      maxRedemptions: entity.maxRedemptions,
-      timesRedeemed: entity.timesRedeemed,
-      redeemBy: entity.redeemBy ? entity.redeemBy.toISOString() : null,
-      appliesToProductIds: entity.appliesToProductIds,
-      valid: entity.valid,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

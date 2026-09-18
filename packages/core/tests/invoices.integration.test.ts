@@ -37,7 +37,7 @@ async function readPeriodEnd(subscriptionId: string): Promise<Date> {
   const subscription = await fastify.subscriptionRepository.findSubscription(subscriptionId);
 
   if (subscription) {
-    return subscription.currentPeriodEnd;
+    return new Date(subscription.currentPeriodEnd);
   }
 
   throw new Error(`test fixture lost subscription ${subscriptionId}`);
@@ -505,7 +505,7 @@ describe('BillingRunService.runBillingShard', () => {
         return fastify.subscriptionRepository.findSubscriptions({
           shardCount,
           shardIndex,
-          currentPeriodEndTo: runAt,
+          currentPeriodEndTo: runAt.toISOString(),
         });
       }),
     );
@@ -599,8 +599,8 @@ describe('InvoiceService.issueProrationInvoice', () => {
       subscription,
       {},
       {
-        periodStart: subscription.currentPeriodStart,
-        periodEnd: subscription.currentPeriodEnd,
+        periodStart: new Date(subscription.currentPeriodStart),
+        periodEnd: new Date(subscription.currentPeriodEnd),
       },
     );
 

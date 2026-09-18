@@ -17,7 +17,6 @@ export const portalSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const link = await fastify.portalSessionService.createPortalLink(request.body, livemode);
 
       return ApiResponse.accepted(reply, {
-        object: 'portal_link' as const,
         livemode,
         linkExpiresAt: link.linkExpiresAt.toISOString(),
       });

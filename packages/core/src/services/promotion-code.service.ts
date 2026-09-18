@@ -35,7 +35,7 @@ export class PromotionCodeService {
       await this.fastify.customerService.getCustomer(payload.customerId, livemode);
     }
 
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PROMOTION_CODE);
     const code = _.toUpper(payload.code ?? PromotionCodeService.buildCode());
 
@@ -49,7 +49,7 @@ export class PromotionCodeService {
         active: payload.active ?? true,
         maxRedemptions: payload.maxRedemptions ?? null,
         timesRedeemed: 0,
-        expiresAt: payload.expiresAt ? new Date(payload.expiresAt) : null,
+        expiresAt: payload.expiresAt ?? null,
         firstTimeTransaction: payload.firstTimeTransaction ?? false,
         minimumAmount: payload.minimumAmount ?? null,
         metadata: payload.metadata ?? {},
@@ -58,7 +58,7 @@ export class PromotionCodeService {
       });
 
       if (promotionCode) {
-        return PromotionCodeService.buildPromotionCode(promotionCode);
+        return promotionCode;
       }
 
       throw new NotFoundError(`Promotion code ${id} could not be created`);
@@ -80,9 +80,7 @@ export class PromotionCodeService {
   }
 
   async getPromotionCode(id: string, livemode: boolean): Promise<PromotionCodeResponse> {
-    const promotionCode = await this.getPromotionCodeEntity(id, livemode);
-
-    return PromotionCodeService.buildPromotionCode(promotionCode);
+    return this.getPromotionCodeEntity(id, livemode);
   }
 
   async getPromotionCodeEntity(id: string, livemode: boolean): Promise<PromotionCode> {
@@ -135,7 +133,7 @@ export class PromotionCodeService {
   ): Promise<void> {
     const { expiresAt, customerId: restrictedCustomerId } = promotionCode;
 
-    if (expiresAt && expiresAt.getTime() <= at.getTime()) {
+    if (expiresAt && new Date(expiresAt).getTime() <= at.getTime()) {
       throw new ConflictError(`Promotion code ${promotionCode.code} has expired`);
     }
 
@@ -175,16 +173,14 @@ export class PromotionCodeService {
     livemode: boolean,
   ): Promise<PromotionCodeResponse> {
     const existingPromotionCode = await this.getPromotionCodeEntity(id, livemode);
-    const now = this.fastify.clock.now();
-
     const promotionCode = await this.fastify.promotionCodeRepository.updatePromotionCode(id, {
       active: payload.active ?? existingPromotionCode.active,
       metadata: payload.metadata ?? existingPromotionCode.metadata,
-      updatedAt: now,
+      updatedAt: this.fastify.clock.now().toISOString(),
     });
 
     if (promotionCode) {
-      return PromotionCodeService.buildPromotionCode(promotionCode);
+      return promotionCode;
     }
 
     throw new NotFoundError(`No such promotion code: ${id}`);
@@ -211,10 +207,9 @@ export class PromotionCodeService {
     );
 
     return {
-      object: 'list',
       url: '/v1/promotion_codes',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(PromotionCodeService.buildPromotionCode).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -229,25 +224,5 @@ export class PromotionCodeService {
     }
 
     return undefined;
-  }
-
-  static buildPromotionCode(entity: PromotionCode): PromotionCodeResponse {
-    return {
-      object: 'promotion_code',
-      id: entity.id,
-      livemode: entity.livemode,
-      code: entity.code,
-      couponId: entity.couponId,
-      customerId: entity.customerId,
-      active: entity.active,
-      maxRedemptions: entity.maxRedemptions,
-      timesRedeemed: entity.timesRedeemed,
-      expiresAt: entity.expiresAt ? entity.expiresAt.toISOString() : null,
-      firstTimeTransaction: entity.firstTimeTransaction,
-      minimumAmount: entity.minimumAmount,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

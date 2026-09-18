@@ -36,10 +36,10 @@ export class ApiKeyRepository {
       filters.livemode === undefined ? undefined : eq(apiKeys.livemode, filters.livemode),
       filters.revokedAtIsNull ? isNull(apiKeys.revokedAt) : undefined,
       filters.beforeAt
-        ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

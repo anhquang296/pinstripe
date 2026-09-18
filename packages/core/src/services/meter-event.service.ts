@@ -78,7 +78,6 @@ export class MeterEventService {
     );
 
     return {
-      object: 'meter_event_batch',
       accepted: insertedIds.length,
       duplicates: events.length - insertedIds.length,
     };
@@ -102,20 +101,21 @@ export class MeterEventService {
       throw new BadRequestError('windowEnd must be after windowStart', { param: 'windowEnd' });
     }
 
+    const receivedBefore = MeterEventService.normalizeTimestamp(query.receivedBefore);
+    const receivedAfter = MeterEventService.normalizeTimestamp(query.receivedAfter);
     const totals = await this.fastify.meterEventRepository.aggregateMeterEventTotals(
       meter.aggregation,
       {
         meterId,
         customerId: query.customerId,
-        timestampFrom: windowStart,
-        timestampTo: windowEnd,
-        receivedBefore: query.receivedBefore ? new Date(query.receivedBefore) : undefined,
-        receivedAfter: query.receivedAfter ? new Date(query.receivedAfter) : undefined,
+        timestampFrom: windowStart.toISOString(),
+        timestampTo: windowEnd.toISOString(),
+        receivedBefore,
+        receivedAfter,
       },
     );
 
     return {
-      object: 'meter_event_summary',
       meterId,
       customerId: query.customerId,
       aggregation: meter.aggregation,
@@ -154,8 +154,8 @@ export class MeterEventService {
       eventName: payload.eventName,
       value: MeterEventService.resolveValue(meter, payload),
       payload: payload.payload ?? {},
-      timestamp,
-      receivedAt,
+      timestamp: timestamp.toISOString(),
+      receivedAt: receivedAt.toISOString(),
     };
   }
 
@@ -233,9 +233,16 @@ export class MeterEventService {
     );
   }
 
+  private static normalizeTimestamp(timestamp: string | undefined): string | undefined {
+    if (timestamp) {
+      return new Date(timestamp).toISOString();
+    }
+
+    return undefined;
+  }
+
   private static buildMeterEvent(event: NewMeterEvent): MeterEventResponse {
     return {
-      object: 'meter_event',
       id: event.id,
       identifier: event.identifier,
       meterId: event.meterId,
@@ -243,8 +250,8 @@ export class MeterEventService {
       eventName: event.eventName,
       value: event.value,
       payload: event.payload ?? {},
-      timestamp: event.timestamp.toISOString(),
-      receivedAt: event.receivedAt.toISOString(),
+      timestamp: event.timestamp,
+      receivedAt: event.receivedAt,
     };
   }
 }

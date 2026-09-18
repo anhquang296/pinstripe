@@ -31,10 +31,10 @@ export class EventRepository {
       filters.livemode === undefined ? undefined : eq(events.livemode, filters.livemode),
       filters.type ? eq(events.type, filters.type) : undefined,
       filters.beforeAt
-        ? sql`(${events.createdAt}, ${events.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${events.createdAt}, ${events.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${events.createdAt}, ${events.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${events.createdAt}, ${events.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

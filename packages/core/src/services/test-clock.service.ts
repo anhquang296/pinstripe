@@ -19,19 +19,20 @@ export class TestClockService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createTestClock(payload: CreateTestClockPayload): Promise<TestClockResponse> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
+    const frozenTime = new Date(payload.frozenTime).toISOString();
 
     const createdTestClock = await this.fastify.testClockRepository.createTestClock({
       id: generateGid(ObjectPrefixEnum.TEST_CLOCK),
       name: payload.name,
-      frozenTime: new Date(payload.frozenTime),
+      frozenTime,
       status: TestClockStatusEnum.READY,
       createdAt: now,
       updatedAt: now,
     });
 
     if (createdTestClock) {
-      return TestClockService.buildTestClock(createdTestClock);
+      return createdTestClock;
     }
 
     throw new NotFoundError('Test clock could not be created');
@@ -41,7 +42,7 @@ export class TestClockService {
     const clock = await this.fastify.testClockRepository.findTestClock(id);
 
     if (clock && clock.livemode === livemode) {
-      return TestClockService.buildTestClock(clock);
+      return clock;
     }
 
     throw new NotFoundError(`No such test clock: ${id}`);
@@ -59,10 +60,9 @@ export class TestClockService {
     const hasMore = rows.length > limit;
 
     return {
-      object: 'list',
       url: '/v1/test_helpers/test_clocks',
       hasMore,
-      data: _(rows).take(limit).map(TestClockService.buildTestClock).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -74,21 +74,24 @@ export class TestClockService {
     }
 
     const target = new Date(payload.frozenTime);
+    const frozenTime = new Date(clock.frozenTime);
 
-    if (target.getTime() <= clock.frozenTime.getTime()) {
+    if (target.getTime() <= frozenTime.getTime()) {
       throw new BadRequestError(
-        `A test clock only moves forward: ${target.toISOString()} is not after ${clock.frozenTime.toISOString()}`,
+        `A test clock only moves forward: ${target.toISOString()} is not after ${clock.frozenTime}`,
         { param: 'frozenTime' },
       );
     }
 
     await this.fastify.testClockRepository.updateTestClock(id, {
       status: TestClockStatusEnum.ADVANCING,
-      updatedAt: this.fastify.clock.now(),
+      updatedAt: this.fastify.clock.now().toISOString(),
     });
 
     try {
-      await this.fastify.testClockRepository.updateTestClock(id, { frozenTime: target });
+      await this.fastify.testClockRepository.updateTestClock(id, {
+        frozenTime: target.toISOString(),
+      });
       await this.fastify.subscriptionService.runSubscriptionLifecycle({ testClockId: id }, target);
     } catch (error) {
       await this.fastify.testClockRepository.updateTestClock(id, {
@@ -101,7 +104,7 @@ export class TestClockService {
     const advanced = await this.fastify.database.master.transaction(async (tx) => {
       const next = await this.fastify.testClockRepository.updateTestClock(
         id,
-        { status: TestClockStatusEnum.READY, updatedAt: this.fastify.clock.now() },
+        { status: TestClockStatusEnum.READY, updatedAt: this.fastify.clock.now().toISOString() },
         tx,
       );
 
@@ -125,7 +128,7 @@ export class TestClockService {
       throw new NotFoundError(`No such test clock: ${id}`);
     });
 
-    return TestClockService.buildTestClock(advanced);
+    return advanced;
   }
 
   private async getTestClockRow(id: string): Promise<TestClock> {
@@ -150,16 +153,5 @@ export class TestClockService {
     }
 
     return undefined;
-  }
-
-  private static buildTestClock(entity: TestClock): TestClockResponse {
-    return {
-      object: 'test_clock',
-      id: entity.id,
-      name: entity.name,
-      frozenTime: entity.frozenTime.toISOString(),
-      status: entity.status,
-      createdAt: entity.createdAt.toISOString(),
-    };
   }
 }

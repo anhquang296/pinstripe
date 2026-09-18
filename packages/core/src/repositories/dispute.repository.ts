@@ -46,10 +46,10 @@ export class DisputeRepository {
       filters.status ? eq(disputes.status, filters.status) : undefined,
       filters.statuses ? inArray(disputes.status, [...filters.statuses]) : undefined,
       filters.beforeAt
-        ? sql`(${disputes.createdAt}, ${disputes.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${disputes.createdAt}, ${disputes.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${disputes.createdAt}, ${disputes.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${disputes.createdAt}, ${disputes.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

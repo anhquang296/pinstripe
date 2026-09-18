@@ -69,7 +69,7 @@ it('adds an item to a subscription and lists it back', async () => {
   });
 
   expect(created.statusCode).toBe(201);
-  expect(created.json().object).toBe('subscription_item');
+  expect(created.json().id).toMatch(/^si_/);
   expect(created.json().quantity).toBe(2);
   expect(listed.json().data).toHaveLength(2);
 });

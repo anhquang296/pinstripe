@@ -30,7 +30,7 @@ export class BillingRunService {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         statuses: BILLABLE_SUBSCRIPTION_STATUSES,
-        currentPeriodEndTo: runAt,
+        currentPeriodEndTo: job.runAt,
         shardCount: job.shardCount,
         shardIndex: job.shardIndex,
       },

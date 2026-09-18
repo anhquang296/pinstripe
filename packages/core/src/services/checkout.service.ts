@@ -60,8 +60,9 @@ export class CheckoutService {
 
     const prices = await this.resolvePrices(drafts, customer);
     const now = this.fastify.clock.now();
+    const createdAt = now.toISOString();
     const id = generateGid(ObjectPrefixEnum.CHECKOUT_SESSION);
-    const lineItems = CheckoutService.buildLineItems(id, livemode, drafts, prices, now);
+    const lineItems = CheckoutService.buildLineItems(id, livemode, drafts, prices, createdAt);
     const amountTotal = _.sumBy(lineItems, 'amountTotal');
 
     const createdSession = await this.fastify.database.master.transaction(async (tx) => {
@@ -91,8 +92,8 @@ export class CheckoutService {
           expiresAt: this.resolveExpiry(payload.expiresAt, now),
           completedAt: null,
           metadata: payload.metadata ?? {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt,
+          updatedAt: createdAt,
         },
         tx,
       );
@@ -137,10 +138,9 @@ export class CheckoutService {
       },
       livemode,
     );
-    const now = this.fastify.clock.now();
     const linkedSession = await this.fastify.checkoutSessionRepository.updateCheckoutSession(
       session.id,
-      { paymentLinkId: paymentLink.id, updatedAt: now },
+      { paymentLinkId: paymentLink.id, updatedAt: this.fastify.clock.now().toISOString() },
     );
 
     if (linkedSession) {
@@ -177,7 +177,6 @@ export class CheckoutService {
     const lineItemsBySessionId = await this.resolveLineItems(_.map(page, 'id'));
 
     return {
-      object: 'list',
       url: '/v1/checkout/sessions',
       hasMore: rows.length > limit,
       data: _.map(page, (checkoutSession) => {
@@ -199,13 +198,15 @@ export class CheckoutService {
     CheckoutService.assertTransition(checkoutSession.status, CheckoutSessionStatusEnum.COMPLETE);
 
     const now = this.fastify.clock.now();
+    const expiresAt = new Date(checkoutSession.expiresAt);
 
-    if (checkoutSession.expiresAt.getTime() <= now.getTime()) {
+    if (expiresAt.getTime() <= now.getTime()) {
       throw new ConflictError(`Checkout session ${id} has expired`);
     }
 
     const paymentMethodId = await this.resolvePaymentMethodId(checkoutSession, payload);
     const outcome = await this.runCheckoutMode(checkoutSession, paymentMethodId);
+    const completedAt = this.fastify.clock.now().toISOString();
 
     const completedSession = await this.fastify.database.master.transaction(async (tx) => {
       const completed = await this.fastify.checkoutSessionRepository.updateCheckoutSession(
@@ -217,8 +218,8 @@ export class CheckoutService {
           invoiceId: outcome.invoiceId,
           paymentIntentId: outcome.paymentIntentId,
           setupIntentId: outcome.setupIntentId,
-          completedAt: now,
-          updatedAt: now,
+          completedAt,
+          updatedAt: completedAt,
         },
         tx,
       );
@@ -241,9 +242,11 @@ export class CheckoutService {
   }
 
   async expireCheckoutSessions(): Promise<number> {
-    const now = this.fastify.clock.now();
     const stale = await this.fastify.checkoutSessionRepository.findCheckoutSessions(
-      { status: CheckoutSessionStatusEnum.OPEN, expiresBeforeAt: now },
+      {
+        status: CheckoutSessionStatusEnum.OPEN,
+        expiresBeforeAt: this.fastify.clock.now().toISOString(),
+      },
       EXPIRE_BATCH_LIMIT,
     );
 
@@ -262,12 +265,12 @@ export class CheckoutService {
   }
 
   private async expireCheckoutSession(checkoutSession: CheckoutSession): Promise<void> {
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
       const expired = await this.fastify.checkoutSessionRepository.updateCheckoutSession(
         checkoutSession.id,
-        { status: CheckoutSessionStatusEnum.EXPIRED, updatedAt: now },
+        { status: CheckoutSessionStatusEnum.EXPIRED, updatedAt },
         tx,
       );
 
@@ -552,14 +555,14 @@ export class CheckoutService {
     return undefined;
   }
 
-  private resolveExpiry(expiresAt: string | undefined, now: Date): Date {
+  private resolveExpiry(expiresAt: string | undefined, now: Date): string {
     if (expiresAt) {
-      return new Date(expiresAt);
+      return new Date(expiresAt).toISOString();
     }
 
     return new Date(
       now.getTime() + this.checkoutConfig.sessionTtlMinutes * MILLISECONDS_PER_MINUTE,
-    );
+    ).toISOString();
   }
 
   private async buildCheckoutSession(
@@ -608,7 +611,7 @@ export class CheckoutService {
     livemode: boolean,
     drafts: readonly CheckoutLineItemDraft[],
     pricesById: Record<string, Price>,
-    now: Date,
+    createdAt: string,
   ): NewCheckoutSessionLineItem[] {
     return _.map(drafts, (draft): NewCheckoutSessionLineItem => {
       const price = _.get(pricesById, draft.priceId);
@@ -631,7 +634,7 @@ export class CheckoutService {
         quantity: draft.quantity,
         amountSubtotal: amount,
         amountTotal: amount,
-        createdAt: now,
+        createdAt,
       };
     });
   }
@@ -645,45 +648,10 @@ export class CheckoutService {
   }
 
   private static buildCheckoutSessionWithLineItems(
-    entity: CheckoutSession,
-    lineItems: readonly CheckoutSessionLineItem[],
+    checkoutSession: CheckoutSession,
+    lineItems: CheckoutSessionLineItem[],
   ): CheckoutSessionResponse {
-    return {
-      object: 'checkout.session',
-      id: entity.id,
-      livemode: entity.livemode,
-      mode: entity.mode,
-      status: entity.status,
-      paymentStatus: entity.paymentStatus,
-      customerId: entity.customerId,
-      currency: entity.currency,
-      amountSubtotal: entity.amountSubtotal,
-      amountTotal: entity.amountTotal,
-      successUrl: entity.successUrl,
-      cancelUrl: entity.cancelUrl,
-      url: entity.url,
-      clientReferenceId: entity.clientReferenceId,
-      paymentLinkId: entity.paymentLinkId,
-      subscriptionId: entity.subscriptionId,
-      invoiceId: entity.invoiceId,
-      paymentIntentId: entity.paymentIntentId,
-      setupIntentId: entity.setupIntentId,
-      lineItems: _.map(lineItems, (lineItem) => {
-        return {
-          object: 'checkout.session.line_item' as const,
-          id: lineItem.id,
-          priceId: lineItem.priceId,
-          quantity: lineItem.quantity,
-          amountSubtotal: lineItem.amountSubtotal,
-          amountTotal: lineItem.amountTotal,
-        };
-      }),
-      expiresAt: entity.expiresAt.toISOString(),
-      completedAt: entity.completedAt ? entity.completedAt.toISOString() : null,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
+    return { ...checkoutSession, lineItems };
   }
 }
 

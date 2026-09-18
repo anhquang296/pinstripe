@@ -42,10 +42,10 @@ export class PaymentMethodRepository {
       filters.type ? eq(paymentMethods.type, filters.type) : undefined,
       filters.isAttached ? isNull(paymentMethods.detachedAt) : undefined,
       filters.beforeAt
-        ? sql`(${paymentMethods.createdAt}, ${paymentMethods.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${paymentMethods.createdAt}, ${paymentMethods.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${paymentMethods.createdAt}, ${paymentMethods.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${paymentMethods.createdAt}, ${paymentMethods.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

@@ -13,7 +13,6 @@ export enum ReconciliationOutcomeEnum {
 export type ReconciliationOutcome = `${ReconciliationOutcomeEnum}`;
 
 export const revenueSummarySchema = Type.Object({
-  object: Type.Literal('revenue_summary'),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   asOf: Type.String(),
   mrr: Type.Integer(),
@@ -31,7 +30,6 @@ export const revenueSummarySchema = Type.Object({
 });
 
 export const reconciliationReportSchema = Type.Object({
-  object: Type.Literal('reconciliation_report'),
   windowStart: Type.String(),
   windowEnd: Type.String(),
   processorTotal: Type.Integer(),
@@ -42,7 +40,6 @@ export const reconciliationReportSchema = Type.Object({
   matched: Type.Integer(),
   exceptions: Type.Array(
     Type.Object({
-      object: Type.Literal('reconciliation_exception'),
       outcome: Type.Unsafe<ReconciliationOutcome>(Type.Enum(ReconciliationOutcomeEnum)),
       reference: Type.String(),
       source: Type.String(),

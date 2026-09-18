@@ -14,8 +14,8 @@ export interface RefundFilters {
   paymentIntentId?: string;
   pspReference?: string;
   statuses?: readonly RefundStatus[];
-  createdAfterAt?: Date;
-  createdBeforeAt?: Date;
+  createdAfterAt?: string;
+  createdBeforeAt?: string;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
 }
@@ -129,10 +129,10 @@ export class RefundRepository {
       filters.createdAfterAt ? gte(refunds.createdAt, filters.createdAfterAt) : undefined,
       filters.createdBeforeAt ? lt(refunds.createdAt, filters.createdBeforeAt) : undefined,
       filters.beforeAt
-        ? sql`(${refunds.createdAt}, ${refunds.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${refunds.createdAt}, ${refunds.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${refunds.createdAt}, ${refunds.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${refunds.createdAt}, ${refunds.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
   }

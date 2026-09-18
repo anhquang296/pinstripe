@@ -35,10 +35,10 @@ export class CouponRepository {
       filters.livemode === undefined ? undefined : eq(coupons.livemode, filters.livemode),
       filters.ids ? inArray(coupons.id, [...filters.ids]) : undefined,
       filters.beforeAt
-        ? sql`(${coupons.createdAt}, ${coupons.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${coupons.createdAt}, ${coupons.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${coupons.createdAt}, ${coupons.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${coupons.createdAt}, ${coupons.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -93,7 +93,11 @@ export class CouponRepository {
     return coupon ?? null;
   }
 
-  async archiveCoupon(id: string, deletedAt: Date, executor?: DatabaseTransaction): Promise<void> {
+  async archiveCoupon(
+    id: string,
+    deletedAt: string,
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
 
     await db

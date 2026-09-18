@@ -12,10 +12,10 @@ export interface MeterEventFilters {
   livemode?: boolean;
   meterId?: string;
   customerId?: string;
-  timestampFrom?: Date;
-  timestampTo?: Date;
-  receivedBefore?: Date;
-  receivedAfter?: Date;
+  timestampFrom?: string;
+  timestampTo?: string;
+  receivedBefore?: string;
+  receivedAfter?: string;
 }
 
 export interface MeterEventTotals {

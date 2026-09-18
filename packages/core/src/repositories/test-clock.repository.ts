@@ -32,9 +32,9 @@ export class TestClockRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<TestClock[]> {
     const where = filters.beforeAt
-      ? sql`(${testClocks.createdAt}, ${testClocks.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+      ? sql`(${testClocks.createdAt}, ${testClocks.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
       : filters.afterAt
-        ? sql`(${testClocks.createdAt}, ${testClocks.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${testClocks.createdAt}, ${testClocks.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined;
 
     return this._db.master

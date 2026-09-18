@@ -39,8 +39,8 @@ export interface SubscriptionItemChangeFilters {
   subscriptionIds?: readonly string[];
   subscriptionItemIds?: readonly string[];
   billedThroughIsNull?: boolean;
-  billedFromBeforeAt?: Date;
-  billedThroughAfterAt?: Date;
+  billedFromBeforeAt?: string;
+  billedThroughAfterAt?: string;
 }
 
 export interface SubscriptionFilters {
@@ -50,10 +50,10 @@ export interface SubscriptionFilters {
   status?: SubscriptionStatus;
   statusNe?: SubscriptionStatus;
   testClockId?: string;
-  currentPeriodEndTo?: Date;
-  cancelAtTo?: Date;
-  pauseResumesAtTo?: Date;
-  updatedAtTo?: Date;
+  currentPeriodEndTo?: string;
+  cancelAtTo?: string;
+  pauseResumesAtTo?: string;
+  updatedAtTo?: string;
   statuses?: readonly SubscriptionStatus[];
   shardCount?: number;
   shardIndex?: number;
@@ -102,10 +102,10 @@ export class SubscriptionRepository {
         ? sql`abs(hashtext(${subscriptions.id})) % ${filters.shardCount} = ${filters.shardIndex}`
         : undefined,
       filters.beforeAt
-        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${subscriptions.createdAt}, ${subscriptions.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -231,7 +231,7 @@ export class SubscriptionRepository {
 
   async clearSubscriptionPaymentMethods(
     paymentMethodId: string,
-    updatedAt: Date,
+    updatedAt: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
@@ -272,7 +272,7 @@ export class SubscriptionRepository {
 
   async deleteSubscriptionItems(
     ids: readonly string[],
-    deletedAt: Date,
+    deletedAt: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     if (_.isEmpty(ids)) {
@@ -302,7 +302,7 @@ export class SubscriptionRepository {
 
   async closeSubscriptionItemChanges(
     subscriptionItemIds: readonly string[],
-    billedThrough: Date,
+    billedThrough: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     if (_.isEmpty(subscriptionItemIds)) {
@@ -340,7 +340,7 @@ export class SubscriptionRepository {
 
   async invoiceSubscriptionItemChanges(
     ids: readonly string[],
-    through: Date,
+    through: string,
     executor?: DatabaseTransaction,
   ): Promise<void> {
     if (_.isEmpty(ids)) {
@@ -348,7 +348,7 @@ export class SubscriptionRepository {
     }
 
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
-    const boundary = sql`${through.toISOString()}::timestamptz`;
+    const boundary = sql`${through}::timestamptz`;
 
     await db
       .update(subscriptionItemChanges)

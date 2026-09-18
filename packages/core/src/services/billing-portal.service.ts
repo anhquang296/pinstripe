@@ -9,7 +9,7 @@ import type {
 } from '@contracts/billing-portal.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
-import type { BillingPortalConfiguration, BillingPortalSession } from '@database/schemas';
+import type { BillingPortalConfiguration } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -31,7 +31,7 @@ export class BillingPortalService {
     payload: CreateBillingPortalConfigurationPayload,
     livemode: boolean,
   ): Promise<BillingPortalConfigurationResponse> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const isDefault = payload.isDefault ?? false;
     const id = generateGid(ObjectPrefixEnum.BILLING_PORTAL_CONFIGURATION);
 
@@ -61,7 +61,7 @@ export class BillingPortalService {
     });
 
     if (configuration) {
-      return BillingPortalService.buildConfiguration(configuration);
+      return configuration;
     }
 
     throw new NotFoundError(`Billing portal configuration ${id} could not be created`);
@@ -73,7 +73,7 @@ export class BillingPortalService {
     livemode: boolean,
   ): Promise<BillingPortalConfigurationResponse> {
     const configuration = await this.getConfigurationEntity(id, livemode);
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
     const updatedConfiguration = await this.fastify.database.master.transaction(async (tx) => {
       if (payload.isDefault) {
@@ -92,14 +92,14 @@ export class BillingPortalService {
           defaultReturnUrl: payload.defaultReturnUrl ?? configuration.defaultReturnUrl,
           features: { ...configuration.features, ...payload.features },
           metadata: { ...configuration.metadata, ...payload.metadata },
-          updatedAt: now,
+          updatedAt,
         },
         tx,
       );
     });
 
     if (updatedConfiguration) {
-      return BillingPortalService.buildConfiguration(updatedConfiguration);
+      return updatedConfiguration;
     }
 
     throw new NotFoundError(`No such billing portal configuration: ${id}`);
@@ -109,9 +109,7 @@ export class BillingPortalService {
     id: string,
     livemode: boolean,
   ): Promise<BillingPortalConfigurationResponse> {
-    const configuration = await this.getConfigurationEntity(id, livemode);
-
-    return BillingPortalService.buildConfiguration(configuration);
+    return this.getConfigurationEntity(id, livemode);
   }
 
   async findConfigurations(
@@ -128,10 +126,9 @@ export class BillingPortalService {
       );
 
     return {
-      object: 'list',
       url: '/v1/billing_portal/configurations',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(BillingPortalService.buildConfiguration).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -145,7 +142,7 @@ export class BillingPortalService {
       customer.id,
       livemode,
     );
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.BILLING_PORTAL_SESSION);
     const session = await this.fastify.billingPortalSessionRepository.createBillingPortalSession({
       id,
@@ -156,11 +153,11 @@ export class BillingPortalService {
       url: portalSession.url,
       returnUrl: payload.returnUrl ?? configuration.defaultReturnUrl,
       expiresAt: portalSession.sessionExpiresAt,
-      createdAt: now,
+      createdAt,
     });
 
     if (session) {
-      return BillingPortalService.buildSession(session);
+      return session;
     }
 
     throw new NotFoundError(`Billing portal session ${id} could not be created`);
@@ -170,16 +167,14 @@ export class BillingPortalService {
     const session = await this.fastify.billingPortalSessionRepository.findBillingPortalSession(id);
 
     if (session && session.livemode === livemode) {
-      return BillingPortalService.buildSession(session);
+      return session;
     }
 
     throw new NotFoundError(`No such billing portal session: ${id}`);
   }
 
   async getActiveConfiguration(livemode: boolean): Promise<BillingPortalConfigurationResponse> {
-    const configuration = await this.resolveConfiguration(undefined, livemode);
-
-    return BillingPortalService.buildConfiguration(configuration);
+    return this.resolveConfiguration(undefined, livemode);
   }
 
   private async resolveConfiguration(
@@ -232,38 +227,5 @@ export class BillingPortalService {
     }
 
     return undefined;
-  }
-
-  private static buildConfiguration(
-    entity: BillingPortalConfiguration,
-  ): BillingPortalConfigurationResponse {
-    return {
-      object: 'billing_portal.configuration',
-      id: entity.id,
-      livemode: entity.livemode,
-      isActive: entity.isActive,
-      isDefault: entity.isDefault,
-      businessName: entity.businessName,
-      defaultReturnUrl: entity.defaultReturnUrl,
-      features: entity.features,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
-  }
-
-  private static buildSession(entity: BillingPortalSession): BillingPortalSessionResponse {
-    return {
-      object: 'billing_portal.session',
-      id: entity.id,
-      livemode: entity.livemode,
-      customerId: entity.customerId,
-      configurationId: entity.configurationId,
-      portalSessionId: entity.portalSessionId,
-      url: entity.url,
-      returnUrl: entity.returnUrl,
-      expiresAt: entity.expiresAt.toISOString(),
-      createdAt: entity.createdAt.toISOString(),
-    };
   }
 }

@@ -1,4 +1,4 @@
-import { generateGid, hasPrefix, ObjectPrefixEnum } from '@utils/gid-factory';
+import { generateGid, hasPrefix, ObjectPrefixEnum, resolveGidPrefix } from '@utils/gid-factory';
 import { describe, expect, it } from 'vitest';
 
 const GID_SUFFIX_PATTERN = /^[0-9a-hjkmnp-tv-z]{26}$/;
@@ -39,5 +39,29 @@ describe('generateGid', () => {
     });
 
     expect(gids).toEqual([...gids].sort());
+  });
+});
+
+describe('resolveGidPrefix', () => {
+  it('returns the object prefix of a generated identifier', () => {
+    const gid = generateGid(ObjectPrefixEnum.INVOICE);
+
+    const result = resolveGidPrefix(gid);
+
+    expect(result).toBe(ObjectPrefixEnum.INVOICE);
+  });
+
+  it('keeps an underscore that belongs to the prefix', () => {
+    const gid = generateGid(ObjectPrefixEnum.SUBSCRIPTION_SCHEDULE);
+
+    const result = resolveGidPrefix(gid);
+
+    expect(result).toBe(ObjectPrefixEnum.SUBSCRIPTION_SCHEDULE);
+  });
+
+  it('returns an empty prefix for an identifier without one', () => {
+    const result = resolveGidPrefix('01h455vb4pex5vsknk084sn02q');
+
+    expect(result).toBe('');
   });
 });

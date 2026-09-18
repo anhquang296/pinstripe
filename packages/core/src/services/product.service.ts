@@ -7,7 +7,6 @@ import type {
   ProductResponse,
   UpdateProductPayload,
 } from '@contracts/products.types';
-import type { Product } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -18,10 +17,10 @@ export class ProductService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createProduct(payload: CreateProductPayload, livemode: boolean): Promise<ProductResponse> {
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PRODUCT);
 
-    const createdProduct = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.createProduct(
         {
           id,
@@ -56,15 +55,13 @@ export class ProductService {
 
       throw new NotFoundError(`Product ${id} could not be created`);
     });
-
-    return ProductService.buildProduct(createdProduct);
   }
 
   async getProduct(id: string, livemode: boolean): Promise<ProductResponse> {
     const product = await this.fastify.productRepository.findProduct(id);
 
     if (product && product.livemode === livemode) {
-      return ProductService.buildProduct(product);
+      return product;
     }
 
     throw new NotFoundError(`No such product: ${id}`);
@@ -77,10 +74,10 @@ export class ProductService {
   ): Promise<ProductResponse> {
     await this.getProduct(id, livemode);
 
-    const updatedProduct = await this.fastify.database.master.transaction(async (tx) => {
+    return this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.updateProduct(
         id,
-        { ...payload, updatedAt: this.fastify.clock.now() },
+        { ...payload, updatedAt: this.fastify.clock.now().toISOString() },
         tx,
       );
 
@@ -103,8 +100,6 @@ export class ProductService {
 
       throw new NotFoundError(`No such product: ${id}`);
     });
-
-    return ProductService.buildProduct(updatedProduct);
   }
 
   async findProducts(
@@ -121,10 +116,9 @@ export class ProductService {
     const hasMore = rows.length > limit;
 
     return {
-      object: 'list',
       url: '/v1/products',
       hasMore,
-      data: _(rows).take(limit).map(ProductService.buildProduct).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -140,20 +134,5 @@ export class ProductService {
     }
 
     return undefined;
-  }
-
-  static buildProduct(entity: Product): ProductResponse {
-    return {
-      object: 'product',
-      id: entity.id,
-      livemode: entity.livemode,
-      name: entity.name,
-      description: entity.description,
-      active: entity.active,
-      unitLabel: entity.unitLabel,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }

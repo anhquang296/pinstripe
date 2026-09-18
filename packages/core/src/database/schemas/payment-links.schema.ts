@@ -1,7 +1,9 @@
 import type { CheckoutSessionMode } from '@contracts/checkout.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { prices } from '@database/schemas/prices.schema';
 import type { Currency } from '@utils/currency';
-import { bigint, boolean, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { bigint, boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const paymentLinks = pgTable(
   'payment_links',
@@ -14,8 +16,12 @@ export const paymentLinks = pgTable(
     url: text('url').notNull(),
     successUrl: text('success_url').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [index('payment_links_created_at_id_idx').on(table.createdAt, table.id)];
@@ -38,7 +44,9 @@ export const paymentLinkLineItems = pgTable(
         return prices.id;
       }),
     quantity: bigint('quantity', { mode: 'number' }).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [index('payment_link_line_items_payment_link_id_idx').on(table.paymentLinkId)];

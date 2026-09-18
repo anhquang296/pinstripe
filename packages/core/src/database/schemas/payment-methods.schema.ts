@@ -3,8 +3,10 @@ import type {
   PaymentMethodCard,
   PaymentMethodType,
 } from '@contracts/payment-methods.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
-import { boolean, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const paymentMethods = pgTable(
   'payment_methods',
@@ -19,9 +21,13 @@ export const paymentMethods = pgTable(
     billingDetails: jsonb('billing_details').$type<BillingDetails>().notNull().default({}),
     pspToken: text('psp_token').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    detachedAt: timestamp('detached_at', { withTimezone: true }),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
+    detachedAt: isoTimestamp('detached_at'),
   },
   (table) => {
     return [

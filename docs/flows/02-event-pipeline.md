@@ -65,13 +65,13 @@ Hàng mới luôn ở trạng thái `pending` — mặc định của cột, [ou
 
 ## Chặng 3 — dispatch
 
-| #   | Nơi xảy ra                                                                                                                | Làm gì                                                                                                                         |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 9   | [domain-event-dispatch.processor.ts:12](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts)    | `webhookService.handleDomainEvent(job.data)`                                                                                   |
-| 10  | [webhook.service.ts:130-136](../../packages/core/src/services/webhook.service.ts)                                         | lấy tối đa 200 endpoint `enabled`, lọc theo `enabledEvents` chứa `eventType`                                                   |
-| 11  | [webhook.service.ts:142-166](../../packages/core/src/services/webhook.service.ts)                                         | dựng payload `{ id, object: 'event', type, createdAt, data: { object } }` rồi INSERT `webhook_deliveries` trạng thái `pending` |
-| 12  | [webhook.service.ts:177-188](../../packages/core/src/services/webhook.service.ts)                                         | đẩy `WebhookDelivery` với `attempts: WEBHOOK_MAX_ATTEMPTS`, backoff mũ từ `WEBHOOK_BACKOFF_MS`                                 |
-| 13  | [domain-event-dispatch.processor.ts:21-30](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts) | nếu `aggregateType = subscription` → `entitlementService.handleSubscriptionChanged(aggregateId)`                               |
+| #   | Nơi xảy ra                                                                                                                | Làm gì                                                                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 9   | [domain-event-dispatch.processor.ts:12](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts)    | `webhookService.handleDomainEvent(job.data)`                                                                  |
+| 10  | [webhook.service.ts:130-136](../../packages/core/src/services/webhook.service.ts)                                         | lấy tối đa 200 endpoint `enabled`, lọc theo `enabledEvents` chứa `eventType`                                  |
+| 11  | [webhook.service.ts:142-166](../../packages/core/src/services/webhook.service.ts)                                         | dựng payload `{ id, type, createdAt, data: { object } }` rồi INSERT `webhook_deliveries` trạng thái `pending` |
+| 12  | [webhook.service.ts:177-188](../../packages/core/src/services/webhook.service.ts)                                         | đẩy `WebhookDelivery` với `attempts: WEBHOOK_MAX_ATTEMPTS`, backoff mũ từ `WEBHOOK_BACKOFF_MS`                |
+| 13  | [domain-event-dispatch.processor.ts:21-30](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts) | nếu `aggregateType = subscription` → `entitlementService.handleSubscriptionChanged(aggregateId)`              |
 
 Bước 13 là consumer nội bộ duy nhất hiện có. Mọi `aggregateType` khác chỉ sinh webhook rồi dừng ở nhánh `log.debug('... no consumer for this event yet')`.
 

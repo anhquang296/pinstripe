@@ -42,10 +42,10 @@ export class PaymentLinkRepository {
       filters.livemode === undefined ? undefined : eq(paymentLinks.livemode, filters.livemode),
       filters.isActive === undefined ? undefined : eq(paymentLinks.isActive, filters.isActive),
       filters.beforeAt
-        ? sql`(${paymentLinks.createdAt}, ${paymentLinks.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${paymentLinks.createdAt}, ${paymentLinks.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${paymentLinks.createdAt}, ${paymentLinks.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${paymentLinks.createdAt}, ${paymentLinks.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

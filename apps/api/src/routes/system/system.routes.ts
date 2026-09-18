@@ -12,9 +12,9 @@ export async function systemRoutes(fastify: FastifyInstance): Promise<void> {
 
     scope.get(
       '/ping',
-      { schema: { response: { 200: Type.Object({ object: Type.String() }) } } },
+      { schema: { response: { 200: Type.Object({ now: Type.String() }) } } },
       async (_request, reply) => {
-        return ApiResponse.success(reply, { object: 'system_ping' });
+        return ApiResponse.success(reply, { now: fastify.clock.now().toISOString() });
       },
     );
   });

@@ -29,7 +29,7 @@ export class PaymentMethodService {
       token: payload.token,
       type: payload.type,
     });
-    const now = this.fastify.clock.now();
+    const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_METHOD);
 
     const createdPaymentMethod = await this.fastify.paymentMethodRepository.createPaymentMethod({
@@ -41,12 +41,12 @@ export class PaymentMethodService {
       billingDetails: payload.billingDetails ?? {},
       pspToken: payload.token,
       metadata: payload.metadata ?? {},
-      createdAt: now,
-      updatedAt: now,
+      createdAt,
+      updatedAt: createdAt,
     });
 
     if (createdPaymentMethod) {
-      return PaymentMethodService.buildPaymentMethod(createdPaymentMethod);
+      return createdPaymentMethod;
     }
 
     throw new NotFoundError(`Payment method ${id} could not be created`);
@@ -70,19 +70,19 @@ export class PaymentMethodService {
       throw new ConflictError(`Payment method ${id} has been detached and cannot be reattached`);
     }
 
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
 
     const attachedPaymentMethod = await this.fastify.database.master.transaction(async (tx) => {
       const updatedPaymentMethod = await this.fastify.paymentMethodRepository.updatePaymentMethod(
         paymentMethod.id,
-        { customerId: customer.id, updatedAt: now },
+        { customerId: customer.id, updatedAt },
         tx,
       );
 
       if (payload.shouldBeDefault) {
         await this.fastify.customerRepository.updateCustomer(
           customer.id,
-          { defaultPaymentMethodId: paymentMethod.id, updatedAt: now },
+          { defaultPaymentMethodId: paymentMethod.id, updatedAt },
           tx,
         );
       }
@@ -91,7 +91,7 @@ export class PaymentMethodService {
     });
 
     if (attachedPaymentMethod) {
-      return PaymentMethodService.buildPaymentMethod(attachedPaymentMethod);
+      return attachedPaymentMethod;
     }
 
     throw new NotFoundError(`No such payment method: ${id}`);
@@ -104,23 +104,23 @@ export class PaymentMethodService {
       throw new ConflictError(`Payment method ${id} is already detached`);
     }
 
-    const now = this.fastify.clock.now();
+    const detachedAt = this.fastify.clock.now().toISOString();
     const { customerId } = paymentMethod;
 
     const detachedPaymentMethod = await this.fastify.database.master.transaction(async (tx) => {
       if (customerId) {
-        await this.clearDefaults(customerId, paymentMethod.id, now, tx);
+        await this.clearDefaults(customerId, paymentMethod.id, detachedAt, tx);
       }
 
       return this.fastify.paymentMethodRepository.updatePaymentMethod(
         paymentMethod.id,
-        { customerId: null, detachedAt: now, updatedAt: now },
+        { customerId: null, detachedAt, updatedAt: detachedAt },
         tx,
       );
     });
 
     if (detachedPaymentMethod) {
-      return PaymentMethodService.buildPaymentMethod(detachedPaymentMethod);
+      return detachedPaymentMethod;
     }
 
     throw new NotFoundError(`No such payment method: ${id}`);
@@ -140,7 +140,6 @@ export class PaymentMethodService {
       });
     }
 
-    const now = this.fastify.clock.now();
     const updatedPaymentMethod = await this.fastify.paymentMethodRepository.updatePaymentMethod(
       paymentMethod.id,
       {
@@ -149,21 +148,19 @@ export class PaymentMethodService {
           ? { ...paymentMethod.billingDetails, ...payload.billingDetails }
           : paymentMethod.billingDetails,
         metadata: { ...paymentMethod.metadata, ...(payload.metadata ?? {}) },
-        updatedAt: now,
+        updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
 
     if (updatedPaymentMethod) {
-      return PaymentMethodService.buildPaymentMethod(updatedPaymentMethod);
+      return updatedPaymentMethod;
     }
 
     throw new NotFoundError(`No such payment method: ${id}`);
   }
 
   async getPaymentMethod(id: string, livemode: boolean): Promise<PaymentMethodResponse> {
-    const paymentMethod = await this.getPaymentMethodEntity(id, livemode);
-
-    return PaymentMethodService.buildPaymentMethod(paymentMethod);
+    return this.getPaymentMethodEntity(id, livemode);
   }
 
   async findPaymentMethods(
@@ -185,10 +182,9 @@ export class PaymentMethodService {
     );
 
     return {
-      object: 'list',
       url: '/v1/payment_methods',
       hasMore: rows.length > limit,
-      data: _(rows).take(limit).map(PaymentMethodService.buildPaymentMethod).value(),
+      data: _.take(rows, limit),
     };
   }
 
@@ -205,7 +201,7 @@ export class PaymentMethodService {
   private async clearDefaults(
     customerId: string,
     paymentMethodId: string,
-    now: Date,
+    detachedAt: string,
     tx: DatabaseTransaction,
   ): Promise<void> {
     const customer = await this.fastify.customerRepository.findCustomer(customerId);
@@ -213,14 +209,14 @@ export class PaymentMethodService {
     if (_.get(customer, 'defaultPaymentMethodId') === paymentMethodId) {
       await this.fastify.customerRepository.updateCustomer(
         customerId,
-        { defaultPaymentMethodId: null, updatedAt: now },
+        { defaultPaymentMethodId: null, updatedAt: detachedAt },
         tx,
       );
     }
 
     await this.fastify.subscriptionRepository.clearSubscriptionPaymentMethods(
       paymentMethodId,
-      now,
+      detachedAt,
       tx,
     );
   }
@@ -256,20 +252,5 @@ export class PaymentMethodService {
     }
 
     return undefined;
-  }
-
-  private static buildPaymentMethod(entity: PaymentMethod): PaymentMethodResponse {
-    return {
-      object: 'payment_method',
-      id: entity.id,
-      customerId: entity.customerId,
-      type: entity.type,
-      card: entity.card,
-      billingDetails: entity.billingDetails,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-      detachedAt: entity.detachedAt ? entity.detachedAt.toISOString() : null,
-    };
   }
 }

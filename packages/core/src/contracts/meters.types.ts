@@ -16,7 +16,6 @@ export enum MeterStatusEnum {
 export type MeterStatus = `${MeterStatusEnum}`;
 
 export const meterSchema = Type.Object({
-  object: Type.Literal('meter'),
   id: Type.String(),
   displayName: Type.String(),
   eventName: Type.String(),
@@ -63,7 +62,6 @@ export const findMetersSchema = Type.Object(
 );
 
 export const meterEventSchema = Type.Object({
-  object: Type.Literal('meter_event'),
   id: Type.String(),
   identifier: Type.String(),
   meterId: Type.String(),
@@ -95,13 +93,11 @@ export const createMeterEventBatchSchema = Type.Object(
 );
 
 export const createMeterEventBatchResponseSchema = Type.Object({
-  object: Type.Literal('meter_event_batch'),
   accepted: Type.Integer(),
   duplicates: Type.Integer(),
 });
 
 export const meterEventSummarySchema = Type.Object({
-  object: Type.Literal('meter_event_summary'),
   meterId: Type.String(),
   customerId: Type.String(),
   aggregation: Type.Unsafe<MeterAggregation>(Type.Enum(MeterAggregationEnum)),

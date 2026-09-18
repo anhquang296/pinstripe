@@ -37,10 +37,10 @@ export class TaxIdRepository {
       filters.customerId ? eq(taxIds.customerId, filters.customerId) : undefined,
       filters.customerIds ? inArray(taxIds.customerId, [...filters.customerIds]) : undefined,
       filters.beforeAt
-        ? sql`(${taxIds.createdAt}, ${taxIds.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${taxIds.createdAt}, ${taxIds.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${taxIds.createdAt}, ${taxIds.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${taxIds.createdAt}, ${taxIds.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 
@@ -74,7 +74,7 @@ export class TaxIdRepository {
     return taxId ?? null;
   }
 
-  async archiveTaxId(id: string, deletedAt: Date, executor?: DatabaseTransaction): Promise<void> {
+  async archiveTaxId(id: string, deletedAt: string, executor?: DatabaseTransaction): Promise<void> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
 
     await db

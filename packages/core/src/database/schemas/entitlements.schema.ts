@@ -1,8 +1,10 @@
 import type { EntitlementStatus } from '@contracts/entitlements.types';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { products } from '@database/schemas/products.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
-import { boolean, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { boolean, index, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const entitlements = pgTable(
   'entitlements',
@@ -25,10 +27,14 @@ export const entitlements = pgTable(
         return products.id;
       }),
     status: text('status').$type<EntitlementStatus>().notNull(),
-    grantedAt: timestamp('granted_at', { withTimezone: true }).notNull(),
-    revokedAt: timestamp('revoked_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    grantedAt: isoTimestamp('granted_at').notNull(),
+    revokedAt: isoTimestamp('revoked_at'),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: isoTimestamp('updated_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

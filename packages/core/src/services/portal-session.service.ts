@@ -29,7 +29,7 @@ export interface PortalLinkResult {
 export interface MintedPortalSession {
   portalSessionId: string;
   sessionKey: string;
-  sessionExpiresAt: Date;
+  sessionExpiresAt: string;
   url: string;
 }
 
@@ -57,6 +57,7 @@ export class PortalSessionService {
     }
 
     const linkKey = PortalSessionService.buildKey();
+    const createdAt = now.toISOString();
     const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
       id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
       livemode,
@@ -64,11 +65,11 @@ export class PortalSessionService {
       status: PortalSessionStatusEnum.PENDING,
       linkTokenHash: PortalSessionService.hashKey(linkKey),
       sessionTokenHash: null,
-      linkExpiresAt,
+      linkExpiresAt: linkExpiresAt.toISOString(),
       sessionExpiresAt: null,
       redeemedAt: null,
-      createdAt: now,
-      updatedAt: now,
+      createdAt,
+      updatedAt: createdAt,
     });
 
     if (!portalSession) {
@@ -101,19 +102,22 @@ export class PortalSessionService {
       throw new UnauthorizedError('This portal link is not valid');
     }
 
-    if (portalSession.linkExpiresAt.getTime() <= now.getTime()) {
+    const linkExpiresAt = new Date(portalSession.linkExpiresAt);
+
+    if (linkExpiresAt.getTime() <= now.getTime()) {
       throw new UnauthorizedError('This portal link has expired');
     }
 
     const sessionKey = PortalSessionService.buildKey();
+    const redeemedAt = now.toISOString();
     const activated = await this.fastify.portalSessionRepository.updatePortalSession(
       portalSession.id,
       {
         status: PortalSessionStatusEnum.ACTIVE,
         sessionTokenHash: PortalSessionService.hashKey(sessionKey),
-        sessionExpiresAt: this.resolveSessionExpiry(now),
-        redeemedAt: now,
-        updatedAt: now,
+        sessionExpiresAt: this.resolveSessionExpiry(now).toISOString(),
+        redeemedAt,
+        updatedAt: redeemedAt,
       },
     );
 
@@ -131,7 +135,8 @@ export class PortalSessionService {
     const customer = await this.getCustomer(customerId, livemode);
     const now = this.fastify.clock.now();
     const sessionKey = PortalSessionService.buildKey();
-    const sessionExpiresAt = this.resolveSessionExpiry(now);
+    const sessionExpiresAt = this.resolveSessionExpiry(now).toISOString();
+    const redeemedAt = now.toISOString();
     const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
       id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
       livemode,
@@ -139,11 +144,11 @@ export class PortalSessionService {
       status: PortalSessionStatusEnum.ACTIVE,
       linkTokenHash: PortalSessionService.hashKey(PortalSessionService.buildKey()),
       sessionTokenHash: PortalSessionService.hashKey(sessionKey),
-      linkExpiresAt: this.resolveLinkExpiry(now),
+      linkExpiresAt: this.resolveLinkExpiry(now).toISOString(),
       sessionExpiresAt,
-      redeemedAt: now,
-      createdAt: now,
-      updatedAt: now,
+      redeemedAt,
+      createdAt: redeemedAt,
+      updatedAt: redeemedAt,
     });
 
     if (portalSession) {
@@ -169,14 +174,18 @@ export class PortalSessionService {
     }
 
     const { sessionExpiresAt } = portalSession;
-    const now = this.fastify.clock.now();
 
-    if (sessionExpiresAt && sessionExpiresAt.getTime() > now.getTime()) {
-      return {
-        portalSessionId: portalSession.id,
-        customerId: portalSession.customerId,
-        livemode: portalSession.livemode,
-      };
+    if (sessionExpiresAt) {
+      const sessionExpiry = new Date(sessionExpiresAt);
+      const now = this.fastify.clock.now();
+
+      if (sessionExpiry.getTime() > now.getTime()) {
+        return {
+          portalSessionId: portalSession.id,
+          customerId: portalSession.customerId,
+          livemode: portalSession.livemode,
+        };
+      }
     }
 
     throw new UnauthorizedError('This portal session has expired');
@@ -184,10 +193,10 @@ export class PortalSessionService {
 
   async revokePortalSession(id: string): Promise<PortalSessionResponse> {
     const portalSession = await this.getPortalSessionEntity(id);
-    const now = this.fastify.clock.now();
+    const updatedAt = this.fastify.clock.now().toISOString();
     const revoked = await this.fastify.portalSessionRepository.updatePortalSession(
       portalSession.id,
-      { status: PortalSessionStatusEnum.REVOKED, updatedAt: now },
+      { status: PortalSessionStatusEnum.REVOKED, updatedAt },
     );
 
     if (revoked) {
@@ -266,16 +275,15 @@ export class PortalSessionService {
     sessionKey: string | null,
   ): PortalSessionResponse {
     return {
-      object: 'portal_session',
       id: entity.id,
       livemode: entity.livemode,
       customerId: entity.customerId,
       status: entity.status,
       sessionKey,
-      linkExpiresAt: entity.linkExpiresAt.toISOString(),
-      sessionExpiresAt: entity.sessionExpiresAt ? entity.sessionExpiresAt.toISOString() : null,
-      redeemedAt: entity.redeemedAt ? entity.redeemedAt.toISOString() : null,
-      createdAt: entity.createdAt.toISOString(),
+      linkExpiresAt: entity.linkExpiresAt,
+      sessionExpiresAt: entity.sessionExpiresAt,
+      redeemedAt: entity.redeemedAt,
+      createdAt: entity.createdAt,
     };
   }
 }

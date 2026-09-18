@@ -626,8 +626,8 @@ describe('RefundService.createRefund', () => {
       failureMessage: null,
       pspReference: null,
       metadata: {},
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     await expect(

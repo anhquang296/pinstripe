@@ -1,5 +1,7 @@
 import type { DomainEventType } from '@contracts/events.types';
-import { boolean, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { isoTimestamp } from '@database/columns/iso-timestamp';
+import { sql } from 'drizzle-orm';
+import { boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const events = pgTable(
   'events',
@@ -10,7 +12,9 @@ export const events = pgTable(
     apiVersion: text('api_version').notNull(),
     data: jsonb('data').$type<{ object: unknown }>().notNull(),
     requestId: text('request_id'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
   },
   (table) => {
     return [

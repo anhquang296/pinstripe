@@ -40,10 +40,10 @@ export class ProductRepository {
       filters.ids ? inArray(products.id, [...filters.ids]) : undefined,
       filters.active === undefined ? undefined : eq(products.active, filters.active),
       filters.beforeAt
-        ? sql`(${products.createdAt}, ${products.id}) < (${filters.beforeAt.createdAt.toISOString()}::timestamptz, ${filters.beforeAt.id})`
+        ? sql`(${products.createdAt}, ${products.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
         : undefined,
       filters.afterAt
-        ? sql`(${products.createdAt}, ${products.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        ? sql`(${products.createdAt}, ${products.id}) > (${filters.afterAt.createdAt}::timestamptz, ${filters.afterAt.id})`
         : undefined,
     );
 

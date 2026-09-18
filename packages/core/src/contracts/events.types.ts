@@ -91,7 +91,6 @@ export enum DomainEventTypeEnum {
 export type DomainEventType = `${DomainEventTypeEnum}`;
 
 export const eventSchema = Type.Object({
-  object: Type.Literal('event'),
   id: Type.String(),
   livemode: Type.Boolean(),
   type: Type.Unsafe<DomainEventType>(Type.Enum(DomainEventTypeEnum)),

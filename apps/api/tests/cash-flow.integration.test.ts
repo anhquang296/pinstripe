@@ -92,7 +92,7 @@ describe('GET /v1/balance', () => {
     const balance = response.json();
 
     expect(response.statusCode).toBe(200);
-    expect(balance.object).toBe('balance');
+    expect(balance).not.toHaveProperty('object');
     expect(balance.pending.length).toBeGreaterThan(0);
     expect(balance.available).toBeDefined();
     expect(balance.reserved).toBeDefined();

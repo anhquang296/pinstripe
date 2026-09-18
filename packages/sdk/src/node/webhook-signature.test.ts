@@ -7,7 +7,7 @@ import { expect, it } from 'vitest';
 const SECRET = 'whsec_test_secret';
 
 function setup(overrides: { body?: string; signedAt?: Date; secret?: string } = {}) {
-  const rawBody = overrides.body ?? JSON.stringify({ id: 'evt_1', object: 'event' });
+  const rawBody = overrides.body ?? JSON.stringify({ id: 'evt_1', type: 'invoice.paid' });
   const signatureHeader = buildWebhookSignature(
     rawBody,
     overrides.secret ?? SECRET,

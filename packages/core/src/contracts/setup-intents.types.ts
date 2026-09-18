@@ -57,7 +57,6 @@ export const SETUP_INTENT_TRANSITIONS: Record<SetupIntentStatus, SetupIntentStat
 };
 
 export const setupIntentSchema = Type.Object({
-  object: Type.Literal('setup_intent'),
   id: Type.String(),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),

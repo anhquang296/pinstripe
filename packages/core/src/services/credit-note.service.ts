@@ -58,7 +58,7 @@ export class CreditNoteService {
     const split = await this.resolveSplit(invoice, payload);
     const id = generateGid(ObjectPrefixEnum.CREDIT_NOTE);
     const refundPayload = await this.requestRefund(invoice, split, payload.reason, id);
-    const now = this.fastify.clock.now();
+    const now = this.fastify.clock.now().toISOString();
 
     const createdCreditNote = await this.fastify.database.master.transaction(async (tx) => {
       const sequenceValue = await this.fastify.numberSequenceRepository.claimNumberSequence(
@@ -202,7 +202,6 @@ export class CreditNoteService {
     );
 
     return {
-      object: 'list',
       url: '/v1/credit_notes',
       hasMore: rows.length > limit,
       data: await this.buildCreditNotes(_.take(rows, limit)),
@@ -389,7 +388,7 @@ export class CreditNoteService {
   private async settleInvoice(
     invoice: Invoice,
     amount: number,
-    now: Date,
+    paidAt: string,
     tx: DatabaseTransaction,
   ): Promise<void> {
     const creditedAmount = await this.resolveCreditedAmount(invoice.id);
@@ -403,9 +402,9 @@ export class CreditNoteService {
       invoice.id,
       {
         status: InvoiceStatusEnum.PAID,
-        paidAt: now,
+        paidAt,
         nextAttemptAt: null,
-        updatedAt: now,
+        updatedAt: paidAt,
       },
       tx,
     );
@@ -474,7 +473,7 @@ export class CreditNoteService {
         creditNoteId: creditNote.id,
         status,
         reason,
-        occurredAt: this.fastify.clock.now(),
+        occurredAt: this.fastify.clock.now().toISOString(),
       },
       tx,
     );
@@ -596,7 +595,7 @@ export class CreditNoteService {
     creditNoteId: string,
     livemode: boolean,
     payload: CreateCreditNotePayload,
-    now: Date,
+    createdAt: string,
   ): NewCreditNoteLineItem[] {
     return _.map(payload.lines, (line): NewCreditNoteLineItem => {
       return {
@@ -608,7 +607,7 @@ export class CreditNoteService {
         quantity: line.quantity ?? 1,
         unitAmount: line.unitAmount ?? null,
         amount: line.amount,
-        createdAt: now,
+        createdAt,
       };
     });
   }
@@ -619,40 +618,10 @@ export class CreditNoteService {
 
   private static buildCreditNote(
     entity: CreditNote,
-    lines: readonly CreditNoteLineItem[],
+    lines: CreditNoteLineItem[],
     status: CreditNoteStatus,
-    voidedAt: Date | null,
+    voidedAt: string | null,
   ): CreditNoteResponse {
-    return {
-      object: 'credit_note',
-      id: entity.id,
-      number: entity.number,
-      invoiceId: entity.invoiceId,
-      customerId: entity.customerId,
-      currency: entity.currency,
-      type: entity.type,
-      status,
-      amount: entity.amount,
-      refundAmount: entity.refundAmount,
-      outOfBandAmount: entity.outOfBandAmount,
-      creditAmount: entity.creditAmount,
-      refundId: entity.refundId,
-      reason: entity.reason,
-      lines: _.map(lines, (line) => {
-        return {
-          object: 'credit_note_line_item' as const,
-          id: line.id,
-          creditNoteId: line.creditNoteId,
-          invoiceLineItemId: line.invoiceLineItemId,
-          description: line.description,
-          quantity: line.quantity,
-          unitAmount: line.unitAmount,
-          amount: line.amount,
-        };
-      }),
-      voidedAt: voidedAt ? voidedAt.toISOString() : null,
-      metadata: entity.metadata,
-      createdAt: entity.createdAt.toISOString(),
-    };
+    return { ...entity, status, lines, voidedAt };
   }
 }
