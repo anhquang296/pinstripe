@@ -12,7 +12,13 @@ import { ApiResponse } from '@utils/api-response';
 export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createTaxIdSchema, response: { 201: taxIdSchema } } },
+    {
+      schema: {
+        operationId: 'taxIds.create',
+        body: createTaxIdSchema,
+        response: { 201: taxIdSchema },
+      },
+    },
     async (request, reply) => {
       const taxId = await fastify.taxIdService.createTaxId(request.body);
 
@@ -23,7 +29,11 @@ export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/',
     {
-      schema: { querystring: findTaxIdsSchema, response: { 200: ListResponseSchema(taxIdSchema) } },
+      schema: {
+        operationId: 'taxIds.find',
+        querystring: findTaxIdsSchema,
+        response: { 200: ListResponseSchema(taxIdSchema) },
+      },
     },
     async (request, reply) => {
       const taxIds = await fastify.taxIdService.findTaxIds(request.query);
@@ -34,7 +44,13 @@ export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:taxIdId',
-    { schema: { params: taxIdParamsSchema, response: { 200: taxIdSchema } } },
+    {
+      schema: {
+        operationId: 'taxIds.get',
+        params: taxIdParamsSchema,
+        response: { 200: taxIdSchema },
+      },
+    },
     async (request, reply) => {
       const taxId = await fastify.taxIdService.getTaxId(request.params.taxIdId);
 
@@ -44,7 +60,13 @@ export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.delete(
     '/:taxIdId',
-    { schema: { params: taxIdParamsSchema, response: { 200: deletedTaxIdSchema } } },
+    {
+      schema: {
+        operationId: 'taxIds.delete',
+        params: taxIdParamsSchema,
+        response: { 200: deletedTaxIdSchema },
+      },
+    },
     async (request, reply) => {
       const deletedTaxId = await fastify.taxIdService.deleteTaxId(request.params.taxIdId);
 

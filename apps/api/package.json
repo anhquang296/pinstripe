@@ -11,9 +11,12 @@
     "test": "vitest run --passWithNoTests",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "openapi": "tsx scripts/generate-openapi.ts && prettier --write openapi.json"
   },
   "dependencies": {
+    "@fastify/swagger": "^9.8.1",
+    "@fastify/swagger-ui": "^6.1.1",
     "@fastify/type-provider-typebox": "^5.1.0",
     "@pinstripe/core": "workspace:*",
     "@sinclair/typebox": "^0.34.13",

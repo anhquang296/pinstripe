@@ -13,7 +13,13 @@ import { ApiResponse } from '@utils/api-response';
 export const discountsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createDiscountSchema, response: { 201: discountSchema } } },
+    {
+      schema: {
+        operationId: 'discounts.create',
+        body: createDiscountSchema,
+        response: { 201: discountSchema },
+      },
+    },
     async (request, reply) => {
       const discount = await fastify.discountService.createDiscount(request.body);
 
@@ -25,6 +31,7 @@ export const discountsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'discounts.find',
         querystring: findDiscountsSchema,
         response: { 200: ListResponseSchema(discountSchema) },
       },
@@ -38,7 +45,13 @@ export const discountsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:discountId',
-    { schema: { params: discountParamsSchema, response: { 200: discountSchema } } },
+    {
+      schema: {
+        operationId: 'discounts.get',
+        params: discountParamsSchema,
+        response: { 200: discountSchema },
+      },
+    },
     async (request, reply) => {
       const discount = await fastify.discountService.getDiscount(request.params.discountId);
 
@@ -50,6 +63,7 @@ export const discountsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:discountId',
     {
       schema: {
+        operationId: 'discounts.update',
         params: discountParamsSchema,
         body: updateDiscountSchema,
         response: { 200: discountSchema },
@@ -67,7 +81,13 @@ export const discountsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.delete(
     '/:discountId',
-    { schema: { params: discountParamsSchema, response: { 200: deletedDiscountSchema } } },
+    {
+      schema: {
+        operationId: 'discounts.delete',
+        params: discountParamsSchema,
+        response: { 200: deletedDiscountSchema },
+      },
+    },
     async (request, reply) => {
       const deletedDiscount = await fastify.discountService.deleteDiscount(
         request.params.discountId,

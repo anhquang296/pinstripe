@@ -10,7 +10,13 @@ import { ApiResponse } from '@utils/api-response';
 export const meterEventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/meter_events',
-    { schema: { body: createMeterEventSchema, response: { 202: meterEventSchema } } },
+    {
+      schema: {
+        operationId: 'billing.meterEvents.create',
+        body: createMeterEventSchema,
+        response: { 202: meterEventSchema },
+      },
+    },
     async (request, reply) => {
       const meterEvent = await fastify.meterEventService.ingestMeterEvent(request.body);
 
@@ -22,6 +28,7 @@ export const meterEventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/meter_event_batches',
     {
       schema: {
+        operationId: 'billing.meterEventBatches.create',
         body: createMeterEventBatchSchema,
         response: { 202: createMeterEventBatchResponseSchema },
       },

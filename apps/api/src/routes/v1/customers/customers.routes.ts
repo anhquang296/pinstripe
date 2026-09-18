@@ -16,7 +16,13 @@ import { ApiResponse } from '@utils/api-response';
 export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createCustomerSchema, response: { 201: customerSchema } } },
+    {
+      schema: {
+        operationId: 'customers.create',
+        body: createCustomerSchema,
+        response: { 201: customerSchema },
+      },
+    },
     async (request, reply) => {
       const customer = await fastify.customerService.createCustomer(request.body);
 
@@ -28,6 +34,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'customers.find',
         querystring: findCustomersSchema,
         response: { 200: ListResponseSchema(customerSchema) },
       },
@@ -41,7 +48,13 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:customerId',
-    { schema: { params: customerParamsSchema, response: { 200: customerSchema } } },
+    {
+      schema: {
+        operationId: 'customers.get',
+        params: customerParamsSchema,
+        response: { 200: customerSchema },
+      },
+    },
     async (request, reply) => {
       const customer = await fastify.customerService.getCustomer(request.params.customerId);
 
@@ -53,6 +66,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:customerId',
     {
       schema: {
+        operationId: 'customers.update',
         params: customerParamsSchema,
         body: updateCustomerSchema,
         response: { 200: customerSchema },
@@ -72,6 +86,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:customerId',
     {
       schema: {
+        operationId: 'customers.delete',
         params: customerParamsSchema,
         response: { 200: deletedCustomerSchema },
       },
@@ -87,6 +102,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:customerId/balance_transactions',
     {
       schema: {
+        operationId: 'customers.createBalanceTransaction',
         params: customerParamsSchema,
         body: createCustomerBalanceTransactionSchema,
         response: { 201: customerBalanceTransactionSchema },
@@ -107,6 +123,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:customerId/balance_transactions',
     {
       schema: {
+        operationId: 'customers.findBalanceTransactions',
         params: customerParamsSchema,
         querystring: findCustomerBalanceTransactionsSchema,
         response: { 200: ListResponseSchema(customerBalanceTransactionSchema) },

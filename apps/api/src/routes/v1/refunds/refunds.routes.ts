@@ -11,7 +11,13 @@ import { ApiResponse } from '@utils/api-response';
 export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createRefundSchema, response: { 201: refundSchema } } },
+    {
+      schema: {
+        operationId: 'refunds.create',
+        body: createRefundSchema,
+        response: { 201: refundSchema },
+      },
+    },
     async (request, reply) => {
       const refund = await fastify.refundService.createRefund(request.body);
 
@@ -23,6 +29,7 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'refunds.find',
         querystring: findRefundsSchema,
         response: { 200: ListResponseSchema(refundSchema) },
       },
@@ -38,6 +45,7 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:refundId',
     {
       schema: {
+        operationId: 'refunds.get',
         params: Type.Object({ refundId: Type.String() }),
         response: { 200: refundSchema },
       },

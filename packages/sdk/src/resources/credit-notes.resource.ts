@@ -6,6 +6,7 @@ import type {
   CreditNoteResponse,
   FindCreditNotesQuery,
   ListResponse,
+  VoidCreditNotePayload,
 } from '@type/contracts.types';
 import { buildPath } from '@utils/build-path';
 
@@ -41,6 +42,19 @@ export class CreditNotesResource {
   create(payload: CreateCreditNotePayload, options?: RequestOptions): Promise<CreditNoteResponse> {
     return this._transport.request({
       path: CREDIT_NOTES_PATH,
+      method: HttpMethodEnum.POST,
+      payload,
+      options,
+    });
+  }
+
+  void(
+    creditNoteId: string,
+    payload: VoidCreditNotePayload = {},
+    options?: RequestOptions,
+  ): Promise<CreditNoteResponse> {
+    return this._transport.request({
+      path: buildPath(CREDIT_NOTES_PATH, creditNoteId, 'void'),
       method: HttpMethodEnum.POST,
       payload,
       options,

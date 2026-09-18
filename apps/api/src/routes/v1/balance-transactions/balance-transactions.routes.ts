@@ -12,6 +12,7 @@ export const balanceTransactionsRoutes: FastifyPluginAsyncTypebox = async (fasti
     '/',
     {
       schema: {
+        operationId: 'balanceTransactions.find',
         querystring: findBalanceTransactionsSchema,
         response: { 200: ListResponseSchema(balanceTransactionSchema) },
       },
@@ -29,6 +30,7 @@ export const balanceTransactionsRoutes: FastifyPluginAsyncTypebox = async (fasti
     '/:balanceTransactionId',
     {
       schema: {
+        operationId: 'balanceTransactions.get',
         params: balanceTransactionParamsSchema,
         response: { 200: balanceTransactionSchema },
       },

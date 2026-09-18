@@ -14,7 +14,13 @@ import { ApiResponse } from '@utils/api-response';
 export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createSubscriptionItemSchema, response: { 201: subscriptionItemSchema } } },
+    {
+      schema: {
+        operationId: 'subscriptionItems.create',
+        body: createSubscriptionItemSchema,
+        response: { 201: subscriptionItemSchema },
+      },
+    },
     async (request, reply) => {
       const subscriptionItem = await fastify.subscriptionItemService.createSubscriptionItem(
         request.body,
@@ -28,6 +34,7 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
     '/',
     {
       schema: {
+        operationId: 'subscriptionItems.find',
         querystring: findSubscriptionItemsSchema,
         response: { 200: ListResponseSchema(subscriptionItemSchema) },
       },
@@ -43,7 +50,13 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
 
   fastify.get(
     '/:subscriptionItemId',
-    { schema: { params: subscriptionItemParamsSchema, response: { 200: subscriptionItemSchema } } },
+    {
+      schema: {
+        operationId: 'subscriptionItems.get',
+        params: subscriptionItemParamsSchema,
+        response: { 200: subscriptionItemSchema },
+      },
+    },
     async (request, reply) => {
       const subscriptionItem = await fastify.subscriptionItemService.getSubscriptionItem(
         request.params.subscriptionItemId,
@@ -57,6 +70,7 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
     '/:subscriptionItemId',
     {
       schema: {
+        operationId: 'subscriptionItems.update',
         params: subscriptionItemParamsSchema,
         body: updateSubscriptionItemSchema,
         response: { 200: subscriptionItemSchema },
@@ -76,6 +90,7 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
     '/:subscriptionItemId',
     {
       schema: {
+        operationId: 'subscriptionItems.delete',
         params: subscriptionItemParamsSchema,
         body: deleteSubscriptionItemSchema,
         response: { 200: deletedSubscriptionItemSchema },

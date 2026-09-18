@@ -11,7 +11,11 @@ export const eventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/',
     {
-      schema: { querystring: findEventsSchema, response: { 200: ListResponseSchema(eventSchema) } },
+      schema: {
+        operationId: 'events.find',
+        querystring: findEventsSchema,
+        response: { 200: ListResponseSchema(eventSchema) },
+      },
     },
     async (request, reply) => {
       const events = await fastify.eventService.findEvents(request.query);
@@ -22,7 +26,13 @@ export const eventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:eventId',
-    { schema: { params: eventParamsSchema, response: { 200: eventSchema } } },
+    {
+      schema: {
+        operationId: 'events.get',
+        params: eventParamsSchema,
+        response: { 200: eventSchema },
+      },
+    },
     async (request, reply) => {
       const event = await fastify.eventService.getEvent(request.params.eventId);
 

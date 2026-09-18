@@ -52,7 +52,23 @@ pinstripe.customers.retrieve(customerId);
 
 `lodash/prefer-lodash-method` đọc mọi `.find(` là `Array.prototype.find` và đòi `_.find`. `pinstripe.customers.find(query)` không phải collection method, nên `eslint-config/react.js` liệt `^pinstripe\.` vào `ignoreObjects`. Đó là chỗ duy nhất xử lý va chạm này — đừng rải `eslint-disable` ở call site, và đừng đổi tên method để tránh lint.
 
-Không tự chế method cho route không tồn tại. `entitlements` chỉ có `find`, `products` không có `delete`, `creditNotes` không có `void` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
+Không tự chế method cho route không tồn tại. `entitlements` chỉ có `find`, `products` không có `delete`, `webhookDeliveries` không có `get` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
+
+## `operationId` của route v1 là tên method SDK
+
+`apps/api/openapi.json` sinh từ `schema` của route qua `@fastify/swagger` (`pnpm --filter @pinstripe/api openapi`). Mỗi route v1 khai `operationId: '<resource>.<method>'` đúng bằng lời gọi SDK. Không khai `summary` hay `description` trên route:
+
+```ts
+// CORRECT — apps/api/src/routes/v1/customers/customers.routes.ts
+schema: { operationId: 'customers.get', params: customerParamsSchema, ... }
+
+// WRONG — tên tự đặt, không khớp SDK
+schema: { operationId: 'getCustomer', ... }
+```
+
+Route chưa có method trong SDK (`events`, `payouts`, `disputes`, …) vẫn khai `operationId` cùng hình dạng — tên method nó **sẽ** có, verb lấy theo method của service (`capturePaymentIntent` → `paymentIntents.capture`). Khai `operationId` không phải lý do để thêm method vào SDK.
+
+Tag không khai tay: `v1.routes.ts` gán tag từ prefix, và route không tag bị ẩn khỏi spec — admin / system / management / portal / hosted không bao giờ lọt vào. Thêm hay đổi route v1 thì chạy lại script và commit `openapi.json` cùng thay đổi.
 
 ## Hook, key và toast sống trong SDK
 

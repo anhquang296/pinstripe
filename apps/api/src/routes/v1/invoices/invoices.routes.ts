@@ -17,6 +17,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/upcoming',
     {
       schema: {
+        operationId: 'invoices.getUpcoming',
         querystring: getUpcomingInvoiceSchema,
         response: { 200: ratedInvoiceSchema },
       },
@@ -32,7 +33,13 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.post(
     '/',
-    { schema: { body: createInvoiceSchema, response: { 201: invoiceSchema } } },
+    {
+      schema: {
+        operationId: 'invoices.create',
+        body: createInvoiceSchema,
+        response: { 201: invoiceSchema },
+      },
+    },
     async (request, reply) => {
       const invoice = await fastify.invoiceService.createInvoice(request.body);
 
@@ -44,6 +51,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'invoices.find',
         querystring: findInvoicesSchema,
         response: { 200: ListResponseSchema(invoiceSchema) },
       },
@@ -57,7 +65,13 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:invoiceId',
-    { schema: { params: invoiceParamsSchema, response: { 200: invoiceSchema } } },
+    {
+      schema: {
+        operationId: 'invoices.get',
+        params: invoiceParamsSchema,
+        response: { 200: invoiceSchema },
+      },
+    },
     async (request, reply) => {
       const invoice = await fastify.invoiceService.getInvoice(request.params.invoiceId);
 
@@ -67,7 +81,13 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.post(
     '/:invoiceId/finalize',
-    { schema: { params: invoiceParamsSchema, response: { 200: invoiceSchema } } },
+    {
+      schema: {
+        operationId: 'invoices.finalize',
+        params: invoiceParamsSchema,
+        response: { 200: invoiceSchema },
+      },
+    },
     async (request, reply) => {
       const invoice = await fastify.invoiceService.finalizeInvoice(request.params.invoiceId);
 
@@ -79,6 +99,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:invoiceId/pay',
     {
       schema: {
+        operationId: 'invoices.pay',
         params: invoiceParamsSchema,
         body: payInvoiceSchema,
         response: { 200: invoiceSchema },
@@ -98,6 +119,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:invoiceId/void',
     {
       schema: {
+        operationId: 'invoices.void',
         params: invoiceParamsSchema,
         body: voidInvoiceSchema,
         response: { 200: invoiceSchema },

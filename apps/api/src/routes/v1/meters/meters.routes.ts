@@ -14,7 +14,13 @@ import { ApiResponse } from '@utils/api-response';
 export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createMeterSchema, response: { 201: meterSchema } } },
+    {
+      schema: {
+        operationId: 'billing.meters.create',
+        body: createMeterSchema,
+        response: { 201: meterSchema },
+      },
+    },
     async (request, reply) => {
       const meter = await fastify.meterService.createMeter(request.body);
 
@@ -25,7 +31,11 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/',
     {
-      schema: { querystring: findMetersSchema, response: { 200: ListResponseSchema(meterSchema) } },
+      schema: {
+        operationId: 'billing.meters.find',
+        querystring: findMetersSchema,
+        response: { 200: ListResponseSchema(meterSchema) },
+      },
     },
     async (request, reply) => {
       const meters = await fastify.meterService.findMeters(request.query);
@@ -36,7 +46,13 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:meterId',
-    { schema: { params: meterParamsSchema, response: { 200: meterSchema } } },
+    {
+      schema: {
+        operationId: 'billing.meters.get',
+        params: meterParamsSchema,
+        response: { 200: meterSchema },
+      },
+    },
     async (request, reply) => {
       const meter = await fastify.meterService.getMeter(request.params.meterId);
 
@@ -48,6 +64,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:meterId',
     {
       schema: {
+        operationId: 'billing.meters.update',
         params: meterParamsSchema,
         body: updateMeterSchema,
         response: { 200: meterSchema },
@@ -64,6 +81,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:meterId/event_summaries',
     {
       schema: {
+        operationId: 'billing.meters.getEventSummary',
         params: meterParamsSchema,
         querystring: getMeterEventSummarySchema,
         response: { 200: meterEventSummarySchema },

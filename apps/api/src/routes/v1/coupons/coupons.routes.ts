@@ -13,7 +13,13 @@ import { ApiResponse } from '@utils/api-response';
 export const couponsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createCouponSchema, response: { 201: couponSchema } } },
+    {
+      schema: {
+        operationId: 'coupons.create',
+        body: createCouponSchema,
+        response: { 201: couponSchema },
+      },
+    },
     async (request, reply) => {
       const coupon = await fastify.couponService.createCoupon(request.body);
 
@@ -25,6 +31,7 @@ export const couponsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'coupons.find',
         querystring: findCouponsSchema,
         response: { 200: ListResponseSchema(couponSchema) },
       },
@@ -38,7 +45,13 @@ export const couponsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:couponId',
-    { schema: { params: couponParamsSchema, response: { 200: couponSchema } } },
+    {
+      schema: {
+        operationId: 'coupons.get',
+        params: couponParamsSchema,
+        response: { 200: couponSchema },
+      },
+    },
     async (request, reply) => {
       const coupon = await fastify.couponService.getCoupon(request.params.couponId);
 
@@ -50,6 +63,7 @@ export const couponsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:couponId',
     {
       schema: {
+        operationId: 'coupons.update',
         params: couponParamsSchema,
         body: updateCouponSchema,
         response: { 200: couponSchema },
@@ -67,7 +81,13 @@ export const couponsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.delete(
     '/:couponId',
-    { schema: { params: couponParamsSchema, response: { 200: deletedCouponSchema } } },
+    {
+      schema: {
+        operationId: 'coupons.delete',
+        params: couponParamsSchema,
+        response: { 200: deletedCouponSchema },
+      },
+    },
     async (request, reply) => {
       const deletedCoupon = await fastify.couponService.deleteCoupon(request.params.couponId);
 

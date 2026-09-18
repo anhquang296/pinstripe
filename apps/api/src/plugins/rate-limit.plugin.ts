@@ -4,9 +4,8 @@ import { readAuth } from '@utils/request-auth';
 import fp from 'fastify-plugin';
 
 export const rateLimitPlugin = fp(async (fastify) => {
-  const { apiRateLimit, apiRateWindowSeconds } = fastify.workflowSchedules;
-
   fastify.addHook('preHandler', async (request, reply) => {
+    const { apiRateLimit, apiRateWindowSeconds } = fastify.workflowSchedules;
     const { apiKeyId } = readAuth(request);
 
     const key = fastify.redisKeyFactory.build(RedisNamespaceEnum.API_RATE_LIMIT, apiKeyId);

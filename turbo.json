@@ -26,6 +26,10 @@
       "dependsOn": ["^build"],
       "outputs": [],
       "cache": false
+    },
+    "openapi": {
+      "dependsOn": ["^build"],
+      "outputs": ["openapi.json"]
     }
   }
 }

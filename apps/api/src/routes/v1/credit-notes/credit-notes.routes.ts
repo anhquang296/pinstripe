@@ -13,7 +13,13 @@ import { ApiResponse } from '@utils/api-response';
 export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createCreditNoteSchema, response: { 201: creditNoteSchema } } },
+    {
+      schema: {
+        operationId: 'creditNotes.create',
+        body: createCreditNoteSchema,
+        response: { 201: creditNoteSchema },
+      },
+    },
     async (request, reply) => {
       const creditNote = await fastify.creditNoteService.createCreditNote(request.body);
 
@@ -25,6 +31,7 @@ export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'creditNotes.find',
         querystring: findCreditNotesSchema,
         response: { 200: ListResponseSchema(creditNoteSchema) },
       },
@@ -40,6 +47,7 @@ export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:creditNoteId',
     {
       schema: {
+        operationId: 'creditNotes.get',
         params: Type.Object({ creditNoteId: Type.String() }),
         response: { 200: creditNoteSchema },
       },
@@ -55,6 +63,7 @@ export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:creditNoteId/void',
     {
       schema: {
+        operationId: 'creditNotes.void',
         params: creditNoteParamsSchema,
         body: voidCreditNoteSchema,
         response: { 200: creditNoteSchema },

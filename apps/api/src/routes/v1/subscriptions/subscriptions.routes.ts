@@ -13,7 +13,13 @@ import { ApiResponse } from '@utils/api-response';
 export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createSubscriptionSchema, response: { 201: subscriptionSchema } } },
+    {
+      schema: {
+        operationId: 'subscriptions.create',
+        body: createSubscriptionSchema,
+        response: { 201: subscriptionSchema },
+      },
+    },
     async (request, reply) => {
       const subscription = await fastify.subscriptionService.createSubscription(request.body);
 
@@ -25,6 +31,7 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/',
     {
       schema: {
+        operationId: 'subscriptions.find',
         querystring: findSubscriptionsSchema,
         response: { 200: ListResponseSchema(subscriptionSchema) },
       },
@@ -38,7 +45,13 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
 
   fastify.get(
     '/:subscriptionId',
-    { schema: { params: subscriptionParamsSchema, response: { 200: subscriptionSchema } } },
+    {
+      schema: {
+        operationId: 'subscriptions.get',
+        params: subscriptionParamsSchema,
+        response: { 200: subscriptionSchema },
+      },
+    },
     async (request, reply) => {
       const subscription = await fastify.subscriptionService.getSubscription(
         request.params.subscriptionId,
@@ -52,6 +65,7 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/:subscriptionId',
     {
       schema: {
+        operationId: 'subscriptions.update',
         params: subscriptionParamsSchema,
         body: updateSubscriptionSchema,
         response: { 200: subscriptionSchema },
@@ -71,6 +85,7 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/:subscriptionId',
     {
       schema: {
+        operationId: 'subscriptions.cancel',
         params: subscriptionParamsSchema,
         body: cancelSubscriptionSchema,
         response: { 200: subscriptionSchema },

@@ -12,7 +12,13 @@ import { ApiResponse } from '@utils/api-response';
 export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createTaxRateSchema, response: { 201: taxRateSchema } } },
+    {
+      schema: {
+        operationId: 'taxRates.create',
+        body: createTaxRateSchema,
+        response: { 201: taxRateSchema },
+      },
+    },
     async (request, reply) => {
       const taxRate = await fastify.taxRateService.createTaxRate(request.body);
 
@@ -24,6 +30,7 @@ export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'taxRates.find',
         querystring: findTaxRatesSchema,
         response: { 200: ListResponseSchema(taxRateSchema) },
       },
@@ -37,7 +44,13 @@ export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:taxRateId',
-    { schema: { params: taxRateParamsSchema, response: { 200: taxRateSchema } } },
+    {
+      schema: {
+        operationId: 'taxRates.get',
+        params: taxRateParamsSchema,
+        response: { 200: taxRateSchema },
+      },
+    },
     async (request, reply) => {
       const taxRate = await fastify.taxRateService.getTaxRate(request.params.taxRateId);
 
@@ -49,6 +62,7 @@ export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:taxRateId',
     {
       schema: {
+        operationId: 'taxRates.update',
         params: taxRateParamsSchema,
         body: updateTaxRateSchema,
         response: { 200: taxRateSchema },

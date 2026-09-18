@@ -14,7 +14,13 @@ import { ApiResponse } from '@utils/api-response';
 export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createPaymentIntentSchema, response: { 201: paymentIntentSchema } } },
+    {
+      schema: {
+        operationId: 'paymentIntents.create',
+        body: createPaymentIntentSchema,
+        response: { 201: paymentIntentSchema },
+      },
+    },
     async (request, reply) => {
       const paymentIntent = await fastify.paymentService.createPaymentIntent(request.body);
 
@@ -26,6 +32,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/',
     {
       schema: {
+        operationId: 'paymentIntents.find',
         querystring: findPaymentIntentsSchema,
         response: { 200: ListResponseSchema(paymentIntentSchema) },
       },
@@ -39,7 +46,13 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
 
   fastify.get(
     '/:paymentIntentId',
-    { schema: { params: paymentIntentParamsSchema, response: { 200: paymentIntentSchema } } },
+    {
+      schema: {
+        operationId: 'paymentIntents.get',
+        params: paymentIntentParamsSchema,
+        response: { 200: paymentIntentSchema },
+      },
+    },
     async (request, reply) => {
       const paymentIntent = await fastify.paymentService.getPaymentIntent(
         request.params.paymentIntentId,
@@ -53,6 +66,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/:paymentIntentId/confirm',
     {
       schema: {
+        operationId: 'paymentIntents.confirm',
         params: paymentIntentParamsSchema,
         body: confirmPaymentIntentSchema,
         response: { 200: paymentIntentSchema },
@@ -72,6 +86,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/:paymentIntentId/capture',
     {
       schema: {
+        operationId: 'paymentIntents.capture',
         params: paymentIntentParamsSchema,
         body: capturePaymentIntentSchema,
         response: { 200: paymentIntentSchema },
@@ -91,6 +106,7 @@ export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/:paymentIntentId/cancel',
     {
       schema: {
+        operationId: 'paymentIntents.cancel',
         params: paymentIntentParamsSchema,
         body: cancelPaymentIntentSchema,
         response: { 200: paymentIntentSchema },

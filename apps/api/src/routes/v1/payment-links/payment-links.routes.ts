@@ -12,7 +12,13 @@ import { ApiResponse } from '@utils/api-response';
 export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createPaymentLinkSchema, response: { 201: paymentLinkSchema } } },
+    {
+      schema: {
+        operationId: 'paymentLinks.create',
+        body: createPaymentLinkSchema,
+        response: { 201: paymentLinkSchema },
+      },
+    },
     async (request, reply) => {
       const paymentLink = await fastify.paymentLinkService.createPaymentLink(request.body);
 
@@ -24,6 +30,7 @@ export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/',
     {
       schema: {
+        operationId: 'paymentLinks.find',
         querystring: findPaymentLinksSchema,
         response: { 200: ListResponseSchema(paymentLinkSchema) },
       },
@@ -37,7 +44,13 @@ export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
 
   fastify.get(
     '/:paymentLinkId',
-    { schema: { params: paymentLinkParamsSchema, response: { 200: paymentLinkSchema } } },
+    {
+      schema: {
+        operationId: 'paymentLinks.get',
+        params: paymentLinkParamsSchema,
+        response: { 200: paymentLinkSchema },
+      },
+    },
     async (request, reply) => {
       const paymentLink = await fastify.paymentLinkService.getPaymentLink(
         request.params.paymentLinkId,
@@ -51,6 +64,7 @@ export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/:paymentLinkId',
     {
       schema: {
+        operationId: 'paymentLinks.update',
         params: paymentLinkParamsSchema,
         body: updatePaymentLinkSchema,
         response: { 200: paymentLinkSchema },

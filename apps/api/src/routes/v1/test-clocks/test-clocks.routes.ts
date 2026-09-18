@@ -12,7 +12,13 @@ import { ApiResponse } from '@utils/api-response';
 export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createTestClockSchema, response: { 201: testClockSchema } } },
+    {
+      schema: {
+        operationId: 'testHelpers.testClocks.create',
+        body: createTestClockSchema,
+        response: { 201: testClockSchema },
+      },
+    },
     async (request, reply) => {
       const clock = await fastify.testClockService.createTestClock(request.body);
 
@@ -24,6 +30,7 @@ export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'testHelpers.testClocks.find',
         querystring: findTestClocksSchema,
         response: { 200: ListResponseSchema(testClockSchema) },
       },
@@ -37,7 +44,13 @@ export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:testClockId',
-    { schema: { params: testClockParamsSchema, response: { 200: testClockSchema } } },
+    {
+      schema: {
+        operationId: 'testHelpers.testClocks.get',
+        params: testClockParamsSchema,
+        response: { 200: testClockSchema },
+      },
+    },
     async (request, reply) => {
       const clock = await fastify.testClockService.getTestClock(request.params.testClockId);
 
@@ -49,6 +62,7 @@ export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:testClockId/advance',
     {
       schema: {
+        operationId: 'testHelpers.testClocks.advance',
         params: testClockParamsSchema,
         body: advanceTestClockSchema,
         response: { 200: testClockSchema },

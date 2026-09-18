@@ -11,6 +11,7 @@ export const entitlementsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/',
     {
       schema: {
+        operationId: 'entitlements.find',
         querystring: findEntitlementsSchema,
         response: { 200: ListResponseSchema(entitlementSchema) },
       },

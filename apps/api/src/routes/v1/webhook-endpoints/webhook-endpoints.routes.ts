@@ -12,7 +12,13 @@ import { ApiResponse } from '@utils/api-response';
 export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createWebhookEndpointSchema, response: { 201: webhookEndpointSchema } } },
+    {
+      schema: {
+        operationId: 'webhookEndpoints.create',
+        body: createWebhookEndpointSchema,
+        response: { 201: webhookEndpointSchema },
+      },
+    },
     async (request, reply) => {
       const endpoint = await fastify.webhookService.createWebhookEndpoint(request.body);
 
@@ -24,6 +30,7 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
     '/',
     {
       schema: {
+        operationId: 'webhookEndpoints.find',
         querystring: findWebhookEndpointsSchema,
         response: { 200: ListResponseSchema(webhookEndpointSchema) },
       },
@@ -37,7 +44,13 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
 
   fastify.get(
     '/:webhookEndpointId',
-    { schema: { params: webhookEndpointParamsSchema, response: { 200: webhookEndpointSchema } } },
+    {
+      schema: {
+        operationId: 'webhookEndpoints.get',
+        params: webhookEndpointParamsSchema,
+        response: { 200: webhookEndpointSchema },
+      },
+    },
     async (request, reply) => {
       const endpoint = await fastify.webhookService.getWebhookEndpoint(
         request.params.webhookEndpointId,
@@ -51,6 +64,7 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
     '/:webhookEndpointId',
     {
       schema: {
+        operationId: 'webhookEndpoints.update',
         params: webhookEndpointParamsSchema,
         body: updateWebhookEndpointSchema,
         response: { 200: webhookEndpointSchema },

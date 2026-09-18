@@ -11,7 +11,13 @@ import { ApiResponse } from '@utils/api-response';
 export const checkoutSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createCheckoutSessionSchema, response: { 201: checkoutSessionSchema } } },
+    {
+      schema: {
+        operationId: 'checkout.sessions.create',
+        body: createCheckoutSessionSchema,
+        response: { 201: checkoutSessionSchema },
+      },
+    },
     async (request, reply) => {
       const checkoutSession = await fastify.checkoutService.createCheckoutSession(request.body);
 
@@ -23,6 +29,7 @@ export const checkoutSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify)
     '/',
     {
       schema: {
+        operationId: 'checkout.sessions.find',
         querystring: findCheckoutSessionsSchema,
         response: { 200: ListResponseSchema(checkoutSessionSchema) },
       },
@@ -36,7 +43,13 @@ export const checkoutSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify)
 
   fastify.get(
     '/:checkoutSessionId',
-    { schema: { params: checkoutSessionParamsSchema, response: { 200: checkoutSessionSchema } } },
+    {
+      schema: {
+        operationId: 'checkout.sessions.get',
+        params: checkoutSessionParamsSchema,
+        response: { 200: checkoutSessionSchema },
+      },
+    },
     async (request, reply) => {
       const checkoutSession = await fastify.checkoutService.getCheckoutSession(
         request.params.checkoutSessionId,

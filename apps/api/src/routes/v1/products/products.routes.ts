@@ -12,7 +12,13 @@ import { ApiResponse } from '@utils/api-response';
 export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createProductSchema, response: { 201: productSchema } } },
+    {
+      schema: {
+        operationId: 'products.create',
+        body: createProductSchema,
+        response: { 201: productSchema },
+      },
+    },
     async (request, reply) => {
       const product = await fastify.productService.createProduct(request.body);
 
@@ -24,6 +30,7 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'products.find',
         querystring: findProductsSchema,
         response: { 200: ListResponseSchema(productSchema) },
       },
@@ -37,7 +44,13 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:productId',
-    { schema: { params: productParamsSchema, response: { 200: productSchema } } },
+    {
+      schema: {
+        operationId: 'products.get',
+        params: productParamsSchema,
+        response: { 200: productSchema },
+      },
+    },
     async (request, reply) => {
       const product = await fastify.productService.getProduct(request.params.productId);
 
@@ -49,6 +62,7 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:productId',
     {
       schema: {
+        operationId: 'products.update',
         params: productParamsSchema,
         body: updateProductSchema,
         response: { 200: productSchema },

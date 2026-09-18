@@ -13,7 +13,13 @@ import { ApiResponse } from '@utils/api-response';
 export const setupIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createSetupIntentSchema, response: { 201: setupIntentSchema } } },
+    {
+      schema: {
+        operationId: 'setupIntents.create',
+        body: createSetupIntentSchema,
+        response: { 201: setupIntentSchema },
+      },
+    },
     async (request, reply) => {
       const setupIntent = await fastify.setupIntentService.createSetupIntent(request.body);
 
@@ -25,6 +31,7 @@ export const setupIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/',
     {
       schema: {
+        operationId: 'setupIntents.find',
         querystring: findSetupIntentsSchema,
         response: { 200: ListResponseSchema(setupIntentSchema) },
       },
@@ -38,7 +45,13 @@ export const setupIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
 
   fastify.get(
     '/:setupIntentId',
-    { schema: { params: setupIntentParamsSchema, response: { 200: setupIntentSchema } } },
+    {
+      schema: {
+        operationId: 'setupIntents.get',
+        params: setupIntentParamsSchema,
+        response: { 200: setupIntentSchema },
+      },
+    },
     async (request, reply) => {
       const setupIntent = await fastify.setupIntentService.getSetupIntent(
         request.params.setupIntentId,
@@ -52,6 +65,7 @@ export const setupIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/:setupIntentId/confirm',
     {
       schema: {
+        operationId: 'setupIntents.confirm',
         params: setupIntentParamsSchema,
         body: confirmSetupIntentSchema,
         response: { 200: setupIntentSchema },
@@ -71,6 +85,7 @@ export const setupIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/:setupIntentId/cancel',
     {
       schema: {
+        operationId: 'setupIntents.cancel',
         params: setupIntentParamsSchema,
         body: cancelSetupIntentSchema,
         response: { 200: setupIntentSchema },

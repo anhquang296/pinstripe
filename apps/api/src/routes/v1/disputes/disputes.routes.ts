@@ -13,6 +13,7 @@ export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'disputes.find',
         querystring: findDisputesSchema,
         response: { 200: ListResponseSchema(disputeSchema) },
       },
@@ -26,7 +27,13 @@ export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:disputeId',
-    { schema: { params: disputeParamsSchema, response: { 200: disputeSchema } } },
+    {
+      schema: {
+        operationId: 'disputes.get',
+        params: disputeParamsSchema,
+        response: { 200: disputeSchema },
+      },
+    },
     async (request, reply) => {
       const dispute = await fastify.disputeService.getDispute(request.params.disputeId);
 
@@ -38,6 +45,7 @@ export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:disputeId/evidence',
     {
       schema: {
+        operationId: 'disputes.submitEvidence',
         params: disputeParamsSchema,
         body: submitDisputeEvidenceSchema,
         response: { 200: disputeSchema },

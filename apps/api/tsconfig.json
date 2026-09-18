@@ -10,5 +10,11 @@
       "@plugins/*": ["./src/plugins/*"]
     }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "tsup.config.ts", "vitest.integration.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "scripts/**/*.ts",
+    "tsup.config.ts",
+    "vitest.integration.config.ts"
+  ]
 }

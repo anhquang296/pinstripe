@@ -35,10 +35,14 @@ import { webhookDeliveriesRoutes } from '@routes/v1/webhook-deliveries/webhook-d
 import { webhookEndpointsRoutes } from '@routes/v1/webhook-endpoints/webhook-endpoints.routes';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
+import { tagRouteByPrefix } from '@utils/openapi-tag';
 import type { FastifyInstance } from 'fastify';
 
 export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   fastify.addHook('preHandler', verifyApiRequest);
+  fastify.addHook('onRoute', (routeOptions) => {
+    tagRouteByPrefix(routeOptions, fastify.prefix);
+  });
 
   await fastify.register(rateLimitPlugin);
   await fastify.register(idempotencyPlugin);

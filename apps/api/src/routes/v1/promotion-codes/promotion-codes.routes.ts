@@ -12,7 +12,13 @@ import { ApiResponse } from '@utils/api-response';
 export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createPromotionCodeSchema, response: { 201: promotionCodeSchema } } },
+    {
+      schema: {
+        operationId: 'promotionCodes.create',
+        body: createPromotionCodeSchema,
+        response: { 201: promotionCodeSchema },
+      },
+    },
     async (request, reply) => {
       const promotionCode = await fastify.promotionCodeService.createPromotionCode(request.body);
 
@@ -24,6 +30,7 @@ export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/',
     {
       schema: {
+        operationId: 'promotionCodes.find',
         querystring: findPromotionCodesSchema,
         response: { 200: ListResponseSchema(promotionCodeSchema) },
       },
@@ -37,7 +44,13 @@ export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
 
   fastify.get(
     '/:promotionCodeId',
-    { schema: { params: promotionCodeParamsSchema, response: { 200: promotionCodeSchema } } },
+    {
+      schema: {
+        operationId: 'promotionCodes.get',
+        params: promotionCodeParamsSchema,
+        response: { 200: promotionCodeSchema },
+      },
+    },
     async (request, reply) => {
       const promotionCode = await fastify.promotionCodeService.getPromotionCode(
         request.params.promotionCodeId,
@@ -51,6 +64,7 @@ export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/:promotionCodeId',
     {
       schema: {
+        operationId: 'promotionCodes.update',
         params: promotionCodeParamsSchema,
         body: updatePromotionCodeSchema,
         response: { 200: promotionCodeSchema },

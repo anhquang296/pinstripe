@@ -12,6 +12,7 @@ export const webhookDeliveriesRoutes: FastifyPluginAsyncTypebox = async (fastify
     '/',
     {
       schema: {
+        operationId: 'webhookDeliveries.find',
         querystring: findWebhookDeliveriesSchema,
         response: { 200: ListResponseSchema(webhookDeliverySchema) },
       },
@@ -25,7 +26,13 @@ export const webhookDeliveriesRoutes: FastifyPluginAsyncTypebox = async (fastify
 
   fastify.post(
     '/:webhookDeliveryId/replay',
-    { schema: { params: webhookDeliveryParamsSchema, response: { 200: webhookDeliverySchema } } },
+    {
+      schema: {
+        operationId: 'webhookDeliveries.replay',
+        params: webhookDeliveryParamsSchema,
+        response: { 200: webhookDeliverySchema },
+      },
+    },
     async (request, reply) => {
       const delivery = await fastify.webhookService.replayWebhookDelivery(
         request.params.webhookDeliveryId,

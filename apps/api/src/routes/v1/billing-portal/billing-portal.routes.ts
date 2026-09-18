@@ -17,6 +17,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/configurations',
     {
       schema: {
+        operationId: 'billingPortal.configurations.create',
         body: createBillingPortalConfigurationSchema,
         response: { 201: billingPortalConfigurationSchema },
       },
@@ -32,6 +33,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/configurations',
     {
       schema: {
+        operationId: 'billingPortal.configurations.find',
         querystring: findBillingPortalConfigurationsSchema,
         response: { 200: ListResponseSchema(billingPortalConfigurationSchema) },
       },
@@ -47,6 +49,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/configurations/:configurationId',
     {
       schema: {
+        operationId: 'billingPortal.configurations.get',
         params: billingPortalConfigurationParamsSchema,
         response: { 200: billingPortalConfigurationSchema },
       },
@@ -64,6 +67,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/configurations/:configurationId',
     {
       schema: {
+        operationId: 'billingPortal.configurations.update',
         params: billingPortalConfigurationParamsSchema,
         body: updateBillingPortalConfigurationSchema,
         response: { 200: billingPortalConfigurationSchema },
@@ -83,6 +87,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/sessions',
     {
       schema: {
+        operationId: 'billingPortal.sessions.create',
         body: createBillingPortalSessionSchema,
         response: { 201: billingPortalSessionSchema },
       },
@@ -98,6 +103,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/sessions/:sessionId',
     {
       schema: {
+        operationId: 'billingPortal.sessions.get',
         params: billingPortalSessionParamsSchema,
         response: { 200: billingPortalSessionSchema },
       },

@@ -13,7 +13,13 @@ import { ApiResponse } from '@utils/api-response';
 export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createInvoiceItemSchema, response: { 201: invoiceItemSchema } } },
+    {
+      schema: {
+        operationId: 'invoiceItems.create',
+        body: createInvoiceItemSchema,
+        response: { 201: invoiceItemSchema },
+      },
+    },
     async (request, reply) => {
       const invoiceItem = await fastify.invoiceItemService.createInvoiceItem(request.body);
 
@@ -25,6 +31,7 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/',
     {
       schema: {
+        operationId: 'invoiceItems.find',
         querystring: findInvoiceItemsSchema,
         response: { 200: ListResponseSchema(invoiceItemSchema) },
       },
@@ -38,7 +45,13 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
 
   fastify.get(
     '/:invoiceItemId',
-    { schema: { params: invoiceItemParamsSchema, response: { 200: invoiceItemSchema } } },
+    {
+      schema: {
+        operationId: 'invoiceItems.get',
+        params: invoiceItemParamsSchema,
+        response: { 200: invoiceItemSchema },
+      },
+    },
     async (request, reply) => {
       const invoiceItem = await fastify.invoiceItemService.getInvoiceItem(
         request.params.invoiceItemId,
@@ -52,6 +65,7 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     '/:invoiceItemId',
     {
       schema: {
+        operationId: 'invoiceItems.update',
         params: invoiceItemParamsSchema,
         body: updateInvoiceItemSchema,
         response: { 200: invoiceItemSchema },
@@ -69,7 +83,13 @@ export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
 
   fastify.delete(
     '/:invoiceItemId',
-    { schema: { params: invoiceItemParamsSchema, response: { 200: deletedInvoiceItemSchema } } },
+    {
+      schema: {
+        operationId: 'invoiceItems.delete',
+        params: invoiceItemParamsSchema,
+        response: { 200: deletedInvoiceItemSchema },
+      },
+    },
     async (request, reply) => {
       const deletedInvoiceItem = await fastify.invoiceItemService.deleteInvoiceItem(
         request.params.invoiceItemId,

@@ -11,7 +11,13 @@ import { ApiResponse } from '@utils/api-response';
 export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createPayoutSchema, response: { 201: payoutSchema } } },
+    {
+      schema: {
+        operationId: 'payouts.create',
+        body: createPayoutSchema,
+        response: { 201: payoutSchema },
+      },
+    },
     async (request, reply) => {
       const payout = await fastify.payoutService.createPayout(request.body);
 
@@ -23,6 +29,7 @@ export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     {
       schema: {
+        operationId: 'payouts.find',
         querystring: findPayoutsSchema,
         response: { 200: ListResponseSchema(payoutSchema) },
       },
@@ -36,7 +43,13 @@ export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/:payoutId',
-    { schema: { params: payoutParamsSchema, response: { 200: payoutSchema } } },
+    {
+      schema: {
+        operationId: 'payouts.get',
+        params: payoutParamsSchema,
+        response: { 200: payoutSchema },
+      },
+    },
     async (request, reply) => {
       const payout = await fastify.payoutService.getPayout(request.params.payoutId);
 

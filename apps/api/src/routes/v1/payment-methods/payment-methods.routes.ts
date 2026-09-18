@@ -13,7 +13,13 @@ import { ApiResponse } from '@utils/api-response';
 export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createPaymentMethodSchema, response: { 201: paymentMethodSchema } } },
+    {
+      schema: {
+        operationId: 'paymentMethods.create',
+        body: createPaymentMethodSchema,
+        response: { 201: paymentMethodSchema },
+      },
+    },
     async (request, reply) => {
       const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(request.body);
 
@@ -25,6 +31,7 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/',
     {
       schema: {
+        operationId: 'paymentMethods.find',
         querystring: findPaymentMethodsSchema,
         response: { 200: ListResponseSchema(paymentMethodSchema) },
       },
@@ -38,7 +45,13 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
 
   fastify.get(
     '/:paymentMethodId',
-    { schema: { params: paymentMethodParamsSchema, response: { 200: paymentMethodSchema } } },
+    {
+      schema: {
+        operationId: 'paymentMethods.get',
+        params: paymentMethodParamsSchema,
+        response: { 200: paymentMethodSchema },
+      },
+    },
     async (request, reply) => {
       const paymentMethod = await fastify.paymentMethodService.getPaymentMethod(
         request.params.paymentMethodId,
@@ -52,6 +65,7 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/:paymentMethodId',
     {
       schema: {
+        operationId: 'paymentMethods.update',
         params: paymentMethodParamsSchema,
         body: updatePaymentMethodSchema,
         response: { 200: paymentMethodSchema },
@@ -71,6 +85,7 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     '/:paymentMethodId/attach',
     {
       schema: {
+        operationId: 'paymentMethods.attach',
         params: paymentMethodParamsSchema,
         body: attachPaymentMethodSchema,
         response: { 200: paymentMethodSchema },
@@ -88,7 +103,13 @@ export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
 
   fastify.post(
     '/:paymentMethodId/detach',
-    { schema: { params: paymentMethodParamsSchema, response: { 200: paymentMethodSchema } } },
+    {
+      schema: {
+        operationId: 'paymentMethods.detach',
+        params: paymentMethodParamsSchema,
+        response: { 200: paymentMethodSchema },
+      },
+    },
     async (request, reply) => {
       const paymentMethod = await fastify.paymentMethodService.detachPaymentMethod(
         request.params.paymentMethodId,

@@ -138,6 +138,7 @@ export type {
   UpdateSubscriptionPayload,
   UpdateTaxRatePayload,
   UpdateWebhookEndpointPayload,
+  VoidCreditNotePayload,
   VoidInvoicePayload,
   WebhookDeliveryResponse,
   WebhookEndpointResponse,
