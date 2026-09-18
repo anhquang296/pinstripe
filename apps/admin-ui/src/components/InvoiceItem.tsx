@@ -9,7 +9,6 @@ interface InvoiceItemProps {
   isBusy: boolean;
   onFinalize: (invoiceId: string) => void;
   onCharge: (invoiceId: string) => void;
-  onDecline: (invoiceId: string) => void;
   onVoid: (invoiceId: string) => void;
   onCredit: (invoiceId: string) => void;
 }
@@ -27,7 +26,6 @@ export default function InvoiceItem({
   isBusy,
   onFinalize,
   onCharge,
-  onDecline,
   onVoid,
   onCredit,
 }: InvoiceItemProps) {
@@ -38,10 +36,6 @@ export default function InvoiceItem({
   const handleOnCharge = useCallback(() => {
     onCharge(invoice.id);
   }, [invoice.id, onCharge]);
-
-  const handleOnDecline = useCallback(() => {
-    onDecline(invoice.id);
-  }, [invoice.id, onDecline]);
 
   const handleOnVoid = useCallback(() => {
     onVoid(invoice.id);
@@ -90,11 +84,6 @@ export default function InvoiceItem({
           {isOpen ? (
             <Button variant="ghost" onClick={handleOnCharge} disabled={isBusy}>
               Thu tiền
-            </Button>
-          ) : null}
-          {isOpen ? (
-            <Button variant="ghost" onClick={handleOnDecline} disabled={isBusy}>
-              Thẻ bị từ chối
             </Button>
           ) : null}
           {isOpen ? (

@@ -13,6 +13,9 @@ interface PaymentIntentItemProps {
 const STATUS_CLASSES: Record<string, string> = {
   [PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD]: 'bg-amber-100 text-amber-700',
   [PaymentIntentStatusEnum.REQUIRES_CONFIRMATION]: 'bg-sky-100 text-sky-700',
+  [PaymentIntentStatusEnum.REQUIRES_ACTION]: 'bg-violet-100 text-violet-700',
+  [PaymentIntentStatusEnum.PROCESSING]: 'bg-sky-100 text-sky-700',
+  [PaymentIntentStatusEnum.REQUIRES_CAPTURE]: 'bg-indigo-100 text-indigo-700',
   [PaymentIntentStatusEnum.SUCCEEDED]: 'bg-emerald-100 text-emerald-700',
   [PaymentIntentStatusEnum.CANCELED]: 'bg-slate-200 text-slate-500',
 };
@@ -46,10 +49,10 @@ export default function PaymentIntentItem({
         {paymentIntent.amount.toLocaleString('vi-VN')} {toUpper(paymentIntent.currency)}
       </td>
       <td className="px-4 py-3 text-xs text-slate-500">
-        {map(paymentIntent.attempts, (attempt) => {
+        {map(paymentIntent.charges, (charge) => {
           return (
-            <span key={attempt.id} className="mr-1 rounded bg-slate-100 px-1.5 py-0.5">
-              {attempt.outcome}
+            <span key={charge.id} className="mr-1 rounded bg-slate-100 px-1.5 py-0.5">
+              {charge.outcome}
             </span>
           );
         })}

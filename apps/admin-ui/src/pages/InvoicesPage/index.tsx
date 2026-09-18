@@ -19,8 +19,6 @@ import CreditNoteCard from './CreditNoteCard';
 import InvoiceDraftPanel from './InvoiceDraftPanel';
 
 const DEFAULT_CREDIT_AMOUNT = '100000';
-const APPROVED_PAYMENT_METHOD = 'pm_card_ok';
-const DECLINED_PAYMENT_METHOD = 'pm_card_declined';
 
 export default function InvoicesPage() {
   const [selectedSubscriptionId, setSelectedSubscriptionId] = useState('');
@@ -90,27 +88,22 @@ export default function InvoicesPage() {
   const chargeOptions = useMemo(() => {
     return {
       onSuccess: (paymentIntent: PaymentIntentResponse) => {
-        if (paymentIntent.failureMessage) {
-          toast.show(paymentIntent.failureMessage, { isError: true });
+        const { failureMessage } = paymentIntent;
+
+        if (failureMessage) {
+          toast.show(failureMessage, { isError: true });
 
           return;
         }
 
-        toast.show('Đã thu tiền qua PSP.');
+        toast.show(`Đã gửi yêu cầu thu tiền, intent đang ${paymentIntent.status}.`);
       },
     };
   }, []);
 
   const handleOnCharge = useCallback(
     (invoiceId: string) => {
-      chargeInvoice({ invoiceId, paymentMethod: APPROVED_PAYMENT_METHOD }, chargeOptions);
-    },
-    [chargeInvoice, chargeOptions],
-  );
-
-  const handleOnDecline = useCallback(
-    (invoiceId: string) => {
-      chargeInvoice({ invoiceId, paymentMethod: DECLINED_PAYMENT_METHOD }, chargeOptions);
+      chargeInvoice({ invoiceId }, chargeOptions);
     },
     [chargeInvoice, chargeOptions],
   );
@@ -180,7 +173,6 @@ export default function InvoicesPage() {
                   isBusy={isBusy}
                   onFinalize={handleOnFinalize}
                   onCharge={handleOnCharge}
-                  onDecline={handleOnDecline}
                   onVoid={handleOnVoid}
                   onCredit={handleOnCredit}
                 />
