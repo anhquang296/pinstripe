@@ -1,6 +1,19 @@
 export { useAccountQuery } from '@react/account/queries';
 export { useCreateApiKeyMutation, useDeleteApiKeyMutation } from '@react/api-keys/mutations';
 export { useApiKeysQuery } from '@react/api-keys/queries';
+export {
+  useCreateBillingPortalConfigurationMutation,
+  useCreateBillingPortalSessionMutation,
+  useCreatePortalLinkMutation,
+  useUpdateBillingPortalConfigurationMutation,
+} from '@react/billing-portal/mutations';
+export {
+  useBillingPortalConfigurationQuery,
+  useBillingPortalConfigurationsQuery,
+  useBillingPortalSessionQuery,
+} from '@react/billing-portal/queries';
+export { useCreateCheckoutSessionMutation } from '@react/checkout/mutations';
+export { useCheckoutSessionQuery, useCheckoutSessionsQuery } from '@react/checkout/queries';
 export type { CreateCustomerBalanceTransactionVariables } from '@react/customers/mutations';
 export {
   useCreateCustomerBalanceTransactionMutation,
@@ -33,6 +46,7 @@ export {
   useCouponsQuery,
   useDiscountQuery,
   useDiscountsQuery,
+  usePromotionCodeQuery,
   usePromotionCodesQuery,
 } from '@react/discounts/queries';
 export { useEntitlementsQuery } from '@react/entitlements/queries';
@@ -44,9 +58,11 @@ export {
   useFinalizeInvoiceMutation,
   usePayInvoiceMutation,
   useUpdateInvoiceItemMutation,
+  useVoidCreditNoteMutation,
   useVoidInvoiceMutation,
 } from '@react/invoices/mutations';
 export {
+  useCreditNoteQuery,
   useCreditNotesQuery,
   useInvoiceItemQuery,
   useInvoiceItemsQuery,
@@ -61,19 +77,35 @@ export {
   useReverseLedgerTransactionMutation,
 } from '@react/ledger/mutations';
 export {
+  useLedgerAccountQuery,
   useLedgerAccountsQuery,
   useLedgerTransactionQuery,
   useLedgerTransactionsQuery,
 } from '@react/ledger/queries';
 export {
+  useCreateMeterEventBatchMutation,
   useCreateMeterEventMutation,
   useCreateMeterMutation,
   useUpdateMeterMutation,
 } from '@react/meters/mutations';
 export { useMeterEventSummaryQuery, useMeterQuery, useMetersQuery } from '@react/meters/queries';
+export {
+  useCreatePaymentLinkMutation,
+  useUpdatePaymentLinkMutation,
+} from '@react/payment-links/mutations';
+export { usePaymentLinkQuery, usePaymentLinksQuery } from '@react/payment-links/queries';
 export type { ChargeInvoiceVariables } from '@react/payments/mutations';
-export { useChargeInvoiceMutation, useCreateRefundMutation } from '@react/payments/mutations';
-export { usePaymentIntentsQuery, useRefundsQuery } from '@react/payments/queries';
+export {
+  useCancelPaymentIntentMutation,
+  useChargeInvoiceMutation,
+  useCreateRefundMutation,
+} from '@react/payments/mutations';
+export {
+  usePaymentIntentQuery,
+  usePaymentIntentsQuery,
+  useRefundQuery,
+  useRefundsQuery,
+} from '@react/payments/queries';
 export {
   PinstripeProvider,
   usePinstripeClient,
@@ -90,15 +122,35 @@ export type { MutationProps, QueryProps } from '@react/react-query.types';
 export { useReconciliationReportQuery, useRevenueSummaryQuery } from '@react/reporting/queries';
 export {
   useCancelSubscriptionMutation,
+  useCreateSubscriptionItemMutation,
   useCreateSubscriptionMutation,
+  useDeleteSubscriptionItemMutation,
+  useUpdateSubscriptionItemMutation,
   useUpdateSubscriptionMutation,
 } from '@react/subscriptions/mutations';
-export { useSubscriptionQuery, useSubscriptionsQuery } from '@react/subscriptions/queries';
+export {
+  useSubscriptionItemQuery,
+  useSubscriptionItemsQuery,
+  useSubscriptionQuery,
+  useSubscriptionsQuery,
+} from '@react/subscriptions/queries';
+export {
+  useCreateTaxIdMutation,
+  useCreateTaxRateMutation,
+  useDeleteTaxIdMutation,
+  useUpdateTaxRateMutation,
+} from '@react/tax/mutations';
+export {
+  useTaxIdQuery,
+  useTaxIdsQuery,
+  useTaxRateQuery,
+  useTaxRatesQuery,
+} from '@react/tax/queries';
 export {
   useAdvanceTestClockMutation,
   useCreateTestClockMutation,
 } from '@react/test-clocks/mutations';
-export { useTestClocksQuery } from '@react/test-clocks/queries';
+export { useTestClockQuery, useTestClocksQuery } from '@react/test-clocks/queries';
 export type { PinstripeMutationCallbacksResult } from '@react/usePinstripeMutationCallbacks';
 export { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 export type { UpdateUserVariables } from '@react/users/mutations';
@@ -108,4 +160,8 @@ export {
   useCreateWebhookEndpointMutation,
   useUpdateWebhookEndpointMutation,
 } from '@react/webhooks/mutations';
-export { useWebhookDeliveriesQuery, useWebhookEndpointsQuery } from '@react/webhooks/queries';
+export {
+  useWebhookDeliveriesQuery,
+  useWebhookEndpointQuery,
+  useWebhookEndpointsQuery,
+} from '@react/webhooks/queries';
