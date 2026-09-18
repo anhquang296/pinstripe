@@ -555,6 +555,8 @@ describe('refund records are append-only in the database', () => {
       );
     };
 
-    await expect(act()).rejects.toThrow(/append-only/);
+    await expect(act()).rejects.toMatchObject({
+      cause: { message: expect.stringMatching(/append-only/) },
+    });
   });
 });

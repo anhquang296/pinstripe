@@ -223,6 +223,8 @@ describe('meter_events table', () => {
       sql`update meter_events set value = 1 where id = ${event.id}`,
     );
 
-    await expect(act).rejects.toThrowError(/append-only/);
+    await expect(act).rejects.toMatchObject({
+      cause: { message: expect.stringMatching(/append-only/) },
+    });
   });
 });
