@@ -1,20 +1,31 @@
 import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
-import type { PaymentIntentStatus } from '@contracts/payments.types';
+import type { ChargeStatus, PaymentIntentStatus } from '@contracts/payments.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Charge, NewCharge, NewPaymentIntent, PaymentIntent } from '@database/schemas';
 import { charges, paymentIntents } from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface PaymentIntentFilters {
   livemode?: boolean;
+  ids?: readonly string[];
   invoiceId?: string;
   customerId?: string;
   status?: PaymentIntentStatus;
   statuses?: readonly PaymentIntentStatus[];
   pspReference?: string;
   beforeAt?: RowCursor;
+  afterAt?: RowCursor;
+}
+
+export interface ChargeFilters {
+  livemode?: boolean;
+  paymentIntentIds?: readonly string[];
+  pspReference?: string;
+  status?: ChargeStatus;
+  createdAfterAt?: Date;
+  createdBeforeAt?: Date;
   afterAt?: RowCursor;
 }
 
@@ -55,6 +66,7 @@ export class PaymentIntentRepository {
   ): Promise<PaymentIntent[]> {
     const where = and(
       filters.livemode === undefined ? undefined : eq(paymentIntents.livemode, filters.livemode),
+      filters.ids ? inArray(paymentIntents.id, [...filters.ids]) : undefined,
       filters.invoiceId ? eq(paymentIntents.invoiceId, filters.invoiceId) : undefined,
       filters.customerId ? eq(paymentIntents.customerId, filters.customerId) : undefined,
       filters.status ? eq(paymentIntents.status, filters.status) : undefined,
@@ -86,16 +98,31 @@ export class PaymentIntentRepository {
     return charge ?? null;
   }
 
-  async findCharges(paymentIntentIds: readonly string[]): Promise<Charge[]> {
-    if (_.isEmpty(paymentIntentIds)) {
+  async findCharges(filters: ChargeFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<Charge[]> {
+    if (filters.paymentIntentIds && _.isEmpty(filters.paymentIntentIds)) {
       return [];
     }
+
+    const where = and(
+      filters.livemode === undefined ? undefined : eq(charges.livemode, filters.livemode),
+      filters.paymentIntentIds
+        ? inArray(charges.paymentIntentId, [...filters.paymentIntentIds])
+        : undefined,
+      filters.pspReference ? eq(charges.pspReference, filters.pspReference) : undefined,
+      filters.status ? eq(charges.status, filters.status) : undefined,
+      filters.createdAfterAt ? gte(charges.createdAt, filters.createdAfterAt) : undefined,
+      filters.createdBeforeAt ? lt(charges.createdAt, filters.createdBeforeAt) : undefined,
+      filters.afterAt
+        ? sql`(${charges.createdAt}, ${charges.id}) > (${filters.afterAt.createdAt.toISOString()}::timestamptz, ${filters.afterAt.id})`
+        : undefined,
+    );
 
     return this._db.master
       .select()
       .from(charges)
-      .where(inArray(charges.paymentIntentId, [...paymentIntentIds]))
-      .orderBy(asc(charges.createdAt), asc(charges.id));
+      .where(where)
+      .orderBy(asc(charges.createdAt), asc(charges.id))
+      .limit(limit);
   }
 
   async createPaymentIntent(

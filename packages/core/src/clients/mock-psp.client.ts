@@ -1,3 +1,4 @@
+import type { DisputeOutcome, DisputeReason } from '@contracts/disputes.types';
 import type { PaymentMethodCard, PaymentMethodType } from '@contracts/payment-methods.types';
 import { CardFundingEnum, PaymentMethodTypeEnum } from '@contracts/payment-methods.types';
 import type {
@@ -22,6 +23,11 @@ import _ from 'lodash';
 const DEFAULT_REFERENCE_PREFIX = 'mockpsp';
 const DEFAULT_AUTHENTICATION_URL = 'https://mock-psp.test/3ds';
 const REFERENCE_RANDOM_LENGTH = 16;
+const FEE_BASIS_POINTS = 290;
+const FEE_FIXED_AMOUNT = 30;
+const BASIS_POINTS_DIVISOR = 10_000;
+const PAYOUT_FAILURE_CODE = 'account_closed';
+const PAYOUT_FAILURE_MESSAGE = 'The bank account refused the payout';
 
 export enum PspTokenEnum {
   VISA_OK = 'tok_visa_ok',
@@ -206,6 +212,26 @@ export interface PspRefundResult {
   reference: string;
 }
 
+export interface PspDisputePayload {
+  reference: string;
+  amount: number;
+  reason: DisputeReason;
+}
+
+export interface PspDisputeResult {
+  reference: string;
+}
+
+export interface PspPayoutPayload {
+  amount: number;
+  currency: Currency;
+  idempotencyKey: string;
+}
+
+export interface PspPayoutResult {
+  reference: string;
+}
+
 export class MockPspUnknownTokenError extends Error {
   constructor(token: string) {
     super(`The processor does not recognise token ${token}`);
@@ -217,6 +243,20 @@ export class MockPspChargeNotFoundError extends Error {
   constructor(reference: string) {
     super(`The processor has no charge with reference ${reference}`);
     this.name = 'MockPspChargeNotFoundError';
+  }
+}
+
+export class MockPspPayoutNotFoundError extends Error {
+  constructor(reference: string) {
+    super(`The processor has no payout with reference ${reference}`);
+    this.name = 'MockPspPayoutNotFoundError';
+  }
+}
+
+export class MockPspDisputeNotFoundError extends Error {
+  constructor(reference: string) {
+    super(`The processor has no dispute with reference ${reference}`);
+    this.name = 'MockPspDisputeNotFoundError';
   }
 }
 
@@ -242,6 +282,19 @@ interface MockPspSetup {
   token: PspToken;
 }
 
+interface MockPspDispute {
+  reference: string;
+  chargeReference: string;
+  amount: number;
+  reason: DisputeReason;
+}
+
+interface MockPspPayout {
+  reference: string;
+  amount: number;
+  currency: Currency;
+}
+
 export class MockPspClient {
   private _referencePrefix: string;
   private _authenticationUrl: string;
@@ -250,6 +303,9 @@ export class MockPspClient {
   private _setupsByReference: Map<string, MockPspSetup>;
   private _confirmationsByIdempotencyKey: Map<string, PspConfirmResult>;
   private _refundsByIdempotencyKey: Map<string, string>;
+  private _payoutsByIdempotencyKey: Map<string, string>;
+  private _disputesByReference: Map<string, MockPspDispute>;
+  private _payoutsByReference: Map<string, MockPspPayout>;
   private _pendingEvents: PspCallbackPayload[];
 
   constructor(mockPspConfig: MockPspConfig, logger: FastifyBaseLogger) {
@@ -262,7 +318,14 @@ export class MockPspClient {
     this._setupsByReference = new Map();
     this._confirmationsByIdempotencyKey = new Map();
     this._refundsByIdempotencyKey = new Map();
+    this._payoutsByIdempotencyKey = new Map();
+    this._disputesByReference = new Map();
+    this._payoutsByReference = new Map();
     this._pendingEvents = [];
+  }
+
+  calculateProcessingFee(amount: number): number {
+    return Math.round((amount * FEE_BASIS_POINTS) / BASIS_POINTS_DIVISOR) + FEE_FIXED_AMOUNT;
   }
 
   async tokenize(payload: PspTokenizePayload): Promise<PspTokenizeResult> {
@@ -415,13 +478,122 @@ export class MockPspClient {
 
     payment.refunded += payload.amount;
     this._refundsByIdempotencyKey.set(payload.idempotencyKey, reference);
+    this._pendingEvents.push({
+      id: this.buildEventId(),
+      type: PspEventTypeEnum.REFUND_SUCCEEDED,
+      reference,
+      sourceReference: payload.reference,
+      amount: payload.amount,
+    });
 
     this._logger.info(
       { reference, chargeReference: payload.reference },
-      '[MockPspClient] createRefund() completed',
+      '[MockPspClient] createRefund() accepted',
     );
 
     return { reference };
+  }
+
+  async createPayout(payload: PspPayoutPayload): Promise<PspPayoutResult> {
+    const replayedReference = this._payoutsByIdempotencyKey.get(payload.idempotencyKey);
+
+    if (replayedReference) {
+      return { reference: replayedReference };
+    }
+
+    const reference = this.buildReference();
+
+    this._payoutsByReference.set(reference, {
+      reference,
+      amount: payload.amount,
+      currency: payload.currency,
+    });
+    this._payoutsByIdempotencyKey.set(payload.idempotencyKey, reference);
+
+    this._logger.info({ reference }, '[MockPspClient] createPayout() accepted');
+
+    return { reference };
+  }
+
+  settlePayout(reference: string): void {
+    const payout = this._payoutsByReference.get(reference);
+
+    if (!payout) {
+      throw new MockPspPayoutNotFoundError(reference);
+    }
+
+    this._pendingEvents.push({
+      id: this.buildEventId(),
+      type: PspEventTypeEnum.PAYOUT_PAID,
+      reference,
+      amount: payout.amount,
+    });
+  }
+
+  failPayout(reference: string): void {
+    const payout = this._payoutsByReference.get(reference);
+
+    if (!payout) {
+      throw new MockPspPayoutNotFoundError(reference);
+    }
+
+    this._pendingEvents.push({
+      id: this.buildEventId(),
+      type: PspEventTypeEnum.PAYOUT_FAILED,
+      reference,
+      amount: payout.amount,
+      failureMessage: PAYOUT_FAILURE_MESSAGE,
+      reason: PAYOUT_FAILURE_CODE,
+    });
+  }
+
+  openDispute(payload: PspDisputePayload): PspDisputeResult {
+    const payment = this._paymentsByReference.get(payload.reference);
+
+    if (!payment) {
+      throw new MockPspChargeNotFoundError(payload.reference);
+    }
+
+    const reference = this.buildReference();
+
+    this._disputesByReference.set(reference, {
+      reference,
+      chargeReference: payload.reference,
+      amount: payload.amount,
+      reason: payload.reason,
+    });
+    this._pendingEvents.push({
+      id: this.buildEventId(),
+      type: PspEventTypeEnum.DISPUTE_CREATED,
+      reference,
+      sourceReference: payload.reference,
+      amount: payload.amount,
+      reason: payload.reason,
+    });
+
+    this._logger.info(
+      { reference, chargeReference: payload.reference },
+      '[MockPspClient] openDispute() accepted',
+    );
+
+    return { reference };
+  }
+
+  closeDispute(reference: string, outcome: DisputeOutcome): void {
+    const dispute = this._disputesByReference.get(reference);
+
+    if (!dispute) {
+      throw new MockPspDisputeNotFoundError(reference);
+    }
+
+    this._pendingEvents.push({
+      id: this.buildEventId(),
+      type: PspEventTypeEnum.DISPUTE_CLOSED,
+      reference,
+      sourceReference: dispute.chargeReference,
+      amount: dispute.amount,
+      outcome,
+    });
   }
 
   completeAuthentication(reference: string): void {
