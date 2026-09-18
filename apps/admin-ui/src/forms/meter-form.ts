@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toEnumMember } from '@lib/enum';
 import { MeterAggregationEnum } from '@pinstripe/core/contracts';
-import type { CreateMeterPayload } from '@pinstripe/sdk';
+import type { CreateMeterPayload, MeterResponse, UpdateMeterPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const meterFormSchema = z.object({
@@ -27,5 +28,20 @@ export function meterFormDataToPayload(formData: MeterFormData): CreateMeterPayl
     eventName: formData.eventName,
     aggregation: formData.aggregation,
     valueKey: formData.valueKey,
+  };
+}
+
+export function meterToFormData(meter: MeterResponse): MeterFormData {
+  return {
+    displayName: meter.displayName,
+    eventName: meter.eventName,
+    aggregation: toEnumMember(MeterAggregationEnum, meter.aggregation, MeterAggregationEnum.SUM),
+    valueKey: meter.valueKey,
+  };
+}
+
+export function meterFormDataToUpdatePayload(formData: MeterFormData): UpdateMeterPayload {
+  return {
+    displayName: formData.displayName,
   };
 }

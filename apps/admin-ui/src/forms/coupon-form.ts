@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toEnumMember } from '@lib/enum';
 import { CouponDurationEnum, CurrencyEnum } from '@pinstripe/core/contracts';
-import type { CreateCouponPayload } from '@pinstripe/sdk';
+import type { CouponResponse, CreateCouponPayload, UpdateCouponPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const couponFormSchema = z
@@ -76,5 +77,25 @@ export function couponFormDataToPayload(formData: CouponFormData): CreateCouponP
     currency,
     durationInMonths,
     maxRedemptions,
+  };
+}
+
+export function couponToFormData(coupon: CouponResponse): CouponFormData {
+  const { percentOff, amountOff, durationInMonths, maxRedemptions } = coupon;
+
+  return {
+    name: coupon.name,
+    kind: percentOff === null ? 'amount' : 'percent',
+    percentOff: percentOff ?? 0,
+    amountOff: amountOff ?? 0,
+    duration: toEnumMember(CouponDurationEnum, coupon.duration, CouponDurationEnum.ONCE),
+    durationInMonths: durationInMonths ?? 0,
+    maxRedemptions: maxRedemptions ?? 0,
+  };
+}
+
+export function couponFormDataToUpdatePayload(formData: CouponFormData): UpdateCouponPayload {
+  return {
+    name: formData.name,
   };
 }

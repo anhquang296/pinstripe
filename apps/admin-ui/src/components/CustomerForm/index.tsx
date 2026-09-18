@@ -6,6 +6,7 @@ import { PartnerPlatformEnum } from '@pinstripe/core/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface CustomerFormProps {
+  mode: 'create' | 'edit';
   form: UseFormReturn<CustomerFormData>;
   isSaving?: boolean;
   onSave: () => void;
@@ -16,7 +17,7 @@ const partnerPlatformOptions = [
   { value: PartnerPlatformEnum.VEXERE, label: 'Vexere' },
 ];
 
-export default function CustomerForm({ form, isSaving, onSave }: CustomerFormProps) {
+export default function CustomerForm({ mode, form, isSaving, onSave }: CustomerFormProps) {
   return (
     <form
       className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
@@ -42,7 +43,7 @@ export default function CustomerForm({ form, isSaving, onSave }: CustomerFormPro
         placeholder="Không bắt buộc"
       />
       <Button type="submit" isDisabled={isSaving}>
-        Tạo customer
+        {mode === 'create' ? 'Tạo customer' : 'Lưu thay đổi'}
       </Button>
     </form>
   );
