@@ -138,7 +138,7 @@ describe('ReportingService.aggregateRevenueSummary', () => {
 });
 
 describe('ReconciliationService.aggregateReconciliationReport', () => {
-  it('matches a collected payment against the cash it moved in the ledger', async () => {
+  it('matches a collected payment against the balance it moved in the ledger', async () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
@@ -161,8 +161,10 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       },
       false,
     );
-    const reference = `invoice_payment:${open.id}:${paymentIntent.amount}`;
-    const exception = _.find(report.exceptions, { reference });
+    const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id, false);
+    const exception = _.find(report.exceptions, {
+      reference: `charge:${settled.latestChargeId}`,
+    });
 
     expect(report.matched).toBeGreaterThan(0);
     expect(exception).toBeUndefined();
@@ -180,11 +182,13 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
     await fastify.paymentService.drainProviderEvents();
 
-    const refund = await fastify.refundService.createRefund({
-      paymentIntentId: paymentIntent.id,
-      amount: 100_000,
-      reason: 'Đối soát',
-    });
+    const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id, false);
+    const refund = await fastify.refundService.createRefund(
+      { chargeId: settled.latestChargeId ?? '', amount: 100_000, reason: 'Đối soát' },
+      false,
+    );
+
+    await fastify.paymentService.drainProviderEvents();
 
     const report = await fastify.reconciliationService.aggregateReconciliationReport(
       {
@@ -227,7 +231,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     expect(exception).toBeUndefined();
   });
 
-  it('flags a ledger cash movement the processor never reported', async () => {
+  it('flags a ledger balance movement the processor never reported', async () => {
     const customer = await fastify.customerService.createCustomer(
       {
         email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
@@ -235,15 +239,15 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       },
       false,
     );
-    const strayReference = `bank_transfer:${generateGid(ObjectPrefixEnum.REQUEST)}`;
+    const strayReference = `charge:${generateGid(ObjectPrefixEnum.CHARGE)}`;
 
     await fastify.ledgerService.postTransaction(
       {
-        description: 'Tiền về thẳng tài khoản, chưa khớp cổng nào',
+        description: 'Tiền về số dư cổng, chưa khớp giao dịch nào',
         currency: CurrencyEnum.VND,
         externalId: strayReference,
         entries: [
-          { accountCode: 'cash', direction: 'debit', amount: 77_000 },
+          { accountCode: 'psp_receivable', direction: 'debit', amount: 77_000 },
           {
             accountCode: 'accounts_receivable',
             customerId: customer.id,
