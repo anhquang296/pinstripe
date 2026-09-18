@@ -45,6 +45,13 @@ export enum ObjectPrefixEnum {
   INVOICE_LINE_TAX_AMOUNT = 'iltx',
   REQUEST = 'req',
   API_KEY = 'ak',
+  PORTAL_SESSION = 'prtl',
+  BILLING_PORTAL_CONFIGURATION = 'bpc',
+  BILLING_PORTAL_SESSION = 'bps',
+  CHECKOUT_SESSION = 'cs',
+  CHECKOUT_SESSION_LINE_ITEM = 'csli',
+  PAYMENT_LINK = 'plink',
+  PAYMENT_LINK_LINE_ITEM = 'plli',
 }
 export type ObjectPrefix = `${ObjectPrefixEnum}`;
 

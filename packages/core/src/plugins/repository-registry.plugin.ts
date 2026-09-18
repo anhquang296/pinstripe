@@ -1,5 +1,8 @@
 import { ApiKeyRepository } from '@repositories/api-key.repository';
 import { BalanceTransactionRepository } from '@repositories/balance-transaction.repository';
+import { BillingPortalConfigurationRepository } from '@repositories/billing-portal-configuration.repository';
+import { BillingPortalSessionRepository } from '@repositories/billing-portal-session.repository';
+import { CheckoutSessionRepository } from '@repositories/checkout-session.repository';
 import { CouponRepository } from '@repositories/coupon.repository';
 import { CreditNoteRepository } from '@repositories/credit-note.repository';
 import { CustomerRepository } from '@repositories/customer.repository';
@@ -18,8 +21,10 @@ import { MeterEventRepository } from '@repositories/meter-event.repository';
 import { NumberSequenceRepository } from '@repositories/number-sequence.repository';
 import { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import { PaymentIntentRepository } from '@repositories/payment-intent.repository';
+import { PaymentLinkRepository } from '@repositories/payment-link.repository';
 import { PaymentMethodRepository } from '@repositories/payment-method.repository';
 import { PayoutRepository } from '@repositories/payout.repository';
+import { PortalSessionRepository } from '@repositories/portal-session.repository';
 import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
 import { PromotionCodeRepository } from '@repositories/promotion-code.repository';
@@ -78,4 +83,15 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('discountRepository', new DiscountRepository(fastify.database));
   fastify.decorate('taxRateRepository', new TaxRateRepository(fastify.database));
   fastify.decorate('taxIdRepository', new TaxIdRepository(fastify.database));
+  fastify.decorate('portalSessionRepository', new PortalSessionRepository(fastify.database));
+  fastify.decorate(
+    'billingPortalConfigurationRepository',
+    new BillingPortalConfigurationRepository(fastify.database),
+  );
+  fastify.decorate(
+    'billingPortalSessionRepository',
+    new BillingPortalSessionRepository(fastify.database),
+  );
+  fastify.decorate('checkoutSessionRepository', new CheckoutSessionRepository(fastify.database));
+  fastify.decorate('paymentLinkRepository', new PaymentLinkRepository(fastify.database));
 });

@@ -1,5 +1,6 @@
 import { loadEnv } from '@config/env.schema';
 import { SystemClock } from '@utils/clock';
+import { HostedUrlFactory } from '@utils/hosted-url';
 import { RedisKeyFactory } from '@utils/redis-key-factory';
 import fp from 'fastify-plugin';
 import _ from 'lodash';
@@ -26,6 +27,7 @@ export interface WorkflowSchedules {
   dunningInFlightTimeoutMs: number;
   pspCallbackPollIntervalMs: number;
   payoutSettlePollIntervalMs: number;
+  checkoutExpirePollIntervalMs: number;
   webhookMaxAttempts: number;
   webhookBackoffMs: number;
   webhookTimeoutMs: number;
@@ -41,6 +43,10 @@ export const configPlugin = fp(async (fastify) => {
   fastify.decorate('config', config);
   fastify.decorate('clock', new SystemClock());
   fastify.decorate('redisKeyFactory', new RedisKeyFactory(config.REDIS_KEY_PREFIX));
+  fastify.decorate(
+    'hostedUrlFactory',
+    new HostedUrlFactory(config.PUBLIC_BASE_URL, config.HOSTED_URL_SECRET),
+  );
   fastify.decorate('serverAddress', { port: config.API_PORT, host: config.API_HOST });
   fastify.decorate('workerAddress', { port: config.WORKER_PORT, host: config.API_HOST });
   fastify.decorate('workflowSchedules', {
@@ -60,6 +66,7 @@ export const configPlugin = fp(async (fastify) => {
     dunningInFlightTimeoutMs: config.DUNNING_IN_FLIGHT_TIMEOUT_MS,
     pspCallbackPollIntervalMs: config.PSP_CALLBACK_POLL_INTERVAL_MS,
     payoutSettlePollIntervalMs: config.PAYOUT_SETTLE_POLL_INTERVAL_MS,
+    checkoutExpirePollIntervalMs: config.CHECKOUT_EXPIRE_POLL_INTERVAL_MS,
     webhookMaxAttempts: config.WEBHOOK_MAX_ATTEMPTS,
     webhookBackoffMs: config.WEBHOOK_BACKOFF_MS,
     webhookTimeoutMs: config.WEBHOOK_TIMEOUT_MS,

@@ -45,6 +45,19 @@ export const envSchema = Type.Object({
   ADMIN_API_KEY: Type.String({ minLength: 16 }),
   SYSTEM_API_KEY: Type.String({ minLength: 16 }),
   MANAGEMENT_API_KEY: Type.String({ minLength: 16 }),
+  PORTAL_API_KEY: Optional(Type.String({ minLength: 16 })),
+
+  PUBLIC_BASE_URL: Default(Type.String({ minLength: 1 }), 'http://localhost:3000'),
+  PORTAL_BASE_URL: Default(Type.String({ minLength: 1 }), 'http://localhost:3100'),
+  HOSTED_URL_SECRET: Default(
+    Type.String({ minLength: 16 }),
+    'pinstripe-hosted-url-development-secret',
+  ),
+  FILE_STORAGE_DIRECTORY: Default(Type.String({ minLength: 1 }), '.pinstripe-storage'),
+  PORTAL_LINK_TTL_MINUTES: Default(Type.Integer({ minimum: 1 }), 15),
+  PORTAL_SESSION_TTL_MINUTES: Default(Type.Integer({ minimum: 1 }), 60),
+  CHECKOUT_SESSION_TTL_MINUTES: Default(Type.Integer({ minimum: 1 }), 30),
+  CHECKOUT_EXPIRE_POLL_INTERVAL_MS: Default(Type.Integer({ minimum: 100 }), 60_000),
 
   WORKFLOW_NAME: Optional(Type.String({ minLength: 1 })),
   WORKER_PORT: Default(Type.Integer({ minimum: 1, maximum: 65535 }), 3001),

@@ -14,6 +14,7 @@ function makeContext(overrides: Partial<NotificationContext> = {}): Notification
     currency: CurrencyEnum.VND,
     declineCode: null,
     nextAttemptAt: null,
+    url: null,
     ...overrides,
   };
 }

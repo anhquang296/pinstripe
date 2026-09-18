@@ -13,6 +13,7 @@ export enum ApiKeyScopeEnum {
   ADMIN = 'admin',
   SYSTEM = 'system',
   MANAGEMENT = 'management',
+  PORTAL = 'portal',
 }
 export type ApiKeyScope = `${ApiKeyScopeEnum}`;
 

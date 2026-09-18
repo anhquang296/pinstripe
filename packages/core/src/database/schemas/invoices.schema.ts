@@ -89,6 +89,9 @@ export const invoices = pgTable(
       .$type<AuthorityStatus>()
       .notNull()
       .default(AuthorityStatusEnum.NOT_SUBMITTED),
+    hostedInvoiceUrl: text('hosted_invoice_url'),
+    invoicePdf: text('invoice_pdf'),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
     dueAt: timestamp('due_at', { withTimezone: true }),
     attemptCount: integer('attempt_count').notNull().default(0),
     nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
