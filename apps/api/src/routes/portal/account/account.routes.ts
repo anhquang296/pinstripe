@@ -90,8 +90,8 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     },
   );
 
-  fastify.post(
-    '/logout',
+  fastify.delete(
+    '/sessions',
     { schema: { response: { 200: portalSessionSchema } } },
     async (request, reply) => {
       const { portalSessionId } = readPortalAuth(request);

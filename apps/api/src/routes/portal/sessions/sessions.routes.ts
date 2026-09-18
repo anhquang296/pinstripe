@@ -10,7 +10,7 @@ import { readLivemode } from '@utils/request-auth';
 
 export const portalSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
-    '/',
+    '/links',
     { schema: { body: createPortalLinkSchema, response: { 202: portalLinkSchema } } },
     async (request, reply) => {
       const livemode = readLivemode(request);
@@ -25,7 +25,7 @@ export const portalSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =
   );
 
   fastify.post(
-    '/redeem',
+    '/sessions',
     { schema: { body: redeemPortalLinkSchema, response: { 201: portalSessionSchema } } },
     async (request, reply) => {
       const portalSession = await fastify.portalSessionService.redeemPortalLink(

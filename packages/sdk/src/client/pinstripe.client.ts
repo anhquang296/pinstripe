@@ -3,6 +3,9 @@ import { PinstripeTransport } from '@client/pinstripe-transport';
 import { DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT_MS } from '@client/retry';
 import { AdminNamespace } from '@namespaces/admin.namespace';
 import { BillingNamespace } from '@namespaces/billing.namespace';
+import { BillingPortalNamespace } from '@namespaces/billing-portal.namespace';
+import { CheckoutNamespace } from '@namespaces/checkout.namespace';
+import { PortalNamespace } from '@namespaces/portal.namespace';
 import { TestHelpersNamespace } from '@namespaces/test-helpers.namespace';
 import { CouponsResource } from '@resources/coupons.resource';
 import { CreditNotesResource } from '@resources/credit-notes.resource';
@@ -12,6 +15,7 @@ import { EntitlementsResource } from '@resources/entitlements.resource';
 import { InvoiceItemsResource } from '@resources/invoice-items.resource';
 import { InvoicesResource } from '@resources/invoices.resource';
 import { PaymentIntentsResource } from '@resources/payment-intents.resource';
+import { PaymentLinksResource } from '@resources/payment-links.resource';
 import { PricesResource } from '@resources/prices.resource';
 import { ProductsResource } from '@resources/products.resource';
 import { PromotionCodesResource } from '@resources/promotion-codes.resource';
@@ -39,10 +43,14 @@ export class PinstripeClient {
   readonly taxRates: TaxRatesResource;
   readonly taxIds: TaxIdsResource;
   readonly paymentIntents: PaymentIntentsResource;
+  readonly paymentLinks: PaymentLinksResource;
   readonly refunds: RefundsResource;
   readonly webhookEndpoints: WebhookEndpointsResource;
   readonly webhookDeliveries: WebhookDeliveriesResource;
   readonly billing: BillingNamespace;
+  readonly billingPortal: BillingPortalNamespace;
+  readonly checkout: CheckoutNamespace;
+  readonly portal: PortalNamespace;
   readonly testHelpers: TestHelpersNamespace;
   readonly admin: AdminNamespace;
 
@@ -70,10 +78,14 @@ export class PinstripeClient {
     this.taxRates = new TaxRatesResource(this._transport);
     this.taxIds = new TaxIdsResource(this._transport);
     this.paymentIntents = new PaymentIntentsResource(this._transport);
+    this.paymentLinks = new PaymentLinksResource(this._transport);
     this.refunds = new RefundsResource(this._transport);
     this.webhookEndpoints = new WebhookEndpointsResource(this._transport);
     this.webhookDeliveries = new WebhookDeliveriesResource(this._transport);
     this.billing = new BillingNamespace(this._transport);
+    this.billingPortal = new BillingPortalNamespace(this._transport);
+    this.checkout = new CheckoutNamespace(this._transport);
+    this.portal = new PortalNamespace(this._transport);
     this.testHelpers = new TestHelpersNamespace(this._transport);
     this.admin = new AdminNamespace(this._adminTransport);
   }

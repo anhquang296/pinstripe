@@ -8,7 +8,7 @@ export async function portalRoutes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(async (scope) => {
     scope.addHook('preHandler', verifyPortalKeyRequest);
 
-    await scope.register(portalSessionsRoutes, { prefix: '/sessions' });
+    await scope.register(portalSessionsRoutes);
   });
 
   await fastify.register(async (scope) => {
