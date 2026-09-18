@@ -103,13 +103,13 @@ Log mức `error` kèm `transactionIds` là thứ phải có người nhìn.
 
 ## 4. Trạng thái kẹt không tự thoát
 
-| Nơi                  | Kẹt gì                                                                                                                                   | Gỡ bằng tay                       |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `outbox_events`      | relay chết sau khi claim → hàng kẹt `publishing`, **không có reaper**                                                                    | đặt lại `status = 'pending'`      |
-| `outbox_events`      | đẩy job lỗi → `failed`, không tự retry                                                                                                   | đặt lại `status = 'pending'`      |
-| `test_clocks`        | chết giữa advance → `frozenTime` đã nhảy, `status` kẹt `advancing`; mọi advance sau đó 409                                               | đặt lại `status = 'ready'`        |
-| `payment_intents`    | confirm ghi intent `succeeded` ở transaction 1, `payInvoice` ở transaction 2 — chết giữa hai cái là đã thu tiền mà hoá đơn chưa ghi nhận | reconciliation phát hiện, sửa tay |
-| `webhook_deliveries` | hết `WEBHOOK_MAX_ATTEMPTS` → job nằm ở failed set, không có dead-letter, không có đường replay                                           | thao tác trực tiếp trên queue     |
+| Nơi                  | Kẹt gì                                                                                                                                                | Gỡ bằng tay                    |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `outbox_events`      | relay chết sau khi claim → hàng kẹt `publishing`, **không có reaper**                                                                                 | đặt lại `status = 'pending'`   |
+| `outbox_events`      | đẩy job lỗi → `failed`, không tự retry                                                                                                                | đặt lại `status = 'pending'`   |
+| `test_clocks`        | chết giữa advance → `frozenTime` đã nhảy, `status` kẹt `advancing`; mọi advance sau đó 409                                                            | đặt lại `status = 'ready'`     |
+| `payment_intents`    | confirm để intent ở `processing` rồi callback không bao giờ đến — intent kẹt `processing`, hoá đơn chờ tới `DUNNING_IN_FLIGHT_TIMEOUT_MS` mới thử lại | dunning tự thử lại sau timeout |
+| `webhook_deliveries` | hết `WEBHOOK_MAX_ATTEMPTS` → job nằm ở failed set, không có dead-letter, không có đường replay                                                        | thao tác trực tiếp trên queue  |
 
 Chi tiết ở [flows/02](flows/02-event-pipeline.md), [flows/07](flows/07-payments-and-refunds.md),
 [flows/12](flows/12-test-clock.md).
