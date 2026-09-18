@@ -1,4 +1,4 @@
-<!-- agentkit:start v0.5.1 -->
+<!-- agentkit:start v0.6.2 -->
 ## Coding conventions
 
 The rules below are the source of truth for how code here is written, and every one of them applies
@@ -18,7 +18,7 @@ They are a floor, not a gate. Read them once and keep working; there is no per-f
 | The shape of a log message — `<function>() <message>`, `[<Class>] <method>() <message>`, errors at error level with the cause under `error`. | `.claude/rules/agentkit/core/logging-convention.md` |
 | Do not build surface nobody reads — return the object you have, drop parameters no consumer touches. | `.claude/rules/agentkit/core/minimal-surface-convention.md` |
 | How a name is built — the slots a name has, which word may fill each, and why a name never reports the step that produced it. | `.claude/rules/agentkit/core/naming-convention.md` |
-| Read an optional path once into a named local with its fallback at the read — never `?.` and `??` in one expression, at any depth, and never the same path walked twice. | `.claude/rules/agentkit/core/nested-access-convention.md` |
+| Read a path once into a named local, and give a field its fallback by destructuring it with a default — never `<object>.<field> ?? <default>`, with or without `?.`, and never the same path walked twice. | `.claude/rules/agentkit/core/nested-access-convention.md` |
 | Database schema design — a column is `NOT NULL` until absence is a real domain state, `''` / `0` / a sentinel date never stand in for unknown, and the type mirrors the column. | `.claude/rules/agentkit/core/nullability-convention.md` |
 | How agent-facing docs are owned and changed — which files are generated, which are the project's own, and the house style every rule follows. | `.claude/rules/agentkit/core/rule-maintenance.md` |
 | How a statement is written — one job per statement, happy path first in the affirmative. | `.claude/rules/agentkit/core/statement-convention.md` |

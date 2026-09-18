@@ -24,7 +24,7 @@ Does **not** apply to generated output (codegen, tool-emitted `*.d.ts`, build di
 
 ## One Statement, One Job
 
-Separate _reading a value_ from _acting on it_. Each statement does one thing; a blank line sits between the read and the action. Never bury `??`, a ternary, or an optional chain inside the argument of `throw`, `return`, or a function call — destructure with a default first, then act.
+Separate _reading a value_ from _acting on it_. Each statement does one thing; a blank line sits between the read and the action. Never bury `??`, a ternary, or an optional chain inside the argument of `throw`, `return`, or a function call — and a field of an object literal being returned or passed is inside that argument. Destructure with a default first ([nested-access-convention.md](./nested-access-convention.md#a-fallback-is-a-destructure-default)), then act.
 
 ```ts
 // CORRECT — read with a default, blank line, then act

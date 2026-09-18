@@ -110,7 +110,8 @@ Where the deployment has separate read and write connections, the repository dec
 | Verb                     | Meaning                                                                                       | Returns                              | Example                             |
 | ------------------------ | --------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------------------------- |
 | `create<Entity>`         | insert one row                                                                                | `Promise<Entity>` or `Promise<void>` | `createRoutine`, `createEvent`      |
-| `find<Entity>`           | read **one** by natural key                                                                   | `Promise<Entity \| null>`            | `findRoutine(id)`                   |
+| `get<Entity>`            | read **one** by natural key, throws `NotFoundError` when nothing matches                      | `Promise<Entity>`                    | `getRoutine(id)`                    |
+| `find<Entity>`           | read **one** by natural key, returns `null` when nothing matches                              | `Promise<Entity \| null>`            | `findRoutine(id)`                   |
 | `find<Entities>`         | read **many** by a filters object                                                             | `Promise<Entity[]>`                  | `findRoutines(filters, limit)`      |
 | `upsert<Entity>`         | atomic insert-or-update                                                                       | `Promise<Entity \| null>`            | `upsertSetting(payload)`            |
 | `update<Entity>`         | partial update of given fields — only when no domain verb fits                                | `Promise<void>`                      | `updateSetting(payload)`            |
@@ -121,21 +122,22 @@ Where the deployment has separate read and write connections, the repository dec
 
 ### Banned
 
-`get` is banned here for one reason: it promises to throw when nothing matches, and this layer never does — it returns `null` and lets the service decide ([§ Errors & Logging](#errors--logging)). That is a statement about behaviour, not about the layer: wherever a read does throw on a miss, `get` is the right word there too.
+The read verb states what a miss does, exactly as in every other layer ([verb-convention.md § Verbs](../../core/verb-convention.md#verbs)): `get<Entity>` throws, `find<Entity>` returns `null`. Pick by the behaviour the method has, never by the layer it sits in.
 
 | Do not use                                          | Use instead                                                                                                                                                                             |
 | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `get…`, `list…`, `fetch…`, `load…`                  | `find<Entity>` / `find<Entities>` — a repository never throws for a miss, and `get` promises that it does ([verb-convention.md § Verbs](../../core/verb-convention.md#verbs))           |
+| `get<Entities>`, `list…`, `fetch…`, `load…`         | `find<Entities>` for a list — an empty result is an answer, not a miss; `get<Entity>` / `find<Entity>` for one                                                                          |
 | `save…`, `insert…`, `add…`                          | `create<Entity>` or `upsert<Entity>`                                                                                                                                                    |
 | `remove…`, `destroy…`, `purge…`                     | `delete<Entity>` for a hard delete; a domain verb (`archive…`) for soft state — [verb-convention.md § Verbs](../../core/verb-convention.md#verbs)                                       |
 | `exists…`                                           | `find<Entity>` then check `null`, or `count<Noun>`                                                                                                                                      |
 | suffixes `By<Field>`, `And`, `In`, `With<Relation>` | the key lives in the **parameter name**; several conditions → a filters object                                                                                                          |
-| suffixes `OrNull`, `OrThrow`, `OrFail`              | always `\| null`; throwing is the service's job                                                                                                                                         |
+| suffixes `OrNull`, `OrThrow`, `OrFail`              | the verb already says it — `get<Entity>` throws, `find<Entity>` returns `null`                                                                                                          |
 | suffix `Async`                                      | every method is async, no marker                                                                                                                                                        |
 | bare `find()`, `create()`, `findAll()`, `findOne()` | the entity is always in the name                                                                                                                                                        |
 
 ```ts
 // CORRECT
+routineRepository.getRoutine(id);
 routineRepository.findRoutine(id);
 routineRepository.findRoutines({ status: 'active', types: ['am', 'pm'] });
 routineRepository.archiveRoutines(ids, archivedAt);
@@ -145,7 +147,8 @@ routineRepository.countRoutines({ status: 'active' });
 routineRepository.findRoutineById(id);                       // By<Field> — the key is already the parameter name
 routineRepository.findActiveRoutinesByTypeIn(types);         // conditions encoded into the name
 routineRepository.updateRoutines(ids, { status: 'archived' }); // a domain verb exists: archiveRoutines
-routineRepository.getRoutineOrThrow(id);                     // get + OrThrow
+routineRepository.getRoutineOrThrow(id);                     // OrThrow — get already throws
+routineRepository.getRoutines({ status: 'active' });         // a list read never misses: findRoutines
 repository.find(where);                                      // bare method, no entity
 ```
 
@@ -178,7 +181,7 @@ Build the `where` from conditional terms the query builder drops when undefined.
 ## Return Types, Pagination, Sort
 
 - Return the **raw entity type** the ORM infers. **No DTOs** — date formatting, response envelopes and field renaming happen in the service.
-- Nullable is `| null` — not `undefined`, not `Optional`. Pure writes return `Promise<void>`. A write that reads the row back returns `Promise<Entity | null>`, normalising a missing row to `null` rather than asserting.
+- Nullable is `| null` — not `undefined`, not `Optional`. `get<Entity>` is never nullable; `find<Entity>` always is. Pure writes return `Promise<void>`. A write that reads the row back returns `Promise<Entity | null>`, normalising a missing row to `null` rather than asserting.
 - A write whose caller needs the affected-row count may return `Promise<number>`. That is the only sanctioned non-`void`, non-entity write return.
 - Every method is `async` with an **explicit** `Promise<T>` in the signature.
 - A repository knows `limit` (and `offset` where the API is page-based) but **not pagination**: the service converts `page` → `offset`, decides `hasMore`, and builds the response envelope. A total for that envelope is a `count<Noun>` method, not a second return value.
@@ -187,9 +190,10 @@ Build the `where` from conditional terms the query builder drops when undefined.
 
 ## Errors & Logging
 
-- `find<Entity>` returns `null` when nothing matches; the **service** throws `NotFoundError`. No `OrThrow` variant.
+- `get<Entity>` throws `NotFoundError` when nothing matches; `find<Entity>` returns `null` and leaves the decision to the service. No `OrThrow` / `OrNull` variant.
+- `NotFoundError`, thrown from `get<Entity>`, is the only app error class a repository imports or throws.
 - Unique-key violations are **never swallowed** — let the driver error surface and let the service map it to `ConflictError`. Use `upsert<Entity>` when insert-or-update is the intent. Do not mix the two strategies inside one repository.
-- Repositories take no logger and do not log — they throw. They never import the app's HTTP error classes; mapping to a status code is the caller's job.
+- Repositories take no logger and do not log — they throw. Every other mapping to an app error or a status code is the caller's job.
 
 ## Barrel
 
@@ -203,8 +207,8 @@ Every repository is re-exported from the layer's `index.ts`, sorted. Consumers i
 - [ ] No banned verb or suffix
 - [ ] Exactly one `<Entity>Filters`, every field optional unless the query cannot run without it
 - [ ] Filter field names carry their operator
-- [ ] Returns the raw entity type, `| null` for missing, explicit `Promise<T>`
-- [ ] No pagination, no response shaping, no logging, no HTTP error classes
+- [ ] Returns the raw entity type, explicit `Promise<T>`; `get` throws on a miss, `find` returns `| null`
+- [ ] No pagination, no response shaping, no logging, no app error class but `NotFoundError` from `get`
 - [ ] Sort fixed, or one typed `sort` argument with a closed field union
 - [ ] Re-exported from the barrel
 
@@ -214,9 +218,10 @@ Every repository is re-exported from the layer's `index.ts`, sorted. Consumers i
 - Export more than one class from a repository file, or a class whose name does not match the file.
 - Introduce `BaseRepository`, an `IRepository` interface, or a DI container.
 - Construct a repository at module level.
-- Use `get`, `list`, `fetch`, `load`, `save`, `insert`, `add`, `remove`, `destroy`, `purge` or `exists` as a repository verb.
+- Use `list`, `fetch`, `load`, `save`, `insert`, `add`, `remove`, `destroy`, `purge` or `exists` as a repository verb, or `get` for a list read.
+- Return `null` from `get<Entity>`, or throw for a miss from `find<Entity>`.
 - Encode the lookup key or a condition in the method name — it goes in the parameter or in `filters`.
 - Return a DTO, a response envelope, or a formatted date from a repository.
-- Throw `NotFoundError` from a repository, or swallow a unique-key violation.
-- Log from a repository, or import the app's HTTP errors into it.
+- Throw `NotFoundError` from anything but `get<Entity>`, or swallow a unique-key violation.
+- Log from a repository, or import any app error class into it other than `NotFoundError`.
 - Add `sortBy` / `sortOrder` parameters — rename the method, or take one typed `sort` argument.
