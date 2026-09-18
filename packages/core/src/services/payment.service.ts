@@ -1,4 +1,5 @@
 import { PspIntentStatusEnum } from '@clients/mock-psp.client';
+import { DisputeOutcomeEnum } from '@contracts/disputes.types';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import type { ListResponse } from '@contracts/pagination.types';
@@ -34,6 +35,7 @@ import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error
 import type { RowCursor } from '@repositories/cursor';
 import type { Currency } from '@utils/currency';
 import { mapPspDeclineCode } from '@utils/decline-code';
+import { mapPspDisputeReason } from '@utils/dispute-reason';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -101,9 +103,9 @@ export class PaymentService {
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.PROCESSING);
 
     const paymentMethod = await this.resolvePaymentMethod(paymentIntent, payload);
-    const previousCharges = await this.fastify.paymentIntentRepository.findCharges([
-      paymentIntent.id,
-    ]);
+    const previousCharges = await this.fastify.paymentIntentRepository.findCharges({
+      paymentIntentIds: [paymentIntent.id],
+    });
     const confirmation = await this.fastify.psp.confirmPayment({
       token: paymentMethod.pspToken,
       amount: paymentIntent.amount,
@@ -313,6 +315,53 @@ export class PaymentService {
       return;
     }
 
+    if (payload.type === PspEventTypeEnum.REFUND_SUCCEEDED) {
+      await this.fastify.refundService.handleRefundSucceeded(payload.reference);
+
+      return;
+    }
+
+    if (payload.type === PspEventTypeEnum.REFUND_FAILED) {
+      await this.fastify.refundService.handleRefundFailed(
+        payload.reference,
+        payload.failureMessage ?? null,
+      );
+
+      return;
+    }
+
+    if (payload.type === PspEventTypeEnum.DISPUTE_CREATED) {
+      await this.applyDisputeOpened(payload);
+
+      return;
+    }
+
+    if (payload.type === PspEventTypeEnum.DISPUTE_CLOSED) {
+      await this.fastify.disputeService.handleDisputeClosed(
+        payload.reference,
+        payload.outcome === DisputeOutcomeEnum.WON
+          ? DisputeOutcomeEnum.WON
+          : DisputeOutcomeEnum.LOST,
+      );
+
+      return;
+    }
+
+    if (payload.type === PspEventTypeEnum.PAYOUT_PAID) {
+      await this.fastify.payoutService.handlePayoutPaid(payload.reference);
+
+      return;
+    }
+
+    if (payload.type === PspEventTypeEnum.PAYOUT_FAILED) {
+      await this.fastify.payoutService.handlePayoutFailed(payload.reference, {
+        failureCode: payload.reason ?? null,
+        failureMessage: payload.failureMessage ?? null,
+      });
+
+      return;
+    }
+
     if (payload.type === PspEventTypeEnum.PAYMENT_FAILED) {
       await this.applyPaymentFailure(payload);
 
@@ -320,6 +369,23 @@ export class PaymentService {
     }
 
     await this.applyPaymentSuccess(payload);
+  }
+
+  private async applyDisputeOpened(payload: PspCallbackPayload): Promise<void> {
+    const { sourceReference, amount } = payload;
+
+    if (!sourceReference || !amount) {
+      throw new BadRequestError(
+        `Dispute callback ${payload.id} arrived without a charge reference and an amount`,
+      );
+    }
+
+    await this.fastify.disputeService.handleDisputeOpened({
+      pspReference: payload.reference,
+      chargeReference: sourceReference,
+      amount,
+      reason: mapPspDisputeReason(payload.reason ?? null),
+    });
   }
 
   private async applyPaymentSuccess(payload: PspCallbackPayload): Promise<void> {
@@ -379,6 +445,8 @@ export class PaymentService {
       }
 
       const { invoiceId } = updatedPaymentIntent;
+
+      await this.fastify.balanceService.recordChargeSettlement(charge, invoiceId, tx);
 
       if (invoiceId) {
         await this.fastify.invoiceService.applyInvoicePayment(
@@ -730,15 +798,15 @@ export class PaymentService {
   private async resolveCharges(
     paymentIntentIds: readonly string[],
   ): Promise<Record<string, Charge[]>> {
-    const rows = await this.fastify.paymentIntentRepository.findCharges(paymentIntentIds);
+    const rows = await this.fastify.paymentIntentRepository.findCharges({ paymentIntentIds });
 
     return _.groupBy(rows, 'paymentIntentId');
   }
 
   private async buildPaymentIntent(paymentIntent: PaymentIntent): Promise<PaymentIntentResponse> {
-    const intentCharges = await this.fastify.paymentIntentRepository.findCharges([
-      paymentIntent.id,
-    ]);
+    const intentCharges = await this.fastify.paymentIntentRepository.findCharges({
+      paymentIntentIds: [paymentIntent.id],
+    });
 
     return PaymentService.buildPaymentIntentWithCharges(paymentIntent, intentCharges);
   }

@@ -28,9 +28,9 @@ export default function PaymentsPage() {
   }, []);
 
   const handleOnRefund = useCallback(
-    (paymentIntentId: string) => {
+    (chargeId: string) => {
       createRefund({
-        paymentIntentId,
+        chargeId,
         amount: Number(refundAmount),
         reason: 'Hoàn tiền từ admin',
       });

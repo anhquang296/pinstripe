@@ -7,6 +7,7 @@ export enum ReconciliationOutcomeEnum {
   MATCHED = 'matched',
   MISSING_IN_LEDGER = 'missing_in_ledger',
   MISSING_IN_PROCESSOR = 'missing_in_processor',
+  MISSING_IN_INVOICES = 'missing_in_invoices',
   AMOUNT_MISMATCH = 'amount_mismatch',
 }
 export type ReconciliationOutcome = `${ReconciliationOutcomeEnum}`;
@@ -35,7 +36,9 @@ export const reconciliationReportSchema = Type.Object({
   windowEnd: Type.String(),
   processorTotal: Type.Integer(),
   ledgerTotal: Type.Integer(),
+  invoiceTotal: Type.Integer(),
   difference: Type.Integer(),
+  scanned: Type.Integer(),
   matched: Type.Integer(),
   exceptions: Type.Array(
     Type.Object({
@@ -45,6 +48,7 @@ export const reconciliationReportSchema = Type.Object({
       source: Type.String(),
       processorAmount: Type.Union([Type.Integer(), Type.Null()]),
       ledgerAmount: Type.Union([Type.Integer(), Type.Null()]),
+      invoiceAmount: Type.Union([Type.Integer(), Type.Null()]),
     }),
   ),
 });

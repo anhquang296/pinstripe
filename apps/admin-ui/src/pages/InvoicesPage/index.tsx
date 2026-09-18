@@ -119,7 +119,7 @@ export default function InvoicesPage() {
     (invoiceId: string) => {
       createCreditNote({
         invoiceId,
-        amount: Number(creditAmount),
+        lines: [{ amount: Number(creditAmount), description: 'Điều chỉnh từ admin' }],
         reason: 'Điều chỉnh từ admin',
       });
     },

@@ -10,6 +10,7 @@ import type {
   PaymentMethodDetails,
   PspEventType,
   PspProvider,
+  RefundStatus,
 } from '@contracts/payments.types';
 import { CaptureMethodEnum } from '@contracts/payments.types';
 import type { SetupIntentStatus, SetupIntentUsage } from '@contracts/setup-intents.types';
@@ -186,12 +187,15 @@ export const refunds = pgTable(
       .references(() => {
         return paymentIntents.id;
       }),
-    chargeId: text('charge_id').references(() => {
-      return charges.id;
-    }),
+    chargeId: text('charge_id')
+      .notNull()
+      .references(() => {
+        return charges.id;
+      }),
     invoiceId: text('invoice_id').references(() => {
       return invoices.id;
     }),
+    creditNoteId: text('credit_note_id'),
     customerId: text('customer_id')
       .notNull()
       .references(() => {
@@ -215,6 +219,29 @@ export const refunds = pgTable(
   },
 );
 
+export const refundTransitions = pgTable(
+  'refund_transitions',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    refundId: text('refund_id')
+      .notNull()
+      .references(() => {
+        return refunds.id;
+      }),
+    status: text('status').$type<RefundStatus>().notNull(),
+    failureReason: text('failure_reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      index('refund_transitions_refund_id_idx').on(table.refundId),
+      index('refund_transitions_occurred_at_id_idx').on(table.occurredAt, table.id),
+    ];
+  },
+);
+
 export type PaymentIntent = typeof paymentIntents.$inferSelect;
 export type NewPaymentIntent = typeof paymentIntents.$inferInsert;
 export type Charge = typeof charges.$inferSelect;
@@ -225,3 +252,5 @@ export type PspEvent = typeof pspEvents.$inferSelect;
 export type NewPspEvent = typeof pspEvents.$inferInsert;
 export type Refund = typeof refunds.$inferSelect;
 export type NewRefund = typeof refunds.$inferInsert;
+export type RefundTransition = typeof refundTransitions.$inferSelect;
+export type NewRefundTransition = typeof refundTransitions.$inferInsert;

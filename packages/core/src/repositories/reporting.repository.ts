@@ -1,9 +1,11 @@
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
+import type { LedgerAccountCode } from '@contracts/ledger.types';
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import type { RecurringInterval } from '@contracts/prices.types';
 import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
 import type { DatabaseClient } from '@database/database.client';
 import {
+  invoicePayments,
   invoices,
   ledgerAccounts,
   ledgerPostings,
@@ -38,10 +40,14 @@ export interface InvoiceWindowTotals {
   outstanding: number;
 }
 
-export interface CashMovement {
-  externalId: string | null;
+export interface LedgerMovement {
+  externalId: string;
   amount: number;
-  direction: string;
+}
+
+export interface InvoiceSettlement {
+  chargeId: string;
+  amount: number;
 }
 
 export class ReportingRepository {
@@ -197,27 +203,52 @@ export class ReportingRepository {
     return _.get(row, 'total', 0);
   }
 
-  async findCashMovements(
+  async aggregateLedgerMovements(
+    codes: readonly LedgerAccountCode[],
     windowStart: Date,
     windowEnd: Date,
     livemode: boolean,
-  ): Promise<CashMovement[]> {
+  ): Promise<LedgerMovement[]> {
     return this._db.master
       .select({
-        externalId: sql<string | null>`${ledgerTransactions.externalId}`,
-        amount: ledgerPostings.amount,
-        direction: sql<string>`${ledgerPostings.direction}`,
+        externalId: sql<string>`${ledgerTransactions.externalId}`,
+        amount: sql<number>`coalesce(sum(case when ${ledgerPostings.direction} = ${PostingDirectionEnum.DEBIT} then ${ledgerPostings.amount} else -${ledgerPostings.amount} end), 0)::int`,
       })
       .from(ledgerPostings)
       .innerJoin(ledgerAccounts, eq(ledgerAccounts.id, ledgerPostings.accountId))
       .innerJoin(ledgerTransactions, eq(ledgerTransactions.id, ledgerPostings.transactionId))
       .where(
         and(
-          eq(ledgerAccounts.code, LedgerAccountCodeEnum.CASH),
+          inArray(ledgerAccounts.code, [...codes]),
+          isNotNull(ledgerTransactions.externalId),
           eq(ledgerTransactions.livemode, livemode),
           gte(ledgerTransactions.effectiveAt, windowStart),
           lt(ledgerTransactions.effectiveAt, windowEnd),
         ),
-      );
+      )
+      .groupBy(ledgerTransactions.externalId);
+  }
+
+  async aggregateInvoiceSettlements(
+    chargeIds: readonly string[],
+    livemode: boolean,
+  ): Promise<InvoiceSettlement[]> {
+    if (_.isEmpty(chargeIds)) {
+      return [];
+    }
+
+    return this._db.master
+      .select({
+        chargeId: sql<string>`${invoicePayments.chargeId}`,
+        amount: sql<number>`coalesce(sum(${invoicePayments.amount}), 0)::int`,
+      })
+      .from(invoicePayments)
+      .where(
+        and(
+          eq(invoicePayments.livemode, livemode),
+          inArray(invoicePayments.chargeId, [...chargeIds]),
+        ),
+      )
+      .groupBy(invoicePayments.chargeId);
   }
 }

@@ -14,7 +14,7 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     { schema: { body: createRefundSchema, response: { 201: refundSchema } } },
     async (request, reply) => {
-      const refund = await fastify.refundService.createRefund(request.body);
+      const refund = await fastify.refundService.createRefund(request.body, readLivemode(request));
 
       return ApiResponse.created(reply, refund);
     },

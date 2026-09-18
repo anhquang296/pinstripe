@@ -176,6 +176,20 @@
       "when": 1789697670561,
       "tag": "0024_payment_model",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1789701268643,
+      "tag": "0025_money_flow",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1789701299000,
+      "tag": "0026_money_flow_append_only",
+      "breakpoints": true
     }
   ]
 }

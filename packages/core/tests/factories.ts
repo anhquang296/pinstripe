@@ -108,6 +108,40 @@ export async function makePaymentMethod(
   );
 }
 
+export interface SettledChargeFixture {
+  paymentIntentId: string;
+  chargeId: string;
+  chargeReference: string;
+  amount: number;
+}
+
+export async function settleInvoice(
+  fastify: FastifyInstance,
+  invoiceId: string,
+): Promise<SettledChargeFixture> {
+  const paymentIntent = await fastify.paymentService.createPaymentIntent(
+    { invoiceId },
+    TEST_LIVEMODE,
+  );
+
+  await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE);
+  await fastify.paymentService.drainProviderEvents();
+
+  const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id, TEST_LIVEMODE);
+  const { latestChargeId, pspReference } = settled;
+
+  if (latestChargeId && pspReference) {
+    return {
+      paymentIntentId: settled.id,
+      chargeId: latestChargeId,
+      chargeReference: pspReference,
+      amount: settled.amount,
+    };
+  }
+
+  throw new Error('settleInvoice() the payment intent settled without a charge');
+}
+
 export async function makeOpenInvoice(
   fastify: FastifyInstance,
   overrides: SubscriptionOverrides = {},

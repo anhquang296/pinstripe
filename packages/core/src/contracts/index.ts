@@ -1,7 +1,9 @@
 export { PINSTRIPE_API_VERSION } from '@constants/api-version';
 export * from '@contracts/api-keys.types';
+export * from '@contracts/balance.types';
 export * from '@contracts/customers.types';
 export * from '@contracts/discounts.types';
+export * from '@contracts/disputes.types';
 export * from '@contracts/entitlements.types';
 export * from '@contracts/errors.types';
 export * from '@contracts/events.types';
@@ -12,6 +14,7 @@ export * from '@contracts/meters.types';
 export * from '@contracts/pagination.types';
 export * from '@contracts/payment-methods.types';
 export * from '@contracts/payments.types';
+export * from '@contracts/payouts.types';
 export * from '@contracts/prices.types';
 export * from '@contracts/products.types';
 export * from '@contracts/rating.types';

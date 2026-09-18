@@ -1,5 +1,10 @@
 import { MILLISECONDS_PER_DAY } from '@constants/time';
-import { BillingReasonEnum, InvoiceStatusEnum } from '@contracts/invoices.types';
+import {
+  BillingReasonEnum,
+  CreditNoteStatusEnum,
+  CreditNoteTypeEnum,
+  InvoiceStatusEnum,
+} from '@contracts/invoices.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 import { BillingModeEnum, ProrationBehaviorEnum } from '@contracts/subscriptions.types';
@@ -323,7 +328,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
     const creditNote = await fastify.creditNoteService.createCreditNote({
       invoiceId: open.id,
-      amount: 100_000,
+      lines: [{ amount: 100_000, description: 'Một ghế thừa' }],
       reason: 'Khách báo sai số lượng',
     });
 
@@ -335,7 +340,40 @@ describe('CreditNoteService.createCreditNote', () => {
     );
 
     expect(creditNote.number).toMatch(/^CN-\d{6}$/);
+    expect(creditNote.type).toBe(CreditNoteTypeEnum.PRE_PAYMENT);
+    expect(creditNote.status).toBe(CreditNoteStatusEnum.ISSUED);
+    expect(creditNote.lines).toHaveLength(1);
     expect(receivable.balance).toBe(BASE_AMOUNT - 100_000);
+  });
+
+  it('reverses its own ledger entry when it is voided', async () => {
+    const { subscriptionId, customerId } = await makeSubscription();
+    const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
+    const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
+    const creditNote = await fastify.creditNoteService.createCreditNote({
+      invoiceId: open.id,
+      lines: [{ amount: 100_000 }],
+      reason: 'Ghi nhầm',
+    });
+    const voided = await fastify.creditNoteService.voidCreditNote(
+      creditNote.id,
+      { reason: 'Ghi nhầm thật' },
+      TEST_LIVEMODE,
+    );
+
+    const receivable = await fastify.ledgerService.ensureAccount(
+      LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
+      CurrencyEnum.VND,
+      false,
+      customerId,
+    );
+    const invoice = await fastify.invoiceService.getInvoice(open.id, TEST_LIVEMODE);
+
+    expect(voided.status).toBe(CreditNoteStatusEnum.VOID);
+    expect(voided.voidedAt).not.toBeNull();
+    expect(receivable.balance).toBe(BASE_AMOUNT);
+    expect(invoice.amountCredited).toBe(0);
   });
 
   it('refuses to credit more than the invoice was worth', async () => {
@@ -345,20 +383,20 @@ describe('CreditNoteService.createCreditNote', () => {
 
     await fastify.creditNoteService.createCreditNote({
       invoiceId: open.id,
-      amount: BASE_AMOUNT,
+      lines: [{ amount: BASE_AMOUNT }],
       reason: 'Hoàn toàn bộ',
     });
 
     await expect(
       fastify.creditNoteService.createCreditNote({
         invoiceId: open.id,
-        amount: 1,
+        lines: [{ amount: 1 }],
         reason: 'Một đồng nữa',
       }),
     ).rejects.toThrow(BadRequestError);
   });
 
-  it('refuses to credit money the customer has already paid', async () => {
+  it('refuses to credit more than the customer has already paid', async () => {
     const { subscriptionId, customerId } = await makeSubscription();
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId }, TEST_LIVEMODE);
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
@@ -368,10 +406,10 @@ describe('CreditNoteService.createCreditNote', () => {
     await expect(
       fastify.creditNoteService.createCreditNote({
         invoiceId: open.id,
-        amount: BASE_AMOUNT,
-        reason: 'Nhiều hơn số còn nợ',
+        lines: [{ amount: BASE_AMOUNT }],
+        reason: 'Nhiều hơn số đã trả',
       }),
-    ).rejects.toThrow(/still owed/);
+    ).rejects.toThrow(/exceeds the 400000 paid/);
 
     const receivable = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
@@ -390,7 +428,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
     await fastify.creditNoteService.createCreditNote({
       invoiceId: open.id,
-      amount: 100_000,
+      lines: [{ amount: 100_000 }],
       reason: 'Chiết khấu thỏa thuận',
     });
 
@@ -417,7 +455,7 @@ describe('CreditNoteService.createCreditNote', () => {
 
     await fastify.creditNoteService.createCreditNote({
       invoiceId: open.id,
-      amount: BASE_AMOUNT,
+      lines: [{ amount: BASE_AMOUNT }],
       reason: 'Hủy toàn bộ theo thỏa thuận',
     });
 
@@ -435,7 +473,7 @@ describe('CreditNoteService.createCreditNote', () => {
     await expect(
       fastify.creditNoteService.createCreditNote({
         invoiceId: draft.id,
-        amount: 1,
+        lines: [{ amount: 1 }],
         reason: 'Chưa phát hành',
       }),
     ).rejects.toThrow(ConflictError);
