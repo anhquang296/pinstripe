@@ -1,6 +1,6 @@
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
+import RenderTextField from '@components/fields/RenderTextField';
 import type { ProductFormData } from '@forms/product-form';
+import { Button } from '@heroui/react';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface ProductFormProps {
@@ -10,32 +10,20 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ form, isSaving, onSave }: ProductFormProps) {
-  const { errors } = form.formState;
-
   return (
     <form
-      className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
+      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
       onSubmit={onSave}
     >
-      <TextField
-        label="Tên"
-        placeholder="Pinstripe Pro"
-        error={errors.name?.message}
-        {...form.register('name')}
-      />
-      <TextField
+      <RenderTextField control={form.control} name="name" label="Tên" placeholder="Pinstripe Pro" />
+      <RenderTextField
+        control={form.control}
+        name="description"
         label="Mô tả"
         placeholder="Gói dành cho doanh nghiệp"
-        error={errors.description?.message}
-        {...form.register('description')}
       />
-      <TextField
-        label="Đơn vị"
-        placeholder="seat"
-        error={errors.unitLabel?.message}
-        {...form.register('unitLabel')}
-      />
-      <Button type="submit" disabled={isSaving}>
+      <RenderTextField control={form.control} name="unitLabel" label="Đơn vị" placeholder="seat" />
+      <Button type="submit" isDisabled={isSaving}>
         Tạo product
       </Button>
     </form>

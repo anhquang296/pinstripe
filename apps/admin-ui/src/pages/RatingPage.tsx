@@ -1,8 +1,9 @@
+import PageCard from '@components/PageCard';
 import RatedLineItem from '@components/RatedLineItem';
-import SelectField from '@components/ui/SelectField';
 import { OPTION_LIMIT } from '@constants/pagination';
+import { Label, ListBox, Select } from '@heroui/react';
 import { useSubscriptionsQuery, useUpcomingInvoiceQuery } from '@pinstripe/sdk/react';
-import { map, toUpper } from 'lodash-es';
+import { map, toString, toUpper } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 
 export default function RatingPage() {
@@ -12,38 +13,47 @@ export default function RatingPage() {
   const { data: ratedInvoice, error } = useUpcomingInvoiceQuery(selectedSubscriptionId);
 
   const subscriptionOptions = useMemo(() => {
-    return [
-      { value: '', label: '— chọn subscription —' },
-      ...map(subscriptions?.data, (subscription) => {
-        return {
-          value: subscription.id,
-          label: `${subscription.id} · ${subscription.status}`,
-        };
-      }),
-    ];
+    return map(subscriptions?.data, (subscription) => {
+      return {
+        value: subscription.id,
+        label: `${subscription.id} · ${subscription.status}`,
+      };
+    });
   }, [subscriptions]);
 
-  const handleOnSubscriptionChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSubscriptionId(event.target.value);
+  const handleOnSubscriptionChange = useCallback((key: unknown) => {
+    setSelectedSubscriptionId(toString(key));
   }, []);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Rating</h1>
-        <p className="text-sm text-slate-500">
-          Áp giá lên kỳ hiện tại. Đây là kết quả tính, chưa phải hóa đơn — chưa có số, chưa chốt,
-          hỏi lại lúc nào cũng tính lại từ đầu.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
-        <SelectField
-          label="Subscription"
-          options={subscriptionOptions}
-          value={selectedSubscriptionId}
-          onChange={handleOnSubscriptionChange}
-        />
+    <PageCard
+      title="Rating"
+      description="Áp giá lên kỳ hiện tại. Đây là kết quả tính, chưa phải hóa đơn — chưa có số, chưa chốt, hỏi lại lúc nào cũng tính lại từ đầu."
+    >
+      <div className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4">
+        <Select
+          className="flex flex-col gap-1"
+          placeholder="— chọn subscription —"
+          selectedKey={selectedSubscriptionId === '' ? null : selectedSubscriptionId}
+          onSelectionChange={handleOnSubscriptionChange}
+        >
+          <Label>Subscription</Label>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {map(subscriptionOptions, (subscriptionOption) => {
+                return (
+                  <ListBox.Item key={subscriptionOption.value} id={subscriptionOption.value}>
+                    {subscriptionOption.label}
+                  </ListBox.Item>
+                );
+              })}
+            </ListBox>
+          </Select.Popover>
+        </Select>
         {ratedInvoice ? (
           <div className="ml-auto flex flex-col text-right">
             <span className="text-2xl font-semibold tabular-nums">
@@ -86,6 +96,6 @@ export default function RatingPage() {
           </table>
         </div>
       ) : null}
-    </div>
+    </PageCard>
   );
 }

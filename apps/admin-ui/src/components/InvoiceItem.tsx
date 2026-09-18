@@ -1,5 +1,5 @@
-import Button from '@components/ui/Button';
 import { COLLECTION_METHOD_LABELS } from '@constants/collection-method';
+import { Button } from '@heroui/react';
 import type { InvoiceResponse } from '@pinstripe/core/contracts';
 import { InvoiceStatusEnum } from '@pinstripe/core/contracts';
 import { toUpper } from 'lodash-es';
@@ -83,22 +83,22 @@ export default function InvoiceItem({
       <td className="px-4 py-3">
         <div className="flex flex-wrap gap-2">
           {isDraft ? (
-            <Button variant="ghost" onClick={handleOnFinalize} disabled={isBusy}>
+            <Button variant="ghost" onPress={handleOnFinalize} isDisabled={isBusy}>
               Phát hành
             </Button>
           ) : null}
           {isOpen ? (
-            <Button variant="ghost" onClick={handleOnCharge} disabled={isBusy}>
+            <Button variant="ghost" onPress={handleOnCharge} isDisabled={isBusy}>
               Thu tiền
             </Button>
           ) : null}
           {isOpen ? (
-            <Button variant="ghost" onClick={handleOnCredit} disabled={isBusy}>
+            <Button variant="ghost" onPress={handleOnCredit} isDisabled={isBusy}>
               Credit note
             </Button>
           ) : null}
           {isDraft || isOpen ? (
-            <Button variant="ghost" onClick={handleOnVoid} disabled={isBusy}>
+            <Button variant="ghost" onPress={handleOnVoid} isDisabled={isBusy}>
               Hủy
             </Button>
           ) : null}

@@ -1,5 +1,6 @@
 import LedgerAccountItem from '@components/LedgerAccountItem';
 import LedgerTransactionItem from '@components/LedgerTransactionItem';
+import PageCard from '@components/PageCard';
 import ReverseTransactionForm from '@components/ReverseTransactionForm';
 import type { ReverseTransactionFormData } from '@forms/reverse-transaction-form';
 import {
@@ -61,14 +62,10 @@ export default function LedgerPage() {
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Ledger</h1>
-        <p className="text-sm text-slate-500">
-          Sổ kép append-only: số dư là projection của postings, sửa sai bằng bút toán đảo.
-        </p>
-      </div>
-
+    <PageCard
+      title="Ledger"
+      description="Sổ kép append-only: số dư là projection của postings, sửa sai bằng bút toán đảo."
+    >
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">
           Số dư tài khoản
@@ -125,6 +122,6 @@ export default function LedgerPage() {
           <p className="px-4 py-3 text-red-600">{transactionsError.message}</p>
         ) : null}
       </section>
-    </div>
+    </PageCard>
   );
 }

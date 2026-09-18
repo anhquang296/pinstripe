@@ -1,3 +1,4 @@
+import PageCard from '@components/PageCard';
 import SubscriptionForm from '@components/SubscriptionForm';
 import SubscriptionItem from '@components/SubscriptionItem';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
@@ -85,14 +86,10 @@ export default function SubscriptionsPage() {
   );
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Subscriptions</h1>
-        <p className="text-sm text-slate-500">
-          Quyền dùng tách khỏi chu kỳ tính tiền: hủy cuối kỳ thì khách vẫn dùng tới hết kỳ.
-        </p>
-      </div>
-
+    <PageCard
+      title="Subscriptions"
+      description="Quyền dùng tách khỏi chu kỳ tính tiền: hủy cuối kỳ thì khách vẫn dùng tới hết kỳ."
+    >
       <SubscriptionForm
         form={form}
         customerOptions={customerOptions}
@@ -163,6 +160,6 @@ export default function SubscriptionsPage() {
           </table>
         </div>
       </section>
-    </div>
+    </PageCard>
   );
 }

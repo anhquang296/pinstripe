@@ -1,4 +1,4 @@
-import Button from '@components/ui/Button';
+import { Button } from '@heroui/react';
 import type { LedgerTransactionResponse } from '@pinstripe/core/contracts';
 import { map, toUpper } from 'lodash-es';
 import { useCallback } from 'react';
@@ -33,7 +33,7 @@ export default function LedgerTransactionItem({
             đã bị đảo
           </span>
         ) : (
-          <Button variant={isSelected ? 'primary' : 'ghost'} onClick={handleOnSelectClick}>
+          <Button variant={isSelected ? 'primary' : 'ghost'} onPress={handleOnSelectClick}>
             Đảo bút toán
           </Button>
         )}

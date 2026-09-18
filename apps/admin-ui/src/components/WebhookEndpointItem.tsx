@@ -1,4 +1,4 @@
-import Button from '@components/ui/Button';
+import { Button } from '@heroui/react';
 import type { WebhookEndpointResponse } from '@pinstripe/core/contracts';
 import { WebhookEndpointStatusEnum } from '@pinstripe/core/contracts';
 import { join } from 'lodash-es';
@@ -39,7 +39,7 @@ export default function WebhookEndpointItem({
       </td>
       <td className="px-4 py-3 text-xs text-slate-500">{join(endpoint.enabledEvents, ', ')}</td>
       <td className="px-4 py-3">
-        <Button variant="ghost" onClick={handleOnToggle} disabled={isBusy}>
+        <Button variant="ghost" onPress={handleOnToggle} isDisabled={isBusy}>
           {isEnabled ? 'Tắt' : 'Bật'}
         </Button>
       </td>

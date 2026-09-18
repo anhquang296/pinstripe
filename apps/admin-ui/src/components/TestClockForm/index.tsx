@@ -1,6 +1,6 @@
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
+import RenderTextField from '@components/fields/RenderTextField';
 import type { TestClockFormData } from '@forms/test-clock-form';
+import { Button } from '@heroui/react';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface TestClockFormProps {
@@ -10,20 +10,18 @@ interface TestClockFormProps {
 }
 
 export default function TestClockForm({ form, isSaving, onSave }: TestClockFormProps) {
-  const { errors } = form.formState;
-
   return (
     <form
-      className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
+      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
       onSubmit={onSave}
     >
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="name"
         label="Tên đồng hồ"
         placeholder="Demo kế toán"
-        error={errors.name?.message}
-        {...form.register('name')}
       />
-      <Button type="submit" disabled={isSaving}>
+      <Button type="submit" isDisabled={isSaving}>
         Tạo test clock
       </Button>
     </form>

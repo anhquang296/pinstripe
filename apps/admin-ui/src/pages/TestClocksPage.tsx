@@ -1,3 +1,4 @@
+import PageCard from '@components/PageCard';
 import TestClockForm from '@components/TestClockForm';
 import TestClockItem from '@components/TestClockItem';
 import { PAGE_LIMIT } from '@constants/pagination';
@@ -64,24 +65,20 @@ export default function TestClocksPage() {
 
   if (isDisabled) {
     return (
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Test clocks</h1>
-        <p className="text-sm text-slate-500">
-          Test clock đang tắt ở môi trường này. Bật bằng TEST_CLOCKS_ENABLED=true trên UAT/staging.
-        </p>
-      </div>
+      <PageCard
+        title="Test clocks"
+        description="Test clock đang tắt ở môi trường này. Bật bằng TEST_CLOCKS_ENABLED=true trên UAT/staging."
+      >
+        <p className="text-app-description text-[13px]">Không có gì để hiển thị.</p>
+      </PageCard>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Test clocks</h1>
-        <p className="text-sm text-slate-500">
-          Tua thời gian để thấy trial kết thúc, kỳ cuốn sang kỳ mới và subscription hủy cuối kỳ.
-        </p>
-      </div>
-
+    <PageCard
+      title="Test clocks"
+      description="Tua thời gian để thấy trial kết thúc, kỳ cuốn sang kỳ mới và subscription hủy cuối kỳ."
+    >
       <TestClockForm form={form} isSaving={isSaving} onSave={handleOnSave} />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -108,8 +105,8 @@ export default function TestClocksPage() {
             })}
           </tbody>
         </table>
-        {error ? <p className="px-4 py-3 text-red-600">{error.message}</p> : null}
+        {error ? <p className="px-4 py-3 text-danger">{error.message}</p> : null}
       </div>
-    </div>
+    </PageCard>
   );
 }
