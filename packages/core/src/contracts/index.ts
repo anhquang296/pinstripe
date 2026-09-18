@@ -1,5 +1,6 @@
 export { PINSTRIPE_API_VERSION } from '@constants/api-version';
 export * from '@contracts/api-keys.types';
+export * from '@contracts/audit-logs.types';
 export * from '@contracts/balance.types';
 export * from '@contracts/billing-portal.types';
 export * from '@contracts/checkout.types';
@@ -28,5 +29,6 @@ export * from '@contracts/setup-intents.types';
 export * from '@contracts/subscriptions.types';
 export * from '@contracts/taxes.types';
 export * from '@contracts/test-clocks.types';
+export * from '@contracts/users.types';
 export * from '@contracts/webhooks.types';
 export * from '@utils/currency';

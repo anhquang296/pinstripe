@@ -1,4 +1,5 @@
 import { ApiKeyRepository } from '@repositories/api-key.repository';
+import { AuditLogRepository } from '@repositories/audit-log.repository';
 import { BalanceTransactionRepository } from '@repositories/balance-transaction.repository';
 import { BillingPortalConfigurationRepository } from '@repositories/billing-portal-configuration.repository';
 import { BillingPortalSessionRepository } from '@repositories/billing-portal-session.repository';
@@ -37,11 +38,14 @@ import { SubscriptionRepository } from '@repositories/subscription.repository';
 import { TaxIdRepository } from '@repositories/tax-id.repository';
 import { TaxRateRepository } from '@repositories/tax-rate.repository';
 import { TestClockRepository } from '@repositories/test-clock.repository';
+import { UserRepository } from '@repositories/user.repository';
 import { WebhookRepository } from '@repositories/webhook.repository';
 import fp from 'fastify-plugin';
 
 export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('apiKeyRepository', new ApiKeyRepository(fastify.database));
+  fastify.decorate('userRepository', new UserRepository(fastify.database));
+  fastify.decorate('auditLogRepository', new AuditLogRepository(fastify.database));
   fastify.decorate('customerRepository', new CustomerRepository(fastify.database));
   fastify.decorate(
     'customerBalanceTransactionRepository',

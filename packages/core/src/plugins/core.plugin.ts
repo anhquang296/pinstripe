@@ -1,3 +1,4 @@
+import { betterAuthPlugin } from '@plugins/better-auth.plugin';
 import { configPlugin } from '@plugins/config.plugin';
 import { databasePlugin } from '@plugins/database.plugin';
 import { fileStoragePlugin } from '@plugins/file-storage.plugin';
@@ -20,6 +21,7 @@ export const corePlugin = fp(async (fastify) => {
   await fastify.register(notificationPlugin);
   await fastify.register(fileStoragePlugin);
   await fastify.register(repositoryRegistryPlugin);
+  await fastify.register(betterAuthPlugin);
   await fastify.register(taxPlugin);
   await fastify.register(partnerCollectionPlugin);
   await fastify.register(serviceRegistryPlugin);

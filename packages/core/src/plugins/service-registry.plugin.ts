@@ -1,4 +1,5 @@
 import { ApiKeyService } from '@services/api-key.service';
+import { AuditLogService } from '@services/audit-log.service';
 import { BalanceService } from '@services/balance.service';
 import { BillingPortalService } from '@services/billing-portal.service';
 import { BillingRunService } from '@services/billing-run.service';
@@ -43,6 +44,7 @@ import { TaxService } from '@services/tax.service';
 import { TaxIdService } from '@services/tax-id.service';
 import { TaxRateService } from '@services/tax-rate.service';
 import { TestClockService } from '@services/test-clock.service';
+import { UserService } from '@services/user.service';
 import { WebhookService } from '@services/webhook.service';
 import fp from 'fastify-plugin';
 
@@ -53,6 +55,8 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   );
   fastify.decorate('outboxService', new OutboxService(fastify));
   fastify.decorate('apiKeyService', new ApiKeyService(fastify));
+  fastify.decorate('userService', new UserService(fastify));
+  fastify.decorate('auditLogService', new AuditLogService(fastify));
   fastify.decorate('customerService', new CustomerService(fastify));
   fastify.decorate('eventService', new EventService(fastify));
   fastify.decorate('expansionService', new ExpansionService(fastify));

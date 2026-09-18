@@ -218,6 +218,13 @@
       "when": 1789725654887,
       "tag": "0030_partner_account",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1789747328718,
+      "tag": "0031_better_auth",
+      "breakpoints": true
     }
   ]
 }

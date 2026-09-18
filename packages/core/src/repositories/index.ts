@@ -1,4 +1,5 @@
 export * from '@repositories/api-key.repository';
+export * from '@repositories/audit-log.repository';
 export * from '@repositories/balance-transaction.repository';
 export * from '@repositories/billing-portal-configuration.repository';
 export * from '@repositories/billing-portal-session.repository';
@@ -38,4 +39,5 @@ export * from '@repositories/subscription.repository';
 export * from '@repositories/tax-id.repository';
 export * from '@repositories/tax-rate.repository';
 export * from '@repositories/test-clock.repository';
+export * from '@repositories/user.repository';
 export * from '@repositories/webhook.repository';
