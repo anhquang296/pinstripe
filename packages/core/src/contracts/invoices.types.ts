@@ -24,6 +24,18 @@ export enum NumberSequenceEnum {
 }
 export type NumberSequence = `${NumberSequenceEnum}`;
 
+export enum CreditNoteTypeEnum {
+  PRE_PAYMENT = 'pre_payment',
+  POST_PAYMENT = 'post_payment',
+}
+export type CreditNoteType = `${CreditNoteTypeEnum}`;
+
+export enum CreditNoteStatusEnum {
+  ISSUED = 'issued',
+  VOID = 'void',
+}
+export type CreditNoteStatus = `${CreditNoteStatusEnum}`;
+
 export enum BillingReasonEnum {
   SUBSCRIPTION_CREATE = 'subscription_create',
   SUBSCRIPTION_CYCLE = 'subscription_cycle',
@@ -130,8 +142,27 @@ export const creditNoteSchema = Type.Object({
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
+  type: Type.Unsafe<CreditNoteType>(Type.Enum(CreditNoteTypeEnum)),
+  status: Type.Unsafe<CreditNoteStatus>(Type.Enum(CreditNoteStatusEnum)),
   amount: Type.Integer(),
+  refundAmount: Type.Integer(),
+  outOfBandAmount: Type.Integer(),
+  creditAmount: Type.Integer(),
+  refundId: Type.Union([Type.String(), Type.Null()]),
   reason: Type.String(),
+  lines: Type.Array(
+    Type.Object({
+      object: Type.Literal('credit_note_line_item'),
+      id: Type.String(),
+      creditNoteId: Type.String(),
+      invoiceLineItemId: Type.Union([Type.String(), Type.Null()]),
+      description: Type.String(),
+      quantity: Type.Number(),
+      unitAmount: Type.Union([Type.Integer(), Type.Null()]),
+      amount: Type.Integer(),
+    }),
+  ),
+  voidedAt: Type.Union([Type.String(), Type.Null()]),
   metadata: Type.Record(Type.String(), Type.String()),
   createdAt: Type.String(),
 });
@@ -250,12 +281,38 @@ export const payInvoiceSchema = Type.Object(
 export const createCreditNoteSchema = Type.Object(
   {
     invoiceId: Type.String({ minLength: 1 }),
-    amount: Type.Integer({ minimum: 1 }),
+    lines: Type.Array(
+      Type.Object(
+        {
+          invoiceLineItemId: Type.Optional(Type.String({ minLength: 1 })),
+          description: Type.Optional(Type.String()),
+          quantity: Type.Optional(Type.Number({ minimum: 0 })),
+          unitAmount: Type.Optional(Type.Integer({ minimum: 0 })),
+          amount: Type.Integer({ minimum: 1 }),
+        },
+        { additionalProperties: false },
+      ),
+      { minItems: 1 },
+    ),
+    refundAmount: Type.Optional(Type.Integer({ minimum: 0 })),
+    outOfBandAmount: Type.Optional(Type.Integer({ minimum: 0 })),
     reason: Type.String({ minLength: 1 }),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
   },
   { additionalProperties: false },
 );
+
+export const voidCreditNoteSchema = Type.Object(
+  {
+    reason: Type.Optional(Type.String({ minLength: 1 })),
+    metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
+  },
+  { additionalProperties: false },
+);
+
+export const creditNoteParamsSchema = Type.Object({
+  creditNoteId: Type.String(),
+});
 
 export const findInvoicesSchema = Type.Object(
   {
@@ -293,5 +350,7 @@ export type CreateInvoicePayload = Static<typeof createInvoiceSchema>;
 export type VoidInvoicePayload = Static<typeof voidInvoiceSchema>;
 export type PayInvoicePayload = Static<typeof payInvoiceSchema>;
 export type CreateCreditNotePayload = Static<typeof createCreditNoteSchema>;
+export type VoidCreditNotePayload = Static<typeof voidCreditNoteSchema>;
+export type CreditNoteLineItemResponse = CreditNoteResponse['lines'][number];
 export type FindInvoicesQuery = Static<typeof findInvoicesSchema>;
 export type FindCreditNotesQuery = Static<typeof findCreditNotesSchema>;

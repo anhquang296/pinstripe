@@ -1,6 +1,8 @@
 export * from '@database/schemas/api-keys.schema';
+export * from '@database/schemas/balance-transactions.schema';
 export * from '@database/schemas/customers.schema';
 export * from '@database/schemas/discounts.schema';
+export * from '@database/schemas/disputes.schema';
 export * from '@database/schemas/entitlements.schema';
 export * from '@database/schemas/events.schema';
 export * from '@database/schemas/idempotency-keys.schema';
@@ -12,6 +14,7 @@ export * from '@database/schemas/meters.schema';
 export * from '@database/schemas/outbox-events.schema';
 export * from '@database/schemas/payment-methods.schema';
 export * from '@database/schemas/payments.schema';
+export * from '@database/schemas/payouts.schema';
 export * from '@database/schemas/prices.schema';
 export * from '@database/schemas/products.schema';
 export * from '@database/schemas/subscriptions.schema';

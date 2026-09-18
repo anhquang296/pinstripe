@@ -94,8 +94,33 @@ export enum PspEventTypeEnum {
   PAYMENT_FAILED = 'payment.failed',
   SETUP_SUCCEEDED = 'setup.succeeded',
   SETUP_FAILED = 'setup.failed',
+  REFUND_SUCCEEDED = 'refund.succeeded',
+  REFUND_FAILED = 'refund.failed',
+  DISPUTE_CREATED = 'dispute.created',
+  DISPUTE_CLOSED = 'dispute.closed',
+  PAYOUT_PAID = 'payout.paid',
+  PAYOUT_FAILED = 'payout.failed',
 }
 export type PspEventType = `${PspEventTypeEnum}`;
+
+export enum RefundStatusEnum {
+  PENDING = 'pending',
+  SUCCEEDED = 'succeeded',
+  FAILED = 'failed',
+  CANCELED = 'canceled',
+}
+export type RefundStatus = `${RefundStatusEnum}`;
+
+export const REFUND_TRANSITIONS: Record<RefundStatus, RefundStatus[]> = {
+  [RefundStatusEnum.PENDING]: [
+    RefundStatusEnum.SUCCEEDED,
+    RefundStatusEnum.FAILED,
+    RefundStatusEnum.CANCELED,
+  ],
+  [RefundStatusEnum.SUCCEEDED]: [],
+  [RefundStatusEnum.FAILED]: [],
+  [RefundStatusEnum.CANCELED]: [],
+};
 
 export const PAYMENT_INTENT_TRANSITIONS: Record<PaymentIntentStatus, PaymentIntentStatus[]> = {
   [PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD]: [
@@ -220,14 +245,17 @@ export const paymentIntentSchema = Type.Object({
 export const refundSchema = Type.Object({
   object: Type.Literal('refund'),
   id: Type.String(),
+  chargeId: Type.String(),
   paymentIntentId: Type.String(),
-  chargeId: Type.Union([Type.String(), Type.Null()]),
   invoiceId: Type.Union([Type.String(), Type.Null()]),
+  creditNoteId: Type.Union([Type.String(), Type.Null()]),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   amount: Type.Integer(),
+  status: Type.Unsafe<RefundStatus>(Type.Enum(RefundStatusEnum)),
   reason: Type.String(),
+  failureReason: Type.Union([Type.String(), Type.Null()]),
   pspReference: Type.String(),
   metadata: Type.Record(Type.String(), Type.String()),
   createdAt: Type.String(),
@@ -278,7 +306,7 @@ export const cancelPaymentIntentSchema = Type.Object(
 
 export const createRefundSchema = Type.Object(
   {
-    paymentIntentId: Type.String({ minLength: 1 }),
+    chargeId: Type.String({ minLength: 1 }),
     amount: Type.Optional(Type.Integer({ minimum: 1 })),
     reason: Type.String({ minLength: 1 }),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
@@ -305,7 +333,9 @@ export const findRefundsSchema = Type.Object(
     startingAfter: Type.Optional(Type.String()),
     endingBefore: Type.Optional(Type.String()),
     invoiceId: Type.Optional(Type.String()),
+    chargeId: Type.Optional(Type.String()),
     paymentIntentId: Type.Optional(Type.String()),
+    status: Type.Optional(Type.Unsafe<RefundStatus>(Type.Enum(RefundStatusEnum))),
     expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
@@ -320,6 +350,9 @@ export const pspCallbackSchema = Type.Object(
     failureCode: Type.Optional(Type.Unsafe<FailureCode>(Type.Enum(FailureCodeEnum))),
     declineCode: Type.Optional(Type.String()),
     failureMessage: Type.Optional(Type.String()),
+    sourceReference: Type.Optional(Type.String()),
+    reason: Type.Optional(Type.String()),
+    outcome: Type.Optional(Type.String()),
     paymentMethodDetails: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
   },
   { additionalProperties: false },

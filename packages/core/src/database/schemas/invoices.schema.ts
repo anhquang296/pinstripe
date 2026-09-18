@@ -1,4 +1,10 @@
-import type { BillingReason, InvoiceStatus, NumberSequence } from '@contracts/invoices.types';
+import type {
+  BillingReason,
+  CreditNoteStatus,
+  CreditNoteType,
+  InvoiceStatus,
+  NumberSequence,
+} from '@contracts/invoices.types';
 import type { CollectionMethod } from '@contracts/subscriptions.types';
 import type { AuthorityStatus, AutomaticTaxStatus, TaxType } from '@contracts/taxes.types';
 import { AuthorityStatusEnum, AutomaticTaxStatusEnum } from '@contracts/taxes.types';
@@ -196,7 +202,13 @@ export const creditNotes = pgTable(
         return customers.id;
       }),
     currency: text('currency').$type<Currency>().notNull(),
+    type: text('type').$type<CreditNoteType>().notNull(),
     amount: bigint('amount', { mode: 'number' }).notNull(),
+    refundAmount: bigint('refund_amount', { mode: 'number' }).notNull().default(0),
+    outOfBandAmount: bigint('out_of_band_amount', { mode: 'number' }).notNull().default(0),
+    creditAmount: bigint('credit_amount', { mode: 'number' }).notNull().default(0),
+    refundId: text('refund_id'),
+    ledgerTransactionId: text('ledger_transaction_id'),
     reason: text('reason').notNull(),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -206,6 +218,53 @@ export const creditNotes = pgTable(
       index('credit_notes_invoice_id_idx').on(table.invoiceId),
       index('credit_notes_created_at_id_idx').on(table.createdAt, table.id),
       uniqueIndex('credit_notes_number_idx').on(table.livemode, table.number),
+    ];
+  },
+);
+
+export const creditNoteLineItems = pgTable(
+  'credit_note_line_items',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    creditNoteId: text('credit_note_id')
+      .notNull()
+      .references(() => {
+        return creditNotes.id;
+      }),
+    invoiceLineItemId: text('invoice_line_item_id').references(() => {
+      return invoiceLineItems.id;
+    }),
+    description: text('description').notNull().default(''),
+    quantity: doublePrecision('quantity').notNull().default(1),
+    unitAmount: bigint('unit_amount', { mode: 'number' }),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [index('credit_note_line_items_credit_note_id_idx').on(table.creditNoteId)];
+  },
+);
+
+export const creditNoteTransitions = pgTable(
+  'credit_note_transitions',
+  {
+    id: text('id').primaryKey(),
+    livemode: boolean('livemode').notNull(),
+    creditNoteId: text('credit_note_id')
+      .notNull()
+      .references(() => {
+        return creditNotes.id;
+      }),
+    status: text('status').$type<CreditNoteStatus>().notNull(),
+    reason: text('reason'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return [
+      index('credit_note_transitions_credit_note_id_idx').on(table.creditNoteId),
+      index('credit_note_transitions_occurred_at_id_idx').on(table.occurredAt, table.id),
     ];
   },
 );
@@ -288,6 +347,10 @@ export type InvoiceLineItemTaxAmount = typeof invoiceLineItemTaxAmounts.$inferSe
 export type NewInvoiceLineItemTaxAmount = typeof invoiceLineItemTaxAmounts.$inferInsert;
 export type CreditNote = typeof creditNotes.$inferSelect;
 export type NewCreditNote = typeof creditNotes.$inferInsert;
+export type CreditNoteLineItem = typeof creditNoteLineItems.$inferSelect;
+export type NewCreditNoteLineItem = typeof creditNoteLineItems.$inferInsert;
+export type CreditNoteTransition = typeof creditNoteTransitions.$inferSelect;
+export type NewCreditNoteTransition = typeof creditNoteTransitions.$inferInsert;
 export type InvoiceItem = typeof invoiceItems.$inferSelect;
 export type NewInvoiceItem = typeof invoiceItems.$inferInsert;
 export type InvoicePayment = typeof invoicePayments.$inferSelect;
