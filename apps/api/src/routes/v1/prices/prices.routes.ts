@@ -8,14 +8,13 @@ import {
   updatePriceSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createPriceSchema, response: { 201: priceSchema } } },
     async (request, reply) => {
-      const price = await fastify.priceService.createPrice(request.body, readLivemode(request));
+      const price = await fastify.priceService.createPrice(request.body);
 
       return ApiResponse.created(reply, price);
     },
@@ -27,7 +26,7 @@ export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { querystring: findPricesSchema, response: { 200: ListResponseSchema(priceSchema) } },
     },
     async (request, reply) => {
-      const prices = await fastify.priceService.findPrices(request.query, readLivemode(request));
+      const prices = await fastify.priceService.findPrices(request.query);
 
       return ApiResponse.success(reply, prices);
     },
@@ -37,10 +36,7 @@ export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:priceId',
     { schema: { params: priceParamsSchema, response: { 200: priceSchema } } },
     async (request, reply) => {
-      const price = await fastify.priceService.getPrice(
-        request.params.priceId,
-        readLivemode(request),
-      );
+      const price = await fastify.priceService.getPrice(request.params.priceId);
 
       return ApiResponse.success(reply, price);
     },
@@ -56,11 +52,7 @@ export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const price = await fastify.priceService.updatePrice(
-        request.params.priceId,
-        request.body,
-        readLivemode(request),
-      );
+      const price = await fastify.priceService.updatePrice(request.params.priceId, request.body);
 
       return ApiResponse.success(reply, price);
     },

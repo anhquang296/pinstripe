@@ -51,9 +51,8 @@ export class CheckoutService {
 
   async createCheckoutSession(
     payload: CreateCheckoutSessionPayload,
-    livemode: boolean,
   ): Promise<CheckoutSessionResponse> {
-    const customer = await this.getCustomer(payload.customerId, livemode);
+    const customer = await this.getCustomer(payload.customerId);
     const drafts = CheckoutService.readLineItemDrafts(payload.lineItems);
 
     CheckoutService.assertLineItems(payload.mode, drafts);
@@ -62,14 +61,13 @@ export class CheckoutService {
     const now = this.fastify.clock.now();
     const createdAt = now.toISOString();
     const id = generateGid(ObjectPrefixEnum.CHECKOUT_SESSION);
-    const lineItems = CheckoutService.buildLineItems(id, livemode, drafts, prices, createdAt);
+    const lineItems = CheckoutService.buildLineItems(id, drafts, prices, createdAt);
     const amountTotal = _.sumBy(lineItems, 'amountTotal');
 
     const createdSession = await this.fastify.database.master.transaction(async (tx) => {
       const checkoutSession = await this.fastify.checkoutSessionRepository.createCheckoutSession(
         {
           id,
-          livemode,
           mode: payload.mode,
           status: CheckoutSessionStatusEnum.OPEN,
           paymentStatus:
@@ -113,12 +111,8 @@ export class CheckoutService {
   async createPaymentLinkCheckoutSession(
     paymentLinkId: string,
     customerId: string,
-    livemode: boolean,
   ): Promise<CheckoutSessionResponse> {
-    const paymentLink = await this.fastify.paymentLinkService.getPaymentLinkEntity(
-      paymentLinkId,
-      livemode,
-    );
+    const paymentLink = await this.fastify.paymentLinkService.getPaymentLinkEntity(paymentLinkId);
 
     if (!paymentLink.isActive) {
       throw new ConflictError(`Payment link ${paymentLinkId} is no longer active`);
@@ -127,17 +121,14 @@ export class CheckoutService {
     const linkLineItems = await this.fastify.paymentLinkRepository.findPaymentLinkLineItems([
       paymentLink.id,
     ]);
-    const session = await this.createCheckoutSession(
-      {
-        mode: paymentLink.mode,
-        customerId,
-        successUrl: paymentLink.successUrl,
-        lineItems: _.map(linkLineItems, (lineItem) => {
-          return { priceId: lineItem.priceId, quantity: lineItem.quantity };
-        }),
-      },
-      livemode,
-    );
+    const session = await this.createCheckoutSession({
+      mode: paymentLink.mode,
+      customerId,
+      successUrl: paymentLink.successUrl,
+      lineItems: _.map(linkLineItems, (lineItem) => {
+        return { priceId: lineItem.priceId, quantity: lineItem.quantity };
+      }),
+    });
     const linkedSession = await this.fastify.checkoutSessionRepository.updateCheckoutSession(
       session.id,
       { paymentLinkId: paymentLink.id, updatedAt: this.fastify.clock.now().toISOString() },
@@ -150,8 +141,8 @@ export class CheckoutService {
     throw new NotFoundError(`No such checkout session: ${session.id}`);
   }
 
-  async getCheckoutSession(id: string, livemode: boolean): Promise<CheckoutSessionResponse> {
-    const checkoutSession = await this.getCheckoutSessionEntity(id, livemode);
+  async getCheckoutSession(id: string): Promise<CheckoutSessionResponse> {
+    const checkoutSession = await this.getCheckoutSessionEntity(id);
 
     return this.buildCheckoutSession(checkoutSession);
   }
@@ -164,13 +155,12 @@ export class CheckoutService {
 
   async findCheckoutSessions(
     query: FindCheckoutSessionsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<CheckoutSessionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.checkoutSessionRepository.findCheckoutSessions(
-      { livemode, customerId: query.customerId, status: query.status, beforeAt, afterAt },
+      { customerId: query.customerId, status: query.status, beforeAt, afterAt },
       limit + 1,
     );
     const page = _.take(rows, limit);
@@ -301,16 +291,12 @@ export class CheckoutService {
     checkoutSession: CheckoutSession,
     paymentMethodId: string,
   ): Promise<CheckoutOutcome> {
-    const setupIntent = await this.fastify.setupIntentService.createSetupIntent(
-      { customerId: checkoutSession.customerId, paymentMethodId },
-      checkoutSession.livemode,
-    );
+    const setupIntent = await this.fastify.setupIntentService.createSetupIntent({
+      customerId: checkoutSession.customerId,
+      paymentMethodId,
+    });
 
-    await this.fastify.setupIntentService.confirmSetupIntent(
-      setupIntent.id,
-      { paymentMethodId },
-      checkoutSession.livemode,
-    );
+    await this.fastify.setupIntentService.confirmSetupIntent(setupIntent.id, { paymentMethodId });
 
     return {
       paymentStatus: CheckoutPaymentStatusEnum.NO_PAYMENT_REQUIRED,
@@ -325,15 +311,12 @@ export class CheckoutService {
     const lineItems = await this.fastify.checkoutSessionRepository.findCheckoutSessionLineItems([
       checkoutSession.id,
     ]);
-    const subscription = await this.fastify.subscriptionService.createSubscription(
-      {
-        customerId: checkoutSession.customerId,
-        items: _.map(lineItems, (lineItem) => {
-          return { priceId: lineItem.priceId, quantity: lineItem.quantity };
-        }),
-      },
-      checkoutSession.livemode,
-    );
+    const subscription = await this.fastify.subscriptionService.createSubscription({
+      customerId: checkoutSession.customerId,
+      items: _.map(lineItems, (lineItem) => {
+        return { priceId: lineItem.priceId, quantity: lineItem.quantity };
+      }),
+    });
 
     const [invoice] = await this.fastify.invoiceRepository.findInvoices(
       { subscriptionId: subscription.id },
@@ -358,34 +341,24 @@ export class CheckoutService {
     ]);
 
     for (const lineItem of lineItems) {
-      await this.fastify.invoiceItemService.createInvoiceItem(
-        {
-          customerId: checkoutSession.customerId,
-          priceId: lineItem.priceId,
-          quantity: lineItem.quantity,
-        },
-        checkoutSession.livemode,
-      );
+      await this.fastify.invoiceItemService.createInvoiceItem({
+        customerId: checkoutSession.customerId,
+        priceId: lineItem.priceId,
+        quantity: lineItem.quantity,
+      });
     }
 
-    const draft = await this.fastify.invoiceService.createInvoice(
-      {
-        customerId: checkoutSession.customerId,
-        metadata: { checkoutSessionId: checkoutSession.id },
-      },
-      checkoutSession.livemode,
-    );
+    const draft = await this.fastify.invoiceService.createInvoice({
+      customerId: checkoutSession.customerId,
+      metadata: { checkoutSessionId: checkoutSession.id },
+    });
     const invoice = await this.fastify.invoiceService.finalizeInvoice(draft.id);
-    const paymentIntent = await this.fastify.paymentService.createPaymentIntent(
-      { invoiceId: invoice.id, paymentMethodId },
-      checkoutSession.livemode,
-    );
+    const paymentIntent = await this.fastify.paymentService.createPaymentIntent({
+      invoiceId: invoice.id,
+      paymentMethodId,
+    });
 
-    await this.fastify.paymentService.confirmPaymentIntent(
-      paymentIntent.id,
-      { paymentMethodId },
-      checkoutSession.livemode,
-    );
+    await this.fastify.paymentService.confirmPaymentIntent(paymentIntent.id, { paymentMethodId });
 
     return {
       paymentStatus: CheckoutPaymentStatusEnum.UNPAID,
@@ -407,25 +380,21 @@ export class CheckoutService {
     }
 
     if (token) {
-      const paymentMethod = await this.fastify.paymentMethodService.createPaymentMethod(
-        {
-          type: PaymentMethodTypeEnum.CARD,
-          token,
-          customerId: checkoutSession.customerId,
-        },
-        checkoutSession.livemode,
-      );
+      const paymentMethod = await this.fastify.paymentMethodService.createPaymentMethod({
+        type: PaymentMethodTypeEnum.CARD,
+        token,
+        customerId: checkoutSession.customerId,
+      });
 
-      await this.fastify.paymentMethodService.attachPaymentMethod(
-        paymentMethod.id,
-        { customerId: checkoutSession.customerId, shouldBeDefault: true },
-        checkoutSession.livemode,
-      );
+      await this.fastify.paymentMethodService.attachPaymentMethod(paymentMethod.id, {
+        customerId: checkoutSession.customerId,
+        shouldBeDefault: true,
+      });
 
       return paymentMethod.id;
     }
 
-    const customer = await this.getCustomer(checkoutSession.customerId, checkoutSession.livemode);
+    const customer = await this.getCustomer(checkoutSession.customerId);
     const { defaultPaymentMethodId } = customer;
 
     if (defaultPaymentMethodId) {
@@ -447,7 +416,6 @@ export class CheckoutService {
         {
           aggregateType: AggregateTypeEnum.CHECKOUT_SESSION,
           aggregateId: checkoutSession.id,
-          livemode: checkoutSession.livemode,
           eventType,
           payload: {
             id: checkoutSession.id,
@@ -478,20 +446,20 @@ export class CheckoutService {
     throw new NotFoundError(`No such checkout session: ${id}`);
   }
 
-  private async getCheckoutSessionEntity(id: string, livemode: boolean): Promise<CheckoutSession> {
+  private async getCheckoutSessionEntity(id: string): Promise<CheckoutSession> {
     const checkoutSession = await this.fastify.checkoutSessionRepository.findCheckoutSession(id);
 
-    if (checkoutSession && checkoutSession.livemode === livemode) {
+    if (checkoutSession) {
       return checkoutSession;
     }
 
     throw new NotFoundError(`No such checkout session: ${id}`);
   }
 
-  private async getCustomer(id: string, livemode: boolean): Promise<Customer> {
+  private async getCustomer(id: string): Promise<Customer> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    if (customer && customer.livemode === livemode) {
+    if (customer) {
       return customer;
     }
 
@@ -608,7 +576,6 @@ export class CheckoutService {
 
   private static buildLineItems(
     checkoutSessionId: string,
-    livemode: boolean,
     drafts: readonly CheckoutLineItemDraft[],
     pricesById: Record<string, Price>,
     createdAt: string,
@@ -628,7 +595,6 @@ export class CheckoutService {
 
       return {
         id: generateGid(ObjectPrefixEnum.CHECKOUT_SESSION_LINE_ITEM),
-        livemode,
         checkoutSessionId,
         priceId: draft.priceId,
         quantity: draft.quantity,

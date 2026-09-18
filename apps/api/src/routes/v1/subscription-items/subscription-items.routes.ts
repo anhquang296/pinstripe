@@ -10,7 +10,6 @@ import {
   updateSubscriptionItemSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -19,7 +18,6 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
     async (request, reply) => {
       const subscriptionItem = await fastify.subscriptionItemService.createSubscriptionItem(
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.created(reply, subscriptionItem);
@@ -37,7 +35,6 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
     async (request, reply) => {
       const subscriptionItems = await fastify.subscriptionItemService.findSubscriptionItems(
         request.query,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, subscriptionItems);
@@ -50,7 +47,6 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
     async (request, reply) => {
       const subscriptionItem = await fastify.subscriptionItemService.getSubscriptionItem(
         request.params.subscriptionItemId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, subscriptionItem);
@@ -70,7 +66,6 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
       const subscriptionItem = await fastify.subscriptionItemService.updateSubscriptionItem(
         request.params.subscriptionItemId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, subscriptionItem);
@@ -90,7 +85,6 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
       const deletedSubscriptionItem = await fastify.subscriptionItemService.deleteSubscriptionItem(
         request.params.subscriptionItemId,
         request.body ?? {},
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, deletedSubscriptionItem);

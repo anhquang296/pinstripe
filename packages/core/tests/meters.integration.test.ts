@@ -35,25 +35,19 @@ afterAll(async () => {
 });
 
 async function buildMeter(aggregation: MeterAggregationEnum): Promise<MeterResponse> {
-  return fastify.meterService.createMeter(
-    {
-      displayName: `Meter ${generateGid(ObjectPrefixEnum.METER)}`,
-      eventName: `api_request_${generateGid(ObjectPrefixEnum.METER)}`,
-      aggregation,
-      valueKey: 'tokens',
-    },
-    false,
-  );
+  return fastify.meterService.createMeter({
+    displayName: `Meter ${generateGid(ObjectPrefixEnum.METER)}`,
+    eventName: `api_request_${generateGid(ObjectPrefixEnum.METER)}`,
+    aggregation,
+    valueKey: 'tokens',
+  });
 }
 
 async function buildCustomer(): Promise<string> {
-  const customer = await fastify.customerService.createCustomer(
-    {
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-    },
-    false,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+  });
 
   return customer.id;
 }
@@ -65,16 +59,13 @@ async function ingestEvent(
   timestamp: string,
   identifier?: string,
 ) {
-  return fastify.meterEventService.ingestMeterEvent(
-    {
-      eventName: meter.eventName,
-      customerId,
-      identifier,
-      timestamp,
-      payload: { tokens },
-    },
-    false,
-  );
+  return fastify.meterEventService.ingestMeterEvent({
+    eventName: meter.eventName,
+    customerId,
+    identifier,
+    timestamp,
+    payload: { tokens },
+  });
 }
 
 describe('MeterEventService.ingestMeterEvent', () => {
@@ -87,15 +78,11 @@ describe('MeterEventService.ingestMeterEvent', () => {
     await ingestEvent(meter, customerId, 10, INSIDE_WINDOW, identifier);
     await ingestEvent(meter, customerId, 10, INSIDE_WINDOW, identifier);
 
-    const summary = await fastify.meterEventService.getMeterEventSummary(
-      meter.id,
-      {
-        customerId,
-        windowStart: WINDOW_START,
-        windowEnd: WINDOW_END,
-      },
-      false,
-    );
+    const summary = await fastify.meterEventService.getMeterEventSummary(meter.id, {
+      customerId,
+      windowStart: WINDOW_START,
+      windowEnd: WINDOW_END,
+    });
 
     expect(summary.eventCount).toBe(1);
     expect(summary.value).toBe(10);
@@ -105,14 +92,11 @@ describe('MeterEventService.ingestMeterEvent', () => {
     const meter = await buildMeter(MeterAggregationEnum.SUM);
     const customerId = await buildCustomer();
 
-    const act = fastify.meterEventService.ingestMeterEvent(
-      {
-        eventName: meter.eventName,
-        customerId,
-        payload: { somethingElse: 3 },
-      },
-      false,
-    );
+    const act = fastify.meterEventService.ingestMeterEvent({
+      eventName: meter.eventName,
+      customerId,
+      payload: { somethingElse: 3 },
+    });
 
     await expect(act).rejects.toThrowError(BadRequestError);
   });
@@ -132,14 +116,11 @@ describe('MeterService.createMeter', () => {
   it('refuses a second meter listening for the same event name', async () => {
     const meter = await buildMeter(MeterAggregationEnum.COUNT);
 
-    const act = fastify.meterService.createMeter(
-      {
-        displayName: 'Duplicate listener',
-        eventName: meter.eventName,
-        aggregation: MeterAggregationEnum.COUNT,
-      },
-      false,
-    );
+    const act = fastify.meterService.createMeter({
+      displayName: 'Duplicate listener',
+      eventName: meter.eventName,
+      aggregation: MeterAggregationEnum.COUNT,
+    });
 
     await expect(act).rejects.toThrowError(ConflictError);
   });
@@ -164,15 +145,11 @@ describe('MeterEventService.getMeterEventSummary', () => {
       }
 
       summaries.push(
-        await fastify.meterEventService.getMeterEventSummary(
-          meter.id,
-          {
-            customerId,
-            windowStart: WINDOW_START,
-            windowEnd: WINDOW_END,
-          },
-          false,
-        ),
+        await fastify.meterEventService.getMeterEventSummary(meter.id, {
+          customerId,
+          windowStart: WINDOW_START,
+          windowEnd: WINDOW_END,
+        }),
       );
     }
 
@@ -186,15 +163,11 @@ describe('MeterEventService.getMeterEventSummary', () => {
     await ingestEvent(meter, customerId, 7, INSIDE_WINDOW);
     await ingestEvent(meter, customerId, 100, BEFORE_WINDOW);
 
-    const summary = await fastify.meterEventService.getMeterEventSummary(
-      meter.id,
-      {
-        customerId,
-        windowStart: WINDOW_START,
-        windowEnd: WINDOW_END,
-      },
-      false,
-    );
+    const summary = await fastify.meterEventService.getMeterEventSummary(meter.id, {
+      customerId,
+      windowStart: WINDOW_START,
+      windowEnd: WINDOW_END,
+    });
 
     expect(summary.value).toBe(7);
   });
@@ -209,26 +182,18 @@ describe('MeterEventService.getMeterEventSummary', () => {
     await setTimeout(WATERMARK_SEPARATION_MS);
     await ingestEvent(meter, customerId, 60, daysAgo(5));
 
-    const closedPeriod = await fastify.meterEventService.getMeterEventSummary(
-      meter.id,
-      {
-        customerId,
-        windowStart: WINDOW_START,
-        windowEnd: WINDOW_END,
-        receivedBefore: closedAt,
-      },
-      false,
-    );
-    const stragglers = await fastify.meterEventService.getMeterEventSummary(
-      meter.id,
-      {
-        customerId,
-        windowStart: WINDOW_START,
-        windowEnd: WINDOW_END,
-        receivedAfter: closedAt,
-      },
-      false,
-    );
+    const closedPeriod = await fastify.meterEventService.getMeterEventSummary(meter.id, {
+      customerId,
+      windowStart: WINDOW_START,
+      windowEnd: WINDOW_END,
+      receivedBefore: closedAt,
+    });
+    const stragglers = await fastify.meterEventService.getMeterEventSummary(meter.id, {
+      customerId,
+      windowStart: WINDOW_START,
+      windowEnd: WINDOW_END,
+      receivedAfter: closedAt,
+    });
 
     expect(closedPeriod.value).toBe(40);
     expect(stragglers.value).toBe(60);
@@ -238,15 +203,11 @@ describe('MeterEventService.getMeterEventSummary', () => {
     const meter = await buildMeter(MeterAggregationEnum.SUM);
     const customerId = await buildCustomer();
 
-    const act = fastify.meterEventService.getMeterEventSummary(
-      meter.id,
-      {
-        customerId,
-        windowStart: WINDOW_END,
-        windowEnd: WINDOW_START,
-      },
-      false,
-    );
+    const act = fastify.meterEventService.getMeterEventSummary(meter.id, {
+      customerId,
+      windowStart: WINDOW_END,
+      windowEnd: WINDOW_START,
+    });
 
     await expect(act).rejects.toThrowError(BadRequestError);
   });

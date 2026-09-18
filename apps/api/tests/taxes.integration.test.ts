@@ -10,15 +10,13 @@ import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
-const LIVEMODE = true;
-
 let fastify: FastifyInstance;
 let authHeaders: Record<string, string>;
 
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: LIVEMODE });
+  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
   authHeaders = buildAuthHeaders(apiKey.token);
 });
@@ -28,10 +26,10 @@ afterAll(async () => {
 });
 
 async function makeCustomerId(): Promise<string> {
-  const customer = await fastify.customerService.createCustomer(
-    { name: 'Tax Route Tester', currency: CurrencyEnum.VND },
-    LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Tax Route Tester',
+    currency: CurrencyEnum.VND,
+  });
 
   return customer.id;
 }

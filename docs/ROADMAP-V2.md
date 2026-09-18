@@ -128,6 +128,10 @@ lại đúng.
 
 ## Phase 11 — Key model + `livemode`
 
+> **Đã gỡ phần `livemode`.** Xem [ADR 0022](adr/0022-drop-livemode.md). Bảng `api_keys` và scopes vẫn
+> giữ; test clock được bật/tắt bằng `TEST_CLOCKS_ENABLED`. Phần dưới đây là thiết kế ban đầu, giữ lại
+> như lịch sử.
+
 **Mục tiêu.** Biến "dữ liệu này ở chế độ nào, ai được đọc" thành cột và bản ghi, thay vì bốn biến môi
 trường và lòng tin.
 

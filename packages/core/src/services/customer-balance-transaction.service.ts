@@ -22,7 +22,6 @@ export class CustomerBalanceTransactionService {
   async createCustomerBalanceTransaction(
     customerId: string,
     payload: CreateCustomerBalanceTransactionPayload,
-    livemode: boolean,
   ): Promise<CustomerBalanceTransactionResponse> {
     const now = this.fastify.clock.now().toISOString();
 
@@ -31,7 +30,7 @@ export class CustomerBalanceTransactionService {
     return this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.lockCustomer(customerId, tx);
 
-      if (!customer || customer.livemode !== livemode) {
+      if (!customer) {
         throw new NotFoundError(`No such customer: ${customerId}`);
       }
 
@@ -47,7 +46,6 @@ export class CustomerBalanceTransactionService {
         await this.fastify.customerBalanceTransactionRepository.createCustomerBalanceTransaction(
           {
             id,
-            livemode,
             customerId,
             invoiceId: null,
             creditNoteId: null,
@@ -70,7 +68,6 @@ export class CustomerBalanceTransactionService {
             {
               aggregateType: AggregateTypeEnum.CUSTOMER_BALANCE_TRANSACTION,
               aggregateId: balanceTransaction.id,
-              livemode,
               eventType: DomainEventTypeEnum.CUSTOMER_BALANCE_TRANSACTION_CREATED,
               payload: { id: balanceTransaction.id, customerId },
             },
@@ -116,19 +113,15 @@ export class CustomerBalanceTransactionService {
           },
         ],
       },
-      balanceTransaction.livemode,
       tx,
     );
   }
 
-  async getCustomerBalanceTransaction(
-    id: string,
-    livemode: boolean,
-  ): Promise<CustomerBalanceTransactionResponse> {
+  async getCustomerBalanceTransaction(id: string): Promise<CustomerBalanceTransactionResponse> {
     const balanceTransaction =
       await this.fastify.customerBalanceTransactionRepository.findCustomerBalanceTransaction(id);
 
-    if (balanceTransaction && balanceTransaction.livemode === livemode) {
+    if (balanceTransaction) {
       return balanceTransaction;
     }
 
@@ -138,9 +131,8 @@ export class CustomerBalanceTransactionService {
   async findCustomerBalanceTransactions(
     customerId: string,
     query: FindCustomerBalanceTransactionsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<CustomerBalanceTransactionResponse>> {
-    await this.fastify.customerService.getCustomer(customerId, livemode);
+    await this.fastify.customerService.getCustomer(customerId);
 
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
@@ -149,7 +141,7 @@ export class CustomerBalanceTransactionService {
 
     const rows =
       await this.fastify.customerBalanceTransactionRepository.findCustomerBalanceTransactions(
-        { livemode, customerId, beforeAt, afterAt },
+        { customerId, beforeAt, afterAt },
         limit + 1,
       );
 

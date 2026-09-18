@@ -7,8 +7,6 @@ import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { TEST_LIVEMODE } from './factories';
-
 let fastify: FastifyInstance;
 
 beforeAll(async () => {
@@ -20,10 +18,10 @@ afterAll(async () => {
 });
 
 async function makeCustomerId(): Promise<string> {
-  const customer = await fastify.customerService.createCustomer(
-    { name: 'Standalone Buyer', currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Standalone Buyer',
+    currency: CurrencyEnum.VND,
+  });
 
   return customer.id;
 }
@@ -31,16 +29,19 @@ async function makeCustomerId(): Promise<string> {
 it('bills a customer with no subscription from two invoice items', async () => {
   const customerId = await makeCustomerId();
 
-  await fastify.invoiceItemService.createInvoiceItem(
-    { customerId, description: 'Setup fee', amount: 300_000 },
-    TEST_LIVEMODE,
-  );
-  await fastify.invoiceItemService.createInvoiceItem(
-    { customerId, description: 'Training', unitAmount: 100_000, quantity: 2 },
-    TEST_LIVEMODE,
-  );
+  await fastify.invoiceItemService.createInvoiceItem({
+    customerId,
+    description: 'Setup fee',
+    amount: 300_000,
+  });
+  await fastify.invoiceItemService.createInvoiceItem({
+    customerId,
+    description: 'Training',
+    unitAmount: 100_000,
+    quantity: 2,
+  });
 
-  const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
+  const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   expect(open.status).toBe(InvoiceStatusEnum.OPEN);
@@ -54,19 +55,19 @@ it('bills a customer with no subscription from two invoice items', async () => {
 it('applies a customer credit balance to the amount due and leaves the remainder as credit', async () => {
   const customerId = await makeCustomerId();
 
-  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(
+  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(customerId, {
+    amount: -800_000,
+    currency: CurrencyEnum.VND,
+  });
+  await fastify.invoiceItemService.createInvoiceItem({
     customerId,
-    { amount: -800_000, currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
-  await fastify.invoiceItemService.createInvoiceItem(
-    { customerId, description: 'Consulting', amount: 500_000 },
-    TEST_LIVEMODE,
-  );
+    description: 'Consulting',
+    amount: 500_000,
+  });
 
-  const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
+  const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
-  const customer = await fastify.customerService.getCustomer(customerId, TEST_LIVEMODE);
+  const customer = await fastify.customerService.getCustomer(customerId);
 
   expect(open.startingBalance).toBe(-800_000);
   expect(open.amountDue).toBe(0);
@@ -77,36 +78,33 @@ it('applies a customer credit balance to the amount due and leaves the remainder
 it('balances the ledger when a credit balance pays part of an invoice', async () => {
   const customerId = await makeCustomerId();
 
-  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(
+  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(customerId, {
+    amount: -200_000,
+    currency: CurrencyEnum.VND,
+  });
+  await fastify.invoiceItemService.createInvoiceItem({
     customerId,
-    { amount: -200_000, currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
-  await fastify.invoiceItemService.createInvoiceItem(
-    { customerId, description: 'Consulting', amount: 500_000 },
-    TEST_LIVEMODE,
-  );
+    description: 'Consulting',
+    amount: 500_000,
+  });
 
   const granted = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
     CurrencyEnum.VND,
-    TEST_LIVEMODE,
     customerId,
   );
 
-  const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
+  const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   const receivable = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
     CurrencyEnum.VND,
-    TEST_LIVEMODE,
     customerId,
   );
   const consumed = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
     CurrencyEnum.VND,
-    TEST_LIVEMODE,
     customerId,
   );
 
@@ -119,14 +117,15 @@ it('balances the ledger when a credit balance pays part of an invoice', async ()
 it('attaches a pending invoice item to the invoice it was billed on', async () => {
   const customerId = await makeCustomerId();
 
-  const invoiceItem = await fastify.invoiceItemService.createInvoiceItem(
-    { customerId, description: 'Overage', amount: 120_000 },
-    TEST_LIVEMODE,
-  );
+  const invoiceItem = await fastify.invoiceItemService.createInvoiceItem({
+    customerId,
+    description: 'Overage',
+    amount: 120_000,
+  });
 
-  const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
+  const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
-  const billed = await fastify.invoiceItemService.getInvoiceItem(invoiceItem.id, TEST_LIVEMODE);
+  const billed = await fastify.invoiceItemService.getInvoiceItem(invoiceItem.id);
 
   const [lineItem] = open.lineItems;
 
@@ -137,18 +136,21 @@ it('attaches a pending invoice item to the invoice it was billed on', async () =
 it('refuses to add an invoice item to an invoice that has been issued', async () => {
   const customerId = await makeCustomerId();
 
-  await fastify.invoiceItemService.createInvoiceItem(
-    { customerId, description: 'First', amount: 100_000 },
-    TEST_LIVEMODE,
-  );
+  await fastify.invoiceItemService.createInvoiceItem({
+    customerId,
+    description: 'First',
+    amount: 100_000,
+  });
 
-  const draft = await fastify.invoiceService.createInvoice({ customerId }, TEST_LIVEMODE);
+  const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
-  const act = fastify.invoiceItemService.createInvoiceItem(
-    { customerId, invoiceId: open.id, description: 'Too late', amount: 50_000 },
-    TEST_LIVEMODE,
-  );
+  const act = fastify.invoiceItemService.createInvoiceItem({
+    customerId,
+    invoiceId: open.id,
+    description: 'Too late',
+    amount: 50_000,
+  });
 
   await expect(act).rejects.toThrow(ConflictError);
 });

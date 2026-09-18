@@ -6,7 +6,6 @@ import { portalSessions } from '@database/schemas';
 import { and, desc, eq } from 'drizzle-orm';
 
 export interface PortalSessionFilters {
-  livemode?: boolean;
   customerId?: string;
   status?: PortalSessionStatus;
   linkTokenHash?: string;
@@ -35,7 +34,6 @@ export class PortalSessionRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<PortalSession[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(portalSessions.livemode, filters.livemode),
       filters.customerId ? eq(portalSessions.customerId, filters.customerId) : undefined,
       filters.status ? eq(portalSessions.status, filters.status) : undefined,
       filters.linkTokenHash ? eq(portalSessions.linkTokenHash, filters.linkTokenHash) : undefined,

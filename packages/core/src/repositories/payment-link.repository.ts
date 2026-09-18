@@ -11,7 +11,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 
 export interface PaymentLinkFilters {
-  livemode?: boolean;
   isActive?: boolean;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -39,7 +38,6 @@ export class PaymentLinkRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<PaymentLink[]> {
     const where = and(
-      filters.livemode === undefined ? undefined : eq(paymentLinks.livemode, filters.livemode),
       filters.isActive === undefined ? undefined : eq(paymentLinks.isActive, filters.isActive),
       filters.beforeAt
         ? sql`(${paymentLinks.createdAt}, ${paymentLinks.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`

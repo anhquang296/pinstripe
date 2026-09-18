@@ -6,13 +6,12 @@ import type {
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { customers } from '@database/schemas/customers.schema';
 import { sql } from 'drizzle-orm';
-import { boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
+import { index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const paymentMethods = pgTable(
   'payment_methods',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id').references(() => {
       return customers.id;
     }),

@@ -8,17 +8,13 @@ import {
   updateProductSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createProductSchema, response: { 201: productSchema } } },
     async (request, reply) => {
-      const product = await fastify.productService.createProduct(
-        request.body,
-        readLivemode(request),
-      );
+      const product = await fastify.productService.createProduct(request.body);
 
       return ApiResponse.created(reply, product);
     },
@@ -33,10 +29,7 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const products = await fastify.productService.findProducts(
-        request.query,
-        readLivemode(request),
-      );
+      const products = await fastify.productService.findProducts(request.query);
 
       return ApiResponse.success(reply, products);
     },
@@ -46,10 +39,7 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:productId',
     { schema: { params: productParamsSchema, response: { 200: productSchema } } },
     async (request, reply) => {
-      const product = await fastify.productService.getProduct(
-        request.params.productId,
-        readLivemode(request),
-      );
+      const product = await fastify.productService.getProduct(request.params.productId);
 
       return ApiResponse.success(reply, product);
     },
@@ -68,7 +58,6 @@ export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const product = await fastify.productService.updateProduct(
         request.params.productId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, product);

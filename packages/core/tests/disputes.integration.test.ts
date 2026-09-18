@@ -12,7 +12,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, settleInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice, settleInvoice } from './factories';
 
 const BASE_AMOUNT = 500_000;
 const DISPUTED_AMOUNT = 200_000;
@@ -35,16 +35,13 @@ interface DisputeFixture {
 }
 
 async function readAccountBalance(code: LedgerAccountCodeEnum): Promise<number> {
-  const account = await fastify.ledgerService.ensureAccount(code, CurrencyEnum.VND, TEST_LIVEMODE);
+  const account = await fastify.ledgerService.ensureAccount(code, CurrencyEnum.VND);
 
   return account.balance;
 }
 
 async function readEntitlementStatus(customerId: string, productId: string): Promise<string> {
-  const { data } = await fastify.entitlementService.findEntitlements(
-    { customerId, productId },
-    TEST_LIVEMODE,
-  );
+  const { data } = await fastify.entitlementService.findEntitlements({ customerId, productId });
   const [entitlement] = data;
 
   return _.get(entitlement, 'status', EntitlementStatusEnum.REVOKED);
@@ -62,7 +59,7 @@ async function openDispute(): Promise<DisputeFixture> {
 
   await fastify.paymentService.drainProviderEvents();
 
-  const disputes = await fastify.disputeService.findDisputes({ chargeId }, TEST_LIVEMODE);
+  const disputes = await fastify.disputeService.findDisputes({ chargeId });
   const [dispute] = disputes.data;
 
   if (!dispute) {
@@ -83,11 +80,8 @@ describe('DisputeService.handleDisputeOpened', () => {
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
     const { disputeId, subscriptionId, customerId, productId } = await openDispute();
 
-    const dispute = await fastify.disputeService.getDispute(disputeId, TEST_LIVEMODE);
-    const subscription = await fastify.subscriptionService.getSubscription(
-      subscriptionId,
-      TEST_LIVEMODE,
-    );
+    const dispute = await fastify.disputeService.getDispute(disputeId);
+    const subscription = await fastify.subscriptionService.getSubscription(subscriptionId);
     const entitlement = await readEntitlementStatus(customerId, productId);
 
     expect(dispute.status).toBe(DisputeStatusEnum.NEEDS_RESPONSE);
@@ -107,7 +101,7 @@ describe('DisputeService.handleDisputeOpened', () => {
 
   it('ignores a dispute callback it has already recorded', async () => {
     const { disputeId } = await openDispute();
-    const dispute = await fastify.disputeService.getDispute(disputeId, TEST_LIVEMODE);
+    const dispute = await fastify.disputeService.getDispute(disputeId);
 
     await fastify.disputeService.handleDisputeOpened({
       pspReference: dispute.pspReference,
@@ -116,10 +110,7 @@ describe('DisputeService.handleDisputeOpened', () => {
       reason: DisputeReasonEnum.FRAUDULENT,
     });
 
-    const disputes = await fastify.disputeService.findDisputes(
-      { chargeId: dispute.chargeId },
-      TEST_LIVEMODE,
-    );
+    const disputes = await fastify.disputeService.findDisputes({ chargeId: dispute.chargeId });
 
     expect(disputes.data).toHaveLength(1);
   });
@@ -129,11 +120,9 @@ describe('DisputeService.submitDisputeEvidence', () => {
   it('moves the dispute under review once evidence is filed', async () => {
     const { disputeId } = await openDispute();
 
-    const reviewed = await fastify.disputeService.submitDisputeEvidence(
-      disputeId,
-      { evidence: { uncategorizedText: 'Khách đã dùng dịch vụ đủ tháng' } },
-      TEST_LIVEMODE,
-    );
+    const reviewed = await fastify.disputeService.submitDisputeEvidence(disputeId, {
+      evidence: { uncategorizedText: 'Khách đã dùng dịch vụ đủ tháng' },
+    });
 
     expect(reviewed.status).toBe(DisputeStatusEnum.UNDER_REVIEW);
     expect(reviewed.evidence.uncategorizedText).toBe('Khách đã dùng dịch vụ đủ tháng');
@@ -146,17 +135,14 @@ describe('DisputeService.handleDisputeClosed', () => {
     const heldBefore = await readAccountBalance(LedgerAccountCodeEnum.DISPUTES_HELD);
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
     const { disputeId, subscriptionId } = await openDispute();
-    const dispute = await fastify.disputeService.getDispute(disputeId, TEST_LIVEMODE);
+    const dispute = await fastify.disputeService.getDispute(disputeId);
 
     fastify.psp.closeDispute(dispute.pspReference, DisputeOutcomeEnum.WON);
 
     await fastify.paymentService.drainProviderEvents();
 
-    const closed = await fastify.disputeService.getDispute(disputeId, TEST_LIVEMODE);
-    const subscription = await fastify.subscriptionService.getSubscription(
-      subscriptionId,
-      TEST_LIVEMODE,
-    );
+    const closed = await fastify.disputeService.getDispute(disputeId);
+    const subscription = await fastify.subscriptionService.getSubscription(subscriptionId);
     const balanceTransactions = await fastify.balanceTransactionRepository.findBalanceTransactions({
       sourceId: disputeId,
     });
@@ -174,17 +160,14 @@ describe('DisputeService.handleDisputeClosed', () => {
   it('writes the money off and blocks the entitlement when the dispute is lost', async () => {
     const heldBefore = await readAccountBalance(LedgerAccountCodeEnum.DISPUTES_HELD);
     const { disputeId, subscriptionId, customerId, productId } = await openDispute();
-    const dispute = await fastify.disputeService.getDispute(disputeId, TEST_LIVEMODE);
+    const dispute = await fastify.disputeService.getDispute(disputeId);
 
     fastify.psp.closeDispute(dispute.pspReference, DisputeOutcomeEnum.LOST);
 
     await fastify.paymentService.drainProviderEvents();
 
-    const closed = await fastify.disputeService.getDispute(disputeId, TEST_LIVEMODE);
-    const subscription = await fastify.subscriptionService.getSubscription(
-      subscriptionId,
-      TEST_LIVEMODE,
-    );
+    const closed = await fastify.disputeService.getDispute(disputeId);
+    const subscription = await fastify.subscriptionService.getSubscription(subscriptionId);
     const entitlement = await readEntitlementStatus(customerId, productId);
 
     expect(closed.status).toBe(DisputeStatusEnum.LOST);

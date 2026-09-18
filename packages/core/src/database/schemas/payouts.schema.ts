@@ -2,13 +2,12 @@ import type { PayoutStatus } from '@contracts/payouts.types';
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { bigint, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const payouts = pgTable(
   'payouts',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     status: text('status').$type<PayoutStatus>().notNull(),

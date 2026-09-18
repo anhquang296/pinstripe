@@ -29,16 +29,16 @@ export class BillingPortalService {
 
   async createConfiguration(
     payload: CreateBillingPortalConfigurationPayload,
-    livemode: boolean,
   ): Promise<BillingPortalConfigurationResponse> {
-    const now = this.fastify.clock.now().toISOString();
+    const createdAt = this.fastify.clock.now().toISOString();
+
     const isDefault = payload.isDefault ?? false;
+
     const id = generateGid(ObjectPrefixEnum.BILLING_PORTAL_CONFIGURATION);
 
     const configuration = await this.fastify.database.master.transaction(async (tx) => {
       if (isDefault) {
         await this.fastify.billingPortalConfigurationRepository.demoteBillingPortalConfigurations(
-          livemode,
           tx,
         );
       }
@@ -46,15 +46,14 @@ export class BillingPortalService {
       return this.fastify.billingPortalConfigurationRepository.createBillingPortalConfiguration(
         {
           id,
-          livemode,
           isActive: true,
           isDefault,
           businessName: payload.businessName ?? DEFAULT_BUSINESS_NAME,
           defaultReturnUrl: payload.defaultReturnUrl ?? null,
           features: { ...DEFAULT_FEATURES, ...payload.features },
           metadata: payload.metadata ?? {},
-          createdAt: now,
-          updatedAt: now,
+          createdAt: createdAt,
+          updatedAt: createdAt,
         },
         tx,
       );
@@ -70,15 +69,13 @@ export class BillingPortalService {
   async updateConfiguration(
     id: string,
     payload: UpdateBillingPortalConfigurationPayload,
-    livemode: boolean,
   ): Promise<BillingPortalConfigurationResponse> {
-    const configuration = await this.getConfigurationEntity(id, livemode);
+    const configuration = await this.getConfigurationEntity(id);
     const updatedAt = this.fastify.clock.now().toISOString();
 
     const updatedConfiguration = await this.fastify.database.master.transaction(async (tx) => {
       if (payload.isDefault) {
         await this.fastify.billingPortalConfigurationRepository.demoteBillingPortalConfigurations(
-          livemode,
           tx,
         );
       }
@@ -105,23 +102,19 @@ export class BillingPortalService {
     throw new NotFoundError(`No such billing portal configuration: ${id}`);
   }
 
-  async getConfiguration(
-    id: string,
-    livemode: boolean,
-  ): Promise<BillingPortalConfigurationResponse> {
-    return this.getConfigurationEntity(id, livemode);
+  async getConfiguration(id: string): Promise<BillingPortalConfigurationResponse> {
+    return this.getConfigurationEntity(id);
   }
 
   async findConfigurations(
     query: FindBillingPortalConfigurationsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<BillingPortalConfigurationResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows =
       await this.fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations(
-        { livemode, beforeAt, afterAt },
+        { beforeAt, afterAt },
         limit + 1,
       );
 
@@ -134,19 +127,16 @@ export class BillingPortalService {
 
   async createSession(
     payload: CreateBillingPortalSessionPayload,
-    livemode: boolean,
   ): Promise<BillingPortalSessionResponse> {
-    const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
-    const configuration = await this.resolveConfiguration(payload.configurationId, livemode);
+    const customer = await this.fastify.customerService.getCustomer(payload.customerId);
+    const configuration = await this.resolveConfiguration(payload.configurationId);
     const portalSession = await this.fastify.portalSessionService.createCustomerPortalSession(
       customer.id,
-      livemode,
     );
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.BILLING_PORTAL_SESSION);
     const session = await this.fastify.billingPortalSessionRepository.createBillingPortalSession({
       id,
-      livemode,
       customerId: customer.id,
       configurationId: configuration.id,
       portalSessionId: portalSession.portalSessionId,
@@ -163,31 +153,28 @@ export class BillingPortalService {
     throw new NotFoundError(`Billing portal session ${id} could not be created`);
   }
 
-  async getSession(id: string, livemode: boolean): Promise<BillingPortalSessionResponse> {
+  async getSession(id: string): Promise<BillingPortalSessionResponse> {
     const session = await this.fastify.billingPortalSessionRepository.findBillingPortalSession(id);
 
-    if (session && session.livemode === livemode) {
+    if (session) {
       return session;
     }
 
     throw new NotFoundError(`No such billing portal session: ${id}`);
   }
 
-  async getActiveConfiguration(livemode: boolean): Promise<BillingPortalConfigurationResponse> {
-    return this.resolveConfiguration(undefined, livemode);
+  async getActiveConfiguration(): Promise<BillingPortalConfigurationResponse> {
+    return this.resolveConfiguration(undefined);
   }
 
-  private async resolveConfiguration(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<BillingPortalConfiguration> {
+  private async resolveConfiguration(id: string | undefined): Promise<BillingPortalConfiguration> {
     if (id) {
-      return this.getConfigurationEntity(id, livemode);
+      return this.getConfigurationEntity(id);
     }
 
     const [existing] =
       await this.fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations(
-        { livemode, isDefault: true, isActive: true },
+        { isDefault: true, isActive: true },
         1,
       );
 
@@ -195,19 +182,16 @@ export class BillingPortalService {
       return existing;
     }
 
-    const fallbackConfiguration = await this.createConfiguration({ isDefault: true }, livemode);
+    const fallbackConfiguration = await this.createConfiguration({ isDefault: true });
 
-    return this.getConfigurationEntity(fallbackConfiguration.id, livemode);
+    return this.getConfigurationEntity(fallbackConfiguration.id);
   }
 
-  private async getConfigurationEntity(
-    id: string,
-    livemode: boolean,
-  ): Promise<BillingPortalConfiguration> {
+  private async getConfigurationEntity(id: string): Promise<BillingPortalConfiguration> {
     const configuration =
       await this.fastify.billingPortalConfigurationRepository.findBillingPortalConfiguration(id);
 
-    if (configuration && configuration.livemode === livemode) {
+    if (configuration) {
       return configuration;
     }
 

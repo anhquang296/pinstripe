@@ -11,7 +11,6 @@ import {
   voidInvoiceSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
@@ -35,10 +34,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/',
     { schema: { body: createInvoiceSchema, response: { 201: invoiceSchema } } },
     async (request, reply) => {
-      const invoice = await fastify.invoiceService.createInvoice(
-        request.body,
-        readLivemode(request),
-      );
+      const invoice = await fastify.invoiceService.createInvoice(request.body);
 
       return ApiResponse.created(reply, invoice);
     },
@@ -53,10 +49,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const invoices = await fastify.invoiceService.findInvoices(
-        request.query,
-        readLivemode(request),
-      );
+      const invoices = await fastify.invoiceService.findInvoices(request.query);
 
       return ApiResponse.success(reply, invoices);
     },
@@ -66,10 +59,7 @@ export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:invoiceId',
     { schema: { params: invoiceParamsSchema, response: { 200: invoiceSchema } } },
     async (request, reply) => {
-      const invoice = await fastify.invoiceService.getInvoice(
-        request.params.invoiceId,
-        readLivemode(request),
-      );
+      const invoice = await fastify.invoiceService.getInvoice(request.params.invoiceId);
 
       return ApiResponse.success(reply, invoice);
     },

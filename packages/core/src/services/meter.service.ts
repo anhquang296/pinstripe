@@ -19,25 +19,25 @@ import _ from 'lodash';
 export class MeterService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createMeter(payload: CreateMeterPayload, livemode: boolean): Promise<MeterResponse> {
+  async createMeter(payload: CreateMeterPayload): Promise<MeterResponse> {
     const now = this.fastify.clock.now().toISOString();
 
-    return this.writeMeter(payload, now, livemode);
+    return this.writeMeter(payload, now);
   }
 
-  async getMeter(id: string, livemode: boolean): Promise<MeterResponse> {
+  async getMeter(id: string): Promise<MeterResponse> {
     const meter = await this.fastify.meterRepository.findMeter(id);
 
-    if (meter && meter.livemode === livemode) {
+    if (meter) {
       return meter;
     }
 
     throw new NotFoundError(`No such meter: ${id}`);
   }
 
-  async resolveMeter(eventName: string, livemode: boolean): Promise<Meter> {
+  async resolveMeter(eventName: string): Promise<Meter> {
     const [meter] = await this.fastify.meterRepository.findMeters(
-      { livemode, eventName, status: MeterStatusEnum.ACTIVE },
+      { eventName, status: MeterStatusEnum.ACTIVE },
       1,
     );
 
@@ -48,12 +48,8 @@ export class MeterService {
     throw new NotFoundError(`No active meter listens for event ${eventName}`);
   }
 
-  async updateMeter(
-    id: string,
-    payload: UpdateMeterPayload,
-    livemode: boolean,
-  ): Promise<MeterResponse> {
-    await this.getMeter(id, livemode);
+  async updateMeter(id: string, payload: UpdateMeterPayload): Promise<MeterResponse> {
+    await this.getMeter(id);
 
     const updatedMeter = await this.fastify.meterRepository.updateMeter(id, {
       ...payload,
@@ -67,14 +63,10 @@ export class MeterService {
     throw new NotFoundError(`No such meter: ${id}`);
   }
 
-  async findMeters(
-    query: FindMetersQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<MeterResponse>> {
+  async findMeters(query: FindMetersQuery): Promise<ListResponse<MeterResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const meterRows = await this.fastify.meterRepository.findMeters(
       {
-        livemode,
         status: query.status,
         beforeAt: await this.resolveCursor(query.startingAfter),
         afterAt: await this.resolveCursor(query.endingBefore),
@@ -90,11 +82,7 @@ export class MeterService {
     };
   }
 
-  private async writeMeter(
-    payload: CreateMeterPayload,
-    now: string,
-    livemode: boolean,
-  ): Promise<Meter> {
+  private async writeMeter(payload: CreateMeterPayload, now: string): Promise<Meter> {
     const DEFAULT_VALUE_KEY = 'value';
     const id = generateGid(ObjectPrefixEnum.METER);
 
@@ -103,7 +91,6 @@ export class MeterService {
         const meter = await this.fastify.meterRepository.createMeter(
           {
             id,
-            livemode,
             displayName: payload.displayName,
             eventName: payload.eventName,
             aggregation: payload.aggregation,
@@ -122,7 +109,6 @@ export class MeterService {
               {
                 aggregateType: AggregateTypeEnum.METER,
                 aggregateId: meter.id,
-                livemode: meter.livemode,
                 eventType: DomainEventTypeEnum.METER_CREATED,
                 payload: { id: meter.id, eventName: meter.eventName },
               },

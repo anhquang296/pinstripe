@@ -36,7 +36,6 @@ export class LedgerService {
   async ensureAccount(
     code: LedgerAccountCode,
     currency: Currency,
-    livemode: boolean,
     customerId?: string,
   ): Promise<LedgerAccountWithBalance> {
     const definition = LEDGER_ACCOUNT_DEFINITIONS[code];
@@ -49,7 +48,7 @@ export class LedgerService {
       throw new BadRequestError(`Ledger account ${code} is shared and must not carry a customerId`);
     }
 
-    const existingAccount = await this.findAccount(code, currency, livemode, customerId);
+    const existingAccount = await this.findAccount(code, currency, customerId);
 
     if (existingAccount) {
       return existingAccount;
@@ -58,7 +57,6 @@ export class LedgerService {
     try {
       await this.fastify.ledgerAccountRepository.createLedgerAccount({
         id: generateGid(ObjectPrefixEnum.LEDGER_ACCOUNT),
-        livemode,
         code,
         type: definition.type,
         normalBalance: definition.normalBalance,
@@ -72,7 +70,7 @@ export class LedgerService {
       }
     }
 
-    const account = await this.findAccount(code, currency, livemode, customerId);
+    const account = await this.findAccount(code, currency, customerId);
 
     if (account) {
       return account;
@@ -83,19 +81,17 @@ export class LedgerService {
 
   async postTransaction(
     payload: PostLedgerTransactionPayload,
-    livemode: boolean,
     executor?: DatabaseTransaction,
   ): Promise<LedgerTransactionResponse> {
     LedgerService.assertBalanced(payload);
 
     const createdAt = this.fastify.clock.now().toISOString();
     const transactionId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
-    const postings = await this.buildPostings(transactionId, payload, createdAt, livemode);
+    const postings = await this.buildPostings(transactionId, payload, createdAt);
 
     const postedTransaction = await this.writeTransaction(
       {
         id: transactionId,
-        livemode,
         description: payload.description,
         currency: payload.currency,
         externalId: payload.externalId ?? null,
@@ -114,10 +110,10 @@ export class LedgerService {
     return LedgerService.buildTransaction(postedTransaction, postings, accountCodesById);
   }
 
-  async getTransaction(id: string, livemode: boolean): Promise<LedgerTransactionResponse> {
+  async getTransaction(id: string): Promise<LedgerTransactionResponse> {
     const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
 
-    if (transaction && transaction.livemode === livemode) {
+    if (transaction) {
       const postings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([id]);
       const accountCodesById = await this.resolveAccountCodes(postings);
 
@@ -129,13 +125,11 @@ export class LedgerService {
 
   async findTransactions(
     query: FindLedgerTransactionsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<LedgerTransactionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountId = await this.resolveAccountFilter(query);
     const transactionRows = await this.fastify.ledgerTransactionRepository.findLedgerTransactions(
       {
-        livemode,
         accountId,
         beforeAt: await this.resolveCursor(query.startingAfter),
         afterAt: await this.resolveCursor(query.endingBefore),
@@ -163,23 +157,20 @@ export class LedgerService {
     };
   }
 
-  async getAccount(id: string, livemode: boolean): Promise<LedgerAccountResponse> {
+  async getAccount(id: string): Promise<LedgerAccountResponse> {
     const account = await this.fastify.ledgerAccountRepository.findLedgerAccount(id);
 
-    if (account && account.livemode === livemode) {
+    if (account) {
       return account;
     }
 
     throw new NotFoundError(`No such ledger account: ${id}`);
   }
 
-  async findAccounts(
-    query: FindLedgerAccountsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<LedgerAccountResponse>> {
+  async findAccounts(query: FindLedgerAccountsQuery): Promise<ListResponse<LedgerAccountResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const accountRows = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
-      { livemode, code: query.code, customerId: query.customerId },
+      { code: query.code, customerId: query.customerId },
       limit + 1,
     );
     const hasMore = accountRows.length > limit;
@@ -211,7 +202,6 @@ export class LedgerService {
     const postings: PostedLedgerPosting[] = _.map(originalPostings, (posting) => {
       return {
         id: generateGid(ObjectPrefixEnum.LEDGER_POSTING),
-        livemode: original.livemode,
         transactionId: reversalId,
         accountId: posting.accountId,
         direction:
@@ -227,7 +217,6 @@ export class LedgerService {
     const reversalTransaction = await this.writeTransaction(
       {
         id: reversalId,
-        livemode: original.livemode,
         description: `Reversal of ${id}: ${payload.reason}`,
         currency: original.currency,
         externalId: null,
@@ -284,7 +273,6 @@ export class LedgerService {
             {
               aggregateType: AggregateTypeEnum.LEDGER_TRANSACTION,
               aggregateId: createdTransaction.id,
-              livemode: createdTransaction.livemode,
               eventType,
               payload: { id: createdTransaction.id, currency: createdTransaction.currency },
             },
@@ -320,12 +308,11 @@ export class LedgerService {
     transactionId: string,
     payload: PostLedgerTransactionPayload,
     createdAt: string,
-    livemode: boolean,
   ): Promise<PostedLedgerPosting[]> {
     const postings: PostedLedgerPosting[] = [];
 
     for (const entry of payload.entries) {
-      const account = await this.resolveEntryAccount(entry, payload.currency, livemode);
+      const account = await this.resolveEntryAccount(entry, payload.currency);
 
       if (account.currency !== payload.currency) {
         throw new BadRequestError(
@@ -335,7 +322,6 @@ export class LedgerService {
 
       postings.push({
         id: generateGid(ObjectPrefixEnum.LEDGER_POSTING),
-        livemode,
         transactionId,
         accountId: account.id,
         direction: entry.direction,
@@ -351,7 +337,6 @@ export class LedgerService {
   private async resolveEntryAccount(
     entry: PostLedgerTransactionPayload['entries'][number],
     currency: Currency,
-    livemode: boolean,
   ): Promise<LedgerAccountWithBalance> {
     if (entry.accountId) {
       const account = await this.fastify.ledgerAccountRepository.findLedgerAccount(entry.accountId);
@@ -364,7 +349,7 @@ export class LedgerService {
     }
 
     if (entry.accountCode) {
-      return this.ensureAccount(entry.accountCode, currency, livemode, entry.customerId);
+      return this.ensureAccount(entry.accountCode, currency, entry.customerId);
     }
 
     throw new BadRequestError('Each ledger entry needs either an accountId or an accountCode');
@@ -416,14 +401,12 @@ export class LedgerService {
   private async findAccount(
     code: LedgerAccountCode,
     currency: Currency,
-    livemode: boolean,
     customerId: string | undefined,
   ): Promise<LedgerAccountWithBalance | null> {
     const [account] = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
       {
         code,
         currency,
-        livemode,
         customerId,
         customerIdIsNull: customerId ? undefined : true,
       },

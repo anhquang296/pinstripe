@@ -28,8 +28,8 @@ const DEFAULT_INTERVAL_COUNT = 1;
 export class PriceService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPrice(payload: CreatePricePayload, livemode: boolean): Promise<PriceResponse> {
-    const product = await this.fastify.productService.getProduct(payload.productId, livemode);
+  async createPrice(payload: CreatePricePayload): Promise<PriceResponse> {
+    await this.fastify.productService.getProduct(payload.productId);
 
     const { billingScheme = BillingSchemeEnum.PER_UNIT } = payload;
 
@@ -40,21 +40,14 @@ export class PriceService {
     PriceService.assertPriceShape(payload, billingScheme, usageType);
 
     if (payload.meterId) {
-      await this.fastify.meterService.getMeter(payload.meterId, livemode);
+      await this.fastify.meterService.getMeter(payload.meterId);
     }
 
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PRICE);
     const version = await this.resolveNextVersion(payload.lookupKey);
 
-    const createdPrice = await this.writePrice(
-      id,
-      payload,
-      billingScheme,
-      version,
-      now,
-      product.livemode,
-    );
+    const createdPrice = await this.writePrice(id, payload, billingScheme, version, now);
 
     return PriceService.buildPrice(createdPrice);
   }
@@ -65,7 +58,6 @@ export class PriceService {
     billingScheme: BillingScheme,
     version: number,
     now: string,
-    livemode: boolean,
   ): Promise<Price> {
     const effectiveAt = PriceService.resolveEffectiveAt(payload.effectiveAt, now);
 
@@ -74,7 +66,6 @@ export class PriceService {
         const price = await this.fastify.priceRepository.createPrice(
           {
             id,
-            livemode,
             productId: payload.productId,
             lookupKey: payload.lookupKey ?? null,
             version,
@@ -110,7 +101,6 @@ export class PriceService {
               {
                 aggregateType: AggregateTypeEnum.PRICE,
                 aggregateId: price.id,
-                livemode: price.livemode,
                 eventType: DomainEventTypeEnum.PRICE_CREATED,
                 payload: { id: price.id, productId: price.productId, version: price.version },
               },
@@ -135,22 +125,18 @@ export class PriceService {
     }
   }
 
-  async getPrice(id: string, livemode: boolean): Promise<PriceResponse> {
+  async getPrice(id: string): Promise<PriceResponse> {
     const price = await this.fastify.priceRepository.findPrice(id);
 
-    if (price && price.livemode === livemode) {
+    if (price) {
       return PriceService.buildPrice(price);
     }
 
     throw new NotFoundError(`No such price: ${id}`);
   }
 
-  async updatePrice(
-    id: string,
-    payload: UpdatePricePayload,
-    livemode: boolean,
-  ): Promise<PriceResponse> {
-    await this.getPrice(id, livemode);
+  async updatePrice(id: string, payload: UpdatePricePayload): Promise<PriceResponse> {
+    await this.getPrice(id);
 
     const updatedPrice = await this.fastify.database.master.transaction(async (tx) => {
       const price = await this.fastify.priceRepository.updatePrice(
@@ -170,7 +156,6 @@ export class PriceService {
             {
               aggregateType: AggregateTypeEnum.PRICE,
               aggregateId: price.id,
-              livemode: price.livemode,
               eventType: DomainEventTypeEnum.PRICE_UPDATED,
               payload: { id: price.id },
             },
@@ -202,16 +187,12 @@ export class PriceService {
     );
   }
 
-  async findPrices(
-    query: FindPricesQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<PriceResponse>> {
+  async findPrices(query: FindPricesQuery): Promise<ListResponse<PriceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.priceRepository.findPrices(
       {
-        livemode,
         productId: query.productId,
         lookupKey: query.lookupKey,
         active: query.active,

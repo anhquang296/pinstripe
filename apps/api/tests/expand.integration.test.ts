@@ -10,7 +10,7 @@ let authHeaders: Record<string, string>;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
+  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
   authHeaders = buildAuthHeaders(apiKey.token);
 });
@@ -20,10 +20,10 @@ afterAll(async () => {
 });
 
 async function makeCustomerId(): Promise<string> {
-  const customer = await fastify.customerService.createCustomer(
-    { name: 'Expand Tester', currency: CurrencyEnum.VND },
-    true,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Expand Tester',
+    currency: CurrencyEnum.VND,
+  });
 
   return customer.id;
 }
@@ -41,11 +41,12 @@ it('leaves the response untouched when nothing is expanded', async () => {
 });
 
 it('nests the product object into a price that asks for it', async () => {
-  const product = await fastify.productService.createProduct({ name: 'Expandable' }, true);
-  const price = await fastify.priceService.createPrice(
-    { productId: product.id, currency: CurrencyEnum.VND, unitAmount: 1000 },
-    true,
-  );
+  const product = await fastify.productService.createProduct({ name: 'Expandable' });
+  const price = await fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount: 1000,
+  });
 
   const response = await fastify.inject({
     method: 'GET',

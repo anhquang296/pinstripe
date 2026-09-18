@@ -8,17 +8,13 @@ import {
   updatePaymentLinkSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createPaymentLinkSchema, response: { 201: paymentLinkSchema } } },
     async (request, reply) => {
-      const paymentLink = await fastify.paymentLinkService.createPaymentLink(
-        request.body,
-        readLivemode(request),
-      );
+      const paymentLink = await fastify.paymentLinkService.createPaymentLink(request.body);
 
       return ApiResponse.created(reply, paymentLink);
     },
@@ -33,10 +29,7 @@ export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
       },
     },
     async (request, reply) => {
-      const paymentLinks = await fastify.paymentLinkService.findPaymentLinks(
-        request.query,
-        readLivemode(request),
-      );
+      const paymentLinks = await fastify.paymentLinkService.findPaymentLinks(request.query);
 
       return ApiResponse.success(reply, paymentLinks);
     },
@@ -48,7 +41,6 @@ export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
     async (request, reply) => {
       const paymentLink = await fastify.paymentLinkService.getPaymentLink(
         request.params.paymentLinkId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentLink);
@@ -68,7 +60,6 @@ export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
       const paymentLink = await fastify.paymentLinkService.updatePaymentLink(
         request.params.paymentLinkId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, paymentLink);

@@ -8,17 +8,13 @@ import {
   updateTaxRateSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createTaxRateSchema, response: { 201: taxRateSchema } } },
     async (request, reply) => {
-      const taxRate = await fastify.taxRateService.createTaxRate(
-        request.body,
-        readLivemode(request),
-      );
+      const taxRate = await fastify.taxRateService.createTaxRate(request.body);
 
       return ApiResponse.created(reply, taxRate);
     },
@@ -33,10 +29,7 @@ export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const taxRates = await fastify.taxRateService.findTaxRates(
-        request.query,
-        readLivemode(request),
-      );
+      const taxRates = await fastify.taxRateService.findTaxRates(request.query);
 
       return ApiResponse.success(reply, taxRates);
     },
@@ -46,10 +39,7 @@ export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:taxRateId',
     { schema: { params: taxRateParamsSchema, response: { 200: taxRateSchema } } },
     async (request, reply) => {
-      const taxRate = await fastify.taxRateService.getTaxRate(
-        request.params.taxRateId,
-        readLivemode(request),
-      );
+      const taxRate = await fastify.taxRateService.getTaxRate(request.params.taxRateId);
 
       return ApiResponse.success(reply, taxRate);
     },
@@ -68,7 +58,6 @@ export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const taxRate = await fastify.taxRateService.updateTaxRate(
         request.params.taxRateId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, taxRate);

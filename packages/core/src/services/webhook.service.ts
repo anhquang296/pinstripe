@@ -43,13 +43,11 @@ export class WebhookService {
 
   async createWebhookEndpoint(
     payload: CreateWebhookEndpointPayload,
-    livemode: boolean,
   ): Promise<WebhookEndpointResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.WEBHOOK_ENDPOINT);
     const createdEndpoint = await this.fastify.webhookRepository.createWebhookEndpoint({
       id,
-      livemode,
       url: payload.url,
       status: WebhookEndpointStatusEnum.ENABLED,
       enabledEvents: [...payload.enabledEvents],
@@ -88,25 +86,20 @@ export class WebhookService {
     throw new NotFoundError(`No such webhook endpoint: ${id}`);
   }
 
-  async getWebhookEndpoint(id: string, livemode: boolean): Promise<WebhookEndpointResponse> {
+  async getWebhookEndpoint(id: string): Promise<WebhookEndpointResponse> {
     const endpoint = await this.getWebhookEndpointEntity(id);
 
-    if (endpoint.livemode === livemode) {
-      return WebhookService.buildEndpoint(endpoint, { hasSecret: false });
-    }
-
-    throw new NotFoundError(`No such webhook endpoint: ${id}`);
+    return WebhookService.buildEndpoint(endpoint, { hasSecret: false });
   }
 
   async findWebhookEndpoints(
     query: FindWebhookEndpointsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<WebhookEndpointResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveEndpointCursor(query.startingAfter);
     const afterAt = await this.resolveEndpointCursor(query.endingBefore);
     const rows = await this.fastify.webhookRepository.findWebhookEndpoints(
-      { livemode, status: query.status, beforeAt, afterAt },
+      { status: query.status, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -121,11 +114,10 @@ export class WebhookService {
 
   async findWebhookDeliveries(
     query: FindWebhookDeliveriesQuery,
-    livemode: boolean,
   ): Promise<ListResponse<WebhookDeliveryResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.webhookRepository.findWebhookDeliveries(
-      { livemode, endpointId: query.endpointId, status: query.status },
+      { endpointId: query.endpointId, status: query.status },
       limit + 1,
     );
 
@@ -138,7 +130,7 @@ export class WebhookService {
 
   async handleDomainEvent(event: DomainEventDispatchJob): Promise<number> {
     const endpoints = await this.fastify.webhookRepository.findWebhookEndpoints(
-      { status: WebhookEndpointStatusEnum.ENABLED, livemode: event.livemode },
+      { status: WebhookEndpointStatusEnum.ENABLED },
       ENDPOINT_SCAN_LIMIT,
     );
     const subscribed = _.filter(endpoints, (endpoint) => {
@@ -160,7 +152,6 @@ export class WebhookService {
       _.map(subscribed, (endpoint) => {
         return {
           id: generateGid(ObjectPrefixEnum.WEBHOOK_DELIVERY),
-          livemode: event.livemode,
           endpointId: endpoint.id,
           eventId: event.eventId,
           eventType: event.eventType,
@@ -267,13 +258,10 @@ export class WebhookService {
     });
   }
 
-  async replayWebhookDelivery(
-    deliveryId: string,
-    livemode: boolean,
-  ): Promise<WebhookDeliveryResponse> {
+  async replayWebhookDelivery(deliveryId: string): Promise<WebhookDeliveryResponse> {
     const delivery = await this.fastify.webhookRepository.findWebhookDelivery(deliveryId);
 
-    if (!delivery || delivery.livemode !== livemode) {
+    if (!delivery) {
       throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
     }
 

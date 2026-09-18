@@ -10,14 +10,13 @@ import {
   updateMeterSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createMeterSchema, response: { 201: meterSchema } } },
     async (request, reply) => {
-      const meter = await fastify.meterService.createMeter(request.body, readLivemode(request));
+      const meter = await fastify.meterService.createMeter(request.body);
 
       return ApiResponse.created(reply, meter);
     },
@@ -29,7 +28,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { querystring: findMetersSchema, response: { 200: ListResponseSchema(meterSchema) } },
     },
     async (request, reply) => {
-      const meters = await fastify.meterService.findMeters(request.query, readLivemode(request));
+      const meters = await fastify.meterService.findMeters(request.query);
 
       return ApiResponse.success(reply, meters);
     },
@@ -39,10 +38,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:meterId',
     { schema: { params: meterParamsSchema, response: { 200: meterSchema } } },
     async (request, reply) => {
-      const meter = await fastify.meterService.getMeter(
-        request.params.meterId,
-        readLivemode(request),
-      );
+      const meter = await fastify.meterService.getMeter(request.params.meterId);
 
       return ApiResponse.success(reply, meter);
     },
@@ -58,11 +54,7 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const meter = await fastify.meterService.updateMeter(
-        request.params.meterId,
-        request.body,
-        readLivemode(request),
-      );
+      const meter = await fastify.meterService.updateMeter(request.params.meterId, request.body);
 
       return ApiResponse.success(reply, meter);
     },
@@ -81,7 +73,6 @@ export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const summary = await fastify.meterEventService.getMeterEventSummary(
         request.params.meterId,
         request.query,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, summary);

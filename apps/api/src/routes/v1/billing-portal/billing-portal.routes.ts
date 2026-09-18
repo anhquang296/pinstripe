@@ -11,7 +11,6 @@ import {
   updateBillingPortalConfigurationSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
@@ -23,10 +22,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const configuration = await fastify.billingPortalService.createConfiguration(
-        request.body,
-        readLivemode(request),
-      );
+      const configuration = await fastify.billingPortalService.createConfiguration(request.body);
 
       return ApiResponse.created(reply, configuration);
     },
@@ -41,10 +37,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const configurations = await fastify.billingPortalService.findConfigurations(
-        request.query,
-        readLivemode(request),
-      );
+      const configurations = await fastify.billingPortalService.findConfigurations(request.query);
 
       return ApiResponse.success(reply, configurations);
     },
@@ -61,7 +54,6 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     async (request, reply) => {
       const configuration = await fastify.billingPortalService.getConfiguration(
         request.params.configurationId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, configuration);
@@ -81,7 +73,6 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       const configuration = await fastify.billingPortalService.updateConfiguration(
         request.params.configurationId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, configuration);
@@ -97,10 +88,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const session = await fastify.billingPortalService.createSession(
-        request.body,
-        readLivemode(request),
-      );
+      const session = await fastify.billingPortalService.createSession(request.body);
 
       return ApiResponse.created(reply, session);
     },
@@ -115,10 +103,7 @@ export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
-      const session = await fastify.billingPortalService.getSession(
-        request.params.sessionId,
-        readLivemode(request),
-      );
+      const session = await fastify.billingPortalService.getSession(request.params.sessionId);
 
       return ApiResponse.success(reply, session);
     },

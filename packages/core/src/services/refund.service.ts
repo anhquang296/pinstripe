@@ -22,12 +22,8 @@ const SINGLE_ROW_LIMIT = 1;
 export class RefundService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createRefund(
-    payload: CreateRefundPayload,
-    livemode: boolean,
-    creditNoteId?: string,
-  ): Promise<RefundResponse> {
-    const charge = await this.getChargeEntity(payload.chargeId, livemode);
+  async createRefund(payload: CreateRefundPayload, creditNoteId?: string): Promise<RefundResponse> {
+    const charge = await this.getChargeEntity(payload.chargeId);
     const refundable = await this.resolveRefundableAmount(charge);
     const amount = payload.amount ?? refundable;
 
@@ -77,7 +73,6 @@ export class RefundService {
 
     return {
       id,
-      livemode: charge.livemode,
       paymentIntentId: charge.paymentIntentId,
       chargeId: charge.id,
       invoiceId: await this.resolveInvoiceId(charge.paymentIntentId),
@@ -141,10 +136,10 @@ export class RefundService {
     );
   }
 
-  async getRefund(id: string, livemode: boolean): Promise<RefundResponse> {
+  async getRefund(id: string): Promise<RefundResponse> {
     const refund = await this.fastify.refundRepository.findRefund(id);
 
-    if (refund && refund.livemode === livemode) {
+    if (refund) {
       const [built] = await this.buildRefunds([refund]);
 
       if (built) {
@@ -155,16 +150,12 @@ export class RefundService {
     throw new NotFoundError(`No such refund: ${id}`);
   }
 
-  async findRefunds(
-    query: FindRefundsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<RefundResponse>> {
+  async findRefunds(query: FindRefundsQuery): Promise<ListResponse<RefundResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.refundRepository.findRefunds(
       {
-        livemode,
         invoiceId: query.invoiceId,
         chargeId: query.chargeId,
         paymentIntentId: query.paymentIntentId,
@@ -248,7 +239,6 @@ export class RefundService {
     await this.fastify.refundRepository.createRefundTransition(
       {
         id: generateGid(ObjectPrefixEnum.REFUND_TRANSITION),
-        livemode: refund.livemode,
         refundId: refund.id,
         status,
         failureReason,
@@ -268,7 +258,6 @@ export class RefundService {
         {
           aggregateType: AggregateTypeEnum.REFUND,
           aggregateId: refund.id,
-          livemode: refund.livemode,
           eventType,
           payload: {
             id: refund.id,
@@ -289,10 +278,10 @@ export class RefundService {
     return _.get(paymentIntent, 'invoiceId', null);
   }
 
-  private async getChargeEntity(id: string, livemode: boolean): Promise<Charge> {
+  private async getChargeEntity(id: string): Promise<Charge> {
     const charge = await this.fastify.paymentIntentRepository.findCharge(id);
 
-    if (!charge || charge.livemode !== livemode) {
+    if (!charge) {
       throw new NotFoundError(`No such charge: ${id}`);
     }
 

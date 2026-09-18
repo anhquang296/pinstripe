@@ -7,7 +7,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, settleInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice, settleInvoice } from './factories';
 
 const BASE_AMOUNT = 500_000;
 
@@ -25,7 +25,6 @@ async function readCreditBalance(customerId: string): Promise<number> {
   const account = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
     CurrencyEnum.VND,
-    TEST_LIVEMODE,
     customerId,
   );
 
@@ -41,7 +40,6 @@ describe('CreditNoteService.createCreditNote after the invoice was paid', () => 
     const cashBefore = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.CASH,
       CurrencyEnum.VND,
-      TEST_LIVEMODE,
     );
     const creditNote = await fastify.creditNoteService.createCreditNote({
       invoiceId,
@@ -56,11 +54,10 @@ describe('CreditNoteService.createCreditNote after the invoice was paid', () => 
 
     await fastify.paymentService.drainProviderEvents();
 
-    const refund = await fastify.refundService.getRefund(creditNote.refundId ?? '', TEST_LIVEMODE);
+    const refund = await fastify.refundService.getRefund(creditNote.refundId ?? '');
     const cashAfter = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.CASH,
       CurrencyEnum.VND,
-      TEST_LIVEMODE,
     );
 
     expect(creditNote.type).toBe(CreditNoteTypeEnum.POST_PAYMENT);
@@ -104,9 +101,9 @@ describe('CreditNoteService.createCreditNote after the invoice was paid', () => 
 
     await fastify.paymentService.drainProviderEvents();
 
-    await expect(
-      fastify.creditNoteService.voidCreditNote(creditNote.id, {}, TEST_LIVEMODE),
-    ).rejects.toThrow(ConflictError);
+    await expect(fastify.creditNoteService.voidCreditNote(creditNote.id, {})).rejects.toThrow(
+      ConflictError,
+    );
   });
 });
 
@@ -119,12 +116,12 @@ describe('CreditNoteService.voidCreditNote', () => {
       lines: [{ amount: 10_000 }],
       reason: 'Ghi nhầm',
     });
-    const voided = await fastify.creditNoteService.voidCreditNote(creditNote.id, {}, TEST_LIVEMODE);
+    const voided = await fastify.creditNoteService.voidCreditNote(creditNote.id, {});
 
     expect(voided.status).toBe(CreditNoteStatusEnum.VOID);
 
-    await expect(
-      fastify.creditNoteService.voidCreditNote(creditNote.id, {}, TEST_LIVEMODE),
-    ).rejects.toThrow(ConflictError);
+    await expect(fastify.creditNoteService.voidCreditNote(creditNote.id, {})).rejects.toThrow(
+      ConflictError,
+    );
   });
 });

@@ -28,7 +28,6 @@ export const prices = pgTable(
   'prices',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     productId: text('product_id')
       .notNull()
       .references(() => {
@@ -66,11 +65,7 @@ export const prices = pgTable(
     return [
       index('prices_product_id_idx').on(table.productId),
       index('prices_created_at_id_idx').on(table.createdAt, table.id),
-      uniqueIndex('prices_lookup_key_version_idx').on(
-        table.livemode,
-        table.lookupKey,
-        table.version,
-      ),
+      uniqueIndex('prices_lookup_key_version_idx').on(table.lookupKey, table.version),
       check(
         'prices_per_unit_shape',
         sql`billing_scheme <> 'per_unit' or (unit_amount is not null and tiers is null and tiers_mode is null)`,

@@ -9,22 +9,12 @@ import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import {
-  bigint,
-  boolean,
-  check,
-  index,
-  jsonb,
-  pgTable,
-  text,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { bigint, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const customers = pgTable(
   'customers',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     email: text('email'),
     name: text('name').notNull().default(''),
     description: text('description').notNull().default(''),
@@ -50,9 +40,8 @@ export const customers = pgTable(
   (table) => {
     return [
       index('customers_created_at_id_idx').on(table.createdAt, table.id),
-      check('customers_test_clock_is_test_mode', sql`test_clock_id is null or livemode = false`),
       uniqueIndex('customers_email_idx')
-        .on(table.livemode, table.email)
+        .on(table.email)
         .where(sql`deleted_at is null and email is not null`),
     ];
   },
@@ -62,7 +51,6 @@ export const customerBalanceTransactions = pgTable(
   'customer_balance_transactions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {

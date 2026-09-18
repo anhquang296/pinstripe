@@ -18,7 +18,7 @@ import _ from 'lodash';
 export class TaxRateService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createTaxRate(payload: CreateTaxRatePayload, livemode: boolean): Promise<TaxRateResponse> {
+  async createTaxRate(payload: CreateTaxRatePayload): Promise<TaxRateResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.TAX_RATE);
 
@@ -26,7 +26,6 @@ export class TaxRateService {
       const taxRate = await this.fastify.taxRateRepository.createTaxRate(
         {
           id,
-          livemode,
           displayName: payload.displayName,
           description: payload.description ?? '',
           percentage: payload.percentage,
@@ -53,26 +52,22 @@ export class TaxRateService {
     });
   }
 
-  async getTaxRate(id: string, livemode: boolean): Promise<TaxRateResponse> {
-    return this.getTaxRateEntity(id, livemode);
+  async getTaxRate(id: string): Promise<TaxRateResponse> {
+    return this.getTaxRateEntity(id);
   }
 
-  async getTaxRateEntity(id: string, livemode: boolean): Promise<TaxRate> {
+  async getTaxRateEntity(id: string): Promise<TaxRate> {
     const taxRate = await this.fastify.taxRateRepository.findTaxRate(id);
 
-    if (taxRate && taxRate.livemode === livemode) {
+    if (taxRate) {
       return taxRate;
     }
 
     throw new NotFoundError(`No such tax rate: ${id}`);
   }
 
-  async updateTaxRate(
-    id: string,
-    payload: UpdateTaxRatePayload,
-    livemode: boolean,
-  ): Promise<TaxRateResponse> {
-    const existingTaxRate = await this.getTaxRateEntity(id, livemode);
+  async updateTaxRate(id: string, payload: UpdateTaxRatePayload): Promise<TaxRateResponse> {
+    const existingTaxRate = await this.getTaxRateEntity(id);
     const updatedAt = this.fastify.clock.now().toISOString();
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -99,17 +94,13 @@ export class TaxRateService {
     });
   }
 
-  async findTaxRates(
-    query: FindTaxRatesQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<TaxRateResponse>> {
+  async findTaxRates(query: FindTaxRatesQuery): Promise<ListResponse<TaxRateResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter, livemode);
-    const afterAt = await this.resolveCursor(query.endingBefore, livemode);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
 
     const rows = await this.fastify.taxRateRepository.findTaxRates(
       {
-        livemode,
         active: query.active,
         inclusive: query.inclusive,
         country: query.country,
@@ -127,12 +118,9 @@ export class TaxRateService {
     };
   }
 
-  private async resolveCursor(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<RowCursor | undefined> {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const taxRate = await this.getTaxRateEntity(id, livemode);
+      const taxRate = await this.getTaxRateEntity(id);
 
       return { createdAt: taxRate.createdAt, id: taxRate.id };
     }
@@ -150,7 +138,6 @@ export class TaxRateService {
         {
           aggregateType: AggregateTypeEnum.TAX_RATE,
           aggregateId: taxRate.id,
-          livemode: taxRate.livemode,
           eventType,
           payload: {
             id: taxRate.id,

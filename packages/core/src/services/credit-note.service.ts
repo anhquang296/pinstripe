@@ -74,7 +74,6 @@ export class CreditNoteService {
       const creditNote = await this.fastify.creditNoteRepository.createCreditNote(
         {
           id,
-          livemode: invoice.livemode,
           number: CreditNoteService.formatNumber(CREDIT_NOTE_NUMBER_PREFIX, sequenceValue),
           invoiceId: invoice.id,
           customerId: invoice.customerId,
@@ -90,7 +89,7 @@ export class CreditNoteService {
           metadata: payload.metadata ?? {},
           createdAt: now,
         },
-        CreditNoteService.buildLines(id, invoice.livemode, payload, now),
+        CreditNoteService.buildLines(id, payload, now),
         tx,
       );
 
@@ -125,12 +124,8 @@ export class CreditNoteService {
     throw new NotFoundError(`No such credit note: ${id}`);
   }
 
-  async voidCreditNote(
-    id: string,
-    payload: VoidCreditNotePayload,
-    livemode: boolean,
-  ): Promise<CreditNoteResponse> {
-    const creditNote = await this.getCreditNoteEntity(id, livemode);
+  async voidCreditNote(id: string, payload: VoidCreditNotePayload): Promise<CreditNoteResponse> {
+    const creditNote = await this.getCreditNoteEntity(id);
     const status = await this.resolveStatus(creditNote.id);
 
     if (status === CreditNoteStatusEnum.VOID) {
@@ -178,8 +173,8 @@ export class CreditNoteService {
     throw new NotFoundError(`No such credit note: ${id}`);
   }
 
-  async getCreditNote(id: string, livemode: boolean): Promise<CreditNoteResponse> {
-    const creditNote = await this.getCreditNoteEntity(id, livemode);
+  async getCreditNote(id: string): Promise<CreditNoteResponse> {
+    const creditNote = await this.getCreditNoteEntity(id);
     const [built] = await this.buildCreditNotes([creditNote]);
 
     if (built) {
@@ -189,15 +184,12 @@ export class CreditNoteService {
     throw new NotFoundError(`No such credit note: ${id}`);
   }
 
-  async findCreditNotes(
-    query: FindCreditNotesQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<CreditNoteResponse>> {
+  async findCreditNotes(query: FindCreditNotesQuery): Promise<ListResponse<CreditNoteResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.creditNoteRepository.findCreditNotes(
-      { livemode, invoiceId: query.invoiceId, customerId: query.customerId, beforeAt, afterAt },
+      { invoiceId: query.invoiceId, customerId: query.customerId, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -342,7 +334,6 @@ export class CreditNoteService {
         externalId: `credit_note:${creditNoteId}`,
         entries,
       },
-      invoice.livemode,
       tx,
     );
 
@@ -369,7 +360,6 @@ export class CreditNoteService {
     await this.fastify.customerBalanceTransactionRepository.createCustomerBalanceTransaction(
       {
         id: generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION),
-        livemode: creditNote.livemode,
         customerId: creditNote.customerId,
         invoiceId: creditNote.invoiceId,
         creditNoteId: creditNote.id,
@@ -414,7 +404,6 @@ export class CreditNoteService {
         {
           aggregateType: AggregateTypeEnum.INVOICE,
           aggregateId: invoice.id,
-          livemode: invoice.livemode,
           eventType: DomainEventTypeEnum.INVOICE_PAID,
           payload: { id: invoice.id, number: invoice.number, total: invoice.total },
         },
@@ -469,7 +458,6 @@ export class CreditNoteService {
     await this.fastify.creditNoteRepository.createCreditNoteTransition(
       {
         id: generateGid(ObjectPrefixEnum.CREDIT_NOTE_TRANSITION),
-        livemode: creditNote.livemode,
         creditNoteId: creditNote.id,
         status,
         reason,
@@ -489,7 +477,6 @@ export class CreditNoteService {
         {
           aggregateType: AggregateTypeEnum.CREDIT_NOTE,
           aggregateId: creditNote.id,
-          livemode: creditNote.livemode,
           eventType,
           payload: {
             id: creditNote.id,
@@ -513,10 +500,10 @@ export class CreditNoteService {
     throw new NotFoundError(`No such invoice: ${id}`);
   }
 
-  private async getCreditNoteEntity(id: string, livemode: boolean): Promise<CreditNote> {
+  private async getCreditNoteEntity(id: string): Promise<CreditNote> {
     const creditNote = await this.fastify.creditNoteRepository.findCreditNote(id);
 
-    if (creditNote && creditNote.livemode === livemode) {
+    if (creditNote) {
       return creditNote;
     }
 
@@ -593,14 +580,12 @@ export class CreditNoteService {
 
   private static buildLines(
     creditNoteId: string,
-    livemode: boolean,
     payload: CreateCreditNotePayload,
     createdAt: string,
   ): NewCreditNoteLineItem[] {
     return _.map(payload.lines, (line): NewCreditNoteLineItem => {
       return {
         id: generateGid(ObjectPrefixEnum.CREDIT_NOTE_LINE_ITEM),
-        livemode,
         creditNoteId,
         invoiceLineItemId: line.invoiceLineItemId ?? null,
         description: line.description ?? '',

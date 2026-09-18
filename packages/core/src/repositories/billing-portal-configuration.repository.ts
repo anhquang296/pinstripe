@@ -6,7 +6,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 export interface BillingPortalConfigurationFilters {
-  livemode?: boolean;
   isActive?: boolean;
   isDefault?: boolean;
   beforeAt?: RowCursor;
@@ -35,9 +34,6 @@ export class BillingPortalConfigurationRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<BillingPortalConfiguration[]> {
     const where = and(
-      filters.livemode === undefined
-        ? undefined
-        : eq(billingPortalConfigurations.livemode, filters.livemode),
       filters.isActive === undefined
         ? undefined
         : eq(billingPortalConfigurations.isActive, filters.isActive),
@@ -88,20 +84,12 @@ export class BillingPortalConfigurationRepository {
     return configuration ?? null;
   }
 
-  async demoteBillingPortalConfigurations(
-    livemode: boolean,
-    executor?: DatabaseTransaction,
-  ): Promise<void> {
+  async demoteBillingPortalConfigurations(executor?: DatabaseTransaction): Promise<void> {
     const db = executor ?? this._db.master;
 
     await db
       .update(billingPortalConfigurations)
       .set({ isDefault: false })
-      .where(
-        and(
-          eq(billingPortalConfigurations.livemode, livemode),
-          eq(billingPortalConfigurations.isDefault, true),
-        ),
-      );
+      .where(eq(billingPortalConfigurations.isDefault, true));
   }
 }

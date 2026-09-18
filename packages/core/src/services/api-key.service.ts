@@ -38,20 +38,21 @@ export class ApiKeyService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createApiKey(payload: CreateApiKeyPayload): Promise<ApiKeyResponse> {
-    const token = ApiKeyService.buildToken(payload.type, payload.livemode);
-    const now = this.fastify.clock.now().toISOString();
+    const token = ApiKeyService.buildToken(payload.type);
+
+    const createdAt = this.fastify.clock.now().toISOString();
+
     const createdApiKey = await this.fastify.apiKeyRepository.createApiKey({
       id: generateGid(ObjectPrefixEnum.API_KEY),
       name: payload.name,
       type: payload.type,
       scopes: [...payload.scopes],
-      livemode: payload.livemode,
       tokenPrefix: token.slice(0, TOKEN_PREFIX_LENGTH),
       tokenHash: ApiKeyService.hashToken(token),
       lastUsedAt: null,
       revokedAt: null,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: createdAt,
+      updatedAt: createdAt,
     });
 
     if (createdApiKey) {
@@ -63,8 +64,10 @@ export class ApiKeyService {
 
   async findApiKeys(query: FindApiKeysQuery): Promise<ListResponse<ApiKeyResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
+
     const rows = await this.fastify.apiKeyRepository.findApiKeys({ beforeAt, afterAt }, limit + 1);
     const hasMore = rows.length > limit;
 
@@ -82,10 +85,12 @@ export class ApiKeyService {
 
   async revokeApiKey(id: string): Promise<ApiKeyResponse> {
     const apiKey = await this.getApiKeyEntity(id);
-    const now = this.fastify.clock.now().toISOString();
+
+    const updatedAt = this.fastify.clock.now().toISOString();
+
     const revokedApiKey = await this.fastify.apiKeyRepository.updateApiKey(apiKey.id, {
-      revokedAt: apiKey.revokedAt ?? now,
-      updatedAt: now,
+      revokedAt: apiKey.revokedAt ?? updatedAt,
+      updatedAt: updatedAt,
     });
 
     if (revokedApiKey) {
@@ -110,7 +115,6 @@ export class ApiKeyService {
         apiKeyId: apiKey.id,
         type: apiKey.type,
         scopes: apiKey.scopes,
-        livemode: apiKey.livemode,
       };
     }
 
@@ -118,7 +122,7 @@ export class ApiKeyService {
   }
 
   async ensureBootstrapApiKeys(bootstrapKeys: readonly BootstrapApiKey[]): Promise<number> {
-    const now = this.fastify.clock.now().toISOString();
+    const createdAt = this.fastify.clock.now().toISOString();
 
     let createdCount = 0;
 
@@ -128,13 +132,12 @@ export class ApiKeyService {
         name: bootstrapKey.name,
         type: bootstrapKey.type ?? ApiKeyTypeEnum.SECRET,
         scopes: [...bootstrapKey.scopes],
-        livemode: true,
         tokenPrefix: bootstrapKey.token.slice(0, TOKEN_PREFIX_LENGTH),
         tokenHash: ApiKeyService.hashToken(bootstrapKey.token),
         lastUsedAt: null,
         revokedAt: null,
-        createdAt: now,
-        updatedAt: now,
+        createdAt: createdAt,
+        updatedAt: createdAt,
       });
 
       if (createdApiKey) {
@@ -175,10 +178,8 @@ export class ApiKeyService {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  private static buildToken(type: ApiKeyType, livemode: boolean): string {
-    const mode = livemode ? 'live' : 'test';
-
-    return `${TYPE_PREFIXES[type]}_${mode}_${randomBytes(TOKEN_BYTE_LENGTH).toString('hex')}`;
+  private static buildToken(type: ApiKeyType): string {
+    return `${TYPE_PREFIXES[type]}_${randomBytes(TOKEN_BYTE_LENGTH).toString('hex')}`;
   }
 
   private static buildApiKey(apiKey: ApiKey, token: string | null): ApiKeyResponse {
@@ -187,7 +188,6 @@ export class ApiKeyService {
       name: apiKey.name,
       type: apiKey.type,
       scopes: apiKey.scopes,
-      livemode: apiKey.livemode,
       tokenPrefix: apiKey.tokenPrefix,
       token,
       lastUsedAt: apiKey.lastUsedAt,

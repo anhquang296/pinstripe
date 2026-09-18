@@ -25,11 +25,8 @@ export class MeterEventService {
     private readonly config: MeterEventServiceConfig,
   ) {}
 
-  async ingestMeterEvent(
-    payload: CreateMeterEventPayload,
-    livemode: boolean,
-  ): Promise<MeterEventResponse> {
-    const meter = await this.fastify.meterService.resolveMeter(payload.eventName, livemode);
+  async ingestMeterEvent(payload: CreateMeterEventPayload): Promise<MeterEventResponse> {
+    const meter = await this.fastify.meterService.resolveMeter(payload.eventName);
     const receivedAt = this.fastify.clock.now();
     const event = this.buildMeterEvent(meter, payload, receivedAt);
     const isKnown = await this.isIdentifierKnown(meter.id, event.identifier);
@@ -47,13 +44,12 @@ export class MeterEventService {
 
   async ingestMeterEventBatch(
     payload: CreateMeterEventBatchPayload,
-    livemode: boolean,
   ): Promise<CreateMeterEventBatchResponse> {
     const receivedAt = this.fastify.clock.now();
     const eventNames = _.uniq(_.map(payload.events, 'eventName'));
     const meters = await Promise.all(
       _.map(eventNames, (eventName) => {
-        return this.fastify.meterService.resolveMeter(eventName, livemode);
+        return this.fastify.meterService.resolveMeter(eventName);
       }),
     );
     const metersByEventName = _.keyBy(meters, 'eventName');
@@ -86,14 +82,8 @@ export class MeterEventService {
   async getMeterEventSummary(
     meterId: string,
     query: GetMeterEventSummaryQuery,
-    livemode: boolean,
   ): Promise<MeterEventSummaryResponse> {
     const meter = await this.getMeter(meterId);
-
-    if (meter.livemode !== livemode) {
-      throw new NotFoundError(`No such meter: ${meterId}`);
-    }
-
     const windowStart = new Date(query.windowStart);
     const windowEnd = new Date(query.windowEnd);
 
@@ -147,7 +137,6 @@ export class MeterEventService {
 
     return {
       id: generateGid(ObjectPrefixEnum.METER_EVENT),
-      livemode: meter.livemode,
       identifier: payload.identifier ?? generateGid(ObjectPrefixEnum.METER_EVENT),
       meterId: meter.id,
       customerId: payload.customerId,

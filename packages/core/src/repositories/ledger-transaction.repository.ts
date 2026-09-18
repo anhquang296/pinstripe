@@ -13,7 +13,6 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface LedgerTransactionFilters {
-  livemode?: boolean;
   accountId?: string;
   externalId?: string;
   beforeAt?: RowCursor;
@@ -47,9 +46,6 @@ export class LedgerTransactionRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<LedgerTransaction[]> {
     const where = and(
-      filters.livemode === undefined
-        ? undefined
-        : eq(ledgerTransactions.livemode, filters.livemode),
       filters.accountId
         ? sql`exists (select 1 from ${ledgerPostings} where ${ledgerPostings.transactionId} = ${ledgerTransactions.id} and ${ledgerPostings.accountId} = ${filters.accountId})`
         : undefined,

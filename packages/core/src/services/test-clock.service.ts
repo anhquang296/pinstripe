@@ -38,10 +38,10 @@ export class TestClockService {
     throw new NotFoundError('Test clock could not be created');
   }
 
-  async getTestClock(id: string, livemode: boolean): Promise<TestClockResponse> {
+  async getTestClock(id: string): Promise<TestClockResponse> {
     const clock = await this.fastify.testClockRepository.findTestClock(id);
 
-    if (clock && clock.livemode === livemode) {
+    if (clock) {
       return clock;
     }
 
@@ -114,7 +114,6 @@ export class TestClockService {
             {
               aggregateType: AggregateTypeEnum.TEST_CLOCK,
               aggregateId: id,
-              livemode: false,
               eventType: DomainEventTypeEnum.TEST_CLOCK_ADVANCED,
               payload: { id, frozenTime: target.toISOString() },
             },

@@ -9,7 +9,6 @@ import { and, asc, desc, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface BalanceTransactionFilters {
-  livemode?: boolean;
   type?: BalanceTransactionType;
   currency?: Currency;
   sourceType?: BalanceSourceType;
@@ -58,7 +57,6 @@ export class BalanceTransactionRepository {
 
   async findSweepableBalanceTransactions(
     currency: Currency,
-    livemode: boolean,
     availableBeforeAt: string,
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<BalanceTransaction[]> {
@@ -67,7 +65,6 @@ export class BalanceTransactionRepository {
       .from(balanceTransactions)
       .where(
         and(
-          eq(balanceTransactions.livemode, livemode),
           eq(balanceTransactions.currency, currency),
           isNull(balanceTransactions.payoutId),
           lte(balanceTransactions.availableOn, availableBeforeAt),
@@ -77,7 +74,7 @@ export class BalanceTransactionRepository {
       .limit(limit);
   }
 
-  async aggregateBalanceTotals(livemode: boolean, asOf: string): Promise<BalanceTotal[]> {
+  async aggregateBalanceTotals(asOf: string): Promise<BalanceTotal[]> {
     return this._db.master
       .select({
         currency: sql<Currency>`${balanceTransactions.currency}`,
@@ -85,7 +82,7 @@ export class BalanceTransactionRepository {
         pending: sql<number>`coalesce(sum(case when ${balanceTransactions.availableOn} > ${asOf}::timestamptz then ${balanceTransactions.net} else 0 end), 0)::int`,
       })
       .from(balanceTransactions)
-      .where(and(eq(balanceTransactions.livemode, livemode), isNull(balanceTransactions.payoutId)))
+      .where(isNull(balanceTransactions.payoutId))
       .groupBy(balanceTransactions.currency);
   }
 
@@ -120,9 +117,6 @@ export class BalanceTransactionRepository {
 
   private static buildWhere(filters: BalanceTransactionFilters) {
     return and(
-      filters.livemode === undefined
-        ? undefined
-        : eq(balanceTransactions.livemode, filters.livemode),
       filters.type ? eq(balanceTransactions.type, filters.type) : undefined,
       filters.currency ? eq(balanceTransactions.currency, filters.currency) : undefined,
       filters.sourceType ? eq(balanceTransactions.sourceType, filters.sourceType) : undefined,

@@ -4,13 +4,12 @@ import { customers } from '@database/schemas/customers.schema';
 import { products } from '@database/schemas/products.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
 import { sql } from 'drizzle-orm';
-import { boolean, index, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { index, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const entitlements = pgTable(
   'entitlements',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {

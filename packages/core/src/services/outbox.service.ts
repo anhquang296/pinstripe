@@ -15,7 +15,6 @@ export interface RecordEventPayload {
   aggregateId: string;
   eventType: DomainEventType;
   payload: Record<string, unknown>;
-  livemode: boolean;
 }
 
 export class OutboxService {
@@ -29,7 +28,6 @@ export class OutboxService {
     const outboxRows: NewOutboxEvent[] = _.map(events, (event) => {
       return {
         id: generateGid(ObjectPrefixEnum.EVENT),
-        livemode: event.livemode,
         aggregateType: event.aggregateType,
         aggregateId: event.aggregateId,
         eventType: event.eventType,
@@ -56,7 +54,6 @@ export class OutboxService {
       try {
         await this.fastify.eventService.recordEvent({
           id: event.id,
-          livemode: event.livemode,
           type: event.eventType,
           data: event.payload,
           occurredAt: event.occurredAt,
@@ -91,7 +88,6 @@ export class OutboxService {
     const occurredAt = new Date(event.occurredAt);
     const job = buildDomainEventDispatchJob({
       eventId: event.id,
-      livemode: event.livemode,
       aggregateType: event.aggregateType,
       aggregateId: event.aggregateId,
       eventType: event.eventType,

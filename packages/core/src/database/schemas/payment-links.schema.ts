@@ -9,7 +9,6 @@ export const paymentLinks = pgTable(
   'payment_links',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     isActive: boolean('is_active').notNull().default(true),
     mode: text('mode').$type<CheckoutSessionMode>().notNull(),
     currency: text('currency').$type<Currency>().notNull(),
@@ -32,7 +31,6 @@ export const paymentLinkLineItems = pgTable(
   'payment_link_line_items',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     paymentLinkId: text('payment_link_id')
       .notNull()
       .references(() => {

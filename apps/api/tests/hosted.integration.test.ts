@@ -11,7 +11,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
-const TEST_LIVEMODE = false;
 const SUCCESS_URL = 'https://merchant.test/thanks';
 const UNIT_AMOUNT = 250_000;
 
@@ -21,7 +20,7 @@ let secretHeaders: Record<string, string>;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: TEST_LIVEMODE });
+  const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
   secretHeaders = buildAuthHeaders(secretKey.token);
 });
@@ -31,23 +30,17 @@ afterAll(async () => {
 });
 
 async function makeCheckoutSession(): Promise<CheckoutSessionResponse> {
-  const customer = await fastify.customerService.createCustomer(
-    { email: `hosted-${Date.now()}@pinstripe.test`, currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
-  const product = await fastify.productService.createProduct(
-    { name: 'Hosted plan' },
-    TEST_LIVEMODE,
-  );
-  const price = await fastify.priceService.createPrice(
-    {
-      productId: product.id,
-      currency: CurrencyEnum.VND,
-      unitAmount: UNIT_AMOUNT,
-      recurring: { interval: RecurringIntervalEnum.MONTH },
-    },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `hosted-${Date.now()}@pinstripe.test`,
+    currency: CurrencyEnum.VND,
+  });
+  const product = await fastify.productService.createProduct({ name: 'Hosted plan' });
+  const price = await fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount: UNIT_AMOUNT,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
   const response = await fastify.inject({
     method: 'POST',
     url: '/v1/checkout/sessions',
@@ -121,10 +114,7 @@ describe('hosted checkout page', () => {
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       payload: 'token=tok_visa_ok',
     });
-    const completed = await fastify.checkoutService.getCheckoutSession(
-      checkoutSession.id,
-      TEST_LIVEMODE,
-    );
+    const completed = await fastify.checkoutService.getCheckoutSession(checkoutSession.id);
 
     expect(response.statusCode).toBe(303);
     expect(response.headers.location).toBe(SUCCESS_URL);
@@ -147,10 +137,7 @@ describe('hosted invoice page', () => {
       payload: 'token=tok_visa_ok',
     });
 
-    const completed = await fastify.checkoutService.getCheckoutSession(
-      checkoutSession.id,
-      TEST_LIVEMODE,
-    );
+    const completed = await fastify.checkoutService.getCheckoutSession(checkoutSession.id);
     const invoiceId = String(completed.invoiceId);
     const invoiceToken = fastify.hostedUrlFactory.buildToken(HostedResourceEnum.INVOICE, invoiceId);
 

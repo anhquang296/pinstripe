@@ -7,7 +7,6 @@ import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 export interface ApiKeyFilters {
   tokenHash?: string;
-  livemode?: boolean;
   revokedAtIsNull?: boolean;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -33,7 +32,6 @@ export class ApiKeyRepository {
   async findApiKeys(filters: ApiKeyFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<ApiKey[]> {
     const where = and(
       filters.tokenHash ? eq(apiKeys.tokenHash, filters.tokenHash) : undefined,
-      filters.livemode === undefined ? undefined : eq(apiKeys.livemode, filters.livemode),
       filters.revokedAtIsNull ? isNull(apiKeys.revokedAt) : undefined,
       filters.beforeAt
         ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`

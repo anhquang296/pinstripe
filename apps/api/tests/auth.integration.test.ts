@@ -1,6 +1,5 @@
 import { ApiKeyScopeEnum, PINSTRIPE_API_VERSION } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
-import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
@@ -43,7 +42,7 @@ describe('bearer token handling', () => {
     const response = await fastify.inject({
       method: 'GET',
       url: '/v1/ping',
-      headers: buildAuthHeaders('sk_live_not_a_real_key'),
+      headers: buildAuthHeaders('sk_not_a_real_key'),
     });
 
     expect(response.statusCode).toBe(401);
@@ -129,165 +128,6 @@ describe('bootstrap keys from the environment', () => {
   });
 });
 
-describe('livemode flows from the key onto what it creates', () => {
-  it('stamps a product with the mode of the key that created it', async () => {
-    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
-    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
-
-    const liveResponse = await fastify.inject({
-      method: 'POST',
-      url: '/v1/products',
-      headers: buildAuthHeaders(liveKey.token),
-      payload: { name: 'Live plan' },
-    });
-    const testResponse = await fastify.inject({
-      method: 'POST',
-      url: '/v1/products',
-      headers: buildAuthHeaders(testKey.token),
-      payload: { name: 'Test plan' },
-    });
-
-    expect(liveResponse.json().livemode).toBe(true);
-    expect(testResponse.json().livemode).toBe(false);
-  });
-
-  it('refuses to attach a test clock to a live customer', async () => {
-    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
-    const clock = await fastify.testClockService.createTestClock({
-      name: 'guard clock',
-      frozenTime: new Date().toISOString(),
-    });
-
-    const response = await fastify.inject({
-      method: 'POST',
-      url: '/v1/customers',
-      headers: buildAuthHeaders(liveKey.token),
-      payload: { currency: 'vnd', testClockId: clock.id },
-    });
-
-    expect(response.statusCode).toBeGreaterThanOrEqual(400);
-  });
-});
-
-describe('a key never sees the other mode', () => {
-  it('keeps live and test products in separate lists', async () => {
-    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
-    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
-    const liveHeaders = buildAuthHeaders(liveKey.token);
-    const testHeaders = buildAuthHeaders(testKey.token);
-
-    const liveProduct = await fastify.inject({
-      method: 'POST',
-      url: '/v1/products',
-      headers: liveHeaders,
-      payload: { name: `Live ${Date.now()}` },
-    });
-    const testProduct = await fastify.inject({
-      method: 'POST',
-      url: '/v1/products',
-      headers: testHeaders,
-      payload: { name: `Test ${Date.now()}` },
-    });
-
-    const liveList = await fastify.inject({
-      method: 'GET',
-      url: '/v1/products?limit=100',
-      headers: liveHeaders,
-    });
-    const testList = await fastify.inject({
-      method: 'GET',
-      url: '/v1/products?limit=100',
-      headers: testHeaders,
-    });
-
-    const liveIds = _.map(liveList.json().data, 'id');
-    const testIds = _.map(testList.json().data, 'id');
-
-    expect(liveIds).toContain(liveProduct.json().id);
-    expect(liveIds).not.toContain(testProduct.json().id);
-    expect(testIds).toContain(testProduct.json().id);
-    expect(testIds).not.toContain(liveProduct.json().id);
-  });
-
-  it('reports every listed row as belonging to the calling key mode', async () => {
-    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
-
-    await fastify.inject({
-      method: 'POST',
-      url: '/v1/products',
-      headers: buildAuthHeaders(testKey.token),
-      payload: { name: `Test only ${Date.now()}` },
-    });
-
-    const listed = await fastify.inject({
-      method: 'GET',
-      url: '/v1/products?limit=100',
-      headers: buildAuthHeaders(testKey.token),
-    });
-    const modes = _.uniq(_.map(listed.json().data, 'livemode'));
-
-    expect(modes).toEqual([false]);
-  });
-});
-
-describe('a key cannot reach the other mode by id', () => {
-  it('returns 404 when a test key reads a live object it knows the id of', async () => {
-    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
-    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
-
-    const created = await fastify.inject({
-      method: 'POST',
-      url: '/v1/products',
-      headers: buildAuthHeaders(liveKey.token),
-      payload: { name: `Live secret ${Date.now()}` },
-    });
-    const productId = created.json().id;
-
-    const byOwner = await fastify.inject({
-      method: 'GET',
-      url: `/v1/products/${productId}`,
-      headers: buildAuthHeaders(liveKey.token),
-    });
-    const byStranger = await fastify.inject({
-      method: 'GET',
-      url: `/v1/products/${productId}`,
-      headers: buildAuthHeaders(testKey.token),
-    });
-
-    expect(byOwner.statusCode).toBe(200);
-    expect(byStranger.statusCode).toBe(404);
-  });
-
-  it('refuses a test key writing to a live object', async () => {
-    const liveKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: true });
-    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
-
-    const created = await fastify.inject({
-      method: 'POST',
-      url: '/v1/products',
-      headers: buildAuthHeaders(liveKey.token),
-      payload: { name: `Live target ${Date.now()}` },
-    });
-    const productId = created.json().id;
-
-    const updated = await fastify.inject({
-      method: 'POST',
-      url: `/v1/products/${productId}`,
-      headers: buildAuthHeaders(testKey.token),
-      payload: { name: 'hijacked' },
-    });
-    const pricedOnLiveProduct = await fastify.inject({
-      method: 'POST',
-      url: '/v1/prices',
-      headers: buildAuthHeaders(testKey.token),
-      payload: { productId, currency: 'vnd', unitAmount: 1000 },
-    });
-
-    expect(updated.statusCode).toBe(404);
-    expect(pricedOnLiveProduct.statusCode).toBe(404);
-  });
-});
-
 describe('platform envelope', () => {
   it('stamps every response with the api version', async () => {
     const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
@@ -343,20 +183,7 @@ describe('key lifecycle', () => {
       return apiKey.id === created.id;
     });
 
-    expect(created.token).toMatch(/^sk_live_[0-9a-f]{48}$/);
+    expect(created.token).toMatch(/^sk_[0-9a-f]{48}$/);
     expect(stored?.token).toBeNull();
-  });
-
-  it('carries livemode from the key onto the request', async () => {
-    const testKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
-
-    const response = await fastify.inject({
-      method: 'GET',
-      url: '/v1/ping',
-      headers: buildAuthHeaders(testKey.token),
-    });
-
-    expect(testKey.token).toMatch(/^sk_test_/);
-    expect(response.statusCode).toBe(200);
   });
 });

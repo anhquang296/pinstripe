@@ -35,26 +35,22 @@ export interface DisputeOpenedPayload {
 export class DisputeService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async getDispute(id: string, livemode: boolean): Promise<DisputeResponse> {
+  async getDispute(id: string): Promise<DisputeResponse> {
     const dispute = await this.fastify.disputeRepository.findDispute(id);
 
-    if (dispute && dispute.livemode === livemode) {
+    if (dispute) {
       return dispute;
     }
 
     throw new NotFoundError(`No such dispute: ${id}`);
   }
 
-  async findDisputes(
-    query: FindDisputesQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<DisputeResponse>> {
+  async findDisputes(query: FindDisputesQuery): Promise<ListResponse<DisputeResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.disputeRepository.findDisputes(
       {
-        livemode,
         chargeId: query.chargeId,
         customerId: query.customerId,
         status: query.status,
@@ -74,9 +70,8 @@ export class DisputeService {
   async submitDisputeEvidence(
     id: string,
     payload: SubmitDisputeEvidencePayload,
-    livemode: boolean,
   ): Promise<DisputeResponse> {
-    const dispute = await this.getDisputeEntity(id, livemode);
+    const dispute = await this.getDisputeEntity(id);
 
     DisputeService.assertTransition(dispute.status, DisputeStatusEnum.UNDER_REVIEW);
 
@@ -130,7 +125,6 @@ export class DisputeService {
       const dispute = await this.fastify.disputeRepository.createDispute(
         {
           id,
-          livemode: charge.livemode,
           chargeId: charge.id,
           paymentIntentId: charge.paymentIntentId,
           invoiceId,
@@ -269,7 +263,6 @@ export class DisputeService {
         {
           aggregateType: AggregateTypeEnum.DISPUTE,
           aggregateId: dispute.id,
-          livemode: dispute.livemode,
           eventType,
           payload: {
             id: dispute.id,
@@ -304,10 +297,10 @@ export class DisputeService {
     return _.get(paymentIntent, 'invoiceId', null);
   }
 
-  private async getDisputeEntity(id: string, livemode: boolean): Promise<Dispute> {
+  private async getDisputeEntity(id: string): Promise<Dispute> {
     const dispute = await this.fastify.disputeRepository.findDispute(id);
 
-    if (dispute && dispute.livemode === livemode) {
+    if (dispute) {
       return dispute;
     }
 

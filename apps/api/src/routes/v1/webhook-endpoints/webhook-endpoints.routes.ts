@@ -8,17 +8,13 @@ import {
   webhookEndpointSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createWebhookEndpointSchema, response: { 201: webhookEndpointSchema } } },
     async (request, reply) => {
-      const endpoint = await fastify.webhookService.createWebhookEndpoint(
-        request.body,
-        readLivemode(request),
-      );
+      const endpoint = await fastify.webhookService.createWebhookEndpoint(request.body);
 
       return ApiResponse.created(reply, endpoint);
     },
@@ -33,10 +29,7 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
       },
     },
     async (request, reply) => {
-      const endpoints = await fastify.webhookService.findWebhookEndpoints(
-        request.query,
-        readLivemode(request),
-      );
+      const endpoints = await fastify.webhookService.findWebhookEndpoints(request.query);
 
       return ApiResponse.success(reply, endpoints);
     },
@@ -48,7 +41,6 @@ export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify)
     async (request, reply) => {
       const endpoint = await fastify.webhookService.getWebhookEndpoint(
         request.params.webhookEndpointId,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, endpoint);

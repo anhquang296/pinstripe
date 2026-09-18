@@ -16,7 +16,6 @@ export type CustomerBalanceTransactionType = `${CustomerBalanceTransactionTypeEn
 
 export const customerSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   email: Type.Union([Type.String(), Type.Null()]),
   name: Type.String(),
   description: Type.String(),
@@ -114,7 +113,6 @@ export const deletedCustomerSchema = Type.Object({
 
 export const customerBalanceTransactionSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
   invoiceId: Type.Union([Type.String(), Type.Null()]),

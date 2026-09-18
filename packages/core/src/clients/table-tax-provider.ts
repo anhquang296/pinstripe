@@ -63,7 +63,7 @@ export class TableTaxProvider implements TaxProvider {
     }
 
     const rates = await this._taxRateRepository.findTaxRates(
-      { livemode: draft.livemode, ids: rateIds, active: true },
+      { ids: rateIds, active: true },
       rateIds.length,
     );
 
@@ -87,7 +87,6 @@ export class TableTaxProvider implements TaxProvider {
     }
 
     return this._taxRateRepository.findJurisdictionTaxRates(
-      draft.livemode,
       country,
       draft.state,
       JURISDICTION_RATE_LIMIT,

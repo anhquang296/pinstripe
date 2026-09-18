@@ -59,7 +59,6 @@ export class InvoiceDocumentService {
           {
             aggregateType: AggregateTypeEnum.INVOICE,
             aggregateId: markedInvoice.id,
-            livemode: markedInvoice.livemode,
             eventType: DomainEventTypeEnum.INVOICE_SENT,
             payload: {
               id: markedInvoice.id,
@@ -140,9 +139,7 @@ export class InvoiceDocumentService {
   }
 
   private static buildStorageKey(invoice: Invoice): string {
-    const mode = invoice.livemode ? 'live' : 'test';
-
-    return `invoices/${mode}/${invoice.id}.pdf`;
+    return `invoices/${invoice.id}.pdf`;
   }
 
   private static buildPdfLines(

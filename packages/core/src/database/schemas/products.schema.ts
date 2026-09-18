@@ -6,7 +6,6 @@ export const products = pgTable(
   'products',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     name: text('name').notNull(),
     description: text('description').notNull().default(''),
     active: boolean('active').notNull().default(true),

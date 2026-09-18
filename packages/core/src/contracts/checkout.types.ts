@@ -36,7 +36,6 @@ export const CHECKOUT_SESSION_TRANSITIONS: Record<CheckoutSessionStatus, Checkou
 
 export const checkoutSessionSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   mode: Type.Unsafe<CheckoutSessionMode>(Type.Enum(CheckoutSessionModeEnum)),
   status: Type.Unsafe<CheckoutSessionStatus>(Type.Enum(CheckoutSessionStatusEnum)),
   paymentStatus: Type.Unsafe<CheckoutPaymentStatus>(Type.Enum(CheckoutPaymentStatusEnum)),

@@ -14,13 +14,12 @@ import { prices } from '@database/schemas/prices.schema';
 import { testClocks } from '@database/schemas/test-clocks.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { boolean, check, index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const subscriptions = pgTable(
   'subscriptions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     customerId: text('customer_id')
       .notNull()
       .references(() => {
@@ -76,10 +75,6 @@ export const subscriptions = pgTable(
       index('subscriptions_cancel_at_idx').on(table.cancelAt),
       index('subscriptions_pause_collection_resumes_at_idx').on(table.pauseCollectionResumesAt),
       index('subscriptions_test_clock_id_idx').on(table.testClockId),
-      check(
-        'subscriptions_test_clock_is_test_mode',
-        sql`test_clock_id is null or livemode = false`,
-      ),
     ];
   },
 );
@@ -88,7 +83,6 @@ export const subscriptionItems = pgTable(
   'subscription_items',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     subscriptionId: text('subscription_id')
       .notNull()
       .references(() => {
@@ -116,7 +110,6 @@ export const subscriptionItemChanges = pgTable(
   'subscription_item_changes',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     subscriptionId: text('subscription_id')
       .notNull()
       .references(() => {

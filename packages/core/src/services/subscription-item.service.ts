@@ -40,11 +40,10 @@ export class SubscriptionItemService {
 
   async findSubscriptionItems(
     query: FindSubscriptionItemsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<SubscriptionItemResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
-    const subscription = await this.getSubscription(query.subscriptionId, livemode);
+    const subscription = await this.getSubscription(query.subscriptionId);
 
     const rows = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
@@ -58,15 +57,14 @@ export class SubscriptionItemService {
     };
   }
 
-  async getSubscriptionItem(id: string, livemode: boolean): Promise<SubscriptionItemResponse> {
-    return this.getSubscriptionItemRow(id, livemode);
+  async getSubscriptionItem(id: string): Promise<SubscriptionItemResponse> {
+    return this.getSubscriptionItemRow(id);
   }
 
   async createSubscriptionItem(
     payload: CreateSubscriptionItemPayload,
-    livemode: boolean,
   ): Promise<SubscriptionItemResponse> {
-    const subscription = await this.getSubscription(payload.subscriptionId, livemode);
+    const subscription = await this.getSubscription(payload.subscriptionId);
     const timing = await this.resolveTiming(subscription, payload.prorationBehavior);
     const price = await this.getPrice(payload.priceId);
 
@@ -96,10 +94,9 @@ export class SubscriptionItemService {
   async updateSubscriptionItem(
     id: string,
     payload: UpdateSubscriptionItemPayload,
-    livemode: boolean,
   ): Promise<SubscriptionItemResponse> {
-    const subscriptionItem = await this.getSubscriptionItemRow(id, livemode);
-    const subscription = await this.getSubscription(subscriptionItem.subscriptionId, livemode);
+    const subscriptionItem = await this.getSubscriptionItemRow(id);
+    const subscription = await this.getSubscription(subscriptionItem.subscriptionId);
     const timing = await this.resolveTiming(subscription, payload.prorationBehavior);
     const line: SubscriptionItemLine = {
       id: subscriptionItem.id,
@@ -132,10 +129,9 @@ export class SubscriptionItemService {
   async deleteSubscriptionItem(
     id: string,
     payload: DeleteSubscriptionItemPayload,
-    livemode: boolean,
   ): Promise<DeletedSubscriptionItemResponse> {
-    const subscriptionItem = await this.getSubscriptionItemRow(id, livemode);
-    const subscription = await this.getSubscription(subscriptionItem.subscriptionId, livemode);
+    const subscriptionItem = await this.getSubscriptionItemRow(id);
+    const subscription = await this.getSubscription(subscriptionItem.subscriptionId);
     const liveItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
       deletedAtIsNull: true,
@@ -204,7 +200,6 @@ export class SubscriptionItemService {
   ): Promise<SubscriptionItemResponse> {
     const subscriptionItem = {
       id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
-      livemode: subscription.livemode,
       subscriptionId: subscription.id,
       priceId: line.priceId,
       quantity: line.quantity ?? 1,
@@ -344,20 +339,20 @@ export class SubscriptionItemService {
     return { now, boundary: new Date(subscription.currentPeriodStart) };
   }
 
-  private async getSubscription(id: string, livemode: boolean): Promise<Subscription> {
+  private async getSubscription(id: string): Promise<Subscription> {
     const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
 
-    if (subscription && subscription.livemode === livemode) {
+    if (subscription) {
       return subscription;
     }
 
     throw new NotFoundError(`No such subscription: ${id}`);
   }
 
-  private async getSubscriptionItemRow(id: string, livemode: boolean): Promise<SubscriptionItem> {
+  private async getSubscriptionItemRow(id: string): Promise<SubscriptionItem> {
     const subscriptionItem = await this.fastify.subscriptionRepository.findSubscriptionItem(id);
 
-    if (subscriptionItem && subscriptionItem.livemode === livemode) {
+    if (subscriptionItem) {
       if (subscriptionItem.deletedAt) {
         throw new NotFoundError(`No such subscription item: ${id}`);
       }
@@ -424,7 +419,6 @@ export class SubscriptionItemService {
   ): NewSubscriptionItemChange {
     return {
       id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM_CHANGE),
-      livemode: subscription.livemode,
       subscriptionId: subscription.id,
       subscriptionItemId,
       priceId,

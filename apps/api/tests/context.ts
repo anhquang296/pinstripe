@@ -19,14 +19,13 @@ export async function buildTestApp(): Promise<FastifyInstance> {
 export async function mintApiKey(
   fastify: FastifyInstance,
   scopes: readonly ApiKeyScope[],
-  overrides: { type?: ApiKeyType; livemode?: boolean } = {},
+  overrides: { type?: ApiKeyType } = {},
 ): Promise<MintedApiKey> {
-  const { type = ApiKeyTypeEnum.SECRET, livemode = true } = overrides;
+  const { type = ApiKeyTypeEnum.SECRET } = overrides;
   const apiKey = await fastify.apiKeyService.createApiKey({
     name: `test ${scopes.join('-')}`,
     type,
     scopes: [...scopes],
-    livemode,
   });
 
   if (apiKey.token) {

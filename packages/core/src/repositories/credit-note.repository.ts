@@ -20,7 +20,6 @@ export interface InvoiceCreditedAmount {
 }
 
 export interface CreditNoteFilters {
-  livemode?: boolean;
   invoiceId?: string;
   invoiceIds?: readonly string[];
   customerId?: string;
@@ -149,7 +148,6 @@ export class CreditNoteRepository {
 
   private static buildWhere(filters: CreditNoteFilters) {
     return and(
-      filters.livemode === undefined ? undefined : eq(creditNotes.livemode, filters.livemode),
       filters.invoiceId ? eq(creditNotes.invoiceId, filters.invoiceId) : undefined,
       filters.invoiceIds ? inArray(creditNotes.invoiceId, [...filters.invoiceIds]) : undefined,
       filters.customerId ? eq(creditNotes.customerId, filters.customerId) : undefined,

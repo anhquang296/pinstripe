@@ -12,17 +12,13 @@ import {
   updateCustomerSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createCustomerSchema, response: { 201: customerSchema } } },
     async (request, reply) => {
-      const customer = await fastify.customerService.createCustomer(
-        request.body,
-        readLivemode(request),
-      );
+      const customer = await fastify.customerService.createCustomer(request.body);
 
       return ApiResponse.created(reply, customer);
     },
@@ -37,10 +33,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const customers = await fastify.customerService.findCustomers(
-        request.query,
-        readLivemode(request),
-      );
+      const customers = await fastify.customerService.findCustomers(request.query);
 
       return ApiResponse.success(reply, customers);
     },
@@ -50,10 +43,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:customerId',
     { schema: { params: customerParamsSchema, response: { 200: customerSchema } } },
     async (request, reply) => {
-      const customer = await fastify.customerService.getCustomer(
-        request.params.customerId,
-        readLivemode(request),
-      );
+      const customer = await fastify.customerService.getCustomer(request.params.customerId);
 
       return ApiResponse.success(reply, customer);
     },
@@ -72,7 +62,6 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const customer = await fastify.customerService.updateCustomer(
         request.params.customerId,
         request.body,
-        readLivemode(request),
       );
 
       return ApiResponse.success(reply, customer);
@@ -88,10 +77,7 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const deleted = await fastify.customerService.deleteCustomer(
-        request.params.customerId,
-        readLivemode(request),
-      );
+      const deleted = await fastify.customerService.deleteCustomer(request.params.customerId);
 
       return ApiResponse.success(reply, deleted);
     },
@@ -111,7 +97,6 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
         await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(
           request.params.customerId,
           request.body,
-          readLivemode(request),
         );
 
       return ApiResponse.created(reply, balanceTransaction);
@@ -132,7 +117,6 @@ export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
         await fastify.customerBalanceTransactionService.findCustomerBalanceTransactions(
           request.params.customerId,
           request.query,
-          readLivemode(request),
         );
 
       return ApiResponse.success(reply, balanceTransactions);

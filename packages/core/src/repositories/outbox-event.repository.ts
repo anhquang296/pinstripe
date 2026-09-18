@@ -9,7 +9,6 @@ import _ from 'lodash';
 interface ClaimedOutboxEventRow {
   [column: string]: unknown;
   id: string;
-  livemode: boolean;
   aggregateType: AggregateType;
   aggregateId: string;
   eventType: DomainEventType;
@@ -20,7 +19,6 @@ interface ClaimedOutboxEventRow {
 
 export interface ClaimedOutboxEvent {
   id: string;
-  livemode: boolean;
   aggregateType: AggregateType;
   aggregateId: string;
   eventType: DomainEventType;
@@ -72,7 +70,6 @@ export class OutboxEventRepository {
       )
       returning
         id,
-        livemode,
         aggregate_type as "aggregateType",
         aggregate_id as "aggregateId",
         event_type as "eventType",
@@ -84,7 +81,6 @@ export class OutboxEventRepository {
     return _.map([...claimed], (row) => {
       return {
         id: row.id,
-        livemode: row.livemode,
         aggregateType: row.aggregateType,
         aggregateId: row.aggregateId,
         eventType: row.eventType,

@@ -26,18 +26,14 @@ import _ from 'lodash';
 export class SetupIntentService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createSetupIntent(
-    payload: CreateSetupIntentPayload,
-    livemode: boolean,
-  ): Promise<SetupIntentResponse> {
-    const customer = await this.getCustomer(payload.customerId, livemode);
-    const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload, livemode);
+  async createSetupIntent(payload: CreateSetupIntentPayload): Promise<SetupIntentResponse> {
+    const customer = await this.getCustomer(payload.customerId);
+    const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload);
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.SETUP_INTENT);
 
     const createdSetupIntent = await this.fastify.setupIntentRepository.createSetupIntent({
       id,
-      livemode,
       customerId: customer.id,
       status: paymentMethodId
         ? SetupIntentStatusEnum.REQUIRES_CONFIRMATION
@@ -64,9 +60,8 @@ export class SetupIntentService {
   async confirmSetupIntent(
     id: string,
     payload: ConfirmSetupIntentPayload,
-    livemode: boolean,
   ): Promise<SetupIntentResponse> {
-    const setupIntent = await this.getSetupIntentEntity(id, livemode);
+    const setupIntent = await this.getSetupIntentEntity(id);
     const paymentMethodId = payload.paymentMethodId ?? setupIntent.paymentMethodId;
 
     if (!paymentMethodId) {
@@ -75,10 +70,8 @@ export class SetupIntentService {
       });
     }
 
-    const paymentMethod = await this.fastify.paymentMethodService.getChargeablePaymentMethod(
-      paymentMethodId,
-      livemode,
-    );
+    const paymentMethod =
+      await this.fastify.paymentMethodService.getChargeablePaymentMethod(paymentMethodId);
 
     SetupIntentService.assertTransition(setupIntent.status, SetupIntentStatusEnum.PROCESSING);
 
@@ -114,9 +107,8 @@ export class SetupIntentService {
   async cancelSetupIntent(
     id: string,
     payload: CancelSetupIntentPayload,
-    livemode: boolean,
   ): Promise<SetupIntentResponse> {
-    const setupIntent = await this.getSetupIntentEntity(id, livemode);
+    const setupIntent = await this.getSetupIntentEntity(id);
 
     SetupIntentService.assertTransition(setupIntent.status, SetupIntentStatusEnum.CANCELED);
 
@@ -139,19 +131,16 @@ export class SetupIntentService {
     throw new NotFoundError(`No such setup intent: ${id}`);
   }
 
-  async getSetupIntent(id: string, livemode: boolean): Promise<SetupIntentResponse> {
-    return this.getSetupIntentEntity(id, livemode);
+  async getSetupIntent(id: string): Promise<SetupIntentResponse> {
+    return this.getSetupIntentEntity(id);
   }
 
-  async findSetupIntents(
-    query: FindSetupIntentsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<SetupIntentResponse>> {
+  async findSetupIntents(query: FindSetupIntentsQuery): Promise<ListResponse<SetupIntentResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter, livemode);
-    const afterAt = await this.resolveCursor(query.endingBefore, livemode);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.setupIntentRepository.findSetupIntents(
-      { livemode, customerId: query.customerId, status: query.status, beforeAt, afterAt },
+      { customerId: query.customerId, status: query.status, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -227,15 +216,12 @@ export class SetupIntentService {
 
   private async resolveRequestedPaymentMethodId(
     payload: CreateSetupIntentPayload,
-    livemode: boolean,
   ): Promise<string | null> {
     const { paymentMethodId } = payload;
 
     if (paymentMethodId) {
-      const paymentMethod = await this.fastify.paymentMethodService.getChargeablePaymentMethod(
-        paymentMethodId,
-        livemode,
-      );
+      const paymentMethod =
+        await this.fastify.paymentMethodService.getChargeablePaymentMethod(paymentMethodId);
 
       return paymentMethod.id;
     }
@@ -243,20 +229,20 @@ export class SetupIntentService {
     return null;
   }
 
-  private async getCustomer(id: string, livemode: boolean): Promise<Customer> {
+  private async getCustomer(id: string): Promise<Customer> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    if (customer && customer.livemode === livemode) {
+    if (customer) {
       return customer;
     }
 
     throw new NotFoundError(`No such customer: ${id}`);
   }
 
-  private async getSetupIntentEntity(id: string, livemode: boolean): Promise<SetupIntent> {
+  private async getSetupIntentEntity(id: string): Promise<SetupIntent> {
     const setupIntent = await this.fastify.setupIntentRepository.findSetupIntent(id);
 
-    if (setupIntent && setupIntent.livemode === livemode) {
+    if (setupIntent) {
       return setupIntent;
     }
 
@@ -276,12 +262,9 @@ export class SetupIntentService {
     throw new NotFoundError(`No setup intent for processor reference ${pspReference}`);
   }
 
-  private async resolveCursor(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<RowCursor | undefined> {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const setupIntent = await this.getSetupIntentEntity(id, livemode);
+      const setupIntent = await this.getSetupIntentEntity(id);
 
       return { createdAt: setupIntent.createdAt, id: setupIntent.id };
     }

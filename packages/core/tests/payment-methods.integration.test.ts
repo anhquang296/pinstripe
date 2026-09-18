@@ -7,7 +7,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makePaymentMethod, TEST_LIVEMODE } from './factories';
+import { makePaymentMethod } from './factories';
 
 let fastify: FastifyInstance;
 
@@ -20,23 +20,20 @@ afterAll(async () => {
 });
 
 async function makeCustomer(): Promise<string> {
-  const customer = await fastify.customerService.createCustomer(
-    {
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-    },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+  });
 
   return customer.id;
 }
 
 describe('PaymentMethodService.createPaymentMethod', () => {
   it('keeps only the card metadata the processor hands back for a token', async () => {
-    const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(
-      { type: PaymentMethodTypeEnum.CARD, token: PspTokenEnum.VISA_OK },
-      TEST_LIVEMODE,
-    );
+    const paymentMethod = await fastify.paymentMethodService.createPaymentMethod({
+      type: PaymentMethodTypeEnum.CARD,
+      token: PspTokenEnum.VISA_OK,
+    });
 
     expect(paymentMethod.type).toBe(PaymentMethodTypeEnum.CARD);
     expect(paymentMethod.card).toMatchObject({ brand: 'visa', last4: '4242' });
@@ -44,24 +41,21 @@ describe('PaymentMethodService.createPaymentMethod', () => {
   });
 
   it('carries no card details for a payment method that is not a card', async () => {
-    const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(
-      { type: PaymentMethodTypeEnum.BANK_ACCOUNT, token: PspTokenEnum.BANK_OK },
-      TEST_LIVEMODE,
-    );
+    const paymentMethod = await fastify.paymentMethodService.createPaymentMethod({
+      type: PaymentMethodTypeEnum.BANK_ACCOUNT,
+      token: PspTokenEnum.BANK_OK,
+    });
 
     expect(paymentMethod.card).toBeNull();
   });
 
   it('refuses a customer that does not exist', async () => {
     await expect(
-      fastify.paymentMethodService.createPaymentMethod(
-        {
-          type: PaymentMethodTypeEnum.CARD,
-          token: PspTokenEnum.VISA_OK,
-          customerId: 'cus_missing',
-        },
-        TEST_LIVEMODE,
-      ),
+      fastify.paymentMethodService.createPaymentMethod({
+        type: PaymentMethodTypeEnum.CARD,
+        token: PspTokenEnum.VISA_OK,
+        customerId: 'cus_missing',
+      }),
     ).rejects.toThrow(NotFoundError);
   });
 });
@@ -83,11 +77,9 @@ describe('PaymentMethodService.attachPaymentMethod', () => {
     const paymentMethod = await makePaymentMethod(fastify, firstCustomerId);
 
     await expect(
-      fastify.paymentMethodService.attachPaymentMethod(
-        paymentMethod.id,
-        { customerId: secondCustomerId },
-        TEST_LIVEMODE,
-      ),
+      fastify.paymentMethodService.attachPaymentMethod(paymentMethod.id, {
+        customerId: secondCustomerId,
+      }),
     ).rejects.toThrow(ConflictError);
   });
 
@@ -95,14 +87,10 @@ describe('PaymentMethodService.attachPaymentMethod', () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makePaymentMethod(fastify, customerId);
 
-    await fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id, TEST_LIVEMODE);
+    await fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id);
 
     await expect(
-      fastify.paymentMethodService.attachPaymentMethod(
-        paymentMethod.id,
-        { customerId },
-        TEST_LIVEMODE,
-      ),
+      fastify.paymentMethodService.attachPaymentMethod(paymentMethod.id, { customerId }),
     ).rejects.toThrow(ConflictError);
   });
 });
@@ -112,10 +100,7 @@ describe('PaymentMethodService.detachPaymentMethod', () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makePaymentMethod(fastify, customerId);
 
-    const detached = await fastify.paymentMethodService.detachPaymentMethod(
-      paymentMethod.id,
-      TEST_LIVEMODE,
-    );
+    const detached = await fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id);
     const customer = await fastify.customerRepository.findCustomer(customerId);
 
     expect(detached.detachedAt).not.toBeNull();
@@ -127,10 +112,10 @@ describe('PaymentMethodService.detachPaymentMethod', () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makePaymentMethod(fastify, customerId);
 
-    await fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id, TEST_LIVEMODE);
+    await fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id);
 
     await expect(
-      fastify.paymentMethodService.getChargeablePaymentMethod(paymentMethod.id, TEST_LIVEMODE),
+      fastify.paymentMethodService.getChargeablePaymentMethod(paymentMethod.id),
     ).rejects.toThrow(ConflictError);
   });
 
@@ -138,10 +123,10 @@ describe('PaymentMethodService.detachPaymentMethod', () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makePaymentMethod(fastify, customerId);
 
-    await fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id, TEST_LIVEMODE);
+    await fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id);
 
     await expect(
-      fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id, TEST_LIVEMODE),
+      fastify.paymentMethodService.detachPaymentMethod(paymentMethod.id),
     ).rejects.toThrow(ConflictError);
   });
 });
@@ -151,28 +136,25 @@ describe('PaymentMethodService.updatePaymentMethod', () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makePaymentMethod(fastify, customerId);
 
-    const updated = await fastify.paymentMethodService.updatePaymentMethod(
-      paymentMethod.id,
-      { card: { expMonth: 3, expYear: 2035 }, billingDetails: { city: 'Da Nang' } },
-      TEST_LIVEMODE,
-    );
+    const updated = await fastify.paymentMethodService.updatePaymentMethod(paymentMethod.id, {
+      card: { expMonth: 3, expYear: 2035 },
+      billingDetails: { city: 'Da Nang' },
+    });
 
     expect(updated.card).toMatchObject({ expMonth: 3, expYear: 2035, last4: '4242' });
     expect(updated.billingDetails.city).toBe('Da Nang');
   });
 
   it('refuses a card update on a payment method that has no card', async () => {
-    const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(
-      { type: PaymentMethodTypeEnum.WALLET, token: PspTokenEnum.WALLET_OK },
-      TEST_LIVEMODE,
-    );
+    const paymentMethod = await fastify.paymentMethodService.createPaymentMethod({
+      type: PaymentMethodTypeEnum.WALLET,
+      token: PspTokenEnum.WALLET_OK,
+    });
 
     await expect(
-      fastify.paymentMethodService.updatePaymentMethod(
-        paymentMethod.id,
-        { card: { expMonth: 1, expYear: 2035 } },
-        TEST_LIVEMODE,
-      ),
+      fastify.paymentMethodService.updatePaymentMethod(paymentMethod.id, {
+        card: { expMonth: 1, expYear: 2035 },
+      }),
     ).rejects.toThrow(BadRequestError);
   });
 });
@@ -185,21 +167,9 @@ describe('PaymentMethodService.findPaymentMethods', () => {
     await makePaymentMethod(fastify, customerId);
     await makePaymentMethod(fastify, otherCustomerId);
 
-    const { data } = await fastify.paymentMethodService.findPaymentMethods(
-      { customerId },
-      TEST_LIVEMODE,
-    );
+    const { data } = await fastify.paymentMethodService.findPaymentMethods({ customerId });
 
     expect(data).toHaveLength(1);
     expect(data[0]?.customerId).toBe(customerId);
-  });
-
-  it('hides a test-mode payment method from a livemode read', async () => {
-    const customerId = await makeCustomer();
-    const paymentMethod = await makePaymentMethod(fastify, customerId);
-
-    await expect(
-      fastify.paymentMethodService.getPaymentMethod(paymentMethod.id, true),
-    ).rejects.toThrow(NotFoundError);
   });
 });

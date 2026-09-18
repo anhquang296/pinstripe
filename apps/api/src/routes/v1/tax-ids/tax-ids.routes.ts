@@ -8,14 +8,13 @@ import {
   taxIdSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createTaxIdSchema, response: { 201: taxIdSchema } } },
     async (request, reply) => {
-      const taxId = await fastify.taxIdService.createTaxId(request.body, readLivemode(request));
+      const taxId = await fastify.taxIdService.createTaxId(request.body);
 
       return ApiResponse.created(reply, taxId);
     },
@@ -27,7 +26,7 @@ export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       schema: { querystring: findTaxIdsSchema, response: { 200: ListResponseSchema(taxIdSchema) } },
     },
     async (request, reply) => {
-      const taxIds = await fastify.taxIdService.findTaxIds(request.query, readLivemode(request));
+      const taxIds = await fastify.taxIdService.findTaxIds(request.query);
 
       return ApiResponse.success(reply, taxIds);
     },
@@ -37,10 +36,7 @@ export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:taxIdId',
     { schema: { params: taxIdParamsSchema, response: { 200: taxIdSchema } } },
     async (request, reply) => {
-      const taxId = await fastify.taxIdService.getTaxId(
-        request.params.taxIdId,
-        readLivemode(request),
-      );
+      const taxId = await fastify.taxIdService.getTaxId(request.params.taxIdId);
 
       return ApiResponse.success(reply, taxId);
     },
@@ -50,10 +46,7 @@ export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:taxIdId',
     { schema: { params: taxIdParamsSchema, response: { 200: deletedTaxIdSchema } } },
     async (request, reply) => {
-      const deletedTaxId = await fastify.taxIdService.deleteTaxId(
-        request.params.taxIdId,
-        readLivemode(request),
-      );
+      const deletedTaxId = await fastify.taxIdService.deleteTaxId(request.params.taxIdId);
 
       return ApiResponse.success(reply, deletedTaxId);
     },

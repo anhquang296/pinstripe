@@ -20,26 +20,22 @@ import _ from 'lodash';
 export class InvoiceItemService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createInvoiceItem(
-    payload: CreateInvoiceItemPayload,
-    livemode: boolean,
-  ): Promise<InvoiceItemResponse> {
-    const customer = await this.fastify.customerService.getCustomer(payload.customerId, livemode);
+  async createInvoiceItem(payload: CreateInvoiceItemPayload): Promise<InvoiceItemResponse> {
+    const customer = await this.fastify.customerService.getCustomer(payload.customerId);
 
     const now = this.fastify.clock.now().toISOString();
 
     const id = generateGid(ObjectPrefixEnum.INVOICE_ITEM);
 
     const { quantity = 1 } = payload;
-    const amount = await this.resolveAmount(payload, quantity, livemode);
+    const amount = await this.resolveAmount(payload, quantity);
 
-    await this.assertInvoiceIsDraft(payload.invoiceId, livemode);
+    await this.assertInvoiceIsDraft(payload.invoiceId);
 
     return this.fastify.database.master.transaction(async (tx) => {
       const invoiceItem = await this.fastify.invoiceItemRepository.createInvoiceItem(
         {
           id,
-          livemode,
           customerId: payload.customerId,
           invoiceId: payload.invoiceId ?? null,
           subscriptionId: payload.subscriptionId ?? null,
@@ -73,7 +69,6 @@ export class InvoiceItemService {
   private async resolveAmount(
     payload: CreateInvoiceItemPayload,
     quantity: number,
-    livemode: boolean,
   ): Promise<number> {
     if (payload.amount !== undefined) {
       return payload.amount;
@@ -86,7 +81,7 @@ export class InvoiceItemService {
     const { priceId } = payload;
 
     if (priceId) {
-      const price = await this.fastify.priceService.getPrice(priceId, livemode);
+      const price = await this.fastify.priceService.getPrice(priceId);
       const { unitAmount } = price;
 
       if (unitAmount !== null) {
@@ -103,15 +98,12 @@ export class InvoiceItemService {
     });
   }
 
-  private async assertInvoiceIsDraft(
-    invoiceId: string | undefined,
-    livemode: boolean,
-  ): Promise<void> {
+  private async assertInvoiceIsDraft(invoiceId: string | undefined): Promise<void> {
     if (!invoiceId) {
       return;
     }
 
-    const invoice = await this.fastify.invoiceService.getInvoice(invoiceId, livemode);
+    const invoice = await this.fastify.invoiceService.getInvoice(invoiceId);
 
     if (invoice.status === InvoiceStatusEnum.DRAFT) {
       return;
@@ -120,10 +112,10 @@ export class InvoiceItemService {
     throw new ConflictError(`Invoice ${invoiceId} has been issued and takes no further items`);
   }
 
-  async getInvoiceItem(id: string, livemode: boolean): Promise<InvoiceItemResponse> {
+  async getInvoiceItem(id: string): Promise<InvoiceItemResponse> {
     const invoiceItem = await this.fastify.invoiceItemRepository.findInvoiceItem(id);
 
-    if (invoiceItem && invoiceItem.livemode === livemode) {
+    if (invoiceItem) {
       return invoiceItem;
     }
 
@@ -133,11 +125,10 @@ export class InvoiceItemService {
   async updateInvoiceItem(
     id: string,
     payload: UpdateInvoiceItemPayload,
-    livemode: boolean,
   ): Promise<InvoiceItemResponse> {
-    const existingInvoiceItem = await this.getInvoiceItem(id, livemode);
+    const existingInvoiceItem = await this.getInvoiceItem(id);
 
-    await this.assertInvoiceIsDraft(existingInvoiceItem.invoiceId ?? undefined, livemode);
+    await this.assertInvoiceIsDraft(existingInvoiceItem.invoiceId ?? undefined);
 
     const quantity = payload.quantity ?? existingInvoiceItem.quantity;
     const unitAmount = payload.unitAmount ?? existingInvoiceItem.unitAmount;
@@ -194,10 +185,10 @@ export class InvoiceItemService {
     return currentAmount;
   }
 
-  async deleteInvoiceItem(id: string, livemode: boolean): Promise<DeletedInvoiceItemResponse> {
-    const invoiceItem = await this.getInvoiceItem(id, livemode);
+  async deleteInvoiceItem(id: string): Promise<DeletedInvoiceItemResponse> {
+    const invoiceItem = await this.getInvoiceItem(id);
 
-    await this.assertInvoiceIsDraft(invoiceItem.invoiceId ?? undefined, livemode);
+    await this.assertInvoiceIsDraft(invoiceItem.invoiceId ?? undefined);
 
     const deletedAt = this.fastify.clock.now().toISOString();
 
@@ -209,7 +200,6 @@ export class InvoiceItemService {
           {
             aggregateType: AggregateTypeEnum.INVOICEITEM,
             aggregateId: id,
-            livemode,
             eventType: DomainEventTypeEnum.INVOICEITEM_DELETED,
             payload: { id },
           },
@@ -221,10 +211,7 @@ export class InvoiceItemService {
     return { id, deleted: true };
   }
 
-  async findInvoiceItems(
-    query: FindInvoiceItemsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<InvoiceItemResponse>> {
+  async findInvoiceItems(query: FindInvoiceItemsQuery): Promise<ListResponse<InvoiceItemResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
     const beforeAt = await this.resolveCursor(query.startingAfter);
@@ -232,7 +219,6 @@ export class InvoiceItemService {
 
     const rows = await this.fastify.invoiceItemRepository.findInvoiceItems(
       {
-        livemode,
         customerId: query.customerId,
         invoiceId: query.invoiceId,
         invoiceIdIsNull: query.isPending,
@@ -273,7 +259,6 @@ export class InvoiceItemService {
         {
           aggregateType: AggregateTypeEnum.INVOICEITEM,
           aggregateId: invoiceItem.id,
-          livemode: invoiceItem.livemode,
           eventType,
           payload: { id: invoiceItem.id, customerId: invoiceItem.customerId },
         },

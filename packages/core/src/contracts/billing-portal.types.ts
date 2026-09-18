@@ -3,7 +3,6 @@ import { Type } from '@sinclair/typebox';
 
 export const billingPortalConfigurationSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   isActive: Type.Boolean(),
   isDefault: Type.Boolean(),
   businessName: Type.String(),
@@ -20,7 +19,6 @@ export const billingPortalConfigurationSchema = Type.Object({
 
 export const billingPortalSessionSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   customerId: Type.String(),
   configurationId: Type.String(),
   portalSessionId: Type.String(),

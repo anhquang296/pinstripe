@@ -39,12 +39,9 @@ afterAll(async () => {
 });
 
 async function makeProduct(): Promise<string> {
-  const product = await fastify.productService.createProduct(
-    {
-      name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
-    },
-    false,
-  );
+  const product = await fastify.productService.createProduct({
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+  });
 
   return product.id;
 }
@@ -54,39 +51,30 @@ async function makeCustomer(): Promise<{ customerId: string; clockId: string }> 
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
-  const customer = await fastify.customerService.createCustomer(
-    {
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-      testClockId: clock.id,
-    },
-    false,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+    testClockId: clock.id,
+  });
 
   return { customerId: customer.id, clockId: clock.id };
 }
 
 async function makeMeteredPrice(): Promise<{ priceId: string; eventName: string }> {
   const productId = await makeProduct();
-  const meter = await fastify.meterService.createMeter(
-    {
-      displayName: 'Swapped tokens',
-      eventName: `swapped_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
-      aggregation: MeterAggregationEnum.SUM,
-      valueKey: 'tokens',
-    },
-    false,
-  );
-  const price = await fastify.priceService.createPrice(
-    {
-      productId,
-      currency: CurrencyEnum.VND,
-      unitAmount: 7,
-      meterId: meter.id,
-      recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
-    },
-    false,
-  );
+  const meter = await fastify.meterService.createMeter({
+    displayName: 'Swapped tokens',
+    eventName: `swapped_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
+    aggregation: MeterAggregationEnum.SUM,
+    valueKey: 'tokens',
+  });
+  const price = await fastify.priceService.createPrice({
+    productId,
+    currency: CurrencyEnum.VND,
+    unitAmount: 7,
+    meterId: meter.id,
+    recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
+  });
 
   return { priceId: price.id, eventName: meter.eventName };
 }
@@ -104,41 +92,29 @@ async function makeSwapScenario(): Promise<SwapScenario> {
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: SWAP_PERIOD_START,
   });
-  const customer = await fastify.customerService.createCustomer(
-    {
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-      testClockId: clock.id,
-    },
-    false,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+    testClockId: clock.id,
+  });
   const productId = await makeProduct();
-  const oldPrice = await fastify.priceService.createPrice(
-    {
-      productId,
-      currency: CurrencyEnum.VND,
-      unitAmount: OLD_AMOUNT,
-      recurring: { interval: RecurringIntervalEnum.MONTH },
-    },
-    false,
-  );
-  const newPrice = await fastify.priceService.createPrice(
-    {
-      productId,
-      currency: CurrencyEnum.VND,
-      unitAmount: NEW_AMOUNT,
-      recurring: { interval: RecurringIntervalEnum.MONTH },
-    },
-    false,
-  );
-  const subscription = await fastify.subscriptionService.createSubscription(
-    {
-      customerId: customer.id,
-      items: [{ priceId: oldPrice.id }],
-      billingMode: BillingModeEnum.ARREARS,
-    },
-    false,
-  );
+  const oldPrice = await fastify.priceService.createPrice({
+    productId,
+    currency: CurrencyEnum.VND,
+    unitAmount: OLD_AMOUNT,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
+  const newPrice = await fastify.priceService.createPrice({
+    productId,
+    currency: CurrencyEnum.VND,
+    unitAmount: NEW_AMOUNT,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
+  const subscription = await fastify.subscriptionService.createSubscription({
+    customerId: customer.id,
+    items: [{ priceId: oldPrice.id }],
+    billingMode: BillingModeEnum.ARREARS,
+  });
 
   return {
     customerId: customer.id,
@@ -153,22 +129,16 @@ describe('RatingService.rateUpcomingInvoice', () => {
   it('rates a licensed subscription at the unit amount times its quantity', async () => {
     const { customerId } = await makeCustomer();
     const productId = await makeProduct();
-    const price = await fastify.priceService.createPrice(
-      {
-        productId,
-        currency: CurrencyEnum.VND,
-        unitAmount: BASE_AMOUNT,
-        recurring: { interval: RecurringIntervalEnum.MONTH },
-      },
-      false,
-    );
-    const subscription = await fastify.subscriptionService.createSubscription(
-      {
-        customerId,
-        items: [{ priceId: price.id, quantity: 3 }],
-      },
-      false,
-    );
+    const price = await fastify.priceService.createPrice({
+      productId,
+      currency: CurrencyEnum.VND,
+      unitAmount: BASE_AMOUNT,
+      recurring: { interval: RecurringIntervalEnum.MONTH },
+    });
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId: price.id, quantity: 3 }],
+    });
 
     const ratedInvoice = await fastify.ratingService.rateUpcomingInvoice(subscription.id);
 
@@ -179,42 +149,30 @@ describe('RatingService.rateUpcomingInvoice', () => {
   it('rates a metered subscription from the usage recorded inside the period', async () => {
     const { customerId } = await makeCustomer();
     const productId = await makeProduct();
-    const meter = await fastify.meterService.createMeter(
-      {
-        displayName: 'Rated tokens',
-        eventName: `rated_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
-        aggregation: MeterAggregationEnum.SUM,
-        valueKey: 'tokens',
-      },
-      false,
-    );
-    const price = await fastify.priceService.createPrice(
-      {
-        productId,
-        currency: CurrencyEnum.VND,
-        unitAmount: 7,
-        meterId: meter.id,
-        recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
-      },
-      false,
-    );
-    const subscription = await fastify.subscriptionService.createSubscription(
-      {
-        customerId,
-        items: [{ priceId: price.id }],
-      },
-      false,
-    );
+    const meter = await fastify.meterService.createMeter({
+      displayName: 'Rated tokens',
+      eventName: `rated_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
+      aggregation: MeterAggregationEnum.SUM,
+      valueKey: 'tokens',
+    });
+    const price = await fastify.priceService.createPrice({
+      productId,
+      currency: CurrencyEnum.VND,
+      unitAmount: 7,
+      meterId: meter.id,
+      recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
+    });
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId: price.id }],
+    });
 
-    await fastify.meterEventService.ingestMeterEvent(
-      {
-        eventName: meter.eventName,
-        customerId,
-        timestamp: CLOCK_START,
-        payload: { tokens: 1_200 },
-      },
-      false,
-    );
+    await fastify.meterEventService.ingestMeterEvent({
+      eventName: meter.eventName,
+      customerId,
+      timestamp: CLOCK_START,
+      payload: { tokens: 1_200 },
+    });
 
     const ratedInvoice = await fastify.ratingService.rateUpcomingInvoice(subscription.id);
 
@@ -225,37 +183,28 @@ describe('RatingService.rateUpcomingInvoice', () => {
   it('rates a metered subscription with no usage as zero', async () => {
     const { customerId } = await makeCustomer();
     const productId = await makeProduct();
-    const meter = await fastify.meterService.createMeter(
-      {
-        displayName: 'Idle tokens',
-        eventName: `idle_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
-        aggregation: MeterAggregationEnum.SUM,
-        valueKey: 'tokens',
-      },
-      false,
-    );
-    const price = await fastify.priceService.createPrice(
-      {
-        productId,
-        currency: CurrencyEnum.VND,
-        billingScheme: BillingSchemeEnum.TIERED,
-        tiersMode: TiersModeEnum.GRADUATED,
-        tiers: [
-          { upTo: 1_000, unitAmount: 10 },
-          { upTo: null, unitAmount: 4 },
-        ],
-        meterId: meter.id,
-        recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
-      },
-      false,
-    );
-    const subscription = await fastify.subscriptionService.createSubscription(
-      {
-        customerId,
-        items: [{ priceId: price.id }],
-      },
-      false,
-    );
+    const meter = await fastify.meterService.createMeter({
+      displayName: 'Idle tokens',
+      eventName: `idle_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
+      aggregation: MeterAggregationEnum.SUM,
+      valueKey: 'tokens',
+    });
+    const price = await fastify.priceService.createPrice({
+      productId,
+      currency: CurrencyEnum.VND,
+      billingScheme: BillingSchemeEnum.TIERED,
+      tiersMode: TiersModeEnum.GRADUATED,
+      tiers: [
+        { upTo: 1_000, unitAmount: 10 },
+        { upTo: null, unitAmount: 4 },
+      ],
+      meterId: meter.id,
+      recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
+    });
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId: price.id }],
+    });
 
     const ratedInvoice = await fastify.ratingService.rateUpcomingInvoice(subscription.id);
 
@@ -268,15 +217,12 @@ describe('PriceService.createPrice metered shape', () => {
     const productId = await makeProduct();
 
     const act = async () => {
-      return fastify.priceService.createPrice(
-        {
-          productId,
-          currency: CurrencyEnum.VND,
-          unitAmount: 7,
-          recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
-        },
-        false,
-      );
+      return fastify.priceService.createPrice({
+        productId,
+        currency: CurrencyEnum.VND,
+        unitAmount: 7,
+        recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
+      });
     };
 
     await expect(act()).rejects.toThrow(BadRequestError);
@@ -284,26 +230,20 @@ describe('PriceService.createPrice metered shape', () => {
 
   it('rejects a licensed price that names a meter it will never read', async () => {
     const productId = await makeProduct();
-    const meter = await fastify.meterService.createMeter(
-      {
-        displayName: 'Unused meter',
-        eventName: `unused_${generateGid(ObjectPrefixEnum.METER)}`,
-        aggregation: MeterAggregationEnum.COUNT,
-      },
-      false,
-    );
+    const meter = await fastify.meterService.createMeter({
+      displayName: 'Unused meter',
+      eventName: `unused_${generateGid(ObjectPrefixEnum.METER)}`,
+      aggregation: MeterAggregationEnum.COUNT,
+    });
 
     const act = async () => {
-      return fastify.priceService.createPrice(
-        {
-          productId,
-          currency: CurrencyEnum.VND,
-          unitAmount: 7,
-          meterId: meter.id,
-          recurring: { interval: RecurringIntervalEnum.MONTH },
-        },
-        false,
-      );
+      return fastify.priceService.createPrice({
+        productId,
+        currency: CurrencyEnum.VND,
+        unitAmount: 7,
+        meterId: meter.id,
+        recurring: { interval: RecurringIntervalEnum.MONTH },
+      });
     };
 
     await expect(act()).rejects.toThrow(BadRequestError);
@@ -396,23 +336,17 @@ describe('RatingService proration', () => {
   it('keeps a metered line at a proration factor of one so usage is never divided twice', async () => {
     const { customerId, clockId } = await makeCustomer();
     const meteredPrice = await makeMeteredPrice();
-    const subscription = await fastify.subscriptionService.createSubscription(
-      {
-        customerId,
-        items: [{ priceId: meteredPrice.priceId }],
-      },
-      false,
-    );
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId: meteredPrice.priceId }],
+    });
 
-    await fastify.meterEventService.ingestMeterEvent(
-      {
-        eventName: meteredPrice.eventName,
-        customerId,
-        timestamp: CLOCK_START,
-        payload: { tokens: 100 },
-      },
-      false,
-    );
+    await fastify.meterEventService.ingestMeterEvent({
+      eventName: meteredPrice.eventName,
+      customerId,
+      timestamp: CLOCK_START,
+      payload: { tokens: 100 },
+    });
     await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
     await fastify.subscriptionService.updateSubscription(subscription.id, {
       items: [{ priceId: meteredPrice.priceId, quantity: 2 }],
@@ -429,23 +363,17 @@ describe('RatingService proration', () => {
     const { customerId, clockId } = await makeCustomer();
     const oldMeteredPrice = await makeMeteredPrice();
     const newMeteredPrice = await makeMeteredPrice();
-    const subscription = await fastify.subscriptionService.createSubscription(
-      {
-        customerId,
-        items: [{ priceId: oldMeteredPrice.priceId }],
-      },
-      false,
-    );
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId: oldMeteredPrice.priceId }],
+    });
 
-    await fastify.meterEventService.ingestMeterEvent(
-      {
-        eventName: oldMeteredPrice.eventName,
-        customerId,
-        timestamp: CLOCK_START,
-        payload: { tokens: 100 },
-      },
-      false,
-    );
+    await fastify.meterEventService.ingestMeterEvent({
+      eventName: oldMeteredPrice.eventName,
+      customerId,
+      timestamp: CLOCK_START,
+      payload: { tokens: 100 },
+    });
     await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_MID_CLOCK });
     await fastify.subscriptionService.updateSubscription(subscription.id, {
       items: [{ priceId: newMeteredPrice.priceId }],

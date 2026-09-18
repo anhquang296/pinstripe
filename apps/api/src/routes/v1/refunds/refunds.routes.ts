@@ -7,14 +7,13 @@ import {
 } from '@pinstripe/core/contracts';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createRefundSchema, response: { 201: refundSchema } } },
     async (request, reply) => {
-      const refund = await fastify.refundService.createRefund(request.body, readLivemode(request));
+      const refund = await fastify.refundService.createRefund(request.body);
 
       return ApiResponse.created(reply, refund);
     },
@@ -29,7 +28,7 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const refunds = await fastify.refundService.findRefunds(request.query, readLivemode(request));
+      const refunds = await fastify.refundService.findRefunds(request.query);
 
       return ApiResponse.success(reply, refunds);
     },
@@ -44,10 +43,7 @@ export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const refund = await fastify.refundService.getRefund(
-        request.params.refundId,
-        readLivemode(request),
-      );
+      const refund = await fastify.refundService.getRefund(request.params.refundId);
 
       return ApiResponse.success(reply, refund);
     },

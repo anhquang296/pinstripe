@@ -5,15 +5,13 @@ import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
-const LIVEMODE = true;
-
 let fastify: FastifyInstance;
 let authHeaders: Record<string, string>;
 
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: LIVEMODE });
+  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
   authHeaders = buildAuthHeaders(apiKey.token);
 });
@@ -23,32 +21,28 @@ afterAll(async () => {
 });
 
 async function makePrice(): Promise<PriceResponse> {
-  const product = await fastify.productService.createProduct(
-    { name: 'Subscription item route plan' },
-    LIVEMODE,
-  );
+  const product = await fastify.productService.createProduct({
+    name: 'Subscription item route plan',
+  });
 
-  return fastify.priceService.createPrice(
-    {
-      productId: product.id,
-      currency: CurrencyEnum.VND,
-      unitAmount: 300_000,
-      recurring: { interval: RecurringIntervalEnum.MONTH },
-    },
-    LIVEMODE,
-  );
+  return fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount: 300_000,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
 }
 
 async function makeSubscription(priceId: string): Promise<SubscriptionResponse> {
-  const customer = await fastify.customerService.createCustomer(
-    { name: 'Subscription item route tester', currency: CurrencyEnum.VND },
-    LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Subscription item route tester',
+    currency: CurrencyEnum.VND,
+  });
 
-  return fastify.subscriptionService.createSubscription(
-    { customerId: customer.id, items: [{ priceId }] },
-    LIVEMODE,
-  );
+  return fastify.subscriptionService.createSubscription({
+    customerId: customer.id,
+    items: [{ priceId }],
+  });
 }
 
 it('adds an item to a subscription and lists it back', async () => {

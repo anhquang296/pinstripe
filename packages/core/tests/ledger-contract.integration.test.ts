@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice } from './factories';
 
 let fastify: FastifyInstance;
 
@@ -19,7 +19,6 @@ afterAll(async () => {
 
 async function findPostingsByExternalId(externalId: string) {
   const [transaction] = await fastify.ledgerTransactionRepository.findLedgerTransactions({
-    livemode: TEST_LIVEMODE,
     externalId,
   });
 
@@ -60,25 +59,22 @@ it('names a cash receipt with the reference the processor reports', async () => 
 });
 
 it('splits an issued invoice across receivable, revenue and the credit balance', async () => {
-  const customer = await fastify.customerService.createCustomer(
-    { name: 'Split Buyer', currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Split Buyer',
+    currency: CurrencyEnum.VND,
+  });
 
-  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(
-    customer.id,
-    { amount: -200_000, currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
-  await fastify.invoiceItemService.createInvoiceItem(
-    { customerId: customer.id, description: 'Consulting', amount: 500_000 },
-    TEST_LIVEMODE,
-  );
+  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(customer.id, {
+    amount: -200_000,
+    currency: CurrencyEnum.VND,
+  });
+  await fastify.invoiceItemService.createInvoiceItem({
+    customerId: customer.id,
+    description: 'Consulting',
+    amount: 500_000,
+  });
 
-  const draft = await fastify.invoiceService.createInvoice(
-    { customerId: customer.id },
-    TEST_LIVEMODE,
-  );
+  const draft = await fastify.invoiceService.createInvoice({ customerId: customer.id });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   const postings = await findPostingsByExternalId(`invoice:${open.id}`);
@@ -104,30 +100,27 @@ it('splits an issued invoice across receivable, revenue and the credit balance',
 });
 
 it('returns the applied credit to the customer when the invoice is voided', async () => {
-  const customer = await fastify.customerService.createCustomer(
-    { name: 'Void Buyer', currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Void Buyer',
+    currency: CurrencyEnum.VND,
+  });
 
-  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(
-    customer.id,
-    { amount: -200_000, currency: CurrencyEnum.VND },
-    TEST_LIVEMODE,
-  );
-  await fastify.invoiceItemService.createInvoiceItem(
-    { customerId: customer.id, description: 'Consulting', amount: 500_000 },
-    TEST_LIVEMODE,
-  );
+  await fastify.customerBalanceTransactionService.createCustomerBalanceTransaction(customer.id, {
+    amount: -200_000,
+    currency: CurrencyEnum.VND,
+  });
+  await fastify.invoiceItemService.createInvoiceItem({
+    customerId: customer.id,
+    description: 'Consulting',
+    amount: 500_000,
+  });
 
-  const draft = await fastify.invoiceService.createInvoice(
-    { customerId: customer.id },
-    TEST_LIVEMODE,
-  );
+  const draft = await fastify.invoiceService.createInvoice({ customerId: customer.id });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   await fastify.invoiceService.voidInvoice(open.id, {});
 
-  const restored = await fastify.customerService.getCustomer(customer.id, TEST_LIVEMODE);
+  const restored = await fastify.customerService.getCustomer(customer.id);
   const postings = await findPostingsByExternalId(`invoice_void:${open.id}`);
   const debits = _.sumBy(_.filter(postings, { direction: PostingDirectionEnum.DEBIT }), 'amount');
   const credits = _.sumBy(_.filter(postings, { direction: PostingDirectionEnum.CREDIT }), 'amount');

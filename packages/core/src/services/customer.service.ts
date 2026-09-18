@@ -20,29 +20,24 @@ import _ from 'lodash';
 export class CustomerService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createCustomer(
-    payload: CreateCustomerPayload,
-    livemode: boolean,
-  ): Promise<CustomerResponse> {
+  async createCustomer(payload: CreateCustomerPayload): Promise<CustomerResponse> {
     const now = this.fastify.clock.now().toISOString();
 
     const id = generateGid(ObjectPrefixEnum.CUSTOMER);
 
-    return this.writeCustomer(id, payload, now, livemode);
+    return this.writeCustomer(id, payload, now);
   }
 
   private async writeCustomer(
     id: string,
     payload: CreateCustomerPayload,
     now: string,
-    livemode: boolean,
   ): Promise<Customer> {
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const customer = await this.fastify.customerRepository.createCustomer(
           {
             id,
-            livemode,
             email: payload.email ?? null,
             name: payload.name ?? '',
             description: payload.description ?? '',
@@ -66,7 +61,6 @@ export class CustomerService {
               {
                 aggregateType: AggregateTypeEnum.CUSTOMER,
                 aggregateId: customer.id,
-                livemode: customer.livemode,
                 eventType: DomainEventTypeEnum.CUSTOMER_CREATED,
                 payload: { id: customer.id },
               },
@@ -91,22 +85,18 @@ export class CustomerService {
     }
   }
 
-  async getCustomer(id: string, livemode: boolean): Promise<CustomerResponse> {
+  async getCustomer(id: string): Promise<CustomerResponse> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    if (customer && customer.livemode === livemode) {
+    if (customer) {
       return customer;
     }
 
     throw new NotFoundError(`No such customer: ${id}`);
   }
 
-  async updateCustomer(
-    id: string,
-    payload: UpdateCustomerPayload,
-    livemode: boolean,
-  ): Promise<CustomerResponse> {
-    await this.getCustomer(id, livemode);
+  async updateCustomer(id: string, payload: UpdateCustomerPayload): Promise<CustomerResponse> {
+    await this.getCustomer(id);
 
     const updatedCustomer = await this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.updateCustomer(
@@ -121,7 +111,6 @@ export class CustomerService {
             {
               aggregateType: AggregateTypeEnum.CUSTOMER,
               aggregateId: customer.id,
-              livemode: customer.livemode,
               eventType: DomainEventTypeEnum.CUSTOMER_UPDATED,
               payload: { id: customer.id },
             },
@@ -138,8 +127,9 @@ export class CustomerService {
     return updatedCustomer;
   }
 
-  async deleteCustomer(id: string, livemode: boolean): Promise<DeletedCustomerResponse> {
-    const customer = await this.getCustomer(id, livemode);
+  async deleteCustomer(id: string): Promise<DeletedCustomerResponse> {
+    await this.getCustomer(id);
+
     const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
@@ -150,7 +140,6 @@ export class CustomerService {
           {
             aggregateType: AggregateTypeEnum.CUSTOMER,
             aggregateId: id,
-            livemode: customer.livemode,
             eventType: DomainEventTypeEnum.CUSTOMER_DELETED,
             payload: { id },
           },
@@ -162,17 +151,14 @@ export class CustomerService {
     return { id, deleted: true };
   }
 
-  async findCustomers(
-    query: FindCustomersQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<CustomerResponse>> {
+  async findCustomers(query: FindCustomersQuery): Promise<ListResponse<CustomerResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
 
     const rows = await this.fastify.customerRepository.findCustomers(
-      { livemode, email: query.email, beforeAt, afterAt },
+      { email: query.email, beforeAt, afterAt },
       limit + 1,
     );
 

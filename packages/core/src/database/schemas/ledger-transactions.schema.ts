@@ -3,22 +3,12 @@ import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { ledgerAccounts } from '@database/schemas/ledger-accounts.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import {
-  bigint,
-  boolean,
-  check,
-  index,
-  jsonb,
-  pgTable,
-  text,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { bigint, check, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const ledgerTransactions = pgTable(
   'ledger_transactions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     description: text('description').notNull(),
     currency: text('currency').$type<Currency>().notNull(),
     externalId: text('external_id'),
@@ -32,7 +22,7 @@ export const ledgerTransactions = pgTable(
   },
   (table) => {
     return [
-      uniqueIndex('ledger_transactions_external_id_idx').on(table.livemode, table.externalId),
+      uniqueIndex('ledger_transactions_external_id_idx').on(table.externalId),
       index('ledger_transactions_created_at_id_idx').on(table.createdAt, table.id),
       index('ledger_transactions_effective_at_idx').on(table.effectiveAt),
     ];
@@ -43,7 +33,6 @@ export const ledgerPostings = pgTable(
   'ledger_postings',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     transactionId: text('transaction_id')
       .notNull()
       .references(() => {

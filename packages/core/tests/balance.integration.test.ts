@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, settleInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice, settleInvoice } from './factories';
 
 const BASE_AMOUNT = 500_000;
 const SCAN_LIMIT = 500;
@@ -23,7 +23,7 @@ afterAll(async () => {
 });
 
 async function readAccountBalance(code: LedgerAccountCodeEnum): Promise<number> {
-  const account = await fastify.ledgerService.ensureAccount(code, CurrencyEnum.VND, TEST_LIVEMODE);
+  const account = await fastify.ledgerService.ensureAccount(code, CurrencyEnum.VND);
 
   return account.balance;
 }
@@ -71,7 +71,7 @@ describe('BalanceService.getBalance', () => {
 
     await settleInvoice(fastify, invoiceId);
 
-    const balance = await fastify.balanceService.getBalance(TEST_LIVEMODE);
+    const balance = await fastify.balanceService.getBalance();
     const pending = _.find(balance.pending, { currency: CurrencyEnum.VND });
     const available = _.find(balance.available, { currency: CurrencyEnum.VND });
 
@@ -91,7 +91,7 @@ describe('BalanceService.getBalance', () => {
 
     await fastify.paymentService.drainProviderEvents();
 
-    const balance = await fastify.balanceService.getBalance(TEST_LIVEMODE);
+    const balance = await fastify.balanceService.getBalance();
     const reserved = _.find(balance.reserved, { currency: CurrencyEnum.VND });
 
     expect(reserved?.amount).toBe(120_000);
@@ -103,20 +103,18 @@ describe('a day of activity balances end to end', () => {
     const { invoiceId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
     const { chargeId } = await settleInvoice(fastify, invoiceId);
 
-    await fastify.refundService.createRefund(
-      { chargeId, amount: 50_000, reason: 'Trả lại một phần' },
-      TEST_LIVEMODE,
-    );
+    await fastify.refundService.createRefund({
+      chargeId,
+      amount: 50_000,
+      reason: 'Trả lại một phần',
+    });
     await fastify.paymentService.drainProviderEvents();
 
     await fastify.database.master.execute(
       `update balance_transactions set available_on = now() - interval '1 day'`,
     );
 
-    const payout = await fastify.payoutService.createPayout(
-      { currency: CurrencyEnum.VND },
-      TEST_LIVEMODE,
-    );
+    const payout = await fastify.payoutService.createPayout({ currency: CurrencyEnum.VND });
 
     await fastify.database.master.execute(
       `update payouts set arrival_at = now() - interval '1 hour' where id = '${payout.id}'`,
@@ -125,7 +123,7 @@ describe('a day of activity balances end to end', () => {
     await fastify.paymentService.drainProviderEvents();
 
     const balanceTransactions = await fastify.balanceTransactionRepository.findBalanceTransactions(
-      { livemode: TEST_LIVEMODE },
+      {},
       SCAN_LIMIT,
     );
     const cash = await readAccountBalance(LedgerAccountCodeEnum.CASH);

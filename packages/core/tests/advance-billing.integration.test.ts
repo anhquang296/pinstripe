@@ -11,7 +11,6 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { TEST_LIVEMODE } from './factories';
 
 const PERIOD_START = '2026-03-01T00:00:00.000Z';
 const PERIOD_END = '2026-04-01T00:00:00.000Z';
@@ -48,61 +47,48 @@ async function makeCustomer(
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime,
   });
-  const customer = await fastify.customerService.createCustomer(
-    {
-      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
-      currency: CurrencyEnum.VND,
-      testClockId: clock.id,
-    },
-    TEST_LIVEMODE,
-  );
+  const customer = await fastify.customerService.createCustomer({
+    email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+    currency: CurrencyEnum.VND,
+    testClockId: clock.id,
+  });
 
   return { customerId: customer.id, clockId: clock.id };
 }
 
 async function makeProductId(): Promise<string> {
-  const product = await fastify.productService.createProduct(
-    { name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}` },
-    TEST_LIVEMODE,
-  );
+  const product = await fastify.productService.createProduct({
+    name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+  });
 
   return product.id;
 }
 
 async function makeLicensedPriceId(unitAmount: number): Promise<string> {
-  const price = await fastify.priceService.createPrice(
-    {
-      productId: await makeProductId(),
-      currency: CurrencyEnum.VND,
-      unitAmount,
-      recurring: { interval: RecurringIntervalEnum.MONTH },
-    },
-    TEST_LIVEMODE,
-  );
+  const price = await fastify.priceService.createPrice({
+    productId: await makeProductId(),
+    currency: CurrencyEnum.VND,
+    unitAmount,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
 
   return price.id;
 }
 
 async function makeMeteredPrice(): Promise<{ priceId: string; eventName: string }> {
-  const meter = await fastify.meterService.createMeter(
-    {
-      displayName: 'Advance tokens',
-      eventName: `advance_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
-      aggregation: MeterAggregationEnum.SUM,
-      valueKey: 'tokens',
-    },
-    TEST_LIVEMODE,
-  );
-  const price = await fastify.priceService.createPrice(
-    {
-      productId: await makeProductId(),
-      currency: CurrencyEnum.VND,
-      unitAmount: USAGE_UNIT_AMOUNT,
-      meterId: meter.id,
-      recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
-    },
-    TEST_LIVEMODE,
-  );
+  const meter = await fastify.meterService.createMeter({
+    displayName: 'Advance tokens',
+    eventName: `advance_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
+    aggregation: MeterAggregationEnum.SUM,
+    valueKey: 'tokens',
+  });
+  const price = await fastify.priceService.createPrice({
+    productId: await makeProductId(),
+    currency: CurrencyEnum.VND,
+    unitAmount: USAGE_UNIT_AMOUNT,
+    meterId: meter.id,
+    recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
+  });
 
   return { priceId: price.id, eventName: meter.eventName };
 }
@@ -111,16 +97,16 @@ async function makeScenario(): Promise<Scenario> {
   const { customerId, clockId } = await makeCustomer();
   const oldPriceId = await makeLicensedPriceId(OLD_AMOUNT);
   const newPriceId = await makeLicensedPriceId(NEW_AMOUNT);
-  const subscription = await fastify.subscriptionService.createSubscription(
-    { customerId, items: [{ priceId: oldPriceId }] },
-    TEST_LIVEMODE,
-  );
+  const subscription = await fastify.subscriptionService.createSubscription({
+    customerId,
+    items: [{ priceId: oldPriceId }],
+  });
 
   return { customerId, clockId, subscriptionId: subscription.id, oldPriceId, newPriceId };
 }
 
 async function findInvoices(subscriptionId: string) {
-  const { data } = await fastify.invoiceService.findInvoices({ subscriptionId }, TEST_LIVEMODE);
+  const { data } = await fastify.invoiceService.findInvoices({ subscriptionId });
 
   return data;
 }
@@ -153,10 +139,11 @@ describe('SubscriptionService.createSubscription billing in advance', () => {
   it('issues nothing at once while the subscription is still trialing', async () => {
     const { customerId } = await makeCustomer();
     const priceId = await makeLicensedPriceId(OLD_AMOUNT);
-    const subscription = await fastify.subscriptionService.createSubscription(
-      { customerId, items: [{ priceId }], trialPeriodDays: 7 },
-      TEST_LIVEMODE,
-    );
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId }],
+      trialPeriodDays: 7,
+    });
 
     const invoices = await findInvoices(subscription.id);
 
@@ -166,10 +153,7 @@ describe('SubscriptionService.createSubscription billing in advance', () => {
   it('defaults to billing in advance without being asked to', async () => {
     const { subscriptionId } = await makeScenario();
 
-    const subscription = await fastify.subscriptionService.getSubscription(
-      subscriptionId,
-      TEST_LIVEMODE,
-    );
+    const subscription = await fastify.subscriptionService.getSubscription(subscriptionId);
 
     expect(subscription.billingMode).toBe('advance');
   });
@@ -269,20 +253,17 @@ describe('BillingRunService cycle invoice billing in advance', () => {
     const { customerId, clockId } = await makeCustomer(recentStart);
     const licensedPriceId = await makeLicensedPriceId(NEW_AMOUNT);
     const metered = await makeMeteredPrice();
-    const subscription = await fastify.subscriptionService.createSubscription(
-      { customerId, items: [{ priceId: licensedPriceId }, { priceId: metered.priceId }] },
-      TEST_LIVEMODE,
-    );
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId: licensedPriceId }, { priceId: metered.priceId }],
+    });
 
-    await fastify.meterEventService.ingestMeterEvent(
-      {
-        eventName: metered.eventName,
-        customerId,
-        timestamp: recentStart,
-        payload: { tokens: TOKENS },
-      },
-      TEST_LIVEMODE,
-    );
+    await fastify.meterEventService.ingestMeterEvent({
+      eventName: metered.eventName,
+      customerId,
+      timestamp: recentStart,
+      payload: { tokens: TOKENS },
+    });
     await fastify.testClockService.advanceTestClock(clockId, {
       frozenTime: new Date(
         Date.parse(subscription.currentPeriodEnd) + MILLISECONDS_PER_DAY,

@@ -7,14 +7,13 @@ import {
   payoutSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { readLivemode } from '@utils/request-auth';
 
 export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     { schema: { body: createPayoutSchema, response: { 201: payoutSchema } } },
     async (request, reply) => {
-      const payout = await fastify.payoutService.createPayout(request.body, readLivemode(request));
+      const payout = await fastify.payoutService.createPayout(request.body);
 
       return ApiResponse.created(reply, payout);
     },
@@ -29,7 +28,7 @@ export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const payouts = await fastify.payoutService.findPayouts(request.query, readLivemode(request));
+      const payouts = await fastify.payoutService.findPayouts(request.query);
 
       return ApiResponse.success(reply, payouts);
     },
@@ -39,10 +38,7 @@ export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/:payoutId',
     { schema: { params: payoutParamsSchema, response: { 200: payoutSchema } } },
     async (request, reply) => {
-      const payout = await fastify.payoutService.getPayout(
-        request.params.payoutId,
-        readLivemode(request),
-      );
+      const payout = await fastify.payoutService.getPayout(request.params.payoutId);
 
       return ApiResponse.success(reply, payout);
     },

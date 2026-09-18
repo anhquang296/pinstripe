@@ -8,7 +8,6 @@ import { and, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface RefundFilters {
-  livemode?: boolean;
   invoiceId?: string;
   chargeId?: string;
   paymentIntentId?: string;
@@ -120,7 +119,6 @@ export class RefundRepository {
 
   private static buildWhere(filters: RefundFilters) {
     return and(
-      filters.livemode === undefined ? undefined : eq(refunds.livemode, filters.livemode),
       filters.invoiceId ? eq(refunds.invoiceId, filters.invoiceId) : undefined,
       filters.chargeId ? eq(refunds.chargeId, filters.chargeId) : undefined,
       filters.paymentIntentId ? eq(refunds.paymentIntentId, filters.paymentIntentId) : undefined,

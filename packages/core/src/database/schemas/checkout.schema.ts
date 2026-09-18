@@ -12,13 +12,12 @@ import { prices } from '@database/schemas/prices.schema';
 import { subscriptions } from '@database/schemas/subscriptions.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
+import { bigint, index, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const checkoutSessions = pgTable(
   'checkout_sessions',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     mode: text('mode').$type<CheckoutSessionMode>().notNull(),
     status: text('status').$type<CheckoutSessionStatus>().notNull(),
     paymentStatus: text('payment_status').$type<CheckoutPaymentStatus>().notNull(),
@@ -72,7 +71,6 @@ export const checkoutSessionLineItems = pgTable(
   'checkout_session_line_items',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     checkoutSessionId: text('checkout_session_id')
       .notNull()
       .references(() => {

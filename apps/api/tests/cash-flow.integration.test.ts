@@ -17,7 +17,7 @@ let secretToken: string;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
+  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
   secretToken = apiKey.token;
 });
@@ -70,7 +70,7 @@ async function settleStandaloneCharge(): Promise<{ chargeId: string; chargeRefer
   });
   await fastify.paymentService.drainProviderEvents();
 
-  const settled = await fastify.paymentService.getPaymentIntent(paymentIntentId, false);
+  const settled = await fastify.paymentService.getPaymentIntent(paymentIntentId);
   const { latestChargeId, pspReference } = settled;
 
   if (latestChargeId && pspReference) {

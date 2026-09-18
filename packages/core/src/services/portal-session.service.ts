@@ -39,17 +39,13 @@ export class PortalSessionService {
     private readonly portalSessionConfig: PortalSessionConfig,
   ) {}
 
-  async createPortalLink(
-    payload: CreatePortalLinkPayload,
-    livemode: boolean,
-  ): Promise<PortalLinkResult> {
+  async createPortalLink(payload: CreatePortalLinkPayload): Promise<PortalLinkResult> {
     const now = this.fastify.clock.now();
     const linkExpiresAt = this.resolveLinkExpiry(now);
-    const customer = await this.findCustomer(payload.email, livemode);
+    const customer = await this.findCustomer(payload.email);
 
     if (!customer) {
       this.fastify.log.info(
-        { livemode },
         '[PortalSessionService] createPortalLink() no customer matched the address',
       );
 
@@ -60,7 +56,6 @@ export class PortalSessionService {
     const createdAt = now.toISOString();
     const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
       id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
-      livemode,
       customerId: customer.id,
       status: PortalSessionStatusEnum.PENDING,
       linkTokenHash: PortalSessionService.hashKey(linkKey),
@@ -88,12 +83,9 @@ export class PortalSessionService {
     return { linkKey, linkExpiresAt };
   }
 
-  async redeemPortalLink(
-    payload: RedeemPortalLinkPayload,
-    livemode: boolean,
-  ): Promise<PortalSessionResponse> {
+  async redeemPortalLink(payload: RedeemPortalLinkPayload): Promise<PortalSessionResponse> {
     const [portalSession] = await this.fastify.portalSessionRepository.findPortalSessions(
-      { livemode, linkTokenHash: PortalSessionService.hashKey(payload.linkKey) },
+      { linkTokenHash: PortalSessionService.hashKey(payload.linkKey) },
       1,
     );
     const now = this.fastify.clock.now();
@@ -128,18 +120,14 @@ export class PortalSessionService {
     throw new NotFoundError(`No such portal session: ${portalSession.id}`);
   }
 
-  async createCustomerPortalSession(
-    customerId: string,
-    livemode: boolean,
-  ): Promise<MintedPortalSession> {
-    const customer = await this.getCustomer(customerId, livemode);
+  async createCustomerPortalSession(customerId: string): Promise<MintedPortalSession> {
+    const customer = await this.getCustomer(customerId);
     const now = this.fastify.clock.now();
     const sessionKey = PortalSessionService.buildKey();
     const sessionExpiresAt = this.resolveSessionExpiry(now).toISOString();
     const redeemedAt = now.toISOString();
     const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
       id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
-      livemode,
       customerId: customer.id,
       status: PortalSessionStatusEnum.ACTIVE,
       linkTokenHash: PortalSessionService.hashKey(PortalSessionService.buildKey()),
@@ -183,7 +171,6 @@ export class PortalSessionService {
         return {
           portalSessionId: portalSession.id,
           customerId: portalSession.customerId,
-          livemode: portalSession.livemode,
         };
       }
     }
@@ -236,16 +223,16 @@ export class PortalSessionService {
     );
   }
 
-  private async findCustomer(email: string, livemode: boolean): Promise<Customer | null> {
-    const [customer] = await this.fastify.customerRepository.findCustomers({ livemode, email }, 1);
+  private async findCustomer(email: string): Promise<Customer | null> {
+    const [customer] = await this.fastify.customerRepository.findCustomers({ email }, 1);
 
     return customer ?? null;
   }
 
-  private async getCustomer(id: string, livemode: boolean): Promise<Customer> {
+  private async getCustomer(id: string): Promise<Customer> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    if (customer && customer.livemode === livemode) {
+    if (customer) {
       return customer;
     }
 
@@ -276,7 +263,6 @@ export class PortalSessionService {
   ): PortalSessionResponse {
     return {
       id: entity.id,
-      livemode: entity.livemode,
       customerId: entity.customerId,
       status: entity.status,
       sessionKey,

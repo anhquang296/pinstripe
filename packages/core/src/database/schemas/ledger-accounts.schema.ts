@@ -6,13 +6,12 @@ import type {
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, index, pgTable, pgView, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { bigint, index, pgTable, pgView, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const ledgerAccounts = pgTable(
   'ledger_accounts',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     code: text('code').$type<LedgerAccountCode>().notNull(),
     type: text('type').$type<LedgerAccountType>().notNull(),
     normalBalance: text('normal_balance').$type<PostingDirection>().notNull(),
@@ -25,10 +24,10 @@ export const ledgerAccounts = pgTable(
   (table) => {
     return [
       uniqueIndex('ledger_accounts_code_currency_customer_id_idx')
-        .on(table.livemode, table.code, table.currency, table.customerId)
+        .on(table.code, table.currency, table.customerId)
         .where(sql`customer_id is not null`),
       uniqueIndex('ledger_accounts_code_currency_idx')
-        .on(table.livemode, table.code, table.currency)
+        .on(table.code, table.currency)
         .where(sql`customer_id is null`),
       index('ledger_accounts_customer_id_idx').on(table.customerId),
     ];

@@ -44,24 +44,19 @@ interface PaymentIntentTarget {
   customerId: string;
   currency: Currency;
   amount: number;
-  livemode: boolean;
 }
 
 export class PaymentService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPaymentIntent(
-    payload: CreatePaymentIntentPayload,
-    livemode: boolean,
-  ): Promise<PaymentIntentResponse> {
-    const target = await this.resolveTarget(payload, livemode);
-    const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload, livemode);
+  async createPaymentIntent(payload: CreatePaymentIntentPayload): Promise<PaymentIntentResponse> {
+    const target = await this.resolveTarget(payload);
+    const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload);
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_INTENT);
 
     const createdPaymentIntent = await this.fastify.paymentIntentRepository.createPaymentIntent({
       id,
-      livemode: target.livemode,
       invoiceId: _.get(target.invoice, 'id', null),
       customerId: target.customerId,
       status: paymentMethodId
@@ -95,9 +90,8 @@ export class PaymentService {
   async confirmPaymentIntent(
     id: string,
     payload: ConfirmPaymentIntentPayload,
-    livemode: boolean,
   ): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id, livemode);
+    const paymentIntent = await this.getPaymentIntentEntity(id);
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.PROCESSING);
 
@@ -141,9 +135,8 @@ export class PaymentService {
   async capturePaymentIntent(
     id: string,
     payload: CapturePaymentIntentPayload,
-    livemode: boolean,
   ): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id, livemode);
+    const paymentIntent = await this.getPaymentIntentEntity(id);
 
     if (paymentIntent.status !== PaymentIntentStatusEnum.REQUIRES_CAPTURE) {
       throw new ConflictError(
@@ -193,9 +186,8 @@ export class PaymentService {
   async cancelPaymentIntent(
     id: string,
     payload: CancelPaymentIntentPayload,
-    livemode: boolean,
   ): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id, livemode);
+    const paymentIntent = await this.getPaymentIntentEntity(id);
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.CANCELED);
 
@@ -219,22 +211,20 @@ export class PaymentService {
     throw new NotFoundError(`No such payment intent: ${paymentIntent.id}`);
   }
 
-  async getPaymentIntent(id: string, livemode: boolean): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id, livemode);
+  async getPaymentIntent(id: string): Promise<PaymentIntentResponse> {
+    const paymentIntent = await this.getPaymentIntentEntity(id);
 
     return this.buildPaymentIntent(paymentIntent);
   }
 
   async findPaymentIntents(
     query: FindPaymentIntentsQuery,
-    livemode: boolean,
   ): Promise<ListResponse<PaymentIntentResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter, livemode);
-    const afterAt = await this.resolveCursor(query.endingBefore, livemode);
+    const beforeAt = await this.resolveCursor(query.startingAfter);
+    const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.paymentIntentRepository.findPaymentIntents(
       {
-        livemode,
         invoiceId: query.invoiceId,
         customerId: query.customerId,
         status: query.status,
@@ -564,7 +554,6 @@ export class PaymentService {
     const charge = await this.fastify.paymentIntentRepository.createCharge(
       {
         id,
-        livemode: paymentIntent.livemode,
         paymentIntentId: paymentIntent.id,
         customerId: paymentIntent.customerId,
         paymentMethodId: paymentIntent.paymentMethodId,
@@ -616,14 +605,11 @@ export class PaymentService {
     }
   }
 
-  private async resolveTarget(
-    payload: CreatePaymentIntentPayload,
-    livemode: boolean,
-  ): Promise<PaymentIntentTarget> {
+  private async resolveTarget(payload: CreatePaymentIntentPayload): Promise<PaymentIntentTarget> {
     const { invoiceId } = payload;
 
     if (invoiceId) {
-      return this.resolveInvoiceTarget(invoiceId, payload, livemode);
+      return this.resolveInvoiceTarget(invoiceId, payload);
     }
 
     const { customerId, amount, currency } = payload;
@@ -641,23 +627,21 @@ export class PaymentService {
       });
     }
 
-    const customer = await this.getCustomer(customerId, livemode);
+    const customer = await this.getCustomer(customerId);
 
     return {
       invoice: null,
       customerId: customer.id,
       currency: currency ?? customer.currency,
       amount,
-      livemode,
     };
   }
 
   private async resolveInvoiceTarget(
     invoiceId: string,
     payload: CreatePaymentIntentPayload,
-    livemode: boolean,
   ): Promise<PaymentIntentTarget> {
-    const invoice = await this.getInvoice(invoiceId, livemode);
+    const invoice = await this.getInvoice(invoiceId);
 
     if (invoice.status !== InvoiceStatusEnum.OPEN) {
       throw new ConflictError(
@@ -685,15 +669,11 @@ export class PaymentService {
       customerId: invoice.customerId,
       currency: invoice.currency,
       amount,
-      livemode: invoice.livemode,
     };
   }
 
   private async resolveOwed(invoice: Invoice): Promise<number> {
-    const invoiceResponse = await this.fastify.invoiceService.getInvoice(
-      invoice.id,
-      invoice.livemode,
-    );
+    const invoiceResponse = await this.fastify.invoiceService.getInvoice(invoice.id);
 
     return invoiceResponse.amountRemaining;
   }
@@ -708,7 +688,6 @@ export class PaymentService {
         {
           aggregateType: AggregateTypeEnum.PAYMENT_INTENT,
           aggregateId: paymentIntent.id,
-          livemode: paymentIntent.livemode,
           eventType,
           payload: {
             id: paymentIntent.id,
@@ -722,30 +701,30 @@ export class PaymentService {
     );
   }
 
-  private async getCustomer(id: string, livemode: boolean): Promise<Customer> {
+  private async getCustomer(id: string): Promise<Customer> {
     const customer = await this.fastify.customerRepository.findCustomer(id);
 
-    if (customer && customer.livemode === livemode) {
+    if (customer) {
       return customer;
     }
 
     throw new NotFoundError(`No such customer: ${id}`);
   }
 
-  private async getInvoice(id: string, livemode: boolean): Promise<Invoice> {
+  private async getInvoice(id: string): Promise<Invoice> {
     const invoice = await this.fastify.invoiceRepository.findInvoice(id);
 
-    if (invoice && invoice.livemode === livemode) {
+    if (invoice) {
       return invoice;
     }
 
     throw new NotFoundError(`No such invoice: ${id}`);
   }
 
-  private async getPaymentIntentEntity(id: string, livemode: boolean): Promise<PaymentIntent> {
+  private async getPaymentIntentEntity(id: string): Promise<PaymentIntent> {
     const paymentIntent = await this.fastify.paymentIntentRepository.findPaymentIntent(id);
 
-    if (paymentIntent && paymentIntent.livemode === livemode) {
+    if (paymentIntent) {
       return paymentIntent;
     }
 
@@ -781,12 +760,9 @@ export class PaymentService {
     throw new NotFoundError(`No such payment intent: ${id}`);
   }
 
-  private async resolveCursor(
-    id: string | undefined,
-    livemode: boolean,
-  ): Promise<RowCursor | undefined> {
+  private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const paymentIntent = await this.getPaymentIntentEntity(id, livemode);
+      const paymentIntent = await this.getPaymentIntentEntity(id);
 
       return { createdAt: paymentIntent.createdAt, id: paymentIntent.id };
     }
@@ -812,15 +788,12 @@ export class PaymentService {
 
   private async resolveRequestedPaymentMethodId(
     payload: CreatePaymentIntentPayload,
-    livemode: boolean,
   ): Promise<string | null> {
     const { paymentMethodId } = payload;
 
     if (paymentMethodId) {
-      const paymentMethod = await this.fastify.paymentMethodService.getChargeablePaymentMethod(
-        paymentMethodId,
-        livemode,
-      );
+      const paymentMethod =
+        await this.fastify.paymentMethodService.getChargeablePaymentMethod(paymentMethodId);
 
       return paymentMethod.id;
     }
@@ -835,20 +808,14 @@ export class PaymentService {
     const requested = payload.paymentMethodId ?? paymentIntent.paymentMethodId;
 
     if (requested) {
-      return this.fastify.paymentMethodService.getChargeablePaymentMethod(
-        requested,
-        paymentIntent.livemode,
-      );
+      return this.fastify.paymentMethodService.getChargeablePaymentMethod(requested);
     }
 
     const customer = await this.fastify.customerRepository.findCustomer(paymentIntent.customerId);
     const defaultPaymentMethodId = _.get(customer, 'defaultPaymentMethodId', null);
 
     if (defaultPaymentMethodId) {
-      return this.fastify.paymentMethodService.getChargeablePaymentMethod(
-        defaultPaymentMethodId,
-        paymentIntent.livemode,
-      );
+      return this.fastify.paymentMethodService.getChargeablePaymentMethod(defaultPaymentMethodId);
     }
 
     throw new BadRequestError(

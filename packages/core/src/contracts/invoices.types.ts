@@ -187,7 +187,6 @@ export const createInvoiceSchema = Type.Object(
 
 export const invoiceItemSchema = Type.Object({
   id: Type.String(),
-  livemode: Type.Boolean(),
   customerId: Type.String(),
   customer: Type.Optional(Type.Unknown()),
   invoiceId: Type.Union([Type.String(), Type.Null()]),

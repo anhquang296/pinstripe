@@ -33,27 +33,18 @@ export class ReconciliationService {
 
   async aggregateReconciliationReport(
     query: AggregateReconciliationReportQuery,
-    livemode: boolean,
   ): Promise<ReconciliationReportResponse> {
     const windowStart = new Date(query.windowStart).toISOString();
     const windowEnd = new Date(query.windowEnd).toISOString();
-    const charges = await this.findSettledCharges(windowStart, windowEnd, livemode);
-    const settlementByChargeId = await this.resolveInvoiceSettlements(
-      _.map(charges, 'id'),
-      livemode,
-    );
+    const charges = await this.findSettledCharges(windowStart, windowEnd);
+    const settlementByChargeId = await this.resolveInvoiceSettlements(_.map(charges, 'id'));
     const processorMovements = await this.resolveProcessorMovements(
       charges,
       windowStart,
       windowEnd,
-      livemode,
       settlementByChargeId,
     );
-    const ledgerAmountByExternalId = await this.resolveLedgerMovements(
-      windowStart,
-      windowEnd,
-      livemode,
-    );
+    const ledgerAmountByExternalId = await this.resolveLedgerMovements(windowStart, windowEnd);
     const exceptions: ReconciliationException[] = [];
 
     let matched = 0;
@@ -110,10 +101,9 @@ export class ReconciliationService {
     charges: readonly SettledCharge[],
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
     settlementByChargeId: Record<string, number>,
   ): Promise<ProcessorMovement[]> {
-    const refunds = await this.findSettledRefunds(windowStart, windowEnd, livemode);
+    const refunds = await this.findSettledRefunds(windowStart, windowEnd);
 
     const payments = _.map(charges, (charge): ProcessorMovement => {
       return {
@@ -138,7 +128,6 @@ export class ReconciliationService {
   private async findSettledCharges(
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
   ): Promise<SettledCharge[]> {
     const settled: SettledCharge[] = [];
 
@@ -147,7 +136,6 @@ export class ReconciliationService {
     for (;;) {
       const page = await this.fastify.paymentIntentRepository.findCharges(
         {
-          livemode,
           status: ChargeStatusEnum.SUCCEEDED,
           createdAfterAt: windowStart,
           createdBeforeAt: windowEnd,
@@ -188,7 +176,7 @@ export class ReconciliationService {
     }
   }
 
-  private async findSettledRefunds(windowStart: string, windowEnd: string, livemode: boolean) {
+  private async findSettledRefunds(windowStart: string, windowEnd: string) {
     const settled: { id: string; amount: number }[] = [];
 
     let beforeAt: RowCursor | undefined = undefined;
@@ -196,7 +184,6 @@ export class ReconciliationService {
     for (;;) {
       const page = await this.fastify.refundRepository.findRefunds(
         {
-          livemode,
           statuses: [RefundStatusEnum.SUCCEEDED],
           createdAfterAt: windowStart,
           createdBeforeAt: windowEnd,
@@ -225,12 +212,9 @@ export class ReconciliationService {
 
   private async resolveInvoiceSettlements(
     chargeIds: readonly string[],
-    livemode: boolean,
   ): Promise<Record<string, number>> {
-    const settlements = await this.fastify.reportingRepository.aggregateInvoiceSettlements(
-      chargeIds,
-      livemode,
-    );
+    const settlements =
+      await this.fastify.reportingRepository.aggregateInvoiceSettlements(chargeIds);
 
     return _(settlements).keyBy('chargeId').mapValues('amount').value();
   }
@@ -238,13 +222,11 @@ export class ReconciliationService {
   private async resolveLedgerMovements(
     windowStart: string,
     windowEnd: string,
-    livemode: boolean,
   ): Promise<Record<string, number>> {
     const movements = await this.fastify.reportingRepository.aggregateLedgerMovements(
       [LedgerAccountCodeEnum.PSP_RECEIVABLE, LedgerAccountCodeEnum.PSP_FEES],
       windowStart,
       windowEnd,
-      livemode,
     );
 
     return _(movements)

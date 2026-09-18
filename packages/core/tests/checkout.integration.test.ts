@@ -12,7 +12,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
 import type { SubscriptionFixture } from './factories';
-import { makeSubscription, TEST_LIVEMODE } from './factories';
+import { makeSubscription } from './factories';
 
 const EVENT_SCAN_LIMIT = 200;
 const SUCCESS_URL = 'https://merchant.test/thanks';
@@ -41,10 +41,7 @@ async function makeFixture(): Promise<SubscriptionFixture> {
 async function detectEvent(eventType: DomainEventTypeEnum, aggregateId: string): Promise<boolean> {
   await fastify.outboxService.relayOutboxEvents(EVENT_SCAN_LIMIT);
 
-  const published = await fastify.eventService.findEvents(
-    { type: eventType, limit: 100 },
-    TEST_LIVEMODE,
-  );
+  const published = await fastify.eventService.findEvents({ type: eventType, limit: 100 });
 
   return _.some(published.data, (event) => {
     return _.get(event.data.object, 'id') === aggregateId;
@@ -55,15 +52,12 @@ describe('CheckoutService.createCheckoutSession', () => {
   it('prices the line items and hands back a signed hosted url', async () => {
     const fixture = await makeFixture();
 
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.PAYMENT,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-        lineItems: [{ priceId: fixture.priceId, quantity: 2 }],
-      },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.PAYMENT,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+      lineItems: [{ priceId: fixture.priceId, quantity: 2 }],
+    });
 
     expect(checkoutSession.status).toBe(CheckoutSessionStatusEnum.OPEN);
     expect(checkoutSession.amountTotal).toBe(1_000_000);
@@ -75,14 +69,11 @@ describe('CheckoutService.createCheckoutSession', () => {
     const fixture = await makeFixture();
 
     await expect(
-      fastify.checkoutService.createCheckoutSession(
-        {
-          mode: CheckoutSessionModeEnum.PAYMENT,
-          customerId: fixture.customerId,
-          successUrl: SUCCESS_URL,
-        },
-        TEST_LIVEMODE,
-      ),
+      fastify.checkoutService.createCheckoutSession({
+        mode: CheckoutSessionModeEnum.PAYMENT,
+        customerId: fixture.customerId,
+        successUrl: SUCCESS_URL,
+      }),
     ).rejects.toThrow(BadRequestError);
   });
 
@@ -90,15 +81,12 @@ describe('CheckoutService.createCheckoutSession', () => {
     const fixture = await makeFixture();
 
     await expect(
-      fastify.checkoutService.createCheckoutSession(
-        {
-          mode: CheckoutSessionModeEnum.SETUP,
-          customerId: fixture.customerId,
-          successUrl: SUCCESS_URL,
-          lineItems: [{ priceId: fixture.priceId }],
-        },
-        TEST_LIVEMODE,
-      ),
+      fastify.checkoutService.createCheckoutSession({
+        mode: CheckoutSessionModeEnum.SETUP,
+        customerId: fixture.customerId,
+        successUrl: SUCCESS_URL,
+        lineItems: [{ priceId: fixture.priceId }],
+      }),
     ).rejects.toThrow(BadRequestError);
   });
 });
@@ -106,29 +94,26 @@ describe('CheckoutService.createCheckoutSession', () => {
 describe('CheckoutService.completeCheckoutSession', () => {
   it('holds nothing until it completes, then issues the subscription', async () => {
     const fixture = await makeFixture();
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.SUBSCRIPTION,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-        lineItems: [{ priceId: fixture.priceId }],
-      },
-      TEST_LIVEMODE,
-    );
-    const before = await fastify.subscriptionService.findSubscriptions(
-      { customerId: fixture.customerId, limit: 100 },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.SUBSCRIPTION,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+      lineItems: [{ priceId: fixture.priceId }],
+    });
+    const before = await fastify.subscriptionService.findSubscriptions({
+      customerId: fixture.customerId,
+      limit: 100,
+    });
 
     const completed = await fastify.checkoutService.completeCheckoutSession(
       checkoutSession.id,
       { paymentMethodId: fixture.paymentMethodId },
       readToken(checkoutSession.id),
     );
-    const after = await fastify.subscriptionService.findSubscriptions(
-      { customerId: fixture.customerId, limit: 100 },
-      TEST_LIVEMODE,
-    );
+    const after = await fastify.subscriptionService.findSubscriptions({
+      customerId: fixture.customerId,
+      limit: 100,
+    });
 
     expect(completed.status).toBe(CheckoutSessionStatusEnum.COMPLETE);
     expect(completed.subscriptionId).toEqual(expect.any(String));
@@ -140,14 +125,11 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('saves a card and nothing else in setup mode', async () => {
     const fixture = await makeFixture();
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.SETUP,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-      },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.SETUP,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+    });
 
     const completed = await fastify.checkoutService.completeCheckoutSession(
       checkoutSession.id,
@@ -162,15 +144,12 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('bills an invoice and confirms a payment intent in payment mode', async () => {
     const fixture = await makeFixture();
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.PAYMENT,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-        lineItems: [{ priceId: fixture.priceId }],
-      },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.PAYMENT,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+      lineItems: [{ priceId: fixture.priceId }],
+    });
 
     const completed = await fastify.checkoutService.completeCheckoutSession(
       checkoutSession.id,
@@ -184,14 +163,11 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('refuses a token that does not sign this session', async () => {
     const fixture = await makeFixture();
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.SETUP,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-      },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.SETUP,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+    });
 
     await expect(
       fastify.checkoutService.completeCheckoutSession(
@@ -204,14 +180,11 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('refuses a session that has already completed', async () => {
     const fixture = await makeFixture();
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.SETUP,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-      },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.SETUP,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+    });
     const token = readToken(checkoutSession.id);
 
     await fastify.checkoutService.completeCheckoutSession(
@@ -233,24 +206,18 @@ describe('CheckoutService.completeCheckoutSession', () => {
 describe('CheckoutService.expireCheckoutSessions', () => {
   it('closes a session past its deadline and publishes the expiry', async () => {
     const fixture = await makeFixture();
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.SETUP,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-      },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.SETUP,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+    });
 
     await fastify.database.master.execute(
       `update checkout_sessions set expires_at = now() - interval '1 minute' where id = '${checkoutSession.id}'`,
     );
 
     const expired = await fastify.checkoutService.expireCheckoutSessions();
-    const closed = await fastify.checkoutService.getCheckoutSession(
-      checkoutSession.id,
-      TEST_LIVEMODE,
-    );
+    const closed = await fastify.checkoutService.getCheckoutSession(checkoutSession.id);
 
     expect(expired).toBeGreaterThan(0);
     expect(closed.status).toBe(CheckoutSessionStatusEnum.EXPIRED);
@@ -259,14 +226,11 @@ describe('CheckoutService.expireCheckoutSessions', () => {
 
   it('refuses to complete a session whose deadline has passed', async () => {
     const fixture = await makeFixture();
-    const checkoutSession = await fastify.checkoutService.createCheckoutSession(
-      {
-        mode: CheckoutSessionModeEnum.SETUP,
-        customerId: fixture.customerId,
-        successUrl: SUCCESS_URL,
-      },
-      TEST_LIVEMODE,
-    );
+    const checkoutSession = await fastify.checkoutService.createCheckoutSession({
+      mode: CheckoutSessionModeEnum.SETUP,
+      customerId: fixture.customerId,
+      successUrl: SUCCESS_URL,
+    });
 
     await fastify.database.master.execute(
       `update checkout_sessions set expires_at = now() - interval '1 minute' where id = '${checkoutSession.id}'`,

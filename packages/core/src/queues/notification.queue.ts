@@ -16,7 +16,6 @@ export type NotificationKind = `${NotificationKindEnum}`;
 
 export interface NotificationSendJob {
   kind: NotificationKind;
-  livemode: boolean;
   customerId: string;
   invoiceId: string | null;
   paymentIntentId: string | null;
@@ -33,7 +32,6 @@ export interface NotificationReferences {
 
 export function buildNotificationSendJob(
   kind: NotificationKind,
-  livemode: boolean,
   customerId: string,
   references: NotificationReferences = {},
 ): NotificationSendJob {
@@ -42,7 +40,6 @@ export function buildNotificationSendJob(
 
   return {
     kind,
-    livemode,
     customerId,
     invoiceId,
     paymentIntentId,

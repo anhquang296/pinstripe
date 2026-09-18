@@ -64,7 +64,6 @@ export class EntitlementService {
     for (const price of prices) {
       await this.fastify.entitlementRepository.upsertEntitlement({
         id: generateGid(ObjectPrefixEnum.ENTITLEMENT),
-        livemode: subscription.livemode,
         customerId: subscription.customerId,
         subscriptionId,
         productId: price.productId,
@@ -104,14 +103,11 @@ export class EntitlementService {
     return status;
   }
 
-  async findEntitlements(
-    query: FindEntitlementsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<EntitlementResponse>> {
+  async findEntitlements(query: FindEntitlementsQuery): Promise<ListResponse<EntitlementResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
     const entitlementRows = await this.fastify.entitlementRepository.findEntitlements(
-      { livemode, customerId: query.customerId, productId: query.productId },
+      { customerId: query.customerId, productId: query.productId },
       limit + 1,
     );
 

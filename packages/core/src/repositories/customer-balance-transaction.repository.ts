@@ -6,7 +6,6 @@ import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 export interface CustomerBalanceTransactionFilters {
-  livemode?: boolean;
   customerId?: string;
   invoiceId?: string;
   beforeAt?: RowCursor;
@@ -35,9 +34,6 @@ export class CustomerBalanceTransactionRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<CustomerBalanceTransaction[]> {
     const where = and(
-      filters.livemode === undefined
-        ? undefined
-        : eq(customerBalanceTransactions.livemode, filters.livemode),
       filters.customerId
         ? eq(customerBalanceTransactions.customerId, filters.customerId)
         : undefined,

@@ -5,13 +5,12 @@ import { invoices } from '@database/schemas/invoices.schema';
 import { charges, paymentIntents } from '@database/schemas/payments.schema';
 import type { Currency } from '@utils/currency';
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { bigint, index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const disputes = pgTable(
   'disputes',
   {
     id: text('id').primaryKey(),
-    livemode: boolean('livemode').notNull(),
     chargeId: text('charge_id')
       .notNull()
       .references(() => {

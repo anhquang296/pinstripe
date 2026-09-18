@@ -25,13 +25,12 @@ const DUE_PAYOUT_LIMIT = 100;
 export class PayoutService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createPayout(payload: CreatePayoutPayload, livemode: boolean): Promise<PayoutResponse> {
+  async createPayout(payload: CreatePayoutPayload): Promise<PayoutResponse> {
     const now = this.fastify.clock.now();
     const createdAt = now.toISOString();
     const sweepable =
       await this.fastify.balanceTransactionRepository.findSweepableBalanceTransactions(
         payload.currency,
-        livemode,
         createdAt,
         SWEEP_LIMIT,
       );
@@ -54,7 +53,6 @@ export class PayoutService {
       const payout = await this.fastify.payoutRepository.createPayout(
         {
           id,
-          livemode,
           currency: payload.currency,
           amount,
           status: PayoutStatusEnum.IN_TRANSIT,
@@ -96,25 +94,22 @@ export class PayoutService {
     return createdPayout;
   }
 
-  async getPayout(id: string, livemode: boolean): Promise<PayoutResponse> {
+  async getPayout(id: string): Promise<PayoutResponse> {
     const payout = await this.fastify.payoutRepository.findPayout(id);
 
-    if (payout && payout.livemode === livemode) {
+    if (payout) {
       return payout;
     }
 
     throw new NotFoundError(`No such payout: ${id}`);
   }
 
-  async findPayouts(
-    query: FindPayoutsQuery,
-    livemode: boolean,
-  ): Promise<ListResponse<PayoutResponse>> {
+  async findPayouts(query: FindPayoutsQuery): Promise<ListResponse<PayoutResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.payoutRepository.findPayouts(
-      { livemode, status: query.status, beforeAt, afterAt },
+      { status: query.status, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -236,7 +231,6 @@ export class PayoutService {
           },
         ],
       },
-      payout.livemode,
       tx,
     );
   }
@@ -260,7 +254,6 @@ export class PayoutService {
           },
         ],
       },
-      payout.livemode,
       tx,
     );
   }
@@ -284,7 +277,6 @@ export class PayoutService {
           },
         ],
       },
-      payout.livemode,
       tx,
     );
   }
@@ -299,7 +291,6 @@ export class PayoutService {
         {
           aggregateType: AggregateTypeEnum.PAYOUT,
           aggregateId: payout.id,
-          livemode: payout.livemode,
           eventType,
           payload: {
             id: payout.id,

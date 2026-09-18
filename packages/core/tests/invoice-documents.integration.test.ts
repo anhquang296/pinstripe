@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice, TEST_LIVEMODE } from './factories';
+import { makeOpenInvoice } from './factories';
 
 const EVENT_SCAN_LIMIT = 200;
 const PDF_MAGIC = '%PDF-1.4';
@@ -29,7 +29,7 @@ describe('invoice documents', () => {
   it('gives a finalized invoice a hosted url, a pdf url and a sent stamp', async () => {
     const { invoiceId } = await makeOpenInvoice(fastify);
 
-    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId);
 
     expect(invoice.hostedInvoiceUrl).toContain(`/hosted/invoice/${invoiceId}`);
     expect(invoice.invoicePdf).toContain('/pdf');
@@ -41,10 +41,10 @@ describe('invoice documents', () => {
 
     await fastify.outboxService.relayOutboxEvents(EVENT_SCAN_LIMIT);
 
-    const published = await fastify.eventService.findEvents(
-      { type: DomainEventTypeEnum.INVOICE_SENT, limit: 100 },
-      TEST_LIVEMODE,
-    );
+    const published = await fastify.eventService.findEvents({
+      type: DomainEventTypeEnum.INVOICE_SENT,
+      limit: 100,
+    });
 
     expect(
       _.some(published.data, (event) => {

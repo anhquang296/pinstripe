@@ -22,16 +22,13 @@ function buildEmail(): string {
 
 describe('CustomerService.deleteCustomer', () => {
   it('hides the customer from every later read', async () => {
-    const customer = await fastify.customerService.createCustomer(
-      {
-        email: buildEmail(),
-        currency: CurrencyEnum.VND,
-      },
-      false,
-    );
+    const customer = await fastify.customerService.createCustomer({
+      email: buildEmail(),
+      currency: CurrencyEnum.VND,
+    });
 
-    await fastify.customerService.deleteCustomer(customer.id, false);
-    const act = fastify.customerService.getCustomer(customer.id, false);
+    await fastify.customerService.deleteCustomer(customer.id);
+    const act = fastify.customerService.getCustomer(customer.id);
 
     await expect(act).rejects.toThrowError(NotFoundError);
   });
@@ -43,21 +40,18 @@ describe('CustomerService.findCustomers', () => {
 
     for (let index = 0; index < 3; index += 1) {
       created.push(
-        await fastify.customerService.createCustomer(
-          {
-            email: buildEmail(),
-            currency: CurrencyEnum.VND,
-          },
-          false,
-        ),
+        await fastify.customerService.createCustomer({
+          email: buildEmail(),
+          currency: CurrencyEnum.VND,
+        }),
       );
     }
 
-    const firstPage = await fastify.customerService.findCustomers({ limit: 2 }, false);
-    const secondPage = await fastify.customerService.findCustomers(
-      { limit: 2, startingAfter: firstPage.data[1]?.id },
-      false,
-    );
+    const firstPage = await fastify.customerService.findCustomers({ limit: 2 });
+    const secondPage = await fastify.customerService.findCustomers({
+      limit: 2,
+      startingAfter: firstPage.data[1]?.id,
+    });
 
     expect(firstPage.data).toHaveLength(2);
     expect(firstPage.hasMore).toBe(true);
@@ -71,19 +65,12 @@ describe('CustomerService.findCustomers', () => {
 
 describe('CustomerService.updateCustomer', () => {
   it('records an outbox event in the same transaction as the write', async () => {
-    const customer = await fastify.customerService.createCustomer(
-      {
-        email: buildEmail(),
-        currency: CurrencyEnum.VND,
-      },
-      false,
-    );
+    const customer = await fastify.customerService.createCustomer({
+      email: buildEmail(),
+      currency: CurrencyEnum.VND,
+    });
 
-    const updated = await fastify.customerService.updateCustomer(
-      customer.id,
-      { name: 'Renamed' },
-      false,
-    );
+    const updated = await fastify.customerService.updateCustomer(customer.id, { name: 'Renamed' });
 
     expect(updated.name).toBe('Renamed');
   });

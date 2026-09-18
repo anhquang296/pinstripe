@@ -20,7 +20,7 @@ let secretToken: string;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: false });
+  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
 
   secretToken = apiKey.token;
 });
