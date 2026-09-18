@@ -1,3 +1,4 @@
+import { OPERATOR_COLLECTION_METHODS } from '@constants/collection';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
@@ -163,6 +164,10 @@ export class DunningService {
       return DunningOutcomeEnum.SETTLED;
     }
 
+    if (_.includes(OPERATOR_COLLECTION_METHODS, invoice.collectionMethod)) {
+      return this.collectFromOperator(invoice, owed.amountRemaining, now);
+    }
+
     const inFlight = await this.findInFlightIntent(invoice);
 
     if (inFlight) {
@@ -184,7 +189,7 @@ export class DunningService {
         '[DunningService] collectInvoice() no default payment method to charge',
       );
 
-      return this.failWithoutPaymentMethod(invoice, now);
+      return this.scheduleRetryOrAbandon(invoice, now);
     }
 
     const paymentIntentId = await this.resolveCollectionIntentId(invoice, paymentMethod);
@@ -206,7 +211,25 @@ export class DunningService {
     });
   }
 
-  private async failWithoutPaymentMethod(invoice: Invoice, now: Date): Promise<DunningOutcome> {
+  private async collectFromOperator(
+    invoice: Invoice,
+    amountRemaining: number,
+    now: Date,
+  ): Promise<DunningOutcome> {
+    const { isSettled } = await this.fastify.operatorCollectionService.collectInvoice(
+      invoice,
+      amountRemaining,
+      now,
+    );
+
+    if (isSettled) {
+      return DunningOutcomeEnum.SETTLED;
+    }
+
+    return this.scheduleRetryOrAbandon(invoice, now);
+  }
+
+  private async scheduleRetryOrAbandon(invoice: Invoice, now: Date): Promise<DunningOutcome> {
     const attemptCount = invoice.attemptCount + 1;
     const nextDelayDays = resolveRetryDelayDays(null, attemptCount, this.config.retryDelayDays);
 

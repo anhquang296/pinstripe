@@ -10,4 +10,5 @@ export * from '@plugins/redis.plugin';
 export * from '@plugins/repository-registry.plugin';
 export * from '@plugins/service-registry.plugin';
 export * from '@plugins/tax.plugin';
+export * from '@plugins/vexere.plugin';
 export * from '@plugins/worker-connection.plugin';

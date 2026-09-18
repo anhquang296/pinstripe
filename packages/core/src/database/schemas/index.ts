@@ -2,6 +2,7 @@ export * from '@database/schemas/api-keys.schema';
 export * from '@database/schemas/balance-transactions.schema';
 export * from '@database/schemas/billing-portal.schema';
 export * from '@database/schemas/checkout.schema';
+export * from '@database/schemas/collection-attempts.schema';
 export * from '@database/schemas/customers.schema';
 export * from '@database/schemas/discounts.schema';
 export * from '@database/schemas/disputes.schema';

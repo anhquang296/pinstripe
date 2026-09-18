@@ -3,6 +3,7 @@ export * from '@repositories/balance-transaction.repository';
 export * from '@repositories/billing-portal-configuration.repository';
 export * from '@repositories/billing-portal-session.repository';
 export * from '@repositories/checkout-session.repository';
+export * from '@repositories/collection-attempt.repository';
 export * from '@repositories/coupon.repository';
 export * from '@repositories/credit-note.repository';
 export * from '@repositories/cursor';

@@ -15,6 +15,8 @@ export enum LedgerAccountCodeEnum {
   PSP_FEES = 'psp_fees',
   DISPUTES_HELD = 'disputes_held',
   PAYOUTS_CLEARING = 'payouts_clearing',
+  TICKET_OFFSET_CLEARING = 'ticket_offset_clearing',
+  OPERATOR_WALLET_CLEARING = 'operator_wallet_clearing',
 }
 export type LedgerAccountCode = `${LedgerAccountCodeEnum}`;
 
@@ -91,6 +93,16 @@ export const LEDGER_ACCOUNT_DEFINITIONS: Record<LedgerAccountCode, LedgerAccount
     isPerCustomer: false,
   },
   [LedgerAccountCodeEnum.PAYOUTS_CLEARING]: {
+    type: LedgerAccountTypeEnum.ASSET,
+    normalBalance: PostingDirectionEnum.DEBIT,
+    isPerCustomer: false,
+  },
+  [LedgerAccountCodeEnum.TICKET_OFFSET_CLEARING]: {
+    type: LedgerAccountTypeEnum.ASSET,
+    normalBalance: PostingDirectionEnum.DEBIT,
+    isPerCustomer: false,
+  },
+  [LedgerAccountCodeEnum.OPERATOR_WALLET_CLEARING]: {
     type: LedgerAccountTypeEnum.ASSET,
     normalBalance: PostingDirectionEnum.DEBIT,
     isPerCustomer: false,

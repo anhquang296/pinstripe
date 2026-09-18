@@ -27,6 +27,7 @@ export const customers = pgTable(
       return paymentMethods.id;
     }),
     testClockId: text('test_clock_id'),
+    vexereOperatorId: text('vexere_operator_id'),
     balance: bigint('balance', { mode: 'number' }).notNull().default(0),
     metadata: jsonb('metadata').$type<Record<string, string>>().notNull().default({}),
     createdAt: isoTimestamp('created_at')

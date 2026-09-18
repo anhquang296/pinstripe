@@ -39,6 +39,8 @@ export type TrialEndBehavior = `${TrialEndBehaviorEnum}`;
 export enum CollectionMethodEnum {
   CHARGE_AUTOMATICALLY = 'charge_automatically',
   SEND_INVOICE = 'send_invoice',
+  OFFSET_TICKET = 'offset_ticket',
+  DEBIT_WALLET = 'debit_wallet',
 }
 export type CollectionMethod = `${CollectionMethodEnum}`;
 

@@ -11,6 +11,7 @@ export type {
   CancelPaymentIntentPayload,
   CancelSubscriptionPayload,
   CheckoutSessionResponse,
+  CollectionMethod,
   ConfirmPaymentIntentPayload,
   CouponResponse,
   CreateBillingPortalConfigurationPayload,

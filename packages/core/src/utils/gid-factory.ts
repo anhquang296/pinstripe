@@ -52,6 +52,7 @@ export enum ObjectPrefixEnum {
   CHECKOUT_SESSION_LINE_ITEM = 'csli',
   PAYMENT_LINK = 'plink',
   PAYMENT_LINK_LINE_ITEM = 'plli',
+  COLLECTION_ATTEMPT = 'colatt',
 }
 export type ObjectPrefix = `${ObjectPrefixEnum}`;
 

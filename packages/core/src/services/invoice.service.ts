@@ -1,3 +1,4 @@
+import { AUTOMATIC_COLLECTION_METHODS } from '@constants/collection';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { CustomerBalanceTransactionTypeEnum } from '@contracts/customers.types';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
@@ -16,6 +17,7 @@ import {
   InvoiceStatusEnum,
   NumberSequenceEnum,
 } from '@contracts/invoices.types';
+import type { LedgerAccountCode } from '@contracts/ledger.types';
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
@@ -44,6 +46,7 @@ import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
 import type { RatingPeriod } from '@services/rating.service';
 import { advancePeriod } from '@utils/billing-period';
+import { assertCollectionMethodUsable } from '@utils/collection-method';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { LineItemType } from '@utils/rating';
 import { LineItemTypeEnum } from '@utils/rating';
@@ -101,6 +104,7 @@ export interface ApplyInvoicePaymentPayload {
   paymentIntentId?: string;
   chargeId?: string;
   settlementReference?: string;
+  clearingAccountCode?: LedgerAccountCode;
 }
 
 export class InvoiceService {
@@ -152,6 +156,8 @@ export class InvoiceService {
       defaultTaxRates = [],
       metadata = {},
     } = payload;
+
+    assertCollectionMethodUsable(collectionMethod, customer);
 
     return this.fastify.database.master.transaction(async (tx) => {
       const invoice = await this.fastify.invoiceRepository.createInvoice(
@@ -829,7 +835,7 @@ export class InvoiceService {
   }
 
   private static resolveNextAttemptAt(invoice: Invoice, dueAt: string): string | null {
-    if (invoice.collectionMethod === CollectionMethodEnum.CHARGE_AUTOMATICALLY) {
+    if (_.includes(AUTOMATIC_COLLECTION_METHODS, invoice.collectionMethod)) {
       return dueAt;
     }
 
@@ -1002,7 +1008,7 @@ export class InvoiceService {
       );
 
       if (!payload.chargeId) {
-        await this.postCashReceipt(updatedInvoice, amount, payload.settlementReference, tx);
+        await this.postInvoiceReceipt(updatedInvoice, amount, payload, tx);
       }
 
       if (isSettled) {
@@ -1190,13 +1196,16 @@ export class InvoiceService {
     );
   }
 
-  private async postCashReceipt(
+  private async postInvoiceReceipt(
     invoice: Invoice,
     amount: number,
-    settlementReference: string | undefined,
+    payload: ApplyInvoicePaymentPayload,
     tx: DatabaseTransaction,
   ): Promise<void> {
-    const externalId = settlementReference ?? `invoice_payment:${invoice.id}:${invoice.amountPaid}`;
+    const {
+      settlementReference: externalId = `invoice_payment:${invoice.id}:${invoice.amountPaid}`,
+      clearingAccountCode = LedgerAccountCodeEnum.CASH,
+    } = payload;
 
     await this.fastify.ledgerService.postTransaction(
       {
@@ -1205,7 +1214,7 @@ export class InvoiceService {
         externalId,
         entries: [
           {
-            accountCode: LedgerAccountCodeEnum.CASH,
+            accountCode: clearingAccountCode,
             direction: PostingDirectionEnum.DEBIT,
             amount,
           },

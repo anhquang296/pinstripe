@@ -24,6 +24,7 @@ export * from '@services/ledger.service';
 export * from '@services/meter.service';
 export * from '@services/meter-event.service';
 export * from '@services/notification.service';
+export * from '@services/operator-collection.service';
 export * from '@services/outbox.service';
 export * from '@services/payment.service';
 export * from '@services/payment-link.service';

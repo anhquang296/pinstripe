@@ -3,6 +3,7 @@ import { BalanceTransactionRepository } from '@repositories/balance-transaction.
 import { BillingPortalConfigurationRepository } from '@repositories/billing-portal-configuration.repository';
 import { BillingPortalSessionRepository } from '@repositories/billing-portal-session.repository';
 import { CheckoutSessionRepository } from '@repositories/checkout-session.repository';
+import { CollectionAttemptRepository } from '@repositories/collection-attempt.repository';
 import { CouponRepository } from '@repositories/coupon.repository';
 import { CreditNoteRepository } from '@repositories/credit-note.repository';
 import { CustomerRepository } from '@repositories/customer.repository';
@@ -94,4 +95,8 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   );
   fastify.decorate('checkoutSessionRepository', new CheckoutSessionRepository(fastify.database));
   fastify.decorate('paymentLinkRepository', new PaymentLinkRepository(fastify.database));
+  fastify.decorate(
+    'collectionAttemptRepository',
+    new CollectionAttemptRepository(fastify.database),
+  );
 });

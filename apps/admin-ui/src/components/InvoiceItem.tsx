@@ -1,4 +1,5 @@
 import Button from '@components/ui/Button';
+import { COLLECTION_METHOD_LABELS } from '@constants/collection-method';
 import type { InvoiceResponse } from '@pinstripe/core/contracts';
 import { InvoiceStatusEnum } from '@pinstripe/core/contracts';
 import { toUpper } from 'lodash-es';
@@ -59,6 +60,9 @@ export default function InvoiceItem({
         >
           {invoice.status}
         </span>
+        <div className="mt-1 text-xs text-slate-500">
+          {COLLECTION_METHOD_LABELS[invoice.collectionMethod]}
+        </div>
       </td>
       <td className="px-4 py-3 font-mono text-xs text-slate-500">{invoice.customerId}</td>
       <td className="px-4 py-3 text-right tabular-nums">

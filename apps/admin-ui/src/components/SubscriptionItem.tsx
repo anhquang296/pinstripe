@@ -1,4 +1,5 @@
 import Button from '@components/ui/Button';
+import { COLLECTION_METHOD_LABELS } from '@constants/collection-method';
 import type { SubscriptionResponse } from '@pinstripe/core/contracts';
 import { useCallback } from 'react';
 
@@ -39,6 +40,9 @@ export default function SubscriptionItem({ subscription, onCancel }: Subscriptio
             hủy cuối kỳ
           </span>
         ) : null}
+        <div className="mt-1 text-xs text-slate-500">
+          {COLLECTION_METHOD_LABELS[subscription.collectionMethod]}
+        </div>
       </td>
       <td className="px-4 py-3 font-mono text-xs text-slate-500">{subscription.customerId}</td>
       <td className="px-4 py-3 text-slate-600">

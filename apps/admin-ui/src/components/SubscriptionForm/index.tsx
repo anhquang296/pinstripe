@@ -1,7 +1,9 @@
 import Button from '@components/ui/Button';
 import SelectField from '@components/ui/SelectField';
 import TextField from '@components/ui/TextField';
+import { COLLECTION_METHOD_LABELS } from '@constants/collection-method';
 import type { SubscriptionFormData } from '@forms/subscription-form';
+import { map } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface SubscriptionFormOption {
@@ -16,6 +18,13 @@ interface SubscriptionFormProps {
   isSaving?: boolean;
   onSave: () => void;
 }
+
+const collectionMethodOptions: SubscriptionFormOption[] = map(
+  COLLECTION_METHOD_LABELS,
+  (label, value) => {
+    return { value, label };
+  },
+);
 
 export default function SubscriptionForm({
   form,
@@ -42,6 +51,12 @@ export default function SubscriptionForm({
         options={priceOptions}
         error={errors.priceId?.message}
         {...form.register('priceId')}
+      />
+      <SelectField
+        label="Cách thu tiền"
+        options={collectionMethodOptions}
+        error={errors.collectionMethod?.message}
+        {...form.register('collectionMethod')}
       />
       <TextField
         label="Trial (ngày)"

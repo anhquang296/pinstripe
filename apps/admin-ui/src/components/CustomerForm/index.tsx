@@ -29,6 +29,12 @@ export default function CustomerForm({ form, isSaving, onSave }: CustomerFormPro
         error={errors.name?.message}
         {...form.register('name')}
       />
+      <TextField
+        label="Mã nhà xe Vexere"
+        placeholder="Không bắt buộc"
+        error={errors.vexereOperatorId?.message}
+        {...form.register('vexereOperatorId')}
+      />
       <Button type="submit" disabled={isSaving}>
         Tạo customer
       </Button>

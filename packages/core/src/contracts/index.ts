@@ -3,6 +3,7 @@ export * from '@contracts/api-keys.types';
 export * from '@contracts/balance.types';
 export * from '@contracts/billing-portal.types';
 export * from '@contracts/checkout.types';
+export * from '@contracts/collection-attempts.types';
 export * from '@contracts/customers.types';
 export * from '@contracts/discounts.types';
 export * from '@contracts/disputes.types';

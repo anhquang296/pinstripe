@@ -37,6 +37,7 @@ import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error
 import type { RowCursor } from '@repositories/cursor';
 import type { RecordEventPayload } from '@services/outbox.service';
 import { advancePeriod } from '@utils/billing-period';
+import { assertCollectionMethodUsable } from '@utils/collection-method';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { assertPricesUsable, resolveInterval } from '@utils/subscription-price';
 import type { FastifyInstance } from 'fastify';
@@ -125,6 +126,8 @@ export class SubscriptionService {
       defaultTaxRates = [],
       metadata = {},
     } = payload;
+
+    assertCollectionMethodUsable(collectionMethod, customer);
 
     const createdSubscription = await this.fastify.database.master.transaction(async (tx) => {
       const subscription = await this.fastify.subscriptionRepository.createSubscription(
@@ -237,6 +240,12 @@ export class SubscriptionService {
       throw new BadRequestError('prorationBehavior only applies when items change', {
         param: 'prorationBehavior',
       });
+    }
+
+    if (payload.collectionMethod) {
+      const customer = await this.fastify.customerRepository.getCustomer(subscription.customerId);
+
+      assertCollectionMethodUsable(payload.collectionMethod, customer);
     }
 
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);

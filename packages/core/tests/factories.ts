@@ -3,8 +3,8 @@ import { MILLISECONDS_PER_DAY } from '@constants/time';
 import type { PaymentMethodResponse } from '@contracts/payment-methods.types';
 import { PaymentMethodTypeEnum } from '@contracts/payment-methods.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
-import type { BillingMode } from '@contracts/subscriptions.types';
-import { BillingModeEnum } from '@contracts/subscriptions.types';
+import type { BillingMode, CollectionMethod } from '@contracts/subscriptions.types';
+import { BillingModeEnum, CollectionMethodEnum } from '@contracts/subscriptions.types';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
@@ -18,6 +18,8 @@ export interface SubscriptionOverrides {
   token?: string;
   frozenTime?: string;
   billingMode?: BillingMode;
+  collectionMethod?: CollectionMethod;
+  vexereOperatorId?: string;
 }
 
 export interface SubscriptionFixture {
@@ -42,6 +44,8 @@ export async function makeSubscription(
     token = DEFAULT_TOKEN,
     frozenTime = DEFAULT_CLOCK_START,
     billingMode = BillingModeEnum.ADVANCE,
+    collectionMethod = CollectionMethodEnum.CHARGE_AUTOMATICALLY,
+    vexereOperatorId,
   } = overrides;
 
   const clock = await fastify.testClockService.createTestClock({
@@ -52,6 +56,7 @@ export async function makeSubscription(
     email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
     testClockId: clock.id,
+    vexereOperatorId,
   });
   const paymentMethod = await makePaymentMethod(fastify, customer.id, token);
   const product = await fastify.productService.createProduct({
@@ -67,6 +72,7 @@ export async function makeSubscription(
     customerId: customer.id,
     items: [{ priceId: price.id }],
     billingMode,
+    collectionMethod,
   });
 
   return {

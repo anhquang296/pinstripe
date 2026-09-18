@@ -70,6 +70,7 @@ export class CustomerService {
             currency: payload.currency,
             defaultPaymentMethodId: payload.defaultPaymentMethodId ?? null,
             testClockId: payload.testClockId ?? null,
+            vexereOperatorId: payload.vexereOperatorId ?? null,
             metadata,
             createdAt: now,
             updatedAt: now,

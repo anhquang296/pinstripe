@@ -10,6 +10,7 @@ import type { BalanceTransactionRepository } from '@repositories/balance-transac
 import type { BillingPortalConfigurationRepository } from '@repositories/billing-portal-configuration.repository';
 import type { BillingPortalSessionRepository } from '@repositories/billing-portal-session.repository';
 import type { CheckoutSessionRepository } from '@repositories/checkout-session.repository';
+import type { CollectionAttemptRepository } from '@repositories/collection-attempt.repository';
 import type { CouponRepository } from '@repositories/coupon.repository';
 import type { CreditNoteRepository } from '@repositories/credit-note.repository';
 import type { CustomerRepository } from '@repositories/customer.repository';
@@ -68,6 +69,7 @@ import type { LedgerService } from '@services/ledger.service';
 import type { MeterService } from '@services/meter.service';
 import type { MeterEventService } from '@services/meter-event.service';
 import type { NotificationService } from '@services/notification.service';
+import type { OperatorCollectionService } from '@services/operator-collection.service';
 import type { OutboxService } from '@services/outbox.service';
 import type { PaymentService } from '@services/payment.service';
 import type { PaymentLinkService } from '@services/payment-link.service';
@@ -89,6 +91,7 @@ import type { TaxIdService } from '@services/tax-id.service';
 import type { TaxRateService } from '@services/tax-rate.service';
 import type { TestClockService } from '@services/test-clock.service';
 import type { WebhookService } from '@services/webhook.service';
+import type { OperatorCollectionProvider } from '@type/operator-collection-provider';
 import type { TaxProvider } from '@type/tax-provider';
 import type { Clock } from '@utils/clock';
 import type { HostedUrlFactory } from '@utils/hosted-url';
@@ -197,6 +200,9 @@ declare module 'fastify' {
     hostedUrlFactory: HostedUrlFactory;
     mailer: SmtpClient | null;
     taxProvider: TaxProvider;
+    operatorCollectionProvider: OperatorCollectionProvider;
+    collectionAttemptRepository: CollectionAttemptRepository;
+    operatorCollectionService: OperatorCollectionService;
   }
 }
 

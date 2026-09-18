@@ -49,6 +49,18 @@ stateDiagram-v2
 
 Bước 1 bắt trường hợp hoá đơn đã được trả hoặc ghi giảm ở đường khác trong lúc chờ — không quẹt thẻ thừa.
 
+### `offset_ticket` / `debit_wallet`
+
+Sau bước 1, hoá đơn có collection method thu qua Vexere rẽ sang `collectFromOperator` thay vì bước 2-3 — [ADR 0023](../adr/0023-operator-collection-methods.md):
+
+| #   | Điều kiện                            | Làm gì                                                                                        | Kết quả                 |
+| --- | ------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------- |
+| a   | có `collection_attempts` `pending`   | gọi lại Vexere với **cùng** `idempotencyKey`                                                  |                         |
+| b   | chưa có                              | tạo attempt `pending` (commit), gọi `offsetTicketSales` / `debitWallet` với `amountRemaining` |                         |
+| c   | `appliedAmount > 0`                  | `applyInvoicePayment` + `DEBIT <clearing> / CREDIT accounts_receivable`, attempt `succeeded`  |                         |
+| d   | trả đủ                               | `handleInvoicePaymentSucceeded`                                                               | `settled`               |
+| e   | thiếu (0 hoặc một phần) / lỗi Vexere | attempt `failed` nếu 0 / lỗi; `scheduleRetryOrAbandon` như thẻ không có payment method        | `retried` / `abandoned` |
+
 ## Lịch retry
 
 `DUNNING_RETRY_DELAY_DAYS` là chuỗi phân tách bằng dấu phẩy, parse ở [config.plugin.ts:50](../../packages/core/src/plugins/config.plugin.ts). Tra bằng `retryDelayDays[attemptCount]` với `attemptCount` là số lần đã thử **sau** lần này — nên với `"0,3,5,7"`:

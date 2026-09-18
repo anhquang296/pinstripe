@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CollectionMethodEnum } from '@pinstripe/core/contracts';
 import type { CreateSubscriptionPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
@@ -7,6 +8,7 @@ const MAX_TRIAL_DAYS = 730;
 const subscriptionFormSchema = z.object({
   customerId: z.string().min(1, 'Chọn khách hàng'),
   priceId: z.string().min(1, 'Chọn bảng giá'),
+  collectionMethod: z.nativeEnum(CollectionMethodEnum, { message: 'Chọn cách thu tiền' }),
   trialPeriodDays: z
     .number({ message: 'Số ngày trial phải là số' })
     .int('Số ngày trial phải là số nguyên')
@@ -21,6 +23,7 @@ export const subscriptionFormResolver = zodResolver(subscriptionFormSchema);
 export const subscriptionFormDefaultValues: SubscriptionFormData = {
   customerId: '',
   priceId: '',
+  collectionMethod: CollectionMethodEnum.CHARGE_AUTOMATICALLY,
   trialPeriodDays: 0,
 };
 
@@ -32,6 +35,7 @@ export function subscriptionFormDataToPayload(
   return {
     customerId: formData.customerId,
     items: [{ priceId: formData.priceId }],
+    collectionMethod: formData.collectionMethod,
     trialPeriodDays,
   };
 }
