@@ -65,6 +65,33 @@ Allowlist trên là đóng. `/list-sessions` và `/revoke-session` **không** đ
 
 Admin đầu tiên được tạo bằng `POST /api/v1/management/users/bootstrap` (`verifyManagementRequest`, `UserService.ensureUser`, role `admin`, idempotent) — không phải bằng `/sign-up/*`, thứ vẫn 404 với mọi caller.
 
+## Session mở được `/api/v1/admin/*` và `/v1/*`
+
+`authenticateRequest(request, scope)` có đúng hai đường, và thứ tự là cố định:
+
+1. Có `Authorization: Bearer <api key>` → đường API key, không đổi gì: scope của key vẫn là thứ quyết định, và `request.auth` vẫn là chỗ duy nhất mang nó.
+2. Không có Bearer nhưng có cookie `pinstripe.*` **và** surface là `v1` hoặc `admin` → `BetterAuthClient.findActiveSession`; gán `request.actor: UserAuth` với `permissions = ROLE_PERMISSIONS[role]`. Kiểu `actor` khai cạnh `auth` trong `apps/api/src/plugins/api-key.plugin.ts`.
+3. Không có cả hai → `UnauthorizedError`.
+
+Cookie session **không** xác thực được `system`, `management`, `portal` hay `hosted`. Đó là các surface của machine caller; mở cho browser là mở một đường đi vòng qua chính API key mà chúng dùng để phân biệt caller.
+
+Session bị từ chối bằng `UnauthorizedError` khi không có session, khi `user.banned`, khi `role` không thuộc `UserRoleEnum`, hoặc khi quá TTL tuyệt đối — `findActiveSession` lo nốt việc `revokeSession`. Request không phải GET mà `Origin !== ADMIN_UI_ORIGIN` → `ForbiddenError`; đó là CSRF check, và nó ở đây vì cookie là `SameSite=Lax`.
+
+`ADMIN_UI_ORIGIN` đọc qua `fastify.betterAuth.baseUrl`, không đọc `fastify.config` — hook không phải plugin.
+
+## Permission theo route, fail closed
+
+`verifyApiRequest` / `verifyAdminRequest` gọi `authorizeRequest(request)` ngay sau khi xác thực. Request đi bằng API key không bị chạm; request đi bằng session phải mang permission mà route đòi.
+
+Permission của một route resolve theo đúng hai nguồn, ở `apps/api/src/utils/route-permission.ts`:
+
+- Route v1: từ `schema.operationId` (`<resource>.<method>`, resource lồng được). Method bắt đầu bằng `find` hay `get` → `billing.read`; còn lại tra `OPERATION_PERMISSIONS` (`apps/api/src/constants/permissions.ts`) theo `<resource>.<method>` trước, rồi `<resource>`.
+- Route admin: `config: buildRouteConfig(<permission>)` khai trên chính route. Object literal inline không dùng được — `ContextConfig` của Fastify suy ra `undefined`; helper trả `FastifyContextConfig` là chỗ chữa.
+
+Không resolve được permission → `ForbiddenError`. **Fail closed**: một route mới quên khai permission thì session không vào được, chứ không mở toang. Route v1 mới thêm phải khai `operationId` và, nếu resource mới, thêm một dòng vào `OPERATION_PERMISSIONS` — test đọc mọi `operationId` trong `apps/api/openapi.json` sẽ đỏ khi thiếu.
+
+`rate-limit.plugin.ts` key theo `actor.userId` cho session, theo `auth.apiKeyId` cho API key.
+
 ## Frontend và SDK
 
 - SDK không import `better-auth`. SDK bọc các path trong allowlist thành resource `auth.*` giống mọi resource khác.
@@ -85,7 +112,11 @@ Chỉ đọc chúng trong `better-auth.plugin.ts`; client nhận config đã res
 - Trả nguyên body sign-in của better-auth, vì trong đó có `token`, ra cho browser; hoặc đổi body 2xx sang envelope của repo, vì better-auth-ui đọc thẳng shape của vendor.
 - Nuốt `code` của better-auth khi map lỗi sang `AppError`.
 - Nhận key ngoài `name` / `image` ở `/update-user`.
-- Bỏ check `Origin` ở route auth với lý do better-auth đã tự check.
+- Bỏ check `Origin` ở route auth, hay ở nhánh session của `authenticateRequest`, với lý do better-auth đã tự check.
+- Cho cookie session xác thực một surface ngoài `v1` và `admin`, hay đổi đường API key khi thêm nhánh session.
+- Mở một route cho session khi không resolve được permission của nó — thiếu permission là `ForbiddenError`, không phải mặc định cho qua.
+- Thêm route v1 mà không khai `operationId`, hay thêm resource mới mà không thêm dòng tương ứng vào `OPERATION_PERMISSIONS`.
+- Khai `config: { permission }` bằng object literal inline trên route — dùng `buildRouteConfig`.
 - Đổi role, ban hay đặt password bằng cách gọi thẳng `fastify.betterAuth` từ route; đi qua `UserService`.
 - Dùng `isoTimestamp` trên bảng auth, hoặc đổi id của chúng sang id mặc định của better-auth.
 - Import `better-auth` vào `packages/sdk`, hay `better-auth/react` vào bất kỳ file nào của admin-ui ngoài `src/lib/auth-client.ts`.
