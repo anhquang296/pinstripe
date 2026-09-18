@@ -38,7 +38,8 @@ export function useUpdateWebhookEndpointMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateWebhookEndpointPayload }) => {
       return client.webhookEndpoints.update(id, payload);
     },
-    onSuccess: (webhookEndpoint) => {
+    onSuccess: (webhookEndpoint, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queries.webhook.endpoint(id).queryKey });
       queryClient.invalidateQueries({ queryKey: queries.webhook.endpoints._def });
       notifySuccess(webhookEndpoint);
     },

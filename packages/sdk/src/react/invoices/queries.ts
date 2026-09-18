@@ -69,3 +69,12 @@ export function useCreditNotesQuery(
     placeholderData: hasPlaceholder ? keepPreviousData : undefined,
   });
 }
+
+export function useCreditNoteQuery(creditNoteId: string, { enabled = true }: QueryProps = {}) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.invoice.creditNote(creditNoteId),
+    enabled: enabled && Boolean(creditNoteId),
+  });
+}

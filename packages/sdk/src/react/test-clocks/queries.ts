@@ -15,3 +15,12 @@ export function useTestClocksQuery(
     placeholderData: hasPlaceholder ? keepPreviousData : undefined,
   });
 }
+
+export function useTestClockQuery(testClockId: string, { enabled = true }: QueryProps = {}) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.test_clock.testClock(testClockId),
+    enabled: enabled && Boolean(testClockId),
+  });
+}

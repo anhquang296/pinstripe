@@ -3,6 +3,8 @@ import type { MutationProps } from '@react/react-query.types';
 import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
+  CreateMeterEventBatchPayload,
+  CreateMeterEventBatchResponse,
   CreateMeterEventPayload,
   CreateMeterPayload,
   MeterEventResponse,
@@ -59,6 +61,25 @@ export function useCreateMeterEventMutation({
     onSuccess: (meterEvent) => {
       queryClient.invalidateQueries({ queryKey: queries.meter.eventSummary._def });
       notifySuccess(meterEvent);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useCreateMeterEventBatchMutation({
+  successMessage,
+}: MutationProps<CreateMeterEventBatchResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client, queries } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: (payload: CreateMeterEventBatchPayload) => {
+      return client.billing.meterEventBatches.create(payload);
+    },
+    onSuccess: (meterEventBatch) => {
+      queryClient.invalidateQueries({ queryKey: queries.meter.eventSummary._def });
+      notifySuccess(meterEventBatch);
     },
     onError: notifyError,
   });

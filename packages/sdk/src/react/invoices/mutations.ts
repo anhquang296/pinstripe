@@ -12,6 +12,7 @@ import type {
   InvoiceResponse,
   PayInvoicePayload,
   UpdateInvoiceItemPayload,
+  VoidCreditNotePayload,
   VoidInvoicePayload,
 } from '@type/contracts.types';
 
@@ -24,6 +25,7 @@ function useInvoiceInvalidation() {
     queryClient.invalidateQueries({ queryKey: queries.invoice.invoices._def });
     queryClient.invalidateQueries({ queryKey: queries.invoice.creditNotes._def });
     queryClient.invalidateQueries({ queryKey: queries.ledger.accounts._def });
+    queryClient.invalidateQueries({ queryKey: queries.ledger.account._def });
     queryClient.invalidateQueries({ queryKey: queries.ledger.transactions._def });
   };
 }
@@ -180,6 +182,27 @@ export function useCreateCreditNoteMutation({
       return client.creditNotes.create(payload);
     },
     onSuccess: (creditNote) => {
+      invalidate(creditNote.invoiceId);
+      notifySuccess(creditNote);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useVoidCreditNoteMutation({
+  successMessage,
+}: MutationProps<CreditNoteResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client, queries } = usePinstripeContext();
+  const invalidate = useInvoiceInvalidation();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload?: VoidCreditNotePayload }) => {
+      return client.creditNotes.void(id, payload);
+    },
+    onSuccess: (creditNote, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queries.invoice.creditNote(id).queryKey });
       invalidate(creditNote.invoiceId);
       notifySuccess(creditNote);
     },

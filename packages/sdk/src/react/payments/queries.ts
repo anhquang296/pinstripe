@@ -16,6 +16,18 @@ export function usePaymentIntentsQuery(
   });
 }
 
+export function usePaymentIntentQuery(
+  paymentIntentId: string,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.payment.paymentIntent(paymentIntentId),
+    enabled: enabled && Boolean(paymentIntentId),
+  });
+}
+
 export function useRefundsQuery(
   query?: FindRefundsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
@@ -26,5 +38,14 @@ export function useRefundsQuery(
     ...queries.payment.refunds(query),
     enabled,
     placeholderData: hasPlaceholder ? keepPreviousData : undefined,
+  });
+}
+
+export function useRefundQuery(refundId: string, { enabled = true }: QueryProps = {}) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.payment.refund(refundId),
+    enabled: enabled && Boolean(refundId),
   });
 }

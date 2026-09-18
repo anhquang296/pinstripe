@@ -3,6 +3,7 @@ import type { MutationProps } from '@react/react-query.types';
 import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
+  CancelPaymentIntentPayload,
   CreatePaymentIntentPayload,
   CreateRefundPayload,
   PaymentIntentResponse,
@@ -20,9 +21,12 @@ function usePaymentInvalidation() {
 
   return () => {
     queryClient.invalidateQueries({ queryKey: queries.payment.paymentIntents._def });
+    queryClient.invalidateQueries({ queryKey: queries.payment.paymentIntent._def });
     queryClient.invalidateQueries({ queryKey: queries.payment.refunds._def });
+    queryClient.invalidateQueries({ queryKey: queries.payment.refund._def });
     queryClient.invalidateQueries({ queryKey: queries.invoice.invoices._def });
     queryClient.invalidateQueries({ queryKey: queries.ledger.accounts._def });
+    queryClient.invalidateQueries({ queryKey: queries.ledger.account._def });
     queryClient.invalidateQueries({ queryKey: queries.ledger.transactions._def });
   };
 }
@@ -60,6 +64,25 @@ export function useCreateRefundMutation({ successMessage }: MutationProps<Refund
     onSuccess: (refund) => {
       invalidate();
       notifySuccess(refund);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useCancelPaymentIntentMutation({
+  successMessage,
+}: MutationProps<PaymentIntentResponse> = {}) {
+  const { client } = usePinstripeContext();
+  const invalidate = usePaymentInvalidation();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload?: CancelPaymentIntentPayload }) => {
+      return client.paymentIntents.cancel(id, payload);
+    },
+    onSuccess: (paymentIntent) => {
+      invalidate();
+      notifySuccess(paymentIntent);
     },
     onError: notifyError,
   });
