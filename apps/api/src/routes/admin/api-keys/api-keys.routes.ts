@@ -5,13 +5,18 @@ import {
   createApiKeySchema,
   findApiKeysSchema,
   ListResponseSchema,
+  PermissionEnum,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { buildRouteConfig } from '@utils/route-permission';
 
 export const apiKeysRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
-    { schema: { body: createApiKeySchema, response: { 201: apiKeySchema } } },
+    {
+      config: buildRouteConfig(PermissionEnum.API_KEY_MANAGE),
+      schema: { body: createApiKeySchema, response: { 201: apiKeySchema } },
+    },
     async (request, reply) => {
       const apiKey = await fastify.apiKeyService.createApiKey(request.body);
 
@@ -22,6 +27,7 @@ export const apiKeysRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/',
     {
+      config: buildRouteConfig(PermissionEnum.API_KEY_MANAGE),
       schema: {
         querystring: findApiKeysSchema,
         response: { 200: ListResponseSchema(apiKeySchema) },
@@ -36,7 +42,10 @@ export const apiKeysRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.delete(
     '/:apiKeyId',
-    { schema: { params: apiKeyParamsSchema, response: { 200: apiKeySchema } } },
+    {
+      config: buildRouteConfig(PermissionEnum.API_KEY_MANAGE),
+      schema: { params: apiKeyParamsSchema, response: { 200: apiKeySchema } },
+    },
     async (request, reply) => {
       const apiKey = await fastify.apiKeyService.revokeApiKey(request.params.apiKeyId);
 

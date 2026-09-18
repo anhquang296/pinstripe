@@ -7,15 +7,18 @@ import {
   ledgerTransactionParamsSchema,
   ledgerTransactionSchema,
   ListResponseSchema,
+  PermissionEnum,
   postLedgerTransactionSchema,
   reverseLedgerTransactionSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
+import { buildRouteConfig } from '@utils/route-permission';
 
 export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/accounts',
     {
+      config: buildRouteConfig(PermissionEnum.BILLING_READ),
       schema: {
         querystring: findLedgerAccountsSchema,
         response: { 200: ListResponseSchema(ledgerAccountSchema) },
@@ -30,7 +33,10 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.get(
     '/accounts/:accountId',
-    { schema: { params: ledgerAccountParamsSchema, response: { 200: ledgerAccountSchema } } },
+    {
+      config: buildRouteConfig(PermissionEnum.BILLING_READ),
+      schema: { params: ledgerAccountParamsSchema, response: { 200: ledgerAccountSchema } },
+    },
     async (request, reply) => {
       const account = await fastify.ledgerService.getAccount(request.params.accountId);
 
@@ -41,6 +47,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/transactions',
     {
+      config: buildRouteConfig(PermissionEnum.BILLING_READ),
       schema: {
         querystring: findLedgerTransactionsSchema,
         response: { 200: ListResponseSchema(ledgerTransactionSchema) },
@@ -56,6 +63,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/transactions/:transactionId',
     {
+      config: buildRouteConfig(PermissionEnum.BILLING_READ),
       schema: { params: ledgerTransactionParamsSchema, response: { 200: ledgerTransactionSchema } },
     },
     async (request, reply) => {
@@ -67,7 +75,10 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
   fastify.post(
     '/transactions',
-    { schema: { body: postLedgerTransactionSchema, response: { 201: ledgerTransactionSchema } } },
+    {
+      config: buildRouteConfig(PermissionEnum.LEDGER_WRITE),
+      schema: { body: postLedgerTransactionSchema, response: { 201: ledgerTransactionSchema } },
+    },
     async (request, reply) => {
       const transaction = await fastify.ledgerService.postTransaction(request.body);
 
@@ -78,6 +89,7 @@ export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/transactions/:transactionId/reverse',
     {
+      config: buildRouteConfig(PermissionEnum.LEDGER_WRITE),
       schema: {
         params: ledgerTransactionParamsSchema,
         body: reverseLedgerTransactionSchema,
