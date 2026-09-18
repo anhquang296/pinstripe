@@ -33,7 +33,7 @@ export class RatingService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async rateUpcomingInvoice(subscriptionId: string): Promise<RatedInvoiceResponse> {
-    const subscription = await this.getSubscription(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
     const { periodStart, periodEnd } = RatingService.readCurrentPeriod(subscription);
 
     if (subscription.billingMode === BillingModeEnum.ARREARS) {
@@ -55,7 +55,7 @@ export class RatingService {
     periodStart: Date,
     periodEnd: Date,
   ): Promise<RatedInvoiceResponse> {
-    const subscription = await this.getSubscription(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
     const period: RatingPeriod = { periodStart, periodEnd };
 
     if (subscription.billingMode === BillingModeEnum.ADVANCE) {
@@ -71,7 +71,7 @@ export class RatingService {
     subscriptionId: string,
     executor?: DatabaseTransaction,
   ): Promise<RatedInvoiceResponse> {
-    const subscription = await this.getSubscription(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
     const period = RatingService.readCurrentPeriod(subscription);
 
     if (subscription.billingMode === BillingModeEnum.ADVANCE) {
@@ -205,16 +205,6 @@ export class RatingService {
     );
 
     return resolveInterval(prices);
-  }
-
-  private async getSubscription(subscriptionId: string): Promise<Subscription> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(subscriptionId);
-
-    if (subscription) {
-      return subscription;
-    }
-
-    throw new NotFoundError(`No such subscription: ${subscriptionId}`);
   }
 
   private async rateSubscriptionItemChanges(

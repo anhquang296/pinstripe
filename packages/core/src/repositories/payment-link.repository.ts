@@ -7,6 +7,7 @@ import type {
   PaymentLinkLineItem,
 } from '@database/schemas';
 import { paymentLinkLineItems, paymentLinks } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 
@@ -21,6 +22,16 @@ export class PaymentLinkRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getPaymentLink(id: string): Promise<PaymentLink> {
+    const paymentLink = await this.findPaymentLink(id);
+
+    if (paymentLink) {
+      return paymentLink;
+    }
+
+    throw new NotFoundError(`No such payment link: ${id}`);
   }
 
   async findPaymentLink(id: string): Promise<PaymentLink | null> {

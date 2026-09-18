@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { DatabaseClient } from '@database/database.client';
 import type { ApiKey, NewApiKey } from '@database/schemas';
 import { apiKeys } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
@@ -17,6 +18,16 @@ export class ApiKeyRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getApiKey(id: string): Promise<ApiKey> {
+    const apiKey = await this.findApiKey(id);
+
+    if (apiKey) {
+      return apiKey;
+    }
+
+    throw new NotFoundError(`No such api key: ${id}`);
   }
 
   async findApiKey(id: string): Promise<ApiKey | null> {

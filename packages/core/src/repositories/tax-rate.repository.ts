@@ -3,6 +3,7 @@ import type { TaxType } from '@contracts/taxes.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewTaxRate, TaxRate } from '@database/schemas';
 import { taxRates } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
@@ -23,6 +24,16 @@ export class TaxRateRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getTaxRate(id: string): Promise<TaxRate> {
+    const taxRate = await this.findTaxRate(id);
+
+    if (taxRate) {
+      return taxRate;
+    }
+
+    throw new NotFoundError(`No such tax rate: ${id}`);
   }
 
   async findTaxRate(id: string): Promise<TaxRate | null> {

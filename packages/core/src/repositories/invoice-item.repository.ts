@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { InvoiceItem, NewInvoiceItem } from '@database/schemas';
 import { invoiceItems } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import type { Currency } from '@utils/currency';
 import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
@@ -22,6 +23,16 @@ export class InvoiceItemRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getInvoiceItem(id: string): Promise<InvoiceItem> {
+    const invoiceItem = await this.findInvoiceItem(id);
+
+    if (invoiceItem) {
+      return invoiceItem;
+    }
+
+    throw new NotFoundError(`No such invoice item: ${id}`);
   }
 
   async findInvoiceItem(id: string): Promise<InvoiceItem | null> {

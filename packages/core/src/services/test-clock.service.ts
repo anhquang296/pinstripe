@@ -8,7 +8,6 @@ import type {
   TestClockResponse,
 } from '@contracts/test-clocks.types';
 import { TestClockStatusEnum } from '@contracts/test-clocks.types';
-import type { TestClock } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -50,13 +49,7 @@ export class TestClockService {
   }
 
   async getTestClock(id: string): Promise<TestClockResponse> {
-    const clock = await this.fastify.testClockRepository.findTestClock(id);
-
-    if (clock) {
-      return clock;
-    }
-
-    throw new NotFoundError(`No such test clock: ${id}`);
+    return this.fastify.testClockRepository.getTestClock(id);
   }
 
   async findTestClocks(query: FindTestClocksQuery): Promise<ListResponse<TestClockResponse>> {
@@ -78,7 +71,7 @@ export class TestClockService {
   }
 
   async advanceTestClock(id: string, payload: AdvanceTestClockPayload): Promise<TestClockResponse> {
-    const clock = await this.getTestClockRow(id);
+    const clock = await this.fastify.testClockRepository.getTestClock(id);
 
     if (clock.status === TestClockStatusEnum.ADVANCING) {
       throw new ConflictError(`Test clock ${id} is already advancing`);
@@ -141,25 +134,11 @@ export class TestClockService {
     return advanced;
   }
 
-  private async getTestClockRow(id: string): Promise<TestClock> {
-    const testClock = await this.fastify.testClockRepository.findTestClock(id);
-
-    if (testClock) {
-      return testClock;
-    }
-
-    throw new NotFoundError(`No such test clock: ${id}`);
-  }
-
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const testClock = await this.fastify.testClockRepository.findTestClock(id);
+      const testClock = await this.fastify.testClockRepository.getTestClock(id);
 
-      if (testClock) {
-        return { createdAt: testClock.createdAt, id: testClock.id };
-      }
-
-      throw new NotFoundError(`No such test clock: ${id}`);
+      return { createdAt: testClock.createdAt, id: testClock.id };
     }
 
     return undefined;

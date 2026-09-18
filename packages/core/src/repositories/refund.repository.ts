@@ -3,6 +3,7 @@ import type { RefundStatus } from '@contracts/payments.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewRefund, NewRefundTransition, Refund, RefundTransition } from '@database/schemas';
 import { refunds, refundTransitions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import _ from 'lodash';
@@ -29,6 +30,16 @@ export class RefundRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getRefund(id: string): Promise<Refund> {
+    const refund = await this.findRefund(id);
+
+    if (refund) {
+      return refund;
+    }
+
+    throw new NotFoundError(`No such refund: ${id}`);
   }
 
   async findRefund(id: string): Promise<Refund | null> {

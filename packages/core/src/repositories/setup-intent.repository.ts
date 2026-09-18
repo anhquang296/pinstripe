@@ -3,6 +3,7 @@ import type { SetupIntentStatus } from '@contracts/setup-intents.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewSetupIntent, SetupIntent } from '@database/schemas';
 import { setupIntents } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
@@ -19,6 +20,16 @@ export class SetupIntentRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getSetupIntent(id: string): Promise<SetupIntent> {
+    const setupIntent = await this.findSetupIntent(id);
+
+    if (setupIntent) {
+      return setupIntent;
+    }
+
+    throw new NotFoundError(`No such setup intent: ${id}`);
   }
 
   async findSetupIntent(id: string): Promise<SetupIntent | null> {

@@ -3,6 +3,7 @@ import type { BalanceSourceType, BalanceTransactionType } from '@contracts/balan
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { BalanceTransaction, NewBalanceTransaction } from '@database/schemas';
 import { balanceTransactions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import type { Currency } from '@utils/currency';
 import { and, asc, desc, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
@@ -31,6 +32,16 @@ export class BalanceTransactionRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getBalanceTransaction(id: string): Promise<BalanceTransaction> {
+    const balanceTransaction = await this.findBalanceTransaction(id);
+
+    if (balanceTransaction) {
+      return balanceTransaction;
+    }
+
+    throw new NotFoundError(`No such balance transaction: ${id}`);
   }
 
   async findBalanceTransaction(id: string): Promise<BalanceTransaction | null> {

@@ -23,7 +23,7 @@ export class RefundService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createRefund(payload: CreateRefundPayload, creditNoteId?: string): Promise<RefundResponse> {
-    const charge = await this.getChargeEntity(payload.chargeId);
+    const charge = await this.getSucceededCharge(payload.chargeId);
     const refundable = await this.resolveRefundableAmount(charge);
     const amount = payload.amount ?? refundable;
 
@@ -137,14 +137,11 @@ export class RefundService {
   }
 
   async getRefund(id: string): Promise<RefundResponse> {
-    const refund = await this.fastify.refundRepository.findRefund(id);
+    const refund = await this.fastify.refundRepository.getRefund(id);
+    const [built] = await this.buildRefunds([refund]);
 
-    if (refund) {
-      const [built] = await this.buildRefunds([refund]);
-
-      if (built) {
-        return built;
-      }
+    if (built) {
+      return built;
     }
 
     throw new NotFoundError(`No such refund: ${id}`);
@@ -214,11 +211,7 @@ export class RefundService {
   }
 
   private async applyChargeRefund(refund: Refund, tx: DatabaseTransaction): Promise<void> {
-    const charge = await this.fastify.paymentIntentRepository.findCharge(refund.chargeId);
-
-    if (!charge) {
-      throw new NotFoundError(`No such charge: ${refund.chargeId}`);
-    }
+    const charge = await this.fastify.paymentIntentRepository.getCharge(refund.chargeId);
 
     await this.fastify.paymentIntentRepository.updateCharge(
       charge.id,
@@ -278,18 +271,14 @@ export class RefundService {
     return _.get(paymentIntent, 'invoiceId', null);
   }
 
-  private async getChargeEntity(id: string): Promise<Charge> {
-    const charge = await this.fastify.paymentIntentRepository.findCharge(id);
+  private async getSucceededCharge(id: string): Promise<Charge> {
+    const charge = await this.fastify.paymentIntentRepository.getCharge(id);
 
-    if (!charge) {
-      throw new NotFoundError(`No such charge: ${id}`);
+    if (charge.status === ChargeStatusEnum.SUCCEEDED) {
+      return charge;
     }
 
-    if (charge.status !== ChargeStatusEnum.SUCCEEDED) {
-      throw new ConflictError(`Charge ${id} never took money and has nothing to refund`);
-    }
-
-    return charge;
+    throw new ConflictError(`Charge ${id} never took money and has nothing to refund`);
   }
 
   private async getProcessorRefund(pspReference: string): Promise<Refund> {
@@ -307,13 +296,9 @@ export class RefundService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const refund = await this.fastify.refundRepository.findRefund(id);
+      const refund = await this.fastify.refundRepository.getRefund(id);
 
-      if (refund) {
-        return { createdAt: refund.createdAt, id: refund.id };
-      }
-
-      throw new NotFoundError(`No such refund: ${id}`);
+      return { createdAt: refund.createdAt, id: refund.id };
     }
 
     return undefined;

@@ -53,21 +53,11 @@ export class TaxRateService {
   }
 
   async getTaxRate(id: string): Promise<TaxRateResponse> {
-    return this.getTaxRateEntity(id);
-  }
-
-  async getTaxRateEntity(id: string): Promise<TaxRate> {
-    const taxRate = await this.fastify.taxRateRepository.findTaxRate(id);
-
-    if (taxRate) {
-      return taxRate;
-    }
-
-    throw new NotFoundError(`No such tax rate: ${id}`);
+    return this.fastify.taxRateRepository.getTaxRate(id);
   }
 
   async updateTaxRate(id: string, payload: UpdateTaxRatePayload): Promise<TaxRateResponse> {
-    const existingTaxRate = await this.getTaxRateEntity(id);
+    const existingTaxRate = await this.fastify.taxRateRepository.getTaxRate(id);
     const updatedAt = this.fastify.clock.now().toISOString();
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -120,7 +110,7 @@ export class TaxRateService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const taxRate = await this.getTaxRateEntity(id);
+      const taxRate = await this.fastify.taxRateRepository.getTaxRate(id);
 
       return { createdAt: taxRate.createdAt, id: taxRate.id };
     }

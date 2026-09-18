@@ -3,6 +3,7 @@ import type { DomainEventType } from '@contracts/events.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Event, NewEvent } from '@database/schemas';
 import { events } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
@@ -17,6 +18,16 @@ export class EventRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getEvent(id: string): Promise<Event> {
+    const event = await this.findEvent(id);
+
+    if (event) {
+      return event;
+    }
+
+    throw new NotFoundError(`No such event: ${id}`);
   }
 
   async findEvent(id: string): Promise<Event | null> {

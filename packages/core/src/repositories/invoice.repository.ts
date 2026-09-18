@@ -17,6 +17,7 @@ import {
   invoicePayments,
   invoices,
 } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, inArray, lt, lte, sql } from 'drizzle-orm';
 import _ from 'lodash';
@@ -45,6 +46,16 @@ export class InvoiceRepository {
     this._db = db;
   }
 
+  async getInvoice(id: string): Promise<Invoice> {
+    const invoice = await this.findInvoice(id);
+
+    if (invoice) {
+      return invoice;
+    }
+
+    throw new NotFoundError(`No such invoice: ${id}`);
+  }
+
   async findInvoice(id: string): Promise<Invoice | null> {
     const [invoice] = await this._db.master
       .select()
@@ -55,7 +66,7 @@ export class InvoiceRepository {
     return invoice ?? null;
   }
 
-  async lockInvoice(id: string, executor: DatabaseTransaction): Promise<Invoice | null> {
+  async getLockedInvoice(id: string, executor: DatabaseTransaction): Promise<Invoice> {
     const [invoice] = await executor
       .select()
       .from(invoices)
@@ -63,7 +74,11 @@ export class InvoiceRepository {
       .limit(1)
       .for('update');
 
-    return invoice ?? null;
+    if (invoice) {
+      return invoice;
+    }
+
+    throw new NotFoundError(`No such invoice: ${id}`);
   }
 
   async findInvoices(

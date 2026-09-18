@@ -8,6 +8,7 @@ import type {
   WebhookEndpoint,
 } from '@database/schemas';
 import { webhookDeliveries, webhookEndpoints } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import _ from 'lodash';
@@ -30,6 +31,16 @@ export class WebhookRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getWebhookEndpoint(id: string): Promise<WebhookEndpoint> {
+    const webhookEndpoint = await this.findWebhookEndpoint(id);
+
+    if (webhookEndpoint) {
+      return webhookEndpoint;
+    }
+
+    throw new NotFoundError(`No such webhook endpoint: ${id}`);
   }
 
   async findWebhookEndpoint(id: string): Promise<WebhookEndpoint | null> {
@@ -81,6 +92,16 @@ export class WebhookRepository {
       .returning();
 
     return endpoint ?? null;
+  }
+
+  async getWebhookDelivery(id: string): Promise<WebhookDelivery> {
+    const webhookDelivery = await this.findWebhookDelivery(id);
+
+    if (webhookDelivery) {
+      return webhookDelivery;
+    }
+
+    throw new NotFoundError(`No such webhook delivery: ${id}`);
   }
 
   async findWebhookDelivery(id: string): Promise<WebhookDelivery | null> {

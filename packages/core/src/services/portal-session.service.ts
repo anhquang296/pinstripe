@@ -121,7 +121,7 @@ export class PortalSessionService {
   }
 
   async createCustomerPortalSession(customerId: string): Promise<MintedPortalSession> {
-    const customer = await this.getCustomer(customerId);
+    const customer = await this.fastify.customerRepository.getCustomer(customerId);
     const now = this.fastify.clock.now();
     const sessionKey = PortalSessionService.buildKey();
     const sessionExpiresAt = this.resolveSessionExpiry(now).toISOString();
@@ -179,7 +179,7 @@ export class PortalSessionService {
   }
 
   async revokePortalSession(id: string): Promise<PortalSessionResponse> {
-    const portalSession = await this.getPortalSessionEntity(id);
+    const portalSession = await this.fastify.portalSessionRepository.getPortalSession(id);
     const updatedAt = this.fastify.clock.now().toISOString();
     const revoked = await this.fastify.portalSessionRepository.updatePortalSession(
       portalSession.id,
@@ -194,7 +194,7 @@ export class PortalSessionService {
   }
 
   async getPortalSession(id: string): Promise<PortalSessionResponse> {
-    const portalSession = await this.getPortalSessionEntity(id);
+    const portalSession = await this.fastify.portalSessionRepository.getPortalSession(id);
 
     return PortalSessionService.buildPortalSession(portalSession, null);
   }
@@ -227,26 +227,6 @@ export class PortalSessionService {
     const [customer] = await this.fastify.customerRepository.findCustomers({ email }, 1);
 
     return customer ?? null;
-  }
-
-  private async getCustomer(id: string): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
-  }
-
-  private async getPortalSessionEntity(id: string): Promise<PortalSession> {
-    const portalSession = await this.fastify.portalSessionRepository.findPortalSession(id);
-
-    if (portalSession) {
-      return portalSession;
-    }
-
-    throw new NotFoundError(`No such portal session: ${id}`);
   }
 
   private static buildKey(): string {

@@ -3,6 +3,7 @@ import type { LedgerAccountCode } from '@contracts/ledger.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { LedgerAccount, NewLedgerAccount } from '@database/schemas';
 import { ledgerAccountBalances, ledgerAccounts } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { Currency } from '@utils/currency';
 import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
 import _ from 'lodash';
@@ -26,6 +27,16 @@ export class LedgerAccountRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getLedgerAccount(id: string): Promise<LedgerAccountWithBalance> {
+    const ledgerAccount = await this.findLedgerAccount(id);
+
+    if (ledgerAccount) {
+      return ledgerAccount;
+    }
+
+    throw new NotFoundError(`No such ledger account: ${id}`);
   }
 
   async findLedgerAccount(id: string): Promise<LedgerAccountWithBalance | null> {

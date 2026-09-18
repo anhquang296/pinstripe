@@ -52,7 +52,7 @@ export class CheckoutService {
   async createCheckoutSession(
     payload: CreateCheckoutSessionPayload,
   ): Promise<CheckoutSessionResponse> {
-    const customer = await this.getCustomer(payload.customerId);
+    const customer = await this.fastify.customerRepository.getCustomer(payload.customerId);
     const drafts = CheckoutService.readLineItemDrafts(payload.lineItems);
 
     CheckoutService.assertLineItems(payload.mode, drafts);
@@ -112,7 +112,7 @@ export class CheckoutService {
     paymentLinkId: string,
     customerId: string,
   ): Promise<CheckoutSessionResponse> {
-    const paymentLink = await this.fastify.paymentLinkService.getPaymentLinkEntity(paymentLinkId);
+    const paymentLink = await this.fastify.paymentLinkRepository.getPaymentLink(paymentLinkId);
 
     if (!paymentLink.isActive) {
       throw new ConflictError(`Payment link ${paymentLinkId} is no longer active`);
@@ -142,7 +142,7 @@ export class CheckoutService {
   }
 
   async getCheckoutSession(id: string): Promise<CheckoutSessionResponse> {
-    const checkoutSession = await this.getCheckoutSessionEntity(id);
+    const checkoutSession = await this.fastify.checkoutSessionRepository.getCheckoutSession(id);
 
     return this.buildCheckoutSession(checkoutSession);
   }
@@ -394,7 +394,7 @@ export class CheckoutService {
       return paymentMethod.id;
     }
 
-    const customer = await this.getCustomer(checkoutSession.customerId);
+    const customer = await this.fastify.customerRepository.getCustomer(checkoutSession.customerId);
     const { defaultPaymentMethodId } = customer;
 
     if (defaultPaymentMethodId) {
@@ -446,26 +446,6 @@ export class CheckoutService {
     throw new NotFoundError(`No such checkout session: ${id}`);
   }
 
-  private async getCheckoutSessionEntity(id: string): Promise<CheckoutSession> {
-    const checkoutSession = await this.fastify.checkoutSessionRepository.findCheckoutSession(id);
-
-    if (checkoutSession) {
-      return checkoutSession;
-    }
-
-    throw new NotFoundError(`No such checkout session: ${id}`);
-  }
-
-  private async getCustomer(id: string): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
-  }
-
   private async resolvePrices(
     drafts: readonly CheckoutLineItemDraft[],
     customer: Customer,
@@ -511,13 +491,9 @@ export class CheckoutService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const checkoutSession = await this.fastify.checkoutSessionRepository.findCheckoutSession(id);
+      const checkoutSession = await this.fastify.checkoutSessionRepository.getCheckoutSession(id);
 
-      if (checkoutSession) {
-        return { createdAt: checkoutSession.createdAt, id: checkoutSession.id };
-      }
-
-      throw new NotFoundError(`No such checkout session: ${id}`);
+      return { createdAt: checkoutSession.createdAt, id: checkoutSession.id };
     }
 
     return undefined;

@@ -8,7 +8,7 @@ import type {
   UpdatePaymentMethodPayload,
 } from '@contracts/payment-methods.types';
 import type { DatabaseTransaction } from '@database/database.client';
-import type { Customer, PaymentMethod } from '@database/schemas';
+import type { PaymentMethod } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -19,7 +19,9 @@ export class PaymentMethodService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createPaymentMethod(payload: CreatePaymentMethodPayload): Promise<PaymentMethodResponse> {
-    const customer = payload.customerId ? await this.getCustomer(payload.customerId) : null;
+    const customer = payload.customerId
+      ? await this.fastify.customerRepository.getCustomer(payload.customerId)
+      : null;
     const tokenized = await this.fastify.psp.tokenize({
       token: payload.token,
       type: payload.type,
@@ -50,8 +52,8 @@ export class PaymentMethodService {
     id: string,
     payload: AttachPaymentMethodPayload,
   ): Promise<PaymentMethodResponse> {
-    const paymentMethod = await this.getPaymentMethodEntity(id);
-    const customer = await this.getCustomer(payload.customerId);
+    const paymentMethod = await this.fastify.paymentMethodRepository.getPaymentMethod(id);
+    const customer = await this.fastify.customerRepository.getCustomer(payload.customerId);
 
     if (paymentMethod.customerId && paymentMethod.customerId !== customer.id) {
       throw new ConflictError(
@@ -91,7 +93,7 @@ export class PaymentMethodService {
   }
 
   async detachPaymentMethod(id: string): Promise<PaymentMethodResponse> {
-    const paymentMethod = await this.getPaymentMethodEntity(id);
+    const paymentMethod = await this.fastify.paymentMethodRepository.getPaymentMethod(id);
 
     if (paymentMethod.detachedAt) {
       throw new ConflictError(`Payment method ${id} is already detached`);
@@ -123,7 +125,7 @@ export class PaymentMethodService {
     id: string,
     payload: UpdatePaymentMethodPayload,
   ): Promise<PaymentMethodResponse> {
-    const paymentMethod = await this.getPaymentMethodEntity(id);
+    const paymentMethod = await this.fastify.paymentMethodRepository.getPaymentMethod(id);
     const { card } = paymentMethod;
 
     if (payload.card && !card) {
@@ -152,7 +154,7 @@ export class PaymentMethodService {
   }
 
   async getPaymentMethod(id: string): Promise<PaymentMethodResponse> {
-    return this.getPaymentMethodEntity(id);
+    return this.fastify.paymentMethodRepository.getPaymentMethod(id);
   }
 
   async findPaymentMethods(
@@ -179,7 +181,7 @@ export class PaymentMethodService {
   }
 
   async getChargeablePaymentMethod(id: string): Promise<PaymentMethod> {
-    const paymentMethod = await this.getPaymentMethodEntity(id);
+    const paymentMethod = await this.fastify.paymentMethodRepository.getPaymentMethod(id);
 
     if (paymentMethod.detachedAt) {
       throw new ConflictError(`Payment method ${id} has been detached and cannot be charged`);
@@ -211,29 +213,9 @@ export class PaymentMethodService {
     );
   }
 
-  private async getCustomer(id: string): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
-  }
-
-  private async getPaymentMethodEntity(id: string): Promise<PaymentMethod> {
-    const paymentMethod = await this.fastify.paymentMethodRepository.findPaymentMethod(id);
-
-    if (paymentMethod) {
-      return paymentMethod;
-    }
-
-    throw new NotFoundError(`No such payment method: ${id}`);
-  }
-
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const paymentMethod = await this.getPaymentMethodEntity(id);
+      const paymentMethod = await this.fastify.paymentMethodRepository.getPaymentMethod(id);
 
       return { createdAt: paymentMethod.createdAt, id: paymentMethod.id };
     }

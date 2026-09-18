@@ -83,7 +83,7 @@ export class MeterEventService {
     meterId: string,
     query: GetMeterEventSummaryQuery,
   ): Promise<MeterEventSummaryResponse> {
-    const meter = await this.getMeter(meterId);
+    const meter = await this.fastify.meterRepository.getMeter(meterId);
     const windowStart = new Date(query.windowStart);
     const windowEnd = new Date(query.windowEnd);
 
@@ -114,16 +114,6 @@ export class MeterEventService {
       windowStart: windowStart.toISOString(),
       windowEnd: windowEnd.toISOString(),
     };
-  }
-
-  private async getMeter(meterId: string): Promise<Meter> {
-    const meter = await this.fastify.meterRepository.findMeter(meterId);
-
-    if (meter) {
-      return meter;
-    }
-
-    throw new NotFoundError(`No such meter: ${meterId}`);
   }
 
   private buildMeterEvent(

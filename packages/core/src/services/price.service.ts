@@ -126,13 +126,9 @@ export class PriceService {
   }
 
   async getPrice(id: string): Promise<PriceResponse> {
-    const price = await this.fastify.priceRepository.findPrice(id);
+    const price = await this.fastify.priceRepository.getPrice(id);
 
-    if (price) {
-      return PriceService.buildPrice(price);
-    }
-
-    throw new NotFoundError(`No such price: ${id}`);
+    return PriceService.buildPrice(price);
   }
 
   async updatePrice(id: string, payload: UpdatePricePayload): Promise<PriceResponse> {
@@ -222,13 +218,9 @@ export class PriceService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const price = await this.fastify.priceRepository.findPrice(id);
+      const price = await this.fastify.priceRepository.getPrice(id);
 
-      if (price) {
-        return { createdAt: price.createdAt, id: price.id };
-      }
-
-      throw new NotFoundError(`No such price: ${id}`);
+      return { createdAt: price.createdAt, id: price.id };
     }
 
     return undefined;

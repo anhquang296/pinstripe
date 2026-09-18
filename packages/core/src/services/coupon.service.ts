@@ -8,7 +8,6 @@ import type {
 import { CouponDurationEnum } from '@contracts/discounts.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
-import type { Coupon } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -87,21 +86,11 @@ export class CouponService {
   }
 
   async getCoupon(id: string): Promise<CouponResponse> {
-    return this.getCouponEntity(id);
-  }
-
-  async getCouponEntity(id: string): Promise<Coupon> {
-    const coupon = await this.fastify.couponRepository.findCoupon(id);
-
-    if (coupon) {
-      return coupon;
-    }
-
-    throw new NotFoundError(`No such coupon: ${id}`);
+    return this.fastify.couponRepository.getCoupon(id);
   }
 
   async updateCoupon(id: string, payload: UpdateCouponPayload): Promise<CouponResponse> {
-    const existingCoupon = await this.getCouponEntity(id);
+    const existingCoupon = await this.fastify.couponRepository.getCoupon(id);
     const coupon = await this.fastify.couponRepository.updateCoupon(id, {
       name: payload.name ?? existingCoupon.name,
       metadata: payload.metadata ?? existingCoupon.metadata,
@@ -116,7 +105,7 @@ export class CouponService {
   }
 
   async deleteCoupon(id: string): Promise<DeletedCouponResponse> {
-    await this.getCouponEntity(id);
+    await this.fastify.couponRepository.getCoupon(id);
 
     const now = this.fastify.clock.now().toISOString();
     const activeDiscounts = await this.fastify.discountRepository.findDiscounts(
@@ -149,7 +138,7 @@ export class CouponService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const coupon = await this.getCouponEntity(id);
+      const coupon = await this.fastify.couponRepository.getCoupon(id);
 
       return { createdAt: coupon.createdAt, id: coupon.id };
     }

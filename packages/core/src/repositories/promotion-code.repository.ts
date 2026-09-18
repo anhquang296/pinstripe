@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewPromotionCode, PromotionCode } from '@database/schemas';
 import { promotionCodes } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, isNull, or, sql } from 'drizzle-orm';
 
@@ -18,6 +19,16 @@ export class PromotionCodeRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getPromotionCode(id: string): Promise<PromotionCode> {
+    const promotionCode = await this.findPromotionCode(id);
+
+    if (promotionCode) {
+      return promotionCode;
+    }
+
+    throw new NotFoundError(`No such promotion code: ${id}`);
   }
 
   async findPromotionCode(id: string): Promise<PromotionCode | null> {

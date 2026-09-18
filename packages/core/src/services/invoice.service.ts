@@ -31,7 +31,6 @@ import {
 } from '@contracts/subscriptions.types';
 import type { DatabaseTransaction } from '@database/database.client';
 import type {
-  Customer,
   Invoice,
   InvoiceLineDiscountAmount,
   InvoiceLineItem,
@@ -114,7 +113,8 @@ export class InvoiceService {
     const { subscriptionId, customerId } = payload;
 
     if (subscriptionId) {
-      const subscription = await this.getSubscription(subscriptionId);
+      const subscription =
+        await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
       const { invoice } = await this.ensureDraftInvoice(
         subscription,
         payload.metadata ?? {},
@@ -252,7 +252,7 @@ export class InvoiceService {
   }
 
   async finalizeInvoice(id: string): Promise<InvoiceResponse> {
-    const invoice = await this.getInvoiceEntity(id);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(id);
 
     InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.OPEN);
 
@@ -301,7 +301,10 @@ export class InvoiceService {
     if (subscription.billingMode === BillingModeEnum.ADVANCE) {
       await this.finalizeInvoice(ensured.invoice.id);
 
-      return { invoice: await this.getInvoiceEntity(ensured.invoice.id), isCreated: true };
+      return {
+        invoice: await this.fastify.invoiceRepository.getInvoice(ensured.invoice.id),
+        isCreated: true,
+      };
     }
 
     return ensured;
@@ -384,7 +387,7 @@ export class InvoiceService {
       await this.finalizeInvoice(invoice.id);
     }
 
-    return this.getInvoiceEntity(invoice.id);
+    return this.fastify.invoiceRepository.getInvoice(invoice.id);
   }
 
   private static readCurrentPeriod(subscription: Subscription): RatingPeriod {
@@ -395,7 +398,7 @@ export class InvoiceService {
   }
 
   async markInvoiceUncollectible(id: string): Promise<InvoiceResponse> {
-    const invoice = await this.getInvoiceEntity(id);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(id);
 
     InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.UNCOLLECTIBLE);
 
@@ -469,7 +472,7 @@ export class InvoiceService {
       return [];
     }
 
-    const subscription = await this.getSubscription(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
     const periodStart = new Date(invoice.periodStart);
     const periodEnd = new Date(invoice.periodEnd);
     const rated = await this.fastify.ratingService.rateInvoicePeriod(
@@ -659,7 +662,10 @@ export class InvoiceService {
     now: Date,
     tx: DatabaseTransaction,
   ): Promise<Invoice> {
-    const customer = await this.getLockedCustomer(invoice.customerId, tx);
+    const customer = await this.fastify.customerRepository.getLockedCustomer(
+      invoice.customerId,
+      tx,
+    );
     const discountedLines = await this.fastify.discountService.applyDiscounts(invoice, lines, tx);
     const { lines: taxedLines, automaticTaxStatus } = await this.fastify.taxService.applyTaxes(
       invoice,
@@ -758,7 +764,7 @@ export class InvoiceService {
       return;
     }
 
-    const subscription = await this.getSubscription(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
 
     if (subscription.billingMode === BillingModeEnum.ARREARS) {
       if (invoice.billingReason === BillingReasonEnum.SUBSCRIPTION_UPDATE) {
@@ -869,16 +875,6 @@ export class InvoiceService {
     return new Date(now.getTime() + daysUntilDue * MILLISECONDS_PER_DAY);
   }
 
-  private async getLockedCustomer(id: string, tx: DatabaseTransaction): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.lockCustomer(id, tx);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
-  }
-
   private async applyCustomerBalance(
     invoice: Invoice,
     totals: InvoiceTotals,
@@ -920,8 +916,9 @@ export class InvoiceService {
     payload: PayInvoicePayload,
     settlementReference?: string,
   ): Promise<InvoiceResponse> {
-    const invoiceEntity = await this.getInvoiceEntity(id);
-    const now = await this.fastify.clockService.resolveInvoiceNow(invoiceEntity);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(id);
+
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
 
     const paidInvoice = await this.fastify.database.master.transaction(async (tx) => {
       return this.settleInvoice(id, { amount: payload.amount, settlementReference }, now, tx);
@@ -935,8 +932,9 @@ export class InvoiceService {
     payload: ApplyInvoicePaymentPayload,
     tx: DatabaseTransaction,
   ): Promise<Invoice> {
-    const invoiceEntity = await this.getInvoiceEntity(id);
-    const now = await this.fastify.clockService.resolveInvoiceNow(invoiceEntity);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(id);
+
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
 
     return this.settleInvoice(id, payload, now, tx);
   }
@@ -947,7 +945,7 @@ export class InvoiceService {
     now: Date,
     tx: DatabaseTransaction,
   ): Promise<Invoice> {
-    const invoice = await this.getLockedInvoiceEntity(id, tx);
+    const invoice = await this.fastify.invoiceRepository.getLockedInvoice(id, tx);
 
     InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
 
@@ -1010,7 +1008,7 @@ export class InvoiceService {
   }
 
   async voidInvoice(id: string, payload: VoidInvoicePayload): Promise<InvoiceResponse> {
-    const invoice = await this.getInvoiceEntity(id);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(id);
 
     InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.VOID);
 
@@ -1057,7 +1055,7 @@ export class InvoiceService {
   }
 
   async getInvoice(id: string): Promise<InvoiceResponse> {
-    const invoice = await this.getInvoiceEntity(id);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(id);
 
     return this.buildInvoice(invoice);
   }
@@ -1273,7 +1271,10 @@ export class InvoiceService {
       return;
     }
 
-    const customer = await this.getLockedCustomer(invoice.customerId, tx);
+    const customer = await this.fastify.customerRepository.getLockedCustomer(
+      invoice.customerId,
+      tx,
+    );
     const endingBalance = customer.balance - movement;
 
     await this.fastify.customerRepository.updateCustomer(
@@ -1323,39 +1324,9 @@ export class InvoiceService {
     );
   }
 
-  private async getSubscription(id: string): Promise<Subscription> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
-
-    if (subscription) {
-      return subscription;
-    }
-
-    throw new NotFoundError(`No such subscription: ${id}`);
-  }
-
-  private async getInvoiceEntity(id: string): Promise<Invoice> {
-    const invoice = await this.fastify.invoiceRepository.findInvoice(id);
-
-    if (invoice) {
-      return invoice;
-    }
-
-    throw new NotFoundError(`No such invoice: ${id}`);
-  }
-
-  private async getLockedInvoiceEntity(id: string, tx: DatabaseTransaction): Promise<Invoice> {
-    const invoice = await this.fastify.invoiceRepository.lockInvoice(id, tx);
-
-    if (invoice) {
-      return invoice;
-    }
-
-    throw new NotFoundError(`No such invoice: ${id}`);
-  }
-
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const invoice = await this.getInvoiceEntity(id);
+      const invoice = await this.fastify.invoiceRepository.getInvoice(id);
 
       return { createdAt: invoice.createdAt, id: invoice.id };
     }

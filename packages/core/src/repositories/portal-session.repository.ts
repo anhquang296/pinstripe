@@ -3,6 +3,7 @@ import type { PortalSessionStatus } from '@contracts/portal.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewPortalSession, PortalSession } from '@database/schemas';
 import { portalSessions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import { and, desc, eq } from 'drizzle-orm';
 
 export interface PortalSessionFilters {
@@ -17,6 +18,16 @@ export class PortalSessionRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getPortalSession(id: string): Promise<PortalSession> {
+    const portalSession = await this.findPortalSession(id);
+
+    if (portalSession) {
+      return portalSession;
+    }
+
+    throw new NotFoundError(`No such portal session: ${id}`);
   }
 
   async findPortalSession(id: string): Promise<PortalSession | null> {

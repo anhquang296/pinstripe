@@ -3,6 +3,7 @@ import type { PaymentMethodType } from '@contracts/payment-methods.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewPaymentMethod, PaymentMethod } from '@database/schemas';
 import { paymentMethods } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
@@ -19,6 +20,16 @@ export class PaymentMethodRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getPaymentMethod(id: string): Promise<PaymentMethod> {
+    const paymentMethod = await this.findPaymentMethod(id);
+
+    if (paymentMethod) {
+      return paymentMethod;
+    }
+
+    throw new NotFoundError(`No such payment method: ${id}`);
   }
 
   async findPaymentMethod(id: string): Promise<PaymentMethod | null> {

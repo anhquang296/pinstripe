@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewPrice, Price } from '@database/schemas';
 import { prices } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
@@ -19,6 +20,16 @@ export class PriceRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getPrice(id: string): Promise<Price> {
+    const price = await this.findPrice(id);
+
+    if (price) {
+      return price;
+    }
+
+    throw new NotFoundError(`No such price: ${id}`);
   }
 
   async findPrice(id: string): Promise<Price | null> {

@@ -16,7 +16,7 @@ import {
   SetupIntentStatusEnum,
   SetupIntentUsageEnum,
 } from '@contracts/setup-intents.types';
-import type { Customer, SetupIntent } from '@database/schemas';
+import type { SetupIntent } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -27,7 +27,7 @@ export class SetupIntentService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createSetupIntent(payload: CreateSetupIntentPayload): Promise<SetupIntentResponse> {
-    const customer = await this.getCustomer(payload.customerId);
+    const customer = await this.fastify.customerRepository.getCustomer(payload.customerId);
     const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload);
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.SETUP_INTENT);
@@ -61,7 +61,7 @@ export class SetupIntentService {
     id: string,
     payload: ConfirmSetupIntentPayload,
   ): Promise<SetupIntentResponse> {
-    const setupIntent = await this.getSetupIntentEntity(id);
+    const setupIntent = await this.fastify.setupIntentRepository.getSetupIntent(id);
     const paymentMethodId = payload.paymentMethodId ?? setupIntent.paymentMethodId;
 
     if (!paymentMethodId) {
@@ -108,7 +108,7 @@ export class SetupIntentService {
     id: string,
     payload: CancelSetupIntentPayload,
   ): Promise<SetupIntentResponse> {
-    const setupIntent = await this.getSetupIntentEntity(id);
+    const setupIntent = await this.fastify.setupIntentRepository.getSetupIntent(id);
 
     SetupIntentService.assertTransition(setupIntent.status, SetupIntentStatusEnum.CANCELED);
 
@@ -132,7 +132,7 @@ export class SetupIntentService {
   }
 
   async getSetupIntent(id: string): Promise<SetupIntentResponse> {
-    return this.getSetupIntentEntity(id);
+    return this.fastify.setupIntentRepository.getSetupIntent(id);
   }
 
   async findSetupIntents(query: FindSetupIntentsQuery): Promise<ListResponse<SetupIntentResponse>> {
@@ -229,26 +229,6 @@ export class SetupIntentService {
     return null;
   }
 
-  private async getCustomer(id: string): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
-  }
-
-  private async getSetupIntentEntity(id: string): Promise<SetupIntent> {
-    const setupIntent = await this.fastify.setupIntentRepository.findSetupIntent(id);
-
-    if (setupIntent) {
-      return setupIntent;
-    }
-
-    throw new NotFoundError(`No such setup intent: ${id}`);
-  }
-
   private async getCallbackSetupIntent(pspReference: string): Promise<SetupIntent> {
     const [setupIntent] = await this.fastify.setupIntentRepository.findSetupIntents(
       { pspReference },
@@ -264,7 +244,7 @@ export class SetupIntentService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const setupIntent = await this.getSetupIntentEntity(id);
+      const setupIntent = await this.fastify.setupIntentRepository.getSetupIntent(id);
 
       return { createdAt: setupIntent.createdAt, id: setupIntent.id };
     }

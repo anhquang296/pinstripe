@@ -84,7 +84,7 @@ export class ApiKeyService {
   }
 
   async revokeApiKey(id: string): Promise<ApiKeyResponse> {
-    const apiKey = await this.getApiKeyEntity(id);
+    const apiKey = await this.fastify.apiKeyRepository.getApiKey(id);
 
     const updatedAt = this.fastify.clock.now().toISOString();
 
@@ -150,24 +150,14 @@ export class ApiKeyService {
     return createdCount;
   }
 
-  private async getApiKeyEntity(id: string): Promise<ApiKey> {
-    const apiKey = await this.fastify.apiKeyRepository.findApiKey(id);
-
-    if (apiKey) {
-      return apiKey;
-    }
-
-    throw new NotFoundError(`No such api key: ${id}`);
-  }
-
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
-    if (!id) {
-      return undefined;
+    if (id) {
+      const apiKey = await this.fastify.apiKeyRepository.getApiKey(id);
+
+      return { createdAt: apiKey.createdAt, id: apiKey.id };
     }
 
-    const apiKey = await this.getApiKeyEntity(id);
-
-    return { createdAt: apiKey.createdAt, id: apiKey.id };
+    return undefined;
   }
 
   static hasScope(auth: RequestAuth, scope: ApiKeyScope): boolean {

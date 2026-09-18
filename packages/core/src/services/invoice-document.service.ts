@@ -122,20 +122,10 @@ export class InvoiceDocumentService {
   }
 
   async renderInvoicePdf(invoice: Invoice): Promise<Buffer> {
-    const customer = await this.getCustomer(invoice.customerId);
+    const customer = await this.fastify.customerRepository.getCustomer(invoice.customerId);
     const lineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([invoice.id]);
 
     return buildPdfDocument(InvoiceDocumentService.buildPdfLines(invoice, customer, lineItems));
-  }
-
-  private async getCustomer(id: string): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
   }
 
   private static buildStorageKey(invoice: Invoice): string {

@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Coupon, NewCoupon } from '@database/schemas';
 import { coupons } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
@@ -16,6 +17,16 @@ export class CouponRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getCoupon(id: string): Promise<Coupon> {
+    const coupon = await this.findCoupon(id);
+
+    if (coupon) {
+      return coupon;
+    }
+
+    throw new NotFoundError(`No such coupon: ${id}`);
   }
 
   async findCoupon(id: string): Promise<Coupon | null> {

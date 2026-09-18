@@ -28,12 +28,7 @@ export class CustomerBalanceTransactionService {
     const id = generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION);
 
     return this.fastify.database.master.transaction(async (tx) => {
-      const customer = await this.fastify.customerRepository.lockCustomer(customerId, tx);
-
-      if (!customer) {
-        throw new NotFoundError(`No such customer: ${customerId}`);
-      }
-
+      const customer = await this.fastify.customerRepository.getLockedCustomer(customerId, tx);
       const endingBalance = customer.balance + payload.amount;
 
       await this.fastify.customerRepository.updateCustomer(
@@ -118,14 +113,7 @@ export class CustomerBalanceTransactionService {
   }
 
   async getCustomerBalanceTransaction(id: string): Promise<CustomerBalanceTransactionResponse> {
-    const balanceTransaction =
-      await this.fastify.customerBalanceTransactionRepository.findCustomerBalanceTransaction(id);
-
-    if (balanceTransaction) {
-      return balanceTransaction;
-    }
-
-    throw new NotFoundError(`No such customer balance transaction: ${id}`);
+    return this.fastify.customerBalanceTransactionRepository.getCustomerBalanceTransaction(id);
   }
 
   async findCustomerBalanceTransactions(
@@ -155,13 +143,9 @@ export class CustomerBalanceTransactionService {
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
       const balanceTransaction =
-        await this.fastify.customerBalanceTransactionRepository.findCustomerBalanceTransaction(id);
+        await this.fastify.customerBalanceTransactionRepository.getCustomerBalanceTransaction(id);
 
-      if (balanceTransaction) {
-        return { createdAt: balanceTransaction.createdAt, id: balanceTransaction.id };
-      }
-
-      throw new NotFoundError(`No such customer balance transaction: ${id}`);
+      return { createdAt: balanceTransaction.createdAt, id: balanceTransaction.id };
     }
 
     return undefined;

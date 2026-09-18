@@ -47,7 +47,7 @@ export class CreditNoteService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createCreditNote(payload: CreateCreditNotePayload): Promise<CreditNoteResponse> {
-    const invoice = await this.getInvoice(payload.invoiceId);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(payload.invoiceId);
 
     if (invoice.status === InvoiceStatusEnum.DRAFT) {
       throw new ConflictError(
@@ -125,7 +125,7 @@ export class CreditNoteService {
   }
 
   async voidCreditNote(id: string, payload: VoidCreditNotePayload): Promise<CreditNoteResponse> {
-    const creditNote = await this.getCreditNoteEntity(id);
+    const creditNote = await this.fastify.creditNoteRepository.getCreditNote(id);
     const status = await this.resolveStatus(creditNote.id);
 
     if (status === CreditNoteStatusEnum.VOID) {
@@ -138,7 +138,7 @@ export class CreditNoteService {
       );
     }
 
-    const invoice = await this.getInvoice(creditNote.invoiceId);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(creditNote.invoiceId);
 
     if (invoice.status !== InvoiceStatusEnum.OPEN) {
       throw new ConflictError(
@@ -174,7 +174,7 @@ export class CreditNoteService {
   }
 
   async getCreditNote(id: string): Promise<CreditNoteResponse> {
-    const creditNote = await this.getCreditNoteEntity(id);
+    const creditNote = await this.fastify.creditNoteRepository.getCreditNote(id);
     const [built] = await this.buildCreditNotes([creditNote]);
 
     if (built) {
@@ -306,13 +306,7 @@ export class CreditNoteService {
       );
     }
 
-    const charge = await this.fastify.paymentIntentRepository.findCharge(chargeId);
-
-    if (charge) {
-      return charge;
-    }
-
-    throw new NotFoundError(`No such charge: ${chargeId}`);
+    return this.fastify.paymentIntentRepository.getCharge(chargeId);
   }
 
   private async postCredit(
@@ -344,12 +338,10 @@ export class CreditNoteService {
     creditNote: CreditNote,
     tx: DatabaseTransaction,
   ): Promise<void> {
-    const customer = await this.fastify.customerRepository.lockCustomer(creditNote.customerId, tx);
-
-    if (!customer) {
-      throw new NotFoundError(`No such customer: ${creditNote.customerId}`);
-    }
-
+    const customer = await this.fastify.customerRepository.getLockedCustomer(
+      creditNote.customerId,
+      tx,
+    );
     const endingBalance = customer.balance - creditNote.creditAmount;
 
     await this.fastify.customerRepository.updateCustomer(
@@ -490,35 +482,11 @@ export class CreditNoteService {
     );
   }
 
-  private async getInvoice(id: string): Promise<Invoice> {
-    const invoice = await this.fastify.invoiceRepository.findInvoice(id);
-
-    if (invoice) {
-      return invoice;
-    }
-
-    throw new NotFoundError(`No such invoice: ${id}`);
-  }
-
-  private async getCreditNoteEntity(id: string): Promise<CreditNote> {
-    const creditNote = await this.fastify.creditNoteRepository.findCreditNote(id);
-
-    if (creditNote) {
-      return creditNote;
-    }
-
-    throw new NotFoundError(`No such credit note: ${id}`);
-  }
-
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const creditNote = await this.fastify.creditNoteRepository.findCreditNote(id);
+      const creditNote = await this.fastify.creditNoteRepository.getCreditNote(id);
 
-      if (creditNote) {
-        return { createdAt: creditNote.createdAt, id: creditNote.id };
-      }
-
-      throw new NotFoundError(`No such credit note: ${id}`);
+      return { createdAt: creditNote.createdAt, id: creditNote.id };
     }
 
     return undefined;

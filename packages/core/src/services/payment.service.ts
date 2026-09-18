@@ -29,7 +29,7 @@ import {
   PspProviderEnum,
 } from '@contracts/payments.types';
 import type { DatabaseTransaction } from '@database/database.client';
-import type { Charge, Customer, Invoice, PaymentIntent, PaymentMethod } from '@database/schemas';
+import type { Charge, Invoice, PaymentIntent, PaymentMethod } from '@database/schemas';
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import type { Currency } from '@utils/currency';
@@ -91,7 +91,7 @@ export class PaymentService {
     id: string,
     payload: ConfirmPaymentIntentPayload,
   ): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id);
+    const paymentIntent = await this.fastify.paymentIntentRepository.getPaymentIntent(id);
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.PROCESSING);
 
@@ -136,7 +136,7 @@ export class PaymentService {
     id: string,
     payload: CapturePaymentIntentPayload,
   ): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id);
+    const paymentIntent = await this.fastify.paymentIntentRepository.getPaymentIntent(id);
 
     if (paymentIntent.status !== PaymentIntentStatusEnum.REQUIRES_CAPTURE) {
       throw new ConflictError(
@@ -187,7 +187,7 @@ export class PaymentService {
     id: string,
     payload: CancelPaymentIntentPayload,
   ): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id);
+    const paymentIntent = await this.fastify.paymentIntentRepository.getPaymentIntent(id);
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.CANCELED);
 
@@ -212,7 +212,7 @@ export class PaymentService {
   }
 
   async getPaymentIntent(id: string): Promise<PaymentIntentResponse> {
-    const paymentIntent = await this.getPaymentIntentEntity(id);
+    const paymentIntent = await this.fastify.paymentIntentRepository.getPaymentIntent(id);
 
     return this.buildPaymentIntent(paymentIntent);
   }
@@ -381,7 +381,10 @@ export class PaymentService {
     const chargedAt = now.toISOString();
 
     const settled = await this.fastify.database.master.transaction(async (tx) => {
-      const locked = await this.getLockedPaymentIntent(paymentIntent.id, tx);
+      const locked = await this.fastify.paymentIntentRepository.getLockedPaymentIntent(
+        paymentIntent.id,
+        tx,
+      );
 
       if (locked.status === PaymentIntentStatusEnum.SUCCEEDED) {
         return null;
@@ -478,7 +481,10 @@ export class PaymentService {
     const failedAt = now.toISOString();
 
     const failed = await this.fastify.database.master.transaction(async (tx) => {
-      const locked = await this.getLockedPaymentIntent(paymentIntent.id, tx);
+      const locked = await this.fastify.paymentIntentRepository.getLockedPaymentIntent(
+        paymentIntent.id,
+        tx,
+      );
 
       if (locked.status === PaymentIntentStatusEnum.SUCCEEDED) {
         return null;
@@ -627,7 +633,7 @@ export class PaymentService {
       });
     }
 
-    const customer = await this.getCustomer(customerId);
+    const customer = await this.fastify.customerRepository.getCustomer(customerId);
 
     return {
       invoice: null,
@@ -641,7 +647,7 @@ export class PaymentService {
     invoiceId: string,
     payload: CreatePaymentIntentPayload,
   ): Promise<PaymentIntentTarget> {
-    const invoice = await this.getInvoice(invoiceId);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(invoiceId);
 
     if (invoice.status !== InvoiceStatusEnum.OPEN) {
       throw new ConflictError(
@@ -701,36 +707,6 @@ export class PaymentService {
     );
   }
 
-  private async getCustomer(id: string): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
-  }
-
-  private async getInvoice(id: string): Promise<Invoice> {
-    const invoice = await this.fastify.invoiceRepository.findInvoice(id);
-
-    if (invoice) {
-      return invoice;
-    }
-
-    throw new NotFoundError(`No such invoice: ${id}`);
-  }
-
-  private async getPaymentIntentEntity(id: string): Promise<PaymentIntent> {
-    const paymentIntent = await this.fastify.paymentIntentRepository.findPaymentIntent(id);
-
-    if (paymentIntent) {
-      return paymentIntent;
-    }
-
-    throw new NotFoundError(`No such payment intent: ${id}`);
-  }
-
   private async getCallbackPaymentIntent(pspReference: string): Promise<PaymentIntent> {
     const [paymentIntent] = await this.fastify.paymentIntentRepository.findPaymentIntents(
       { pspReference },
@@ -744,25 +720,9 @@ export class PaymentService {
     throw new NotFoundError(`No payment intent for processor reference ${pspReference}`);
   }
 
-  private async getLockedPaymentIntent(
-    id: string,
-    tx: DatabaseTransaction,
-  ): Promise<PaymentIntent> {
-    const paymentIntent = await this.fastify.paymentIntentRepository.findLockedPaymentIntent(
-      id,
-      tx,
-    );
-
-    if (paymentIntent) {
-      return paymentIntent;
-    }
-
-    throw new NotFoundError(`No such payment intent: ${id}`);
-  }
-
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const paymentIntent = await this.getPaymentIntentEntity(id);
+      const paymentIntent = await this.fastify.paymentIntentRepository.getPaymentIntent(id);
 
       return { createdAt: paymentIntent.createdAt, id: paymentIntent.id };
     }

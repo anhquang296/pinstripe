@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { BillingPortalSession, NewBillingPortalSession } from '@database/schemas';
 import { billingPortalSessions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import { and, desc, eq } from 'drizzle-orm';
 
 export interface BillingPortalSessionFilters {
@@ -13,6 +14,16 @@ export class BillingPortalSessionRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getBillingPortalSession(id: string): Promise<BillingPortalSession> {
+    const billingPortalSession = await this.findBillingPortalSession(id);
+
+    if (billingPortalSession) {
+      return billingPortalSession;
+    }
+
+    throw new NotFoundError(`No such billing portal session: ${id}`);
   }
 
   async findBillingPortalSession(id: string): Promise<BillingPortalSession | null> {

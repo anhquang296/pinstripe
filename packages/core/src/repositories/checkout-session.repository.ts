@@ -8,6 +8,7 @@ import type {
   NewCheckoutSessionLineItem,
 } from '@database/schemas';
 import { checkoutSessionLineItems, checkoutSessions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
@@ -24,6 +25,16 @@ export class CheckoutSessionRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getCheckoutSession(id: string): Promise<CheckoutSession> {
+    const checkoutSession = await this.findCheckoutSession(id);
+
+    if (checkoutSession) {
+      return checkoutSession;
+    }
+
+    throw new NotFoundError(`No such checkout session: ${id}`);
   }
 
   async findCheckoutSession(id: string): Promise<CheckoutSession | null> {

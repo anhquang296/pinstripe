@@ -22,7 +22,7 @@ export class PromotionCodeService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createPromotionCode(payload: CreatePromotionCodePayload): Promise<PromotionCodeResponse> {
-    const coupon = await this.fastify.couponService.getCouponEntity(payload.couponId);
+    const coupon = await this.fastify.couponRepository.getCoupon(payload.couponId);
 
     if (!coupon.valid) {
       throw new ConflictError(`Coupon ${coupon.id} is no longer valid`);
@@ -76,17 +76,7 @@ export class PromotionCodeService {
   }
 
   async getPromotionCode(id: string): Promise<PromotionCodeResponse> {
-    return this.getPromotionCodeEntity(id);
-  }
-
-  async getPromotionCodeEntity(id: string): Promise<PromotionCode> {
-    const promotionCode = await this.fastify.promotionCodeRepository.findPromotionCode(id);
-
-    if (promotionCode) {
-      return promotionCode;
-    }
-
-    throw new NotFoundError(`No such promotion code: ${id}`);
+    return this.fastify.promotionCodeRepository.getPromotionCode(id);
   }
 
   async resolvePromotionCode(code: string): Promise<PromotionCode> {
@@ -167,7 +157,7 @@ export class PromotionCodeService {
     id: string,
     payload: UpdatePromotionCodePayload,
   ): Promise<PromotionCodeResponse> {
-    const existingPromotionCode = await this.getPromotionCodeEntity(id);
+    const existingPromotionCode = await this.fastify.promotionCodeRepository.getPromotionCode(id);
     const promotionCode = await this.fastify.promotionCodeRepository.updatePromotionCode(id, {
       active: payload.active ?? existingPromotionCode.active,
       metadata: payload.metadata ?? existingPromotionCode.metadata,
@@ -208,7 +198,7 @@ export class PromotionCodeService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const promotionCode = await this.getPromotionCodeEntity(id);
+      const promotionCode = await this.fastify.promotionCodeRepository.getPromotionCode(id);
 
       return { createdAt: promotionCode.createdAt, id: promotionCode.id };
     }

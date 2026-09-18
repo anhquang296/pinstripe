@@ -3,6 +3,7 @@ import type { DisputeStatus } from '@contracts/disputes.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Dispute, NewDispute } from '@database/schemas';
 import { disputes } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 
@@ -21,6 +22,16 @@ export class DisputeRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getDispute(id: string): Promise<Dispute> {
+    const dispute = await this.findDispute(id);
+
+    if (dispute) {
+      return dispute;
+    }
+
+    throw new NotFoundError(`No such dispute: ${id}`);
   }
 
   async findDispute(id: string): Promise<Dispute | null> {

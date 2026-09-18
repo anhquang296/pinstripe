@@ -26,13 +26,7 @@ export class MeterService {
   }
 
   async getMeter(id: string): Promise<MeterResponse> {
-    const meter = await this.fastify.meterRepository.findMeter(id);
-
-    if (meter) {
-      return meter;
-    }
-
-    throw new NotFoundError(`No such meter: ${id}`);
+    return this.fastify.meterRepository.getMeter(id);
   }
 
   async resolveMeter(eventName: string): Promise<Meter> {
@@ -135,13 +129,9 @@ export class MeterService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const meter = await this.fastify.meterRepository.findMeter(id);
+      const meter = await this.fastify.meterRepository.getMeter(id);
 
-      if (meter) {
-        return { createdAt: meter.createdAt, id: meter.id };
-      }
-
-      throw new NotFoundError(`No such meter: ${id}`);
+      return { createdAt: meter.createdAt, id: meter.id };
     }
 
     return undefined;

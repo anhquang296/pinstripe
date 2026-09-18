@@ -3,6 +3,7 @@ import type { PayoutStatus } from '@contracts/payouts.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewPayout, Payout } from '@database/schemas';
 import { payouts } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import type { Currency } from '@utils/currency';
 import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm';
@@ -22,6 +23,16 @@ export class PayoutRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getPayout(id: string): Promise<Payout> {
+    const payout = await this.findPayout(id);
+
+    if (payout) {
+      return payout;
+    }
+
+    throw new NotFoundError(`No such payout: ${id}`);
   }
 
   async findPayout(id: string): Promise<Payout | null> {

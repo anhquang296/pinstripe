@@ -10,6 +10,7 @@ import type {
   NewCreditNoteTransition,
 } from '@database/schemas';
 import { creditNoteLineItems, creditNotes, creditNoteTransitions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import _ from 'lodash';
@@ -33,6 +34,16 @@ export class CreditNoteRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getCreditNote(id: string): Promise<CreditNote> {
+    const creditNote = await this.findCreditNote(id);
+
+    if (creditNote) {
+      return creditNote;
+    }
+
+    throw new NotFoundError(`No such credit note: ${id}`);
   }
 
   async findCreditNote(id: string): Promise<CreditNote | null> {

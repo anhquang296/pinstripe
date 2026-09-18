@@ -56,13 +56,7 @@ export class ProductService {
   }
 
   async getProduct(id: string): Promise<ProductResponse> {
-    const product = await this.fastify.productRepository.findProduct(id);
-
-    if (product) {
-      return product;
-    }
-
-    throw new NotFoundError(`No such product: ${id}`);
+    return this.fastify.productRepository.getProduct(id);
   }
 
   async updateProduct(id: string, payload: UpdateProductPayload): Promise<ProductResponse> {
@@ -114,13 +108,9 @@ export class ProductService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const product = await this.fastify.productRepository.findProduct(id);
+      const product = await this.fastify.productRepository.getProduct(id);
 
-      if (product) {
-        return { createdAt: product.createdAt, id: product.id };
-      }
-
-      throw new NotFoundError(`No such product: ${id}`);
+      return { createdAt: product.createdAt, id: product.id };
     }
 
     return undefined;

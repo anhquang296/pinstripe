@@ -43,7 +43,9 @@ export class SubscriptionItemService {
   ): Promise<ListResponse<SubscriptionItemResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
-    const subscription = await this.getSubscription(query.subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(
+      query.subscriptionId,
+    );
 
     const rows = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
@@ -64,9 +66,11 @@ export class SubscriptionItemService {
   async createSubscriptionItem(
     payload: CreateSubscriptionItemPayload,
   ): Promise<SubscriptionItemResponse> {
-    const subscription = await this.getSubscription(payload.subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(
+      payload.subscriptionId,
+    );
     const timing = await this.resolveTiming(subscription, payload.prorationBehavior);
-    const price = await this.getPrice(payload.priceId);
+    const price = await this.fastify.priceRepository.getPrice(payload.priceId);
 
     assertPricesUsable([price], subscription.currency);
 
@@ -96,7 +100,9 @@ export class SubscriptionItemService {
     payload: UpdateSubscriptionItemPayload,
   ): Promise<SubscriptionItemResponse> {
     const subscriptionItem = await this.getSubscriptionItemRow(id);
-    const subscription = await this.getSubscription(subscriptionItem.subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(
+      subscriptionItem.subscriptionId,
+    );
     const timing = await this.resolveTiming(subscription, payload.prorationBehavior);
     const line: SubscriptionItemLine = {
       id: subscriptionItem.id,
@@ -105,7 +111,7 @@ export class SubscriptionItemService {
       taxRates: payload.taxRates ?? subscriptionItem.taxRates,
       metadata: payload.metadata ?? subscriptionItem.metadata,
     };
-    const price = await this.getPrice(line.priceId);
+    const price = await this.fastify.priceRepository.getPrice(line.priceId);
 
     assertPricesUsable([price], subscription.currency);
 
@@ -131,7 +137,9 @@ export class SubscriptionItemService {
     payload: DeleteSubscriptionItemPayload,
   ): Promise<DeletedSubscriptionItemResponse> {
     const subscriptionItem = await this.getSubscriptionItemRow(id);
-    const subscription = await this.getSubscription(subscriptionItem.subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(
+      subscriptionItem.subscriptionId,
+    );
     const liveItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
       deletedAtIsNull: true,
@@ -339,16 +347,6 @@ export class SubscriptionItemService {
     return { now, boundary: new Date(subscription.currentPeriodStart) };
   }
 
-  private async getSubscription(id: string): Promise<Subscription> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
-
-    if (subscription) {
-      return subscription;
-    }
-
-    throw new NotFoundError(`No such subscription: ${id}`);
-  }
-
   private async getSubscriptionItemRow(id: string): Promise<SubscriptionItem> {
     const subscriptionItem = await this.fastify.subscriptionRepository.findSubscriptionItem(id);
 
@@ -361,16 +359,6 @@ export class SubscriptionItemService {
     }
 
     throw new NotFoundError(`No such subscription item: ${id}`);
-  }
-
-  private async getPrice(id: string): Promise<Price> {
-    const [price] = await this.fastify.priceRepository.findPrices({ ids: [id] }, 1);
-
-    if (price) {
-      return price;
-    }
-
-    throw new NotFoundError(`No such price: ${id}`);
   }
 
   private async resolvePrices(priceIds: readonly string[]): Promise<Price[]> {

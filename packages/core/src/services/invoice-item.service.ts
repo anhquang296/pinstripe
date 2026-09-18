@@ -113,13 +113,7 @@ export class InvoiceItemService {
   }
 
   async getInvoiceItem(id: string): Promise<InvoiceItemResponse> {
-    const invoiceItem = await this.fastify.invoiceItemRepository.findInvoiceItem(id);
-
-    if (invoiceItem) {
-      return invoiceItem;
-    }
-
-    throw new NotFoundError(`No such invoice item: ${id}`);
+    return this.fastify.invoiceItemRepository.getInvoiceItem(id);
   }
 
   async updateInvoiceItem(
@@ -237,13 +231,9 @@ export class InvoiceItemService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const invoiceItem = await this.fastify.invoiceItemRepository.findInvoiceItem(id);
+      const invoiceItem = await this.fastify.invoiceItemRepository.getInvoiceItem(id);
 
-      if (invoiceItem) {
-        return { createdAt: invoiceItem.createdAt, id: invoiceItem.id };
-      }
-
-      throw new NotFoundError(`No such invoice item: ${id}`);
+      return { createdAt: invoiceItem.createdAt, id: invoiceItem.id };
     }
 
     return undefined;

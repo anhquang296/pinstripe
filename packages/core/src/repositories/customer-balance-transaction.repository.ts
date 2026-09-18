@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { CustomerBalanceTransaction, NewCustomerBalanceTransaction } from '@database/schemas';
 import { customerBalanceTransactions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
@@ -17,6 +18,16 @@ export class CustomerBalanceTransactionRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getCustomerBalanceTransaction(id: string): Promise<CustomerBalanceTransaction> {
+    const customerBalanceTransaction = await this.findCustomerBalanceTransaction(id);
+
+    if (customerBalanceTransaction) {
+      return customerBalanceTransaction;
+    }
+
+    throw new NotFoundError(`No such customer balance transaction: ${id}`);
   }
 
   async findCustomerBalanceTransaction(id: string): Promise<CustomerBalanceTransaction | null> {

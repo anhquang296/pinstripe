@@ -3,6 +3,7 @@ import type { MeterStatus } from '@contracts/meters.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Meter, NewMeter } from '@database/schemas';
 import { meters } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
@@ -18,6 +19,16 @@ export class MeterRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getMeter(id: string): Promise<Meter> {
+    const meter = await this.findMeter(id);
+
+    if (meter) {
+      return meter;
+    }
+
+    throw new NotFoundError(`No such meter: ${id}`);
   }
 
   async findMeter(id: string): Promise<Meter | null> {

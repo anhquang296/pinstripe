@@ -3,6 +3,7 @@ import type { DiscountLevel } from '@contracts/discounts.types';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Discount, NewDiscount } from '@database/schemas';
 import { discounts } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, gt, isNull, lte, or, sql } from 'drizzle-orm';
 
@@ -22,6 +23,16 @@ export class DiscountRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getDiscount(id: string): Promise<Discount> {
+    const discount = await this.findDiscount(id);
+
+    if (discount) {
+      return discount;
+    }
+
+    throw new NotFoundError(`No such discount: ${id}`);
   }
 
   async findDiscount(id: string): Promise<Discount | null> {

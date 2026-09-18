@@ -156,14 +156,8 @@ export class DiscountService {
   }
 
   private async resolveSubscriptionItemTarget(subscriptionItemId: string): Promise<DiscountTarget> {
-    const [subscriptionItem] = await this.fastify.subscriptionRepository.findSubscriptionItems({
-      ids: [subscriptionItemId],
-    });
-
-    if (!subscriptionItem) {
-      throw new NotFoundError(`No such subscription item: ${subscriptionItemId}`);
-    }
-
+    const subscriptionItem =
+      await this.fastify.subscriptionRepository.getSubscriptionItem(subscriptionItemId);
     const subscription = await this.fastify.subscriptionService.getSubscription(
       subscriptionItem.subscriptionId,
     );
@@ -184,6 +178,7 @@ export class DiscountService {
     target: DiscountTarget,
   ): Promise<{ coupon: Coupon; promotionCodeId: string | null }> {
     const now = this.fastify.clock.now();
+
     const { promotionCode: code, couponId } = payload;
 
     if (code) {
@@ -194,6 +189,7 @@ export class DiscountService {
         target.customerId,
         now,
       );
+
       const coupon = await this.redeemCouponEntity(redeemedPromotionCode.couponId, now);
 
       return { coupon, promotionCodeId: redeemedPromotionCode.id };
@@ -211,7 +207,8 @@ export class DiscountService {
   }
 
   private async redeemCouponEntity(couponId: string, now: Date): Promise<Coupon> {
-    const coupon = await this.fastify.couponService.getCouponEntity(couponId);
+    const coupon = await this.fastify.couponRepository.getCoupon(couponId);
+
     const { redeemBy } = coupon;
 
     if (redeemBy && new Date(redeemBy).getTime() <= now.getTime()) {
@@ -490,21 +487,11 @@ export class DiscountService {
   }
 
   async getDiscount(id: string): Promise<DiscountResponse> {
-    return this.getDiscountEntity(id);
-  }
-
-  private async getDiscountEntity(id: string): Promise<Discount> {
-    const discount = await this.fastify.discountRepository.findDiscount(id);
-
-    if (discount) {
-      return discount;
-    }
-
-    throw new NotFoundError(`No such discount: ${id}`);
+    return this.fastify.discountRepository.getDiscount(id);
   }
 
   async updateDiscount(id: string, payload: UpdateDiscountPayload): Promise<DiscountResponse> {
-    const existingDiscount = await this.getDiscountEntity(id);
+    const existingDiscount = await this.fastify.discountRepository.getDiscount(id);
     const updatedAt = this.fastify.clock.now().toISOString();
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -525,7 +512,7 @@ export class DiscountService {
   }
 
   async deleteDiscount(id: string): Promise<DeletedDiscountResponse> {
-    const discount = await this.getDiscountEntity(id);
+    const discount = await this.fastify.discountRepository.getDiscount(id);
     const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
@@ -563,7 +550,7 @@ export class DiscountService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const discount = await this.getDiscountEntity(id);
+      const discount = await this.fastify.discountRepository.getDiscount(id);
 
       return { createdAt: discount.createdAt, id: discount.id };
     }

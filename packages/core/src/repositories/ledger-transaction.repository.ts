@@ -8,6 +8,7 @@ import type {
   NewLedgerTransaction,
 } from '@database/schemas';
 import { ledgerPostings, ledgerTransactions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import _ from 'lodash';
@@ -29,6 +30,16 @@ export class LedgerTransactionRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getLedgerTransaction(id: string): Promise<LedgerTransaction> {
+    const ledgerTransaction = await this.findLedgerTransaction(id);
+
+    if (ledgerTransaction) {
+      return ledgerTransaction;
+    }
+
+    throw new NotFoundError(`No such ledger transaction: ${id}`);
   }
 
   async findLedgerTransaction(id: string): Promise<LedgerTransaction | null> {

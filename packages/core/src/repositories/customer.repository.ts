@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Customer, NewCustomer } from '@database/schemas';
 import { customers } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
@@ -17,6 +18,16 @@ export class CustomerRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getCustomer(id: string): Promise<Customer> {
+    const customer = await this.findCustomer(id);
+
+    if (customer) {
+      return customer;
+    }
+
+    throw new NotFoundError(`No such customer: ${id}`);
   }
 
   async findCustomer(id: string): Promise<Customer | null> {
@@ -53,7 +64,7 @@ export class CustomerRepository {
       .limit(limit);
   }
 
-  async lockCustomer(id: string, executor: DatabaseTransaction): Promise<Customer | null> {
+  async getLockedCustomer(id: string, executor: DatabaseTransaction): Promise<Customer> {
     const [customer] = await executor
       .select()
       .from(customers)
@@ -61,7 +72,11 @@ export class CustomerRepository {
       .limit(1)
       .for('update');
 
-    return customer ?? null;
+    if (customer) {
+      return customer;
+    }
+
+    throw new NotFoundError(`No such customer: ${id}`);
   }
 
   async createCustomer(

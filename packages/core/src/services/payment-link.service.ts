@@ -90,7 +90,7 @@ export class PaymentLinkService {
     id: string,
     payload: UpdatePaymentLinkPayload,
   ): Promise<PaymentLinkResponse> {
-    const paymentLink = await this.getPaymentLinkEntity(id);
+    const paymentLink = await this.fastify.paymentLinkRepository.getPaymentLink(id);
     const updatedAt = this.fastify.clock.now().toISOString();
 
     const updatedPaymentLink = await this.fastify.database.master.transaction(async (tx) => {
@@ -122,7 +122,7 @@ export class PaymentLinkService {
   }
 
   async getPaymentLink(id: string): Promise<PaymentLinkResponse> {
-    const paymentLink = await this.getPaymentLinkEntity(id);
+    const paymentLink = await this.fastify.paymentLinkRepository.getPaymentLink(id);
 
     return this.buildPaymentLink(paymentLink);
   }
@@ -148,16 +148,6 @@ export class PaymentLinkService {
         );
       }),
     };
-  }
-
-  async getPaymentLinkEntity(id: string): Promise<PaymentLink> {
-    const paymentLink = await this.fastify.paymentLinkRepository.findPaymentLink(id);
-
-    if (paymentLink) {
-      return paymentLink;
-    }
-
-    throw new NotFoundError(`No such payment link: ${id}`);
   }
 
   async getHostedPaymentLink(id: string, token: string): Promise<PaymentLinkResponse> {
@@ -208,13 +198,9 @@ export class PaymentLinkService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const paymentLink = await this.fastify.paymentLinkRepository.findPaymentLink(id);
+      const paymentLink = await this.fastify.paymentLinkRepository.getPaymentLink(id);
 
-      if (paymentLink) {
-        return { createdAt: paymentLink.createdAt, id: paymentLink.id };
-      }
-
-      throw new NotFoundError(`No such payment link: ${id}`);
+      return { createdAt: paymentLink.createdAt, id: paymentLink.id };
     }
 
     return undefined;

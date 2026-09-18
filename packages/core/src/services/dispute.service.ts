@@ -36,13 +36,7 @@ export class DisputeService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async getDispute(id: string): Promise<DisputeResponse> {
-    const dispute = await this.fastify.disputeRepository.findDispute(id);
-
-    if (dispute) {
-      return dispute;
-    }
-
-    throw new NotFoundError(`No such dispute: ${id}`);
+    return this.fastify.disputeRepository.getDispute(id);
   }
 
   async findDisputes(query: FindDisputesQuery): Promise<ListResponse<DisputeResponse>> {
@@ -71,7 +65,7 @@ export class DisputeService {
     id: string,
     payload: SubmitDisputeEvidencePayload,
   ): Promise<DisputeResponse> {
-    const dispute = await this.getDisputeEntity(id);
+    const dispute = await this.fastify.disputeRepository.getDispute(id);
 
     DisputeService.assertTransition(dispute.status, DisputeStatusEnum.UNDER_REVIEW);
 
@@ -297,16 +291,6 @@ export class DisputeService {
     return _.get(paymentIntent, 'invoiceId', null);
   }
 
-  private async getDisputeEntity(id: string): Promise<Dispute> {
-    const dispute = await this.fastify.disputeRepository.findDispute(id);
-
-    if (dispute) {
-      return dispute;
-    }
-
-    throw new NotFoundError(`No such dispute: ${id}`);
-  }
-
   private async getProcessorDispute(pspReference: string): Promise<Dispute> {
     const [dispute] = await this.fastify.disputeRepository.findDisputes(
       { pspReference },
@@ -322,13 +306,9 @@ export class DisputeService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const dispute = await this.fastify.disputeRepository.findDispute(id);
+      const dispute = await this.fastify.disputeRepository.getDispute(id);
 
-      if (dispute) {
-        return { createdAt: dispute.createdAt, id: dispute.id };
-      }
-
-      throw new NotFoundError(`No such dispute: ${id}`);
+      return { createdAt: dispute.createdAt, id: dispute.id };
     }
 
     return undefined;

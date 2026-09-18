@@ -69,7 +69,7 @@ export class WebhookService {
     id: string,
     payload: UpdateWebhookEndpointPayload,
   ): Promise<WebhookEndpointResponse> {
-    await this.getWebhookEndpointEntity(id);
+    await this.fastify.webhookRepository.getWebhookEndpoint(id);
 
     const updatedEndpoint = await this.fastify.webhookRepository.updateWebhookEndpoint(id, {
       status: payload.status,
@@ -87,7 +87,7 @@ export class WebhookService {
   }
 
   async getWebhookEndpoint(id: string): Promise<WebhookEndpointResponse> {
-    const endpoint = await this.getWebhookEndpointEntity(id);
+    const endpoint = await this.fastify.webhookRepository.getWebhookEndpoint(id);
 
     return WebhookService.buildEndpoint(endpoint, { hasSecret: false });
   }
@@ -199,23 +199,18 @@ export class WebhookService {
   }
 
   async resolveDeliveryAttempt(deliveryId: string): Promise<WebhookDeliveryAttempt> {
-    const delivery = await this.fastify.webhookRepository.findWebhookDelivery(deliveryId);
+    const delivery = await this.fastify.webhookRepository.getWebhookDelivery(deliveryId);
+    const endpoint = await this.fastify.webhookRepository.getWebhookEndpoint(delivery.endpointId);
 
-    if (delivery) {
-      const endpoint = await this.getWebhookEndpointEntity(delivery.endpointId);
+    await this.assertEndpointWithinRateLimit(endpoint.id);
 
-      await this.assertEndpointWithinRateLimit(endpoint.id);
+    const body = JSON.stringify(delivery.payload);
 
-      const body = JSON.stringify(delivery.payload);
-
-      return {
-        endpointUrl: endpoint.url,
-        body,
-        signature: buildWebhookSignature(body, endpoint.secret, this.fastify.clock.now()),
-      };
-    }
-
-    throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
+    return {
+      endpointUrl: endpoint.url,
+      body,
+      signature: buildWebhookSignature(body, endpoint.secret, this.fastify.clock.now()),
+    };
   }
 
   private async assertEndpointWithinRateLimit(endpointId: string): Promise<void> {
@@ -259,11 +254,7 @@ export class WebhookService {
   }
 
   async replayWebhookDelivery(deliveryId: string): Promise<WebhookDeliveryResponse> {
-    const delivery = await this.fastify.webhookRepository.findWebhookDelivery(deliveryId);
-
-    if (!delivery) {
-      throw new NotFoundError(`No such webhook delivery: ${deliveryId}`);
-    }
+    const delivery = await this.fastify.webhookRepository.getWebhookDelivery(deliveryId);
 
     if (delivery.status === WebhookDeliveryStatusEnum.PENDING) {
       throw new ConflictError(`Webhook delivery ${deliveryId} is still being attempted`);
@@ -298,19 +289,9 @@ export class WebhookService {
     return isExhausted ? WebhookDeliveryStatusEnum.EXHAUSTED : WebhookDeliveryStatusEnum.FAILED;
   }
 
-  private async getWebhookEndpointEntity(id: string): Promise<WebhookEndpoint> {
-    const endpoint = await this.fastify.webhookRepository.findWebhookEndpoint(id);
-
-    if (endpoint) {
-      return endpoint;
-    }
-
-    throw new NotFoundError(`No such webhook endpoint: ${id}`);
-  }
-
   private async resolveEndpointCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const endpoint = await this.getWebhookEndpointEntity(id);
+      const endpoint = await this.fastify.webhookRepository.getWebhookEndpoint(id);
 
       return { createdAt: endpoint.createdAt, id: endpoint.id };
     }

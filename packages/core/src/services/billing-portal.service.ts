@@ -70,7 +70,8 @@ export class BillingPortalService {
     id: string,
     payload: UpdateBillingPortalConfigurationPayload,
   ): Promise<BillingPortalConfigurationResponse> {
-    const configuration = await this.getConfigurationEntity(id);
+    const configuration =
+      await this.fastify.billingPortalConfigurationRepository.getBillingPortalConfiguration(id);
     const updatedAt = this.fastify.clock.now().toISOString();
 
     const updatedConfiguration = await this.fastify.database.master.transaction(async (tx) => {
@@ -103,7 +104,7 @@ export class BillingPortalService {
   }
 
   async getConfiguration(id: string): Promise<BillingPortalConfigurationResponse> {
-    return this.getConfigurationEntity(id);
+    return this.fastify.billingPortalConfigurationRepository.getBillingPortalConfiguration(id);
   }
 
   async findConfigurations(
@@ -154,13 +155,7 @@ export class BillingPortalService {
   }
 
   async getSession(id: string): Promise<BillingPortalSessionResponse> {
-    const session = await this.fastify.billingPortalSessionRepository.findBillingPortalSession(id);
-
-    if (session) {
-      return session;
-    }
-
-    throw new NotFoundError(`No such billing portal session: ${id}`);
+    return this.fastify.billingPortalSessionRepository.getBillingPortalSession(id);
   }
 
   async getActiveConfiguration(): Promise<BillingPortalConfigurationResponse> {
@@ -169,7 +164,7 @@ export class BillingPortalService {
 
   private async resolveConfiguration(id: string | undefined): Promise<BillingPortalConfiguration> {
     if (id) {
-      return this.getConfigurationEntity(id);
+      return this.fastify.billingPortalConfigurationRepository.getBillingPortalConfiguration(id);
     }
 
     const [existing] =
@@ -184,30 +179,17 @@ export class BillingPortalService {
 
     const fallbackConfiguration = await this.createConfiguration({ isDefault: true });
 
-    return this.getConfigurationEntity(fallbackConfiguration.id);
-  }
-
-  private async getConfigurationEntity(id: string): Promise<BillingPortalConfiguration> {
-    const configuration =
-      await this.fastify.billingPortalConfigurationRepository.findBillingPortalConfiguration(id);
-
-    if (configuration) {
-      return configuration;
-    }
-
-    throw new NotFoundError(`No such billing portal configuration: ${id}`);
+    return this.fastify.billingPortalConfigurationRepository.getBillingPortalConfiguration(
+      fallbackConfiguration.id,
+    );
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
       const configuration =
-        await this.fastify.billingPortalConfigurationRepository.findBillingPortalConfiguration(id);
+        await this.fastify.billingPortalConfigurationRepository.getBillingPortalConfiguration(id);
 
-      if (configuration) {
-        return { createdAt: configuration.createdAt, id: configuration.id };
-      }
-
-      throw new NotFoundError(`No such billing portal configuration: ${id}`);
+      return { createdAt: configuration.createdAt, id: configuration.id };
     }
 
     return undefined;

@@ -1,5 +1,4 @@
 import type { Customer, Invoice, PaymentIntent, PortalSession } from '@database/schemas';
-import { NotFoundError } from '@errors/app.error';
 import type { NotificationKind, NotificationSendJob } from '@queues/notification.queue';
 import {
   buildNotificationSendJob,
@@ -96,7 +95,7 @@ export class NotificationService {
       return NotificationOutcomeEnum.SKIPPED_NO_MAILER;
     }
 
-    const customer = await this.getCustomer(job.customerId);
+    const customer = await this.fastify.customerRepository.getCustomer(job.customerId);
     const { email } = customer;
 
     if (!email) {
@@ -162,16 +161,6 @@ export class NotificationService {
     }
 
     return null;
-  }
-
-  private async getCustomer(id: string): Promise<Customer> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
   }
 
   private static resolveAmount(

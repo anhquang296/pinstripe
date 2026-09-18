@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewTestClock, TestClock } from '@database/schemas';
 import { testClocks } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { desc, eq, sql } from 'drizzle-orm';
 
@@ -15,6 +16,16 @@ export class TestClockRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getTestClock(id: string): Promise<TestClock> {
+    const testClock = await this.findTestClock(id);
+
+    if (testClock) {
+      return testClock;
+    }
+
+    throw new NotFoundError(`No such test clock: ${id}`);
   }
 
   async findTestClock(id: string): Promise<TestClock | null> {

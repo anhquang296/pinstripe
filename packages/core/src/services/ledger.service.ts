@@ -111,16 +111,11 @@ export class LedgerService {
   }
 
   async getTransaction(id: string): Promise<LedgerTransactionResponse> {
-    const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
+    const transaction = await this.fastify.ledgerTransactionRepository.getLedgerTransaction(id);
+    const postings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([id]);
+    const accountCodesById = await this.resolveAccountCodes(postings);
 
-    if (transaction) {
-      const postings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([id]);
-      const accountCodesById = await this.resolveAccountCodes(postings);
-
-      return LedgerService.buildTransaction(transaction, postings, accountCodesById);
-    }
-
-    throw new NotFoundError(`No such ledger transaction: ${id}`);
+    return LedgerService.buildTransaction(transaction, postings, accountCodesById);
   }
 
   async findTransactions(
@@ -158,13 +153,7 @@ export class LedgerService {
   }
 
   async getAccount(id: string): Promise<LedgerAccountResponse> {
-    const account = await this.fastify.ledgerAccountRepository.findLedgerAccount(id);
-
-    if (account) {
-      return account;
-    }
-
-    throw new NotFoundError(`No such ledger account: ${id}`);
+    return this.fastify.ledgerAccountRepository.getLedgerAccount(id);
   }
 
   async findAccounts(query: FindLedgerAccountsQuery): Promise<ListResponse<LedgerAccountResponse>> {
@@ -186,7 +175,7 @@ export class LedgerService {
     id: string,
     payload: ReverseLedgerTransactionPayload,
   ): Promise<LedgerTransactionResponse> {
-    const original = await this.getTransactionRow(id);
+    const original = await this.fastify.ledgerTransactionRepository.getLedgerTransaction(id);
 
     if (original.reversedByTransactionId) {
       throw new ConflictError(
@@ -339,13 +328,7 @@ export class LedgerService {
     currency: Currency,
   ): Promise<LedgerAccountWithBalance> {
     if (entry.accountId) {
-      const account = await this.fastify.ledgerAccountRepository.findLedgerAccount(entry.accountId);
-
-      if (account) {
-        return account;
-      }
-
-      throw new NotFoundError(`No such ledger account: ${entry.accountId}`);
+      return this.fastify.ledgerAccountRepository.getLedgerAccount(entry.accountId);
     }
 
     if (entry.accountCode) {
@@ -353,16 +336,6 @@ export class LedgerService {
     }
 
     throw new BadRequestError('Each ledger entry needs either an accountId or an accountCode');
-  }
-
-  private async getTransactionRow(id: string): Promise<LedgerTransaction> {
-    const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
-
-    if (transaction) {
-      return transaction;
-    }
-
-    throw new NotFoundError(`No such ledger transaction: ${id}`);
   }
 
   private async resolveAccountFilter(
@@ -386,13 +359,9 @@ export class LedgerService {
 
   private async resolveCursor(id: string | undefined) {
     if (id) {
-      const transaction = await this.fastify.ledgerTransactionRepository.findLedgerTransaction(id);
+      const transaction = await this.fastify.ledgerTransactionRepository.getLedgerTransaction(id);
 
-      if (transaction) {
-        return { createdAt: transaction.createdAt, id: transaction.id };
-      }
-
-      throw new NotFoundError(`No such ledger transaction: ${id}`);
+      return { createdAt: transaction.createdAt, id: transaction.id };
     }
 
     return undefined;

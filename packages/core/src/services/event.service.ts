@@ -2,7 +2,6 @@ import { PINSTRIPE_API_VERSION } from '@constants/api-version';
 import type { DomainEventType, EventResponse, FindEventsQuery } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
-import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -29,13 +28,7 @@ export class EventService {
   }
 
   async getEvent(id: string): Promise<EventResponse> {
-    const event = await this.fastify.eventRepository.findEvent(id);
-
-    if (event) {
-      return event;
-    }
-
-    throw new NotFoundError(`No such event: ${id}`);
+    return this.fastify.eventRepository.getEvent(id);
   }
 
   async findEvents(query: FindEventsQuery): Promise<ListResponse<EventResponse>> {
@@ -57,13 +50,9 @@ export class EventService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const event = await this.fastify.eventRepository.findEvent(id);
+      const event = await this.fastify.eventRepository.getEvent(id);
 
-      if (event) {
-        return { createdAt: event.createdAt, id: event.id };
-      }
-
-      throw new NotFoundError(`No such event: ${id}`);
+      return { createdAt: event.createdAt, id: event.id };
     }
 
     return undefined;

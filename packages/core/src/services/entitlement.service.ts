@@ -6,8 +6,6 @@ import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type { SubscriptionStatus } from '@contracts/subscriptions.types';
 import { SubscriptionStatusEnum } from '@contracts/subscriptions.types';
-import type { Subscription } from '@database/schemas';
-import { NotFoundError } from '@errors/app.error';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { RedisNamespaceEnum } from '@utils/redis-key-factory';
 import type { FastifyInstance } from 'fastify';
@@ -30,7 +28,7 @@ export class EntitlementService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async handleSubscriptionChanged(subscriptionId: string): Promise<void> {
-    const subscription = await this.getSubscription(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
 
     const status = ENTITLEMENT_BY_SUBSCRIPTION_STATUS[subscription.status];
 
@@ -118,16 +116,6 @@ export class EntitlementService {
       hasMore,
       data: _.take(entitlementRows, limit),
     };
-  }
-
-  private async getSubscription(subscriptionId: string): Promise<Subscription> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(subscriptionId);
-
-    if (subscription) {
-      return subscription;
-    }
-
-    throw new NotFoundError(`No such subscription: ${subscriptionId}`);
   }
 
   private async invalidateCache(customerId: string, productIds: readonly string[]): Promise<void> {

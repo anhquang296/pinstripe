@@ -3,6 +3,7 @@ import type { ChargeStatus, PaymentIntentStatus } from '@contracts/payments.type
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { Charge, NewCharge, NewPaymentIntent, PaymentIntent } from '@database/schemas';
 import { charges, paymentIntents } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import _ from 'lodash';
@@ -34,6 +35,16 @@ export class PaymentIntentRepository {
     this._db = db;
   }
 
+  async getPaymentIntent(id: string): Promise<PaymentIntent> {
+    const paymentIntent = await this.findPaymentIntent(id);
+
+    if (paymentIntent) {
+      return paymentIntent;
+    }
+
+    throw new NotFoundError(`No such payment intent: ${id}`);
+  }
+
   async findPaymentIntent(id: string): Promise<PaymentIntent | null> {
     const [paymentIntent] = await this._db.master
       .select()
@@ -44,10 +55,7 @@ export class PaymentIntentRepository {
     return paymentIntent ?? null;
   }
 
-  async findLockedPaymentIntent(
-    id: string,
-    executor: DatabaseTransaction,
-  ): Promise<PaymentIntent | null> {
+  async getLockedPaymentIntent(id: string, executor: DatabaseTransaction): Promise<PaymentIntent> {
     const [paymentIntent] = await executor
       .select()
       .from(paymentIntents)
@@ -55,7 +63,11 @@ export class PaymentIntentRepository {
       .limit(1)
       .for('update');
 
-    return paymentIntent ?? null;
+    if (paymentIntent) {
+      return paymentIntent;
+    }
+
+    throw new NotFoundError(`No such payment intent: ${id}`);
   }
 
   async findPaymentIntents(
@@ -83,6 +95,16 @@ export class PaymentIntentRepository {
       .where(where)
       .orderBy(desc(paymentIntents.createdAt), desc(paymentIntents.id))
       .limit(limit);
+  }
+
+  async getCharge(id: string): Promise<Charge> {
+    const charge = await this.findCharge(id);
+
+    if (charge) {
+      return charge;
+    }
+
+    throw new NotFoundError(`No such charge: ${id}`);
   }
 
   async findCharge(id: string): Promise<Charge | null> {

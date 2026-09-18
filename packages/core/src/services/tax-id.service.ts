@@ -102,7 +102,7 @@ export class TaxIdService {
   }
 
   async verifyTaxId(taxIdId: string): Promise<TaxIdResponse> {
-    const taxId = await this.getTaxIdEntity(taxIdId);
+    const taxId = await this.fastify.taxIdRepository.getTaxId(taxIdId);
     const customer = await this.fastify.customerService.getCustomer(taxId.customerId);
     const now = this.fastify.clock.now().toISOString();
     const status = TaxIdService.resolveVerificationStatus(taxId);
@@ -159,23 +159,13 @@ export class TaxIdService {
   }
 
   async getTaxId(id: string): Promise<TaxIdResponse> {
-    const taxId = await this.getTaxIdEntity(id);
+    const taxId = await this.fastify.taxIdRepository.getTaxId(id);
 
     return TaxIdService.buildTaxId(taxId);
   }
 
-  private async getTaxIdEntity(id: string): Promise<TaxId> {
-    const taxId = await this.fastify.taxIdRepository.findTaxId(id);
-
-    if (taxId) {
-      return taxId;
-    }
-
-    throw new NotFoundError(`No such tax id: ${id}`);
-  }
-
   async deleteTaxId(id: string): Promise<DeletedTaxIdResponse> {
-    const taxId = await this.getTaxIdEntity(id);
+    const taxId = await this.fastify.taxIdRepository.getTaxId(id);
     const deletedAt = this.fastify.clock.now().toISOString();
 
     await this.fastify.database.master.transaction(async (tx) => {
@@ -205,7 +195,7 @@ export class TaxIdService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const taxId = await this.getTaxIdEntity(id);
+      const taxId = await this.fastify.taxIdRepository.getTaxId(id);
 
       return { createdAt: taxId.createdAt, id: taxId.id };
     }

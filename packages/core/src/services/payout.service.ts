@@ -95,13 +95,7 @@ export class PayoutService {
   }
 
   async getPayout(id: string): Promise<PayoutResponse> {
-    const payout = await this.fastify.payoutRepository.findPayout(id);
-
-    if (payout) {
-      return payout;
-    }
-
-    throw new NotFoundError(`No such payout: ${id}`);
+    return this.fastify.payoutRepository.getPayout(id);
   }
 
   async findPayouts(query: FindPayoutsQuery): Promise<ListResponse<PayoutResponse>> {
@@ -316,13 +310,9 @@ export class PayoutService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const payout = await this.fastify.payoutRepository.findPayout(id);
+      const payout = await this.fastify.payoutRepository.getPayout(id);
 
-      if (payout) {
-        return { createdAt: payout.createdAt, id: payout.id };
-      }
-
-      throw new NotFoundError(`No such payout: ${id}`);
+      return { createdAt: payout.createdAt, id: payout.id };
     }
 
     return undefined;

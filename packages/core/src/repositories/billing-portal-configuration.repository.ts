@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { BillingPortalConfiguration, NewBillingPortalConfiguration } from '@database/schemas';
 import { billingPortalConfigurations } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
@@ -17,6 +18,16 @@ export class BillingPortalConfigurationRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getBillingPortalConfiguration(id: string): Promise<BillingPortalConfiguration> {
+    const billingPortalConfiguration = await this.findBillingPortalConfiguration(id);
+
+    if (billingPortalConfiguration) {
+      return billingPortalConfiguration;
+    }
+
+    throw new NotFoundError(`No such billing portal configuration: ${id}`);
   }
 
   async findBillingPortalConfiguration(id: string): Promise<BillingPortalConfiguration | null> {

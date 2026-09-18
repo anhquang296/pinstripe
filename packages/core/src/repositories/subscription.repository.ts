@@ -10,6 +10,7 @@ import type {
   SubscriptionItemChange,
 } from '@database/schemas';
 import { subscriptionItemChanges, subscriptionItems, subscriptions } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import {
   and,
@@ -68,6 +69,16 @@ export class SubscriptionRepository {
     this._db = db;
   }
 
+  async getSubscription(id: string): Promise<Subscription> {
+    const subscription = await this.findSubscription(id);
+
+    if (subscription) {
+      return subscription;
+    }
+
+    throw new NotFoundError(`No such subscription: ${id}`);
+  }
+
   async findSubscription(id: string): Promise<Subscription | null> {
     const [subscription] = await this._db.master
       .select()
@@ -115,6 +126,16 @@ export class SubscriptionRepository {
       .where(where)
       .orderBy(desc(subscriptions.createdAt), desc(subscriptions.id))
       .limit(limit);
+  }
+
+  async getSubscriptionItem(id: string): Promise<SubscriptionItem> {
+    const subscriptionItem = await this.findSubscriptionItem(id);
+
+    if (subscriptionItem) {
+      return subscriptionItem;
+    }
+
+    throw new NotFoundError(`No such subscription item: ${id}`);
   }
 
   async findSubscriptionItem(id: string): Promise<SubscriptionItem | null> {

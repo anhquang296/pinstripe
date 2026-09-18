@@ -43,14 +43,7 @@ export class BalanceService {
   }
 
   async getBalanceTransaction(id: string): Promise<BalanceTransactionResponse> {
-    const balanceTransaction =
-      await this.fastify.balanceTransactionRepository.findBalanceTransaction(id);
-
-    if (balanceTransaction) {
-      return balanceTransaction;
-    }
-
-    throw new NotFoundError(`No such balance transaction: ${id}`);
+    return this.fastify.balanceTransactionRepository.getBalanceTransaction(id);
   }
 
   async findBalanceTransactions(
@@ -325,13 +318,9 @@ export class BalanceService {
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
       const balanceTransaction =
-        await this.fastify.balanceTransactionRepository.findBalanceTransaction(id);
+        await this.fastify.balanceTransactionRepository.getBalanceTransaction(id);
 
-      if (balanceTransaction) {
-        return { createdAt: balanceTransaction.createdAt, id: balanceTransaction.id };
-      }
-
-      throw new NotFoundError(`No such balance transaction: ${id}`);
+      return { createdAt: balanceTransaction.createdAt, id: balanceTransaction.id };
     }
 
     return undefined;

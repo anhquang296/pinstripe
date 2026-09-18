@@ -100,13 +100,7 @@ export class CustomerService {
   }
 
   async getCustomer(id: string): Promise<CustomerResponse> {
-    const customer = await this.fastify.customerRepository.findCustomer(id);
-
-    if (customer) {
-      return customer;
-    }
-
-    throw new NotFoundError(`No such customer: ${id}`);
+    return this.fastify.customerRepository.getCustomer(id);
   }
 
   async updateCustomer(id: string, payload: UpdateCustomerPayload): Promise<CustomerResponse> {
@@ -187,13 +181,9 @@ export class CustomerService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const customer = await this.fastify.customerRepository.findCustomer(id);
+      const customer = await this.fastify.customerRepository.getCustomer(id);
 
-      if (customer) {
-        return { createdAt: customer.createdAt, id: customer.id };
-      }
-
-      throw new NotFoundError(`No such customer: ${id}`);
+      return { createdAt: customer.createdAt, id: customer.id };
     }
 
     return undefined;

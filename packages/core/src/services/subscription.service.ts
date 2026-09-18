@@ -175,7 +175,7 @@ export class SubscriptionService {
   }
 
   async getSubscription(id: string): Promise<SubscriptionResponse> {
-    const subscription = await this.getSubscriptionRow(id);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(id);
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [id],
       deletedAtIsNull: true,
@@ -220,7 +220,7 @@ export class SubscriptionService {
     id: string,
     payload: UpdateSubscriptionPayload,
   ): Promise<SubscriptionResponse> {
-    const subscription = await this.getSubscriptionRow(id);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(id);
 
     SubscriptionService.assertUpdatable(subscription);
 
@@ -272,7 +272,7 @@ export class SubscriptionService {
     id: string,
     payload: CancelSubscriptionPayload,
   ): Promise<SubscriptionResponse> {
-    const subscription = await this.getSubscriptionRow(id);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(id);
 
     SubscriptionService.assertUpdatable(subscription);
 
@@ -479,7 +479,7 @@ export class SubscriptionService {
     failedAt: Date,
     isFinalAttempt: boolean,
   ): Promise<void> {
-    const subscription = await this.getSubscriptionRow(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
     const status = SubscriptionService.resolveFailedStatus(subscription, isFinalAttempt);
 
     if (status === subscription.status) {
@@ -507,7 +507,7 @@ export class SubscriptionService {
     paidAt: Date,
     chargedThroughDate: Date,
   ): Promise<void> {
-    const subscription = await this.getSubscriptionRow(subscriptionId);
+    const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
     const isRecovering = _.includes(
       [
         SubscriptionStatusEnum.INCOMPLETE,
@@ -782,16 +782,6 @@ export class SubscriptionService {
     );
   }
 
-  private async getSubscriptionRow(id: string): Promise<Subscription> {
-    const subscription = await this.fastify.subscriptionRepository.findSubscription(id);
-
-    if (subscription) {
-      return subscription;
-    }
-
-    throw new NotFoundError(`No such subscription: ${id}`);
-  }
-
   private async resolvePrices(priceIds: readonly string[]): Promise<Price[]> {
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: priceIds },
@@ -809,7 +799,7 @@ export class SubscriptionService {
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
     if (id) {
-      const subscription = await this.getSubscriptionRow(id);
+      const subscription = await this.fastify.subscriptionRepository.getSubscription(id);
 
       return { createdAt: subscription.createdAt, id: subscription.id };
     }

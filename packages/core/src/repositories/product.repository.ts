@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewProduct, Product } from '@database/schemas';
 import { products } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
@@ -17,6 +18,16 @@ export class ProductRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getProduct(id: string): Promise<Product> {
+    const product = await this.findProduct(id);
+
+    if (product) {
+      return product;
+    }
+
+    throw new NotFoundError(`No such product: ${id}`);
   }
 
   async findProduct(id: string): Promise<Product | null> {

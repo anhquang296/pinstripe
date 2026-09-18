@@ -2,6 +2,7 @@ import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
 import type { Database, DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type { NewTaxId, TaxId } from '@database/schemas';
 import { taxIds } from '@database/schemas';
+import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
@@ -17,6 +18,16 @@ export class TaxIdRepository {
 
   constructor(db: DatabaseClient) {
     this._db = db;
+  }
+
+  async getTaxId(id: string): Promise<TaxId> {
+    const taxId = await this.findTaxId(id);
+
+    if (taxId) {
+      return taxId;
+    }
+
+    throw new NotFoundError(`No such tax id: ${id}`);
   }
 
   async findTaxId(id: string): Promise<TaxId | null> {
