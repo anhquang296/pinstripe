@@ -46,17 +46,25 @@ Một màn đi theo đúng thứ tự này, và mỗi khối là một component
 
 Bên trong drawer: `DrawerSection` cho mỗi khối, `DetailList` cho lưới nhãn/giá trị, `DrawerTabs` khi một drawer có nhiều phần. Select đứng ngoài form đi qua `FilterSelect`.
 
+Một secret chỉ server trả **một lần** — `apiKey.token`, `webhookEndpoint.secret` — không bao giờ đi vào query cache để đọc lại: nó sống trong state của chính page đã tạo ra nó, hiện kèm nút sao chép, và bị xoá khi drawer đóng. Đừng thêm một hook đọc lại nó; route không có.
+
+Hai bề mặt của nhóm Admin không có nút xoá, vì không có route xoá: user hạ quyền hay vô hiệu hoá qua `useUpdateUserMutation`, và `/admin/roles` chỉ đọc vì `ROLE_PERMISSIONS` là hằng số trong `@pinstripe/core`. Lỗi "admin active cuối cùng" đến từ server và hiện qua toast của provider — đừng đoán trước luật đó ở client.
+
 ## Tab là route con, drawer là param
 
 Tab của một màn là **route con**, không phải state: `PageTabs` render `NavLink`, và mỗi tab có URL riêng (`/catalog/products`, `/subscriptions/usage`). Mỗi tab là một Page riêng giữ query và mutation của chính nó — đó là thứ giữ [`component-convention.md`](../agentkit/profiles/react/component-convention.md) đúng khi một màn có bốn tab.
 
 Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/customers/:customerId`) để deep-link được; entity phụ trong drawer (tax ID, promotion code, discount) dùng state cục bộ. Một path tĩnh và một path động không bao giờ tranh nhau cùng một đoạn: `/subscriptions` redirect sang `/subscriptions/list`, và id nằm dưới tab của nó.
 
+Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/api-keys`, `/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/test-clocks/:testClockId`, `/admin/users/:userId`).
+
 Phân trang cursor đi qua `src/hooks/useCursorPagination.ts`: `startingAfter` cho query, `advancePage(lastId)` / `revertPage()` cho `DataTable`, `resetPage()` mỗi khi filter đổi. Đừng tự giữ mảng cursor trong page.
 
 ## Field đi qua `Controller`
 
-Form dùng react-hook-form theo [`form-convention.md`](../agentkit/profiles/react/form-convention.md); field render qua `src/components/fields/Render{Text,Select,Number,Date,Checkbox}Field`, mỗi cái bọc `Controller` quanh một control HeroUI. Không `form.register` trên control của HeroUI — nó không nhận `ref` + `onChange` kiểu DOM.
+Form dùng react-hook-form theo [`form-convention.md`](../agentkit/profiles/react/form-convention.md); field render qua `src/components/fields/Render{Text,Select,Number,Date,Checkbox,CheckboxGroup}Field`, mỗi cái bọc `Controller` quanh một control HeroUI. Không `form.register` trên control của HeroUI — nó không nhận `ref` + `onChange` kiểu DOM.
+
+`RenderCheckboxGroupField` là field của một **mảng giá trị đóng** — `enabledEvents` của webhook endpoint, `scopes` của API key. Một tập nhiều lựa chọn không đi qua `Select`: HeroUI v3 `Select` là single-select, và ghép nhiều `RenderCheckboxField` boolean thì form data không còn là mảng mà payload cần.
 
 `RenderSelectField` quy đổi giá trị rỗng sang một key nội bộ, vì collection của react-aria không nhận `id=""`. Một select ngoài form thì bỏ hẳn option rỗng và dùng `placeholder` của `Select`.
 
@@ -96,3 +104,7 @@ Tiền và ngày đi qua `src/lib/format.ts`: `formatCurrency(minorAmount, curre
 - Dùng `form.register` trên control của HeroUI thay vì `Render*Field`.
 - Giữ tab của một màn bằng state thay vì route con, hay mở drawer của entity chính mà không có route param.
 - Tự giữ mảng cursor trong page thay vì `useCursorPagination`.
+- Ghép nhiều checkbox boolean cho một field mảng thay vì `RenderCheckboxGroupField`.
+- Đưa một secret chỉ trả một lần vào query cache, hay thêm hook đọc lại nó.
+- Thêm nút xoá user, hay cho `/admin/roles` sửa được `ROLE_PERMISSIONS`.
+- Dựng `PageTabs` cho một màn chỉ có một bề mặt.
