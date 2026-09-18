@@ -1,14 +1,14 @@
 import { TooManyRequestsError } from '@pinstripe/core/errors';
 import { consumeRateLimit, RedisNamespaceEnum } from '@pinstripe/core/utils';
-import { readAuth } from '@utils/request-auth';
+import { readRateLimitId } from '@utils/request-auth';
 import fp from 'fastify-plugin';
 
 export const rateLimitPlugin = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request, reply) => {
     const { apiRateLimit, apiRateWindowSeconds } = fastify.workflowSchedules;
-    const { apiKeyId } = readAuth(request);
+    const rateLimitId = readRateLimitId(request);
 
-    const key = fastify.redisKeyFactory.build(RedisNamespaceEnum.API_RATE_LIMIT, apiKeyId);
+    const key = fastify.redisKeyFactory.build(RedisNamespaceEnum.API_RATE_LIMIT, rateLimitId);
 
     const { limit, remaining, resetSeconds, isAllowed } = await consumeRateLimit(
       fastify.redis,
@@ -28,7 +28,7 @@ export const rateLimitPlugin = fp(async (fastify) => {
     }
 
     throw new TooManyRequestsError(
-      `This API key has made too many requests; retry in ${resetSeconds} seconds`,
+      `This caller has made too many requests; retry in ${resetSeconds} seconds`,
     );
   });
 });
