@@ -44,6 +44,16 @@ Một màn đi theo đúng thứ tự này, và mỗi khối là một component
 
 `StatusChip` là chỗ duy nhất ánh xạ trạng thái sang màu. Xoá và mọi hành động không đảo được hỏi qua `ConfirmDialog` — không bao giờ `window.confirm`.
 
+Bên trong drawer: `DrawerSection` cho mỗi khối, `DetailList` cho lưới nhãn/giá trị, `DrawerTabs` khi một drawer có nhiều phần. Select đứng ngoài form đi qua `FilterSelect`.
+
+## Tab là route con, drawer là param
+
+Tab của một màn là **route con**, không phải state: `PageTabs` render `NavLink`, và mỗi tab có URL riêng (`/catalog/products`, `/subscriptions/usage`). Mỗi tab là một Page riêng giữ query và mutation của chính nó — đó là thứ giữ [`component-convention.md`](../agentkit/profiles/react/component-convention.md) đúng khi một màn có bốn tab.
+
+Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/customers/:customerId`) để deep-link được; entity phụ trong drawer (tax ID, promotion code, discount) dùng state cục bộ. Một path tĩnh và một path động không bao giờ tranh nhau cùng một đoạn: `/subscriptions` redirect sang `/subscriptions/list`, và id nằm dưới tab của nó.
+
+Phân trang cursor đi qua `src/hooks/useCursorPagination.ts`: `startingAfter` cho query, `advancePage(lastId)` / `revertPage()` cho `DataTable`, `resetPage()` mỗi khi filter đổi. Đừng tự giữ mảng cursor trong page.
+
 ## Field đi qua `Controller`
 
 Form dùng react-hook-form theo [`form-convention.md`](../agentkit/profiles/react/form-convention.md); field render qua `src/components/fields/Render{Text,Select,Number,Date,Checkbox}Field`, mỗi cái bọc `Controller` quanh một control HeroUI. Không `form.register` trên control của HeroUI — nó không nhận `ref` + `onChange` kiểu DOM.
@@ -84,3 +94,5 @@ Tiền và ngày đi qua `src/lib/format.ts`: `formatCurrency(minorAmount, curre
 - Coi `useCan` là lớp bảo mật.
 - Dựng một trang form riêng cho tạo / sửa thay vì drawer, hay xác nhận xoá bằng `window.confirm`.
 - Dùng `form.register` trên control của HeroUI thay vì `Render*Field`.
+- Giữ tab của một màn bằng state thay vì route con, hay mở drawer của entity chính mà không có route param.
+- Tự giữ mảng cursor trong page thay vì `useCursorPagination`.
