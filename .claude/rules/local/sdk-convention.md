@@ -52,7 +52,18 @@ pinstripe.customers.retrieve(customerId);
 
 `lodash/prefer-lodash-method` đọc mọi `.find(` là `Array.prototype.find` và đòi `_.find`. `pinstripe.customers.find(query)` không phải collection method, nên `eslint-config/react.js` liệt `^pinstripe\.` vào `ignoreObjects`. Đó là chỗ duy nhất xử lý va chạm này — đừng rải `eslint-disable` ở call site, và đừng đổi tên method để tránh lint.
 
-Không tự chế method cho route không tồn tại. `entitlements` chỉ có `find`, `products` không có `delete`, `webhookDeliveries` không có `get` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
+Không tự chế method cho route không tồn tại. `entitlements` chỉ có `find`, `products` không có `delete`, `webhookDeliveries` không có `get`, `admin.users` không có `delete`, `admin.apiKeys` không có `get` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
+
+## Resource admin đi qua `admin.*`
+
+Route dưới `/api/v1/admin` là resource của `AdminNamespace`, dựng trên `_adminTransport` (key
+`PINSTRIPE_ADMIN_API_KEY`, hoặc cookie session khi không có key): `admin.users`, `admin.account`,
+`admin.apiKeys`, `admin.ledgerAccounts`, `admin.ledgerTransactions`, `admin.reporting`.
+
+`admin.account.get()` không nhận id — nó đọc chính session đang gọi, nên route trả `ForbiddenError`
+cho caller đi bằng API key. Quản trị user chỉ có `find` / `get` / `create` / `update`: xoá user không
+phải một route, hạ quyền hay vô hiệu hoá đi qua `update` để `UserService` còn giữ được luật admin
+active cuối cùng — xem `auth-convention.md`.
 
 ## `operationId` của route v1 là tên method SDK
 
@@ -74,7 +85,9 @@ Tag không khai tay: `v1.routes.ts` gán tag từ prefix, và route không tag b
 
 `react/react-query-convention.md` đặt query key factory, hook và plumbing trong app. Ở đây chúng sống trong `@pinstripe/sdk/react`:
 
-- Subject enum là `PinstripeQuerySubjectEnum`, không phải `ReactQuerySubjectEnum`.
+- Subject enum là `PinstripeQuerySubjectEnum`, không phải `ReactQuerySubjectEnum`. Subject của bề mặt
+  admin là `user`, `account`, `api_key` — truy cập qua `queries.user`, `queries.account`,
+  `queries.api_key`, đúng bằng giá trị của member.
 - `queries` đến từ `usePinstripeQueries()` chứ không phải một module import — vì `queryFn` cần client, và client là instance của provider.
 - Tên hook, hình dạng key và mọi site invalidate `_def` giữ nguyên như rule mô tả.
 
@@ -109,6 +122,8 @@ PINSTRIPE_MAX_RETRIES, PINSTRIPE_TIMEOUT_MS
 - Lặp entity trong method name của một resource SDK (`findCustomers`, `getCustomer`) — receiver đã mang nó; hoặc bỏ entity khỏi tên ở repository / service, nơi kit vẫn bắt buộc có.
 - Dùng `list` hay `retrieve` ở bất kỳ đâu trong repo — hai verb đó không còn là verb của codebase này.
 - Thêm method cho một route không tồn tại chỉ để bề mặt trông đầy đủ.
+- Đặt một resource của `/api/v1/admin` ngoài `admin.*`, hay cho `admin.account.get` nhận một id —
+  nó đọc chính session đang gọi.
 - Khai báo domain type trong SDK — chúng đi qua `src/types/contracts.types.ts`, bằng `export type`, từ `@pinstripe/core/contracts`.
 - Import `@pinstripe/core` như value ở bất kỳ đâu trong `packages/sdk/src` — nó sẽ vào bundle và `src/bundle.test.ts` sẽ fail.
 - Import một `node:` builtin ngoài `src/node/**`.
