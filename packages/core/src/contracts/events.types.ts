@@ -28,6 +28,8 @@ export enum AggregateTypeEnum {
   DISPUTE = 'dispute',
   TAX_RATE = 'tax_rate',
   TAX_ID = 'tax_id',
+  CHECKOUT_SESSION = 'checkout_session',
+  PAYMENT_LINK = 'payment_link',
 }
 export type AggregateType = `${AggregateTypeEnum}`;
 
@@ -80,6 +82,11 @@ export enum DomainEventTypeEnum {
   TAX_ID_CREATED = 'tax_id.created',
   TAX_ID_UPDATED = 'tax_id.updated',
   TAX_ID_DELETED = 'tax_id.deleted',
+  INVOICE_SENT = 'invoice.sent',
+  CHECKOUT_SESSION_COMPLETED = 'checkout.session.completed',
+  CHECKOUT_SESSION_EXPIRED = 'checkout.session.expired',
+  PAYMENT_LINK_CREATED = 'payment_link.created',
+  PAYMENT_LINK_UPDATED = 'payment_link.updated',
 }
 export type DomainEventType = `${DomainEventTypeEnum}`;
 

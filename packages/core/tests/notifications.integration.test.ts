@@ -1,6 +1,6 @@
 import { PspTokenEnum } from '@clients/mock-psp.client';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
-import { NotificationKindEnum } from '@queues/notification.queue';
+import { buildNotificationSendJob, NotificationKindEnum } from '@queues/notification.queue';
 import { NotificationOutcomeEnum } from '@services/notification.service';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -61,13 +61,12 @@ describe('NotificationService.sendNotification', () => {
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE);
     await fastify.paymentService.drainProviderEvents();
 
-    const outcome = await fastify.notificationService.sendNotification({
-      kind: NotificationKindEnum.PAYMENT_SUCCEEDED,
-      livemode: TEST_LIVEMODE,
-      customerId,
-      invoiceId,
-      paymentIntentId: paymentIntent.id,
-    });
+    const outcome = await fastify.notificationService.sendNotification(
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_SUCCEEDED, TEST_LIVEMODE, customerId, {
+        invoiceId,
+        paymentIntentId: paymentIntent.id,
+      }),
+    );
 
     const { email } = customer;
     const subject = await findDeliveredSubject(String(email));
@@ -90,13 +89,12 @@ describe('NotificationService.sendNotification', () => {
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE);
     await fastify.paymentService.drainProviderEvents();
 
-    const outcome = await fastify.notificationService.sendNotification({
-      kind: NotificationKindEnum.PAYMENT_FAILED,
-      livemode: TEST_LIVEMODE,
-      customerId,
-      invoiceId,
-      paymentIntentId: paymentIntent.id,
-    });
+    const outcome = await fastify.notificationService.sendNotification(
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_FAILED, TEST_LIVEMODE, customerId, {
+        invoiceId,
+        paymentIntentId: paymentIntent.id,
+      }),
+    );
 
     const { email } = customer;
     const subject = await findDeliveredSubject(String(email));
@@ -111,26 +109,22 @@ describe('NotificationService.sendNotification', () => {
       TEST_LIVEMODE,
     );
 
-    const outcome = await fastify.notificationService.sendNotification({
-      kind: NotificationKindEnum.PAYMENT_SUCCEEDED,
-      livemode: TEST_LIVEMODE,
-      customerId: customer.id,
-      invoiceId: null,
-      paymentIntentId: null,
-    });
+    const outcome = await fastify.notificationService.sendNotification(
+      buildNotificationSendJob(NotificationKindEnum.PAYMENT_SUCCEEDED, TEST_LIVEMODE, customer.id),
+    );
 
     expect(outcome).toBe(NotificationOutcomeEnum.SKIPPED_NO_EMAIL);
   });
 
   it('refuses to notify a customer that does not exist', async () => {
     await expect(
-      fastify.notificationService.sendNotification({
-        kind: NotificationKindEnum.PAYMENT_SUCCEEDED,
-        livemode: TEST_LIVEMODE,
-        customerId: `${ObjectPrefixEnum.CUSTOMER}_${generateGid(ObjectPrefixEnum.CUSTOMER)}`,
-        invoiceId: null,
-        paymentIntentId: null,
-      }),
+      fastify.notificationService.sendNotification(
+        buildNotificationSendJob(
+          NotificationKindEnum.PAYMENT_SUCCEEDED,
+          TEST_LIVEMODE,
+          `${ObjectPrefixEnum.CUSTOMER}_${generateGid(ObjectPrefixEnum.CUSTOMER)}`,
+        ),
+      ),
     ).rejects.toThrow(/No such customer/);
   });
 });

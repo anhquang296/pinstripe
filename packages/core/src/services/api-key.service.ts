@@ -31,6 +31,7 @@ export interface BootstrapApiKey {
   name: string;
   token: string;
   scopes: readonly ApiKeyScope[];
+  type?: ApiKeyType;
 }
 
 export class ApiKeyService {
@@ -126,7 +127,7 @@ export class ApiKeyService {
       const createdApiKey = await this.fastify.apiKeyRepository.createApiKey({
         id: generateGid(ObjectPrefixEnum.API_KEY),
         name: bootstrapKey.name,
-        type: ApiKeyTypeEnum.SECRET,
+        type: bootstrapKey.type ?? ApiKeyTypeEnum.SECRET,
         scopes: [...bootstrapKey.scopes],
         livemode: true,
         tokenPrefix: bootstrapKey.token.slice(0, TOKEN_PREFIX_LENGTH),

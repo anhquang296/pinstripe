@@ -1,5 +1,6 @@
 import { configPlugin } from '@plugins/config.plugin';
 import { databasePlugin } from '@plugins/database.plugin';
+import { fileStoragePlugin } from '@plugins/file-storage.plugin';
 import { notificationPlugin } from '@plugins/notification.plugin';
 import { pspPlugin } from '@plugins/psp.plugin';
 import { queuePlugin } from '@plugins/queue.plugin';
@@ -16,6 +17,7 @@ export const corePlugin = fp(async (fastify) => {
   await fastify.register(queuePlugin);
   await fastify.register(pspPlugin);
   await fastify.register(notificationPlugin);
+  await fastify.register(fileStoragePlugin);
   await fastify.register(repositoryRegistryPlugin);
   await fastify.register(taxPlugin);
   await fastify.register(serviceRegistryPlugin);
