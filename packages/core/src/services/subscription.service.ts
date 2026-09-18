@@ -63,6 +63,7 @@ export class SubscriptionService {
         subscriptionId,
         priceId: subscriptionItem.priceId,
         quantity: subscriptionItem.quantity ?? 1,
+        taxRates: subscriptionItem.taxRates ?? [],
         metadata: subscriptionItem.metadata ?? {},
         createdAt: now,
         billedFrom: now,
@@ -84,6 +85,7 @@ export class SubscriptionService {
           currentPeriodStart: now,
           currentPeriodEnd: trialEnd ?? advancePeriod(anchor, interval, intervalCount),
           chargedThroughDate: null,
+          defaultTaxRates: payload.defaultTaxRates ?? [],
           trialStart: trialEnd ? now : null,
           trialEnd,
           cancelAtPeriodEnd: false,
@@ -192,6 +194,7 @@ export class SubscriptionService {
             subscriptionId: id,
             priceId: subscriptionItem.priceId,
             quantity: subscriptionItem.quantity ?? 1,
+            taxRates: subscriptionItem.taxRates ?? [],
             metadata: subscriptionItem.metadata ?? {},
             createdAt: now,
             billedFrom: boundary,
@@ -226,6 +229,7 @@ export class SubscriptionService {
         id,
         {
           cancelAtPeriodEnd: payload.cancelAtPeriodEnd ?? subscription.cancelAtPeriodEnd,
+          defaultTaxRates: payload.defaultTaxRates ?? subscription.defaultTaxRates,
           metadata: payload.metadata ?? subscription.metadata,
           updatedAt: now,
         },
@@ -573,6 +577,7 @@ export class SubscriptionService {
           subscriptionId: subscriptionItem.subscriptionId,
           priceId: subscriptionItem.priceId,
           quantity: subscriptionItem.quantity ?? 1,
+          taxRates: subscriptionItem.taxRates ?? [],
           metadata: subscriptionItem.metadata ?? {},
           createdAt: (subscriptionItem.createdAt ?? entity.createdAt).toISOString(),
         };
@@ -583,6 +588,7 @@ export class SubscriptionService {
       chargedThroughDate: entity.chargedThroughDate
         ? entity.chargedThroughDate.toISOString()
         : null,
+      defaultTaxRates: entity.defaultTaxRates,
       trialStart: entity.trialStart ? entity.trialStart.toISOString() : null,
       trialEnd: entity.trialEnd ? entity.trialEnd.toISOString() : null,
       cancelAtPeriodEnd: entity.cancelAtPeriodEnd,

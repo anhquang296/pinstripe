@@ -53,6 +53,7 @@ export class ExpansionService {
       discount: { customer, coupon },
       promotion_code: { coupon },
       invoiceitem: { customer },
+      tax_id: { customer },
       customer_balance_transaction: { customer },
       subscription: { customer },
       payment_intent: { customer },

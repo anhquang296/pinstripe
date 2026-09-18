@@ -5,6 +5,7 @@ import { queuePlugin } from '@plugins/queue.plugin';
 import { redisPlugin } from '@plugins/redis.plugin';
 import { repositoryRegistryPlugin } from '@plugins/repository-registry.plugin';
 import { serviceRegistryPlugin } from '@plugins/service-registry.plugin';
+import { taxPlugin } from '@plugins/tax.plugin';
 import fp from 'fastify-plugin';
 
 export const corePlugin = fp(async (fastify) => {
@@ -14,5 +15,6 @@ export const corePlugin = fp(async (fastify) => {
   await fastify.register(queuePlugin);
   await fastify.register(pspPlugin);
   await fastify.register(repositoryRegistryPlugin);
+  await fastify.register(taxPlugin);
   await fastify.register(serviceRegistryPlugin);
 });

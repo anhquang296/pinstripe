@@ -17,6 +17,8 @@ import { ProductsResource } from '@resources/products.resource';
 import { PromotionCodesResource } from '@resources/promotion-codes.resource';
 import { RefundsResource } from '@resources/refunds.resource';
 import { SubscriptionsResource } from '@resources/subscriptions.resource';
+import { TaxIdsResource } from '@resources/tax-ids.resource';
+import { TaxRatesResource } from '@resources/tax-rates.resource';
 import { WebhookDeliveriesResource } from '@resources/webhook-deliveries.resource';
 import { WebhookEndpointsResource } from '@resources/webhook-endpoints.resource';
 
@@ -32,6 +34,8 @@ export class PinstripeClient {
   readonly coupons: CouponsResource;
   readonly promotionCodes: PromotionCodesResource;
   readonly discounts: DiscountsResource;
+  readonly taxRates: TaxRatesResource;
+  readonly taxIds: TaxIdsResource;
   readonly paymentIntents: PaymentIntentsResource;
   readonly refunds: RefundsResource;
   readonly webhookEndpoints: WebhookEndpointsResource;
@@ -60,6 +64,8 @@ export class PinstripeClient {
     this.coupons = new CouponsResource(this._transport);
     this.promotionCodes = new PromotionCodesResource(this._transport);
     this.discounts = new DiscountsResource(this._transport);
+    this.taxRates = new TaxRatesResource(this._transport);
+    this.taxIds = new TaxIdsResource(this._transport);
     this.paymentIntents = new PaymentIntentsResource(this._transport);
     this.refunds = new RefundsResource(this._transport);
     this.webhookEndpoints = new WebhookEndpointsResource(this._transport);

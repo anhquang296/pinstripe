@@ -30,7 +30,7 @@ Ngoài ra admin ghi tay được qua `POST /api/v1/admin/ledger/transactions` v�
 | `customer_credit_balance` | liability | credit       | ✅              |
 | `rounding_difference`     | expense   | debit        |                 |
 
-Ba mã cuối (`deferred_revenue`, `tax_payable`, `rounding_difference`) và `customer_credit_balance` đã khai báo nhưng **chưa có bút toán nào dùng** — chỗ dành sẵn cho ghi nhận doanh thu theo kỳ, thuế và số dư khách.
+`tax_payable` có bút toán từ phase 15: finalize ghi **Có** phần `totalTaxAmount`, void đảo lại — [ADR 0016](../adr/0016-tax-model.md). `customer_credit_balance` dùng từ phase 13. Còn `deferred_revenue` và `rounding_difference` đã khai báo nhưng **chưa có bút toán nào dùng** — chỗ dành sẵn cho ghi nhận doanh thu theo kỳ.
 
 Tài khoản được tạo lười bằng `ensureAccount` — [ledger.service.ts:34-78](../../packages/core/src/services/ledger.service.ts): kiểm tra `isPerCustomer` khớp với việc có `customerId` hay không, tìm trước, chưa có thì INSERT, đụng unique violation thì đọc lại (an toàn khi chạy song song).
 

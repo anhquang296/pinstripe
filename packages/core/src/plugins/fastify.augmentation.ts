@@ -27,6 +27,8 @@ import type { PromotionCodeRepository } from '@repositories/promotion-code.repos
 import type { RefundRepository } from '@repositories/refund.repository';
 import type { ReportingRepository } from '@repositories/reporting.repository';
 import type { SubscriptionRepository } from '@repositories/subscription.repository';
+import type { TaxIdRepository } from '@repositories/tax-id.repository';
+import type { TaxRateRepository } from '@repositories/tax-rate.repository';
 import type { TestClockRepository } from '@repositories/test-clock.repository';
 import type { WebhookRepository } from '@repositories/webhook.repository';
 import type { ApiKeyService } from '@services/api-key.service';
@@ -56,8 +58,12 @@ import type { ReconciliationService } from '@services/reconciliation.service';
 import type { RefundService } from '@services/refund.service';
 import type { ReportingService } from '@services/reporting.service';
 import type { SubscriptionService } from '@services/subscription.service';
+import type { TaxService } from '@services/tax.service';
+import type { TaxIdService } from '@services/tax-id.service';
+import type { TaxRateService } from '@services/tax-rate.service';
 import type { TestClockService } from '@services/test-clock.service';
 import type { WebhookService } from '@services/webhook.service';
+import type { TaxProvider } from '@type/tax-provider';
 import type { Clock } from '@utils/clock';
 import type { RedisKeyFactory } from '@utils/redis-key-factory';
 import type { Redis } from 'ioredis';
@@ -101,6 +107,8 @@ declare module 'fastify' {
     couponRepository: CouponRepository;
     promotionCodeRepository: PromotionCodeRepository;
     discountRepository: DiscountRepository;
+    taxRateRepository: TaxRateRepository;
+    taxIdRepository: TaxIdRepository;
     apiKeyService: ApiKeyService;
     customerService: CustomerService;
     customerBalanceTransactionService: CustomerBalanceTransactionService;
@@ -122,6 +130,9 @@ declare module 'fastify' {
     couponService: CouponService;
     promotionCodeService: PromotionCodeService;
     discountService: DiscountService;
+    taxRateService: TaxRateService;
+    taxIdService: TaxIdService;
+    taxService: TaxService;
     creditNoteService: CreditNoteService;
     billingRunService: BillingRunService;
     paymentService: PaymentService;
@@ -131,6 +142,7 @@ declare module 'fastify' {
     reportingService: ReportingService;
     reconciliationService: ReconciliationService;
     psp: MockPspClient;
+    taxProvider: TaxProvider;
   }
 }
 

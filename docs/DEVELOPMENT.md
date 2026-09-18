@@ -98,6 +98,8 @@ docker compose -f docker/compose.yml down -v && pnpm docker:up && pnpm db:migrat
 | Coupons           | `POST/GET /v1/coupons`, `GET/POST/DELETE /v1/coupons/:couponId`                                                                         |
 | Promotion codes   | `POST/GET /v1/promotion_codes`, `GET/POST /v1/promotion_codes/:promotionCodeId`                                                         |
 | Discounts         | `POST/GET /v1/discounts`, `GET/POST/DELETE /v1/discounts/:discountId`                                                                   |
+| Tax rates         | `POST/GET /v1/tax_rates`, `GET/POST /v1/tax_rates/:taxRateId`                                                                           |
+| Tax ids           | `POST/GET /v1/tax_ids`, `GET/DELETE /v1/tax_ids/:taxIdId`                                                                               |
 | Payments          | `POST/GET /v1/payment_intents`, `GET /v1/payment_intents/:id`, `POST /v1/payment_intents/:id/{confirm,cancel}`                          |
 | Refunds           | `POST/GET /v1/refunds`, `GET /v1/refunds/:refundId`                                                                                     |
 | Webhooks          | `POST/GET /v1/webhook_endpoints`, `GET/POST /v1/webhook_endpoints/:id`, `GET /v1/webhook_deliveries`                                    |

@@ -56,6 +56,7 @@ export const subscriptionItemSchema = Type.Object({
   subscriptionId: Type.String(),
   priceId: Type.String(),
   quantity: Type.Integer(),
+  taxRates: Type.Array(Type.String()),
   metadata: Type.Record(Type.String(), Type.String()),
   createdAt: Type.String(),
 });
@@ -73,6 +74,7 @@ export const subscriptionSchema = Type.Object({
   currentPeriodStart: Type.String(),
   currentPeriodEnd: Type.String(),
   chargedThroughDate: Type.Union([Type.String(), Type.Null()]),
+  defaultTaxRates: Type.Array(Type.String()),
   trialStart: Type.Union([Type.String(), Type.Null()]),
   trialEnd: Type.Union([Type.String(), Type.Null()]),
   cancelAtPeriodEnd: Type.Boolean(),
@@ -95,6 +97,7 @@ export const createSubscriptionSchema = Type.Object(
       Type.Object({
         priceId: Type.String({ minLength: 1 }),
         quantity: Type.Optional(Type.Integer({ minimum: 1 })),
+        taxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
         metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
       }),
       { minItems: 1 },
@@ -103,6 +106,7 @@ export const createSubscriptionSchema = Type.Object(
     trialEnd: Type.Optional(Type.String({ format: 'date-time' })),
     billingCycleAnchor: Type.Optional(Type.String({ format: 'date-time' })),
     collectionMethod: Type.Optional(Type.Unsafe<CollectionMethod>(Type.Enum(CollectionMethodEnum))),
+    defaultTaxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
   },
   { additionalProperties: false },
@@ -115,6 +119,7 @@ export const updateSubscriptionSchema = Type.Object(
         Type.Object({
           priceId: Type.String({ minLength: 1 }),
           quantity: Type.Optional(Type.Integer({ minimum: 1 })),
+          taxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
           metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
         }),
         { minItems: 1 },
@@ -124,6 +129,7 @@ export const updateSubscriptionSchema = Type.Object(
       Type.Unsafe<ProrationBehavior>(Type.Enum(ProrationBehaviorEnum)),
     ),
     cancelAtPeriodEnd: Type.Optional(Type.Boolean()),
+    defaultTaxRates: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
     metadata: Type.Optional(Type.Record(Type.String(), Type.String())),
   },
   { additionalProperties: false },

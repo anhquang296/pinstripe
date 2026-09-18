@@ -24,6 +24,8 @@ export enum AggregateTypeEnum {
   DISCOUNT = 'discount',
   PAYMENT_INTENT = 'payment_intent',
   REFUND = 'refund',
+  TAX_RATE = 'tax_rate',
+  TAX_ID = 'tax_id',
 }
 export type AggregateType = `${AggregateTypeEnum}`;
 
@@ -60,6 +62,11 @@ export enum DomainEventTypeEnum {
   PAYMENT_INTENT_SUCCEEDED = 'payment_intent.succeeded',
   PAYMENT_INTENT_FAILED = 'payment_intent.failed',
   REFUND_CREATED = 'refund.created',
+  TAX_RATE_CREATED = 'tax_rate.created',
+  TAX_RATE_UPDATED = 'tax_rate.updated',
+  TAX_ID_CREATED = 'tax_id.created',
+  TAX_ID_UPDATED = 'tax_id.updated',
+  TAX_ID_DELETED = 'tax_id.deleted',
 }
 export type DomainEventType = `${DomainEventTypeEnum}`;
 

@@ -22,6 +22,8 @@ import { PromotionCodeRepository } from '@repositories/promotion-code.repository
 import { RefundRepository } from '@repositories/refund.repository';
 import { ReportingRepository } from '@repositories/reporting.repository';
 import { SubscriptionRepository } from '@repositories/subscription.repository';
+import { TaxIdRepository } from '@repositories/tax-id.repository';
+import { TaxRateRepository } from '@repositories/tax-rate.repository';
 import { TestClockRepository } from '@repositories/test-clock.repository';
 import { WebhookRepository } from '@repositories/webhook.repository';
 import fp from 'fastify-plugin';
@@ -59,4 +61,6 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('couponRepository', new CouponRepository(fastify.database));
   fastify.decorate('promotionCodeRepository', new PromotionCodeRepository(fastify.database));
   fastify.decorate('discountRepository', new DiscountRepository(fastify.database));
+  fastify.decorate('taxRateRepository', new TaxRateRepository(fastify.database));
+  fastify.decorate('taxIdRepository', new TaxIdRepository(fastify.database));
 });

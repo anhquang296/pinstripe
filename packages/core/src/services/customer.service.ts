@@ -8,6 +8,7 @@ import type {
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import { TaxExemptEnum } from '@contracts/taxes.types';
 import type { Customer } from '@database/schemas';
 import { ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
@@ -49,6 +50,7 @@ export class CustomerService {
             description: payload.description ?? '',
             phone: payload.phone ?? '',
             taxId: payload.taxId ?? null,
+            taxExempt: payload.taxExempt ?? TaxExemptEnum.NONE,
             address: payload.address ?? null,
             currency: payload.currency,
             testClockId: payload.testClockId ?? null,
@@ -208,6 +210,7 @@ export class CustomerService {
       description: entity.description,
       phone: entity.phone,
       taxId: entity.taxId,
+      taxExempt: entity.taxExempt,
       address: entity.address,
       currency: entity.currency,
       testClockId: entity.testClockId,

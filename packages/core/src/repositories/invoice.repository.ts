@@ -4,12 +4,19 @@ import type { DatabaseClient, DatabaseTransaction } from '@database/database.cli
 import type {
   Invoice,
   InvoiceLineItem,
+  InvoiceLineItemTaxAmount,
   InvoicePayment,
   NewInvoice,
   NewInvoiceLineItem,
+  NewInvoiceLineItemTaxAmount,
   NewInvoicePayment,
 } from '@database/schemas';
-import { invoiceLineItems, invoicePayments, invoices } from '@database/schemas';
+import {
+  invoiceLineItems,
+  invoiceLineItemTaxAmounts,
+  invoicePayments,
+  invoices,
+} from '@database/schemas';
 import type { RowCursor } from '@repositories/cursor';
 import { and, asc, desc, eq, inArray, lt, lte, sql } from 'drizzle-orm';
 import _ from 'lodash';
@@ -105,6 +112,33 @@ export class InvoiceRepository {
     const db = executor ?? this._db.master;
 
     await db.insert(invoiceLineItems).values([...payload]);
+  }
+
+  async findInvoiceLineItemTaxAmounts(
+    invoiceIds: readonly string[],
+  ): Promise<InvoiceLineItemTaxAmount[]> {
+    if (_.isEmpty(invoiceIds)) {
+      return [];
+    }
+
+    return this._db.master
+      .select()
+      .from(invoiceLineItemTaxAmounts)
+      .where(inArray(invoiceLineItemTaxAmounts.invoiceId, [...invoiceIds]))
+      .orderBy(asc(invoiceLineItemTaxAmounts.createdAt), asc(invoiceLineItemTaxAmounts.id));
+  }
+
+  async createInvoiceLineItemTaxAmounts(
+    payload: readonly NewInvoiceLineItemTaxAmount[],
+    executor?: DatabaseTransaction,
+  ): Promise<void> {
+    if (_.isEmpty(payload)) {
+      return;
+    }
+
+    const db = executor ?? this._db.master;
+
+    await db.insert(invoiceLineItemTaxAmounts).values([...payload]);
   }
 
   async findInvoicePayments(invoiceIds: readonly string[]): Promise<InvoicePayment[]> {

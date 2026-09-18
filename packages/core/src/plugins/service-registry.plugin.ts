@@ -25,6 +25,9 @@ import { ReconciliationService } from '@services/reconciliation.service';
 import { RefundService } from '@services/refund.service';
 import { ReportingService } from '@services/reporting.service';
 import { SubscriptionService } from '@services/subscription.service';
+import { TaxService } from '@services/tax.service';
+import { TaxIdService } from '@services/tax-id.service';
+import { TaxRateService } from '@services/tax-rate.service';
 import { TestClockService } from '@services/test-clock.service';
 import { WebhookService } from '@services/webhook.service';
 import fp from 'fastify-plugin';
@@ -53,6 +56,9 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('couponService', new CouponService(fastify));
   fastify.decorate('promotionCodeService', new PromotionCodeService(fastify));
   fastify.decorate('discountService', new DiscountService(fastify));
+  fastify.decorate('taxRateService', new TaxRateService(fastify));
+  fastify.decorate('taxIdService', new TaxIdService(fastify));
+  fastify.decorate('taxService', new TaxService(fastify));
   fastify.decorate(
     'customerBalanceTransactionService',
     new CustomerBalanceTransactionService(fastify),

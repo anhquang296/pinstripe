@@ -27,5 +27,8 @@ export * from '@services/reconciliation.service';
 export * from '@services/refund.service';
 export * from '@services/reporting.service';
 export * from '@services/subscription.service';
+export * from '@services/tax.service';
+export * from '@services/tax-id.service';
+export * from '@services/tax-rate.service';
 export * from '@services/test-clock.service';
 export * from '@services/webhook.service';
