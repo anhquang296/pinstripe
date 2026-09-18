@@ -8,6 +8,7 @@ import type {
 } from '@contracts/subscriptions.types';
 import { BillingModeEnum, TrialEndBehaviorEnum } from '@contracts/subscriptions.types';
 import { customers } from '@database/schemas/customers.schema';
+import { paymentMethods } from '@database/schemas/payment-methods.schema';
 import { prices } from '@database/schemas/prices.schema';
 import { testClocks } from '@database/schemas/test-clocks.schema';
 import type { Currency } from '@utils/currency';
@@ -51,7 +52,9 @@ export const subscriptions = pgTable(
       .notNull()
       .default(TrialEndBehaviorEnum.CREATE_INVOICE),
     defaultTaxRates: jsonb('default_tax_rates').$type<string[]>().notNull().default([]),
-    defaultPaymentMethod: text('default_payment_method'),
+    defaultPaymentMethodId: text('default_payment_method_id').references(() => {
+      return paymentMethods.id;
+    }),
     pauseCollectionBehavior: text('pause_collection_behavior').$type<PauseCollectionBehavior>(),
     pauseCollectionResumesAt: timestamp('pause_collection_resumes_at', { withTimezone: true }),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),

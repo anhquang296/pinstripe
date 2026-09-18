@@ -38,6 +38,8 @@ export const envSchema = Type.Object({
 
   SMTP_HOST: Optional(Type.String({ minLength: 1 })),
   SMTP_PORT: Optional(Type.Integer({ minimum: 1, maximum: 65535 })),
+  SMTP_FROM_NAME: Default(Type.String({ minLength: 1 }), 'Pinstripe Billing'),
+  SMTP_FROM_EMAIL: Default(Type.String({ minLength: 1 }), 'billing@pinstripe.test'),
 
   SECRET_API_KEY: Type.String({ minLength: 16 }),
   ADMIN_API_KEY: Type.String({ minLength: 16 }),
@@ -59,6 +61,10 @@ export const envSchema = Type.Object({
   BILLING_RUN_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
   BILLING_RUN_JITTER_MS: Default(Type.Integer({ minimum: 0 }), 5_000),
   PSP_REFERENCE_PREFIX: Default(Type.String({ minLength: 1 }), 'mockpsp'),
+  PSP_AUTHENTICATION_URL: Default(Type.String({ minLength: 1 }), 'https://mock-psp.test/3ds'),
+  PSP_WEBHOOK_SECRET: Optional(Type.String({ minLength: 16 })),
+  PSP_CALLBACK_TOLERANCE_SECONDS: Default(Type.Integer({ minimum: 1 }), 300),
+  PSP_CALLBACK_POLL_INTERVAL_MS: Default(Type.Integer({ minimum: 100 }), 2_000),
 
   INVOICE_DUE_DAYS: Default(Type.Integer({ minimum: 0 }), 7),
   INVOICE_FINALIZE_DELAY_MS: Default(Type.Integer({ minimum: 0 }), 3_600_000),
@@ -66,6 +72,7 @@ export const envSchema = Type.Object({
   DUNNING_BATCH_SIZE: Default(Type.Integer({ minimum: 1 }), 100),
   DUNNING_JITTER_MS: Default(Type.Integer({ minimum: 0 }), 5_000),
   DUNNING_RETRY_DELAY_DAYS: Default(Type.String({ minLength: 1 }), '1,3,5,7'),
+  DUNNING_IN_FLIGHT_TIMEOUT_MS: Default(Type.Integer({ minimum: 1000 }), 3_600_000),
 
   WEBHOOK_MAX_ATTEMPTS: Default(Type.Integer({ minimum: 1 }), 5),
   WEBHOOK_BACKOFF_MS: Default(Type.Integer({ minimum: 100 }), 2_000),

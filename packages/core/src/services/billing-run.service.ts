@@ -16,7 +16,7 @@ export interface BillingRunResult {
   drafted: number;
   scanned: number;
   finalized: number;
-  collected: number;
+  attempted: number;
 }
 
 export class BillingRunService {
@@ -65,7 +65,7 @@ export class BillingRunService {
       drafted,
       scanned: due.length,
       finalized,
-      collected: dunningRun.collected,
+      attempted: dunningRun.attempted,
     };
 
     this.fastify.log.info(

@@ -1,16 +1,21 @@
 import { verifySystemRequest } from '@hooks/verify-system-request';
+import { pspCallbacksRoutes } from '@routes/system/psp-callbacks/psp-callbacks.routes';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import type { FastifyInstance } from 'fastify';
 
 export async function systemRoutes(fastify: FastifyInstance): Promise<void> {
-  fastify.addHook('preHandler', verifySystemRequest);
+  await fastify.register(pspCallbacksRoutes, { prefix: '/psp' });
 
-  fastify.get(
-    '/ping',
-    { schema: { response: { 200: Type.Object({ object: Type.String() }) } } },
-    async (_request, reply) => {
-      return ApiResponse.success(reply, { object: 'system_ping' });
-    },
-  );
+  await fastify.register(async (scope) => {
+    scope.addHook('preHandler', verifySystemRequest);
+
+    scope.get(
+      '/ping',
+      { schema: { response: { 200: Type.Object({ object: Type.String() }) } } },
+      async (_request, reply) => {
+        return ApiResponse.success(reply, { object: 'system_ping' });
+      },
+    );
+  });
 }

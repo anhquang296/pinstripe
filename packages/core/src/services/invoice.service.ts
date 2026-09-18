@@ -95,6 +95,13 @@ export interface InvoiceServiceConfig {
   dueDays: number;
 }
 
+export interface ApplyInvoicePaymentPayload {
+  amount?: number;
+  paymentIntentId?: string;
+  chargeId?: string;
+  settlementReference?: string;
+}
+
 export class InvoiceService {
   constructor(
     private readonly fastify: FastifyInstance,
@@ -898,65 +905,87 @@ export class InvoiceService {
     const now = await this.fastify.clockService.resolveInvoiceNow(invoiceEntity);
 
     const paidInvoice = await this.fastify.database.master.transaction(async (tx) => {
-      const invoice = await this.getLockedInvoiceEntity(id, tx);
+      return this.settleInvoice(id, { amount: payload.amount, settlementReference }, now, tx);
+    });
 
-      InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
+    return this.buildInvoice(paidInvoice);
+  }
 
-      const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
-      const amountCredited = creditedByInvoiceId[invoice.id] ?? 0;
-      const owed = invoice.amountDue - invoice.amountPaid - amountCredited;
-      const amount = payload.amount ?? owed;
+  async applyInvoicePayment(
+    id: string,
+    payload: ApplyInvoicePaymentPayload,
+    tx: DatabaseTransaction,
+  ): Promise<Invoice> {
+    const invoiceEntity = await this.getInvoiceEntity(id);
+    const now = await this.fastify.clockService.resolveInvoiceNow(invoiceEntity);
 
-      if (amount > owed) {
-        throw new BadRequestError(
-          `Payment of ${amount} exceeds the ${owed} still owed on invoice ${id}`,
-          { param: 'amount' },
-        );
-      }
+    return this.settleInvoice(id, payload, now, tx);
+  }
 
-      const amountPaid = invoice.amountPaid + amount;
-      const isSettled = amountPaid + amountCredited >= invoice.amountDue;
+  private async settleInvoice(
+    id: string,
+    payload: ApplyInvoicePaymentPayload,
+    now: Date,
+    tx: DatabaseTransaction,
+  ): Promise<Invoice> {
+    const invoice = await this.getLockedInvoiceEntity(id, tx);
 
-      const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
-        invoice.id,
+    InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
+
+    const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
+    const amountCredited = creditedByInvoiceId[invoice.id] ?? 0;
+    const owed = invoice.amountDue - invoice.amountPaid - amountCredited;
+    const amount = payload.amount ?? owed;
+
+    if (amount > owed) {
+      throw new BadRequestError(
+        `Payment of ${amount} exceeds the ${owed} still owed on invoice ${id}`,
+        { param: 'amount' },
+      );
+    }
+
+    const amountPaid = invoice.amountPaid + amount;
+    const isSettled = amountPaid + amountCredited >= invoice.amountDue;
+
+    const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
+      invoice.id,
+      {
+        amountPaid,
+        attempted: true,
+        status: isSettled ? InvoiceStatusEnum.PAID : invoice.status,
+        paidAt: isSettled ? now : null,
+        nextAttemptAt: isSettled ? null : invoice.nextAttemptAt,
+        updatedAt: now,
+      },
+      tx,
+    );
+
+    if (updatedInvoice) {
+      await this.fastify.invoiceRepository.createInvoicePayment(
         {
-          amountPaid,
-          attempted: true,
-          status: isSettled ? InvoiceStatusEnum.PAID : invoice.status,
-          paidAt: isSettled ? now : null,
-          updatedAt: now,
+          id: generateGid(ObjectPrefixEnum.INVOICE_PAYMENT),
+          livemode: invoice.livemode,
+          invoiceId: invoice.id,
+          paymentIntentId: payload.paymentIntentId ?? null,
+          chargeId: payload.chargeId ?? null,
+          amount,
+          settlementReference: payload.settlementReference ?? null,
+          paidAt: now,
+          createdAt: now,
         },
         tx,
       );
 
-      if (updatedInvoice) {
-        await this.fastify.invoiceRepository.createInvoicePayment(
-          {
-            id: generateGid(ObjectPrefixEnum.INVOICE_PAYMENT),
-            livemode: invoice.livemode,
-            invoiceId: invoice.id,
-            paymentIntentId: null,
-            amount,
-            settlementReference: settlementReference ?? null,
-            paidAt: now,
-            createdAt: now,
-          },
-          tx,
-        );
+      await this.postCashReceipt(updatedInvoice, amount, payload.settlementReference, tx);
 
-        await this.postCashReceipt(updatedInvoice, amount, settlementReference, tx);
-
-        if (isSettled) {
-          await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_PAID, tx);
-        }
-
-        return updatedInvoice;
+      if (isSettled) {
+        await this.recordInvoiceEvent(updatedInvoice, DomainEventTypeEnum.INVOICE_PAID, tx);
       }
 
-      throw new NotFoundError(`No such invoice: ${invoice.id}`);
-    });
+      return updatedInvoice;
+    }
 
-    return this.buildInvoice(paidInvoice);
+    throw new NotFoundError(`No such invoice: ${invoice.id}`);
   }
 
   async voidInvoice(id: string, payload: VoidInvoicePayload): Promise<InvoiceResponse> {

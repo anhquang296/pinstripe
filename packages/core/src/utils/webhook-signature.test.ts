@@ -54,4 +54,37 @@ describe('isWebhookSignatureValid', () => {
   ])('rejects $scenario', ({ header }) => {
     expect(isWebhookSignatureValid(PAYLOAD, SECRET, header)).toBe(false);
   });
+
+  it('accepts a signature inside the tolerance window', () => {
+    const header = buildWebhookSignature(PAYLOAD, SECRET, SIGNED_AT);
+    const verifiedAt = new Date(SIGNED_AT.getTime() + 60_000);
+
+    expect(
+      isWebhookSignatureValid(PAYLOAD, SECRET, header, { toleranceSeconds: 300, verifiedAt }),
+    ).toBe(true);
+  });
+
+  it('rejects a signature signed outside the tolerance window', () => {
+    const header = buildWebhookSignature(PAYLOAD, SECRET, SIGNED_AT);
+    const verifiedAt = new Date(SIGNED_AT.getTime() + 301_000);
+
+    expect(
+      isWebhookSignatureValid(PAYLOAD, SECRET, header, { toleranceSeconds: 300, verifiedAt }),
+    ).toBe(false);
+  });
+
+  it('rejects a signature dated in the future beyond the tolerance window', () => {
+    const header = buildWebhookSignature(PAYLOAD, SECRET, SIGNED_AT);
+    const verifiedAt = new Date(SIGNED_AT.getTime() - 301_000);
+
+    expect(
+      isWebhookSignatureValid(PAYLOAD, SECRET, header, { toleranceSeconds: 300, verifiedAt }),
+    ).toBe(false);
+  });
+
+  it('accepts a stale signature when no tolerance is asked for', () => {
+    const header = buildWebhookSignature(PAYLOAD, SECRET, SIGNED_AT);
+
+    expect(isWebhookSignatureValid(PAYLOAD, SECRET, header)).toBe(true);
+  });
 });
