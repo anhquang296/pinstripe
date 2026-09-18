@@ -20,7 +20,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Fill in the four secrets, each at least 16 characters:
+Fill in the four API secrets, each at least 16 characters:
 
 - `SECRET_API_KEY`
 - `ADMIN_API_KEY`
@@ -33,7 +33,15 @@ Generate one with:
 openssl rand -hex 16
 ```
 
-The remaining values in `.env.example` already match the Docker ports below — leave them as they are.
+Then `BETTER_AUTH_SECRET`, which signs the dashboard's session cookie and needs at least 32 characters:
+
+```bash
+openssl rand -hex 32
+```
+
+`GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` and `GOOGLE_OAUTH_ALLOWED_DOMAIN` may stay
+empty — Google sign-in only turns on when all three are set. The remaining values in `.env.example`
+already match the Docker ports below — leave them as they are.
 
 ## 3. Start the infrastructure
 
@@ -66,7 +74,25 @@ pnpm dev
 
 Turbo builds `packages/core` first, then runs the API, the workers, the admin UI and the customer portal.
 
-## 6. Optional — customer portal env
+## 6. Create the first admin
+
+The admin UI signs in with a real session cookie — the Vite proxy forwards `/api` and `/v1` to the API
+and injects nothing, so a build outside `vite dev` authenticates with exactly what it has. Sign-up does
+not exist on the server, so the first admin is created through the management surface. The call is
+idempotent:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/management/users/bootstrap \
+  -H "Authorization: Bearer $MANAGEMENT_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@pinstripe.test","name":"Admin","password":"<at least 12 characters>"}'
+```
+
+Sign in at http://localhost:5173 with that email and password. Every other user is created in the
+dashboard at `/admin/users`; there is no delete — demoting or disabling goes through an update, so the
+last-active-admin rule still holds.
+
+## 7. Optional — customer portal env
 
 `apps/portal-ui` is a Next.js app and does not read the root `.env`. To use it, create `apps/portal-ui/.env.local`:
 

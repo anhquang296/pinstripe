@@ -97,6 +97,14 @@ một test đỏ. Ngoại lệ duy nhất là `portal.*` — trừ `portal.links
 `portal-ui`, và danh sách ngoại lệ nằm ngay trong test đó. App không bao giờ gọi thẳng resource: đường
 duy nhất tới dữ liệu là hook.
 
+Đầu kia của cùng một sợi dây nằm ở `apps/admin-ui/src/hook-usage.test.ts`: nó đọc barrel
+`@pinstripe/sdk/react`, lấy mọi export kết thúc bằng `Query` hay `Mutation`, rồi khẳng định mỗi cái
+xuất hiện trong ít nhất một file của `apps/admin-ui/src`. **Không có danh sách ngoại lệ** — thêm một
+hook mà không có màn dùng tới là một test đỏ, và đó là thứ giữ cho SDK không phình ra một bề mặt không
+ai gọi. `usePinstripeClient` / `usePinstripeContext` / `usePinstripeQueries` /
+`usePinstripeMutationCallbacks` không nằm trong tập đó vì chúng là plumbing của provider, không phải
+hook dữ liệu — hình dạng tên quyết định điều đó, không phải một danh sách.
+
 Toast: một package không import được `sonner`. Mutation hook trong SDK tự invalidate rồi gọi `onMutationError` / `onMutationSuccess` từ provider; app nối `toast` vào đó **một lần** (`apps/admin-ui/src/lib/pinstripe.tsx`). Yêu cầu "đúng một toast entry point" của rule được thoả về mặt cấu trúc, và chuỗi text ở lại trong app — SDK không sở hữu chữ tiếng Việt nào.
 
 `MutationProps<TData>.successMessage` thay `shouldBeSuccessToast`: call site truyền chữ, SDK không biết chữ. Nó nhận `string`, hoặc `(data: TData) => string` khi chữ cần nội dung của kết quả (`Đã phát hành ${invoice.number}.`). Không truyền gì thì không toast — mặc định im lặng, không phải mặc định bật.
