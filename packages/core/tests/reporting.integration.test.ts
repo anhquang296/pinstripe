@@ -9,9 +9,8 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { TEST_LIVEMODE } from './factories';
+import { makePaymentMethod, TEST_LIVEMODE } from './factories';
 
-const APPROVED_METHOD = 'pm_card_ok';
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const MONTHLY_AMOUNT = 500_000;
 const MONTHS_PER_YEAR = 12;
@@ -38,11 +37,12 @@ async function makeActiveSubscription(
     {
       email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
-      defaultPaymentMethod: APPROVED_METHOD,
       testClockId: clock.id,
     },
     false,
   );
+
+  await makePaymentMethod(fastify, customer.id);
   const product = await fastify.productService.createProduct(
     {
       name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
@@ -152,6 +152,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     );
 
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
+    await fastify.paymentService.drainProviderEvents();
 
     const report = await fastify.reconciliationService.aggregateReconciliationReport(
       {
@@ -177,6 +178,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     );
 
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
+    await fastify.paymentService.drainProviderEvents();
 
     const refund = await fastify.refundService.createRefund({
       paymentIntentId: paymentIntent.id,
@@ -209,6 +211,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     );
 
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
+    await fastify.paymentService.drainProviderEvents();
 
     const report = await fastify.reconciliationService.aggregateReconciliationReport(
       {

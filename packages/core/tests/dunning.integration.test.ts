@@ -1,6 +1,8 @@
+import { PspTokenEnum } from '@clients/mock-psp.client';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { DomainEventTypeEnum } from '@contracts/events.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
+import { DECLINE_TAXONOMY, DeclineCodeEnum } from '@contracts/payments.types';
 import { WebhookDeliveryStatusEnum, WebhookEndpointStatusEnum } from '@contracts/webhooks.types';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { buildWebhookSignature, isWebhookSignatureValid } from '@utils/webhook-signature';
@@ -14,7 +16,7 @@ import { makeOpenInvoice as makeOpenInvoiceFixture } from './factories';
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const BASE_AMOUNT = 500_000;
 const SHARD_JOB = { shardIndex: 0, shardCount: 1 };
-const DECLINED_METHOD = 'pm_card_declined';
+const CLOCK_SLACK_MS = 30_000;
 
 let fastify: FastifyInstance;
 
@@ -26,14 +28,25 @@ afterAll(async () => {
   await fastify.close();
 });
 
-async function makeOpenInvoice(paymentMethod?: string): Promise<string> {
+async function makeOpenInvoice(token?: string): Promise<string> {
   const { invoiceId } = await makeOpenInvoiceFixture(fastify, {
     unitAmount: BASE_AMOUNT,
     frozenTime: CLOCK_START,
-    paymentMethod,
+    token,
   });
 
   return invoiceId;
+}
+
+async function runShard(runAt: Date) {
+  const dunningRun = await fastify.dunningService.runDunningShard({
+    ...SHARD_JOB,
+    runAt: runAt.toISOString(),
+  });
+
+  await fastify.paymentService.drainProviderEvents();
+
+  return dunningRun;
 }
 
 async function readInvoiceRow(invoiceId: string) {
@@ -85,10 +98,7 @@ describe('DunningService.runDunningShard', () => {
     const dueAt = await readDueAt(invoiceId);
     const beforeDue = new Date(dueAt.getTime() - MILLISECONDS_PER_DAY);
 
-    await fastify.dunningService.runDunningShard({
-      ...SHARD_JOB,
-      runAt: beforeDue.toISOString(),
-    });
+    await runShard(beforeDue);
     const untouched = await readInvoiceRow(invoiceId);
 
     expect(untouched.status).toBe(InvoiceStatusEnum.OPEN);
@@ -99,44 +109,90 @@ describe('DunningService.runDunningShard', () => {
   it('collects an overdue invoice and stops chasing it', async () => {
     const invoiceId = await makeOpenInvoice();
     const dueAt = await readDueAt(invoiceId);
-    const afterDue = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
-    await fastify.dunningService.runDunningShard({
-      ...SHARD_JOB,
-      shardCount: 1,
-      runAt: afterDue.toISOString(),
-    });
+    await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
     const collected = await readInvoiceRow(invoiceId);
 
     expect(collected.status).toBe(InvoiceStatusEnum.PAID);
     expect(collected.nextAttemptAt).toBeNull();
   });
 
-  it('schedules another attempt when the card is declined instead of giving up', async () => {
-    const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
+  it('parks the invoice while the confirmation is still in flight instead of charging twice', async () => {
+    const invoiceId = await makeOpenInvoice();
     const dueAt = await readDueAt(invoiceId);
     const afterDue = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
-    const dunningRun = await fastify.dunningService.runDunningShard({
+    const firstRun = await fastify.dunningService.runDunningShard({
       ...SHARD_JOB,
       runAt: afterDue.toISOString(),
     });
-    const retried = await readInvoiceRow(invoiceId);
+    const secondRun = await fastify.dunningService.runDunningShard({
+      ...SHARD_JOB,
+      runAt: new Date(
+        afterDue.getTime() + fastify.workflowSchedules.dunningInFlightTimeoutMs + 1_000,
+      ).toISOString(),
+    });
 
-    expect(dunningRun.retried).toBe(1);
-    expect(retried.status).toBe(InvoiceStatusEnum.OPEN);
-    expect(retried.attemptCount).toBe(1);
-    expect(retried.nextAttemptAt?.getTime()).toBeGreaterThan(afterDue.getTime());
+    await fastify.paymentService.drainProviderEvents();
+
+    const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
+    const charges = await fastify.paymentIntentRepository.findCharges(_.map(intents, 'id'));
+
+    expect(firstRun.attempted).toBe(1);
+    expect(secondRun.awaiting).toBe(1);
+    expect(charges).toHaveLength(1);
+  });
+
+  it.each([
+    { token: PspTokenEnum.CARD_DECLINED, scenario: 'a generic decline', expectedDelayDays: 1 },
+    {
+      token: PspTokenEnum.CARD_INSUFFICIENT_FUNDS,
+      scenario: 'insufficient funds',
+      expectedDelayDays: 3,
+    },
+    { token: PspTokenEnum.CARD_EXPIRED, scenario: 'an expired card', expectedDelayDays: 7 },
+  ])(
+    'waits $expectedDelayDays days before trying again after $scenario',
+    async ({ token, expectedDelayDays }) => {
+      const invoiceId = await makeOpenInvoice(token);
+      const dueAt = await readDueAt(invoiceId);
+      const failedAt = Date.now();
+
+      await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
+      const retried = await readInvoiceRow(invoiceId);
+      const nextAttemptAt = _.get(retried, 'nextAttemptAt', null);
+      const delayMs = (nextAttemptAt ? nextAttemptAt.getTime() : 0) - failedAt;
+
+      expect(retried.status).toBe(InvoiceStatusEnum.OPEN);
+      expect(retried.attemptCount).toBe(1);
+      expect(delayMs).toBeGreaterThan(expectedDelayDays * MILLISECONDS_PER_DAY - CLOCK_SLACK_MS);
+      expect(delayMs).toBeLessThan(expectedDelayDays * MILLISECONDS_PER_DAY + CLOCK_SLACK_MS);
+    },
+  );
+
+  it.each([
+    { token: PspTokenEnum.CARD_LOST, scenario: 'a lost card' },
+    { token: PspTokenEnum.CARD_STOLEN, scenario: 'a stolen card' },
+  ])('never retries $scenario and gives up on the first decline', async ({ token }) => {
+    const invoiceId = await makeOpenInvoice(token);
+    const dueAt = await readDueAt(invoiceId);
+
+    await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
+    const abandoned = await readInvoiceRow(invoiceId);
+
+    expect(abandoned.status).toBe(InvoiceStatusEnum.UNCOLLECTIBLE);
+    expect(abandoned.attemptCount).toBe(1);
+    expect(abandoned.nextAttemptAt).toBeNull();
   });
 
   it('reuses the open payment intent instead of minting a new one for every attempt', async () => {
-    const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
+    const invoiceId = await makeOpenInvoice(PspTokenEnum.CARD_DECLINED);
     const dueAt = await readDueAt(invoiceId);
 
     let runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
     for (const _attempt of _.range(3)) {
-      await fastify.dunningService.runDunningShard({ ...SHARD_JOB, runAt: runAt.toISOString() });
+      await runShard(runAt);
 
       const { nextAttemptAt } = await readInvoiceRow(invoiceId);
 
@@ -144,56 +200,44 @@ describe('DunningService.runDunningShard', () => {
     }
 
     const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
-    const attempts = await fastify.paymentIntentRepository.findPaymentAttempts(
-      _.map(intents, 'id'),
-    );
+    const charges = await fastify.paymentIntentRepository.findCharges(_.map(intents, 'id'));
 
     expect(intents).toHaveLength(1);
-    expect(attempts.length).toBeGreaterThanOrEqual(3);
+    expect(charges.length).toBeGreaterThanOrEqual(3);
   });
 
   it('gives up and marks the invoice uncollectible once the retry schedule runs out', async () => {
-    const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
+    const invoiceId = await makeOpenInvoice(PspTokenEnum.CARD_INSUFFICIENT_FUNDS);
     const dueAt = await readDueAt(invoiceId);
-    const retryCount = fastify.workflowSchedules.dunningRetryDelayDays.length;
+    const retryCount = DECLINE_TAXONOMY[DeclineCodeEnum.INSUFFICIENT_FUNDS].retryDelayDays.length;
 
     let runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
-    for (const attempt of _.range(retryCount + 1)) {
-      await fastify.dunningService.runDunningShard({ ...SHARD_JOB, runAt: runAt.toISOString() });
+    for (const _attempt of _.range(retryCount + 1)) {
+      await runShard(runAt);
 
       const { nextAttemptAt } = await readInvoiceRow(invoiceId);
 
       runAt = new Date((nextAttemptAt ?? runAt).getTime() + MILLISECONDS_PER_DAY);
-
-      expect(attempt).toBeGreaterThanOrEqual(0);
     }
 
     const abandoned = await readInvoiceRow(invoiceId);
 
     expect(abandoned.status).toBe(InvoiceStatusEnum.UNCOLLECTIBLE);
     expect(abandoned.nextAttemptAt).toBeNull();
-    expect(abandoned.attemptCount).toBe(retryCount);
+    expect(abandoned.attemptCount).toBe(retryCount + 1);
   });
 
   it('stops chasing an invoice it has already given up on', async () => {
-    const invoiceId = await makeOpenInvoice(DECLINED_METHOD);
+    const invoiceId = await makeOpenInvoice(PspTokenEnum.CARD_LOST);
     const dueAt = await readDueAt(invoiceId);
-    const retryCount = fastify.workflowSchedules.dunningRetryDelayDays.length;
+    const afterDue = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
 
-    let runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
-
-    for (const _attempt of _.range(retryCount + 1)) {
-      await fastify.dunningService.runDunningShard({ ...SHARD_JOB, runAt: runAt.toISOString() });
-
-      const { nextAttemptAt } = await readInvoiceRow(invoiceId);
-
-      runAt = new Date((nextAttemptAt ?? runAt).getTime() + MILLISECONDS_PER_DAY);
-    }
+    await runShard(afterDue);
 
     const afterAbandon = await fastify.dunningService.runDunningShard({
       ...SHARD_JOB,
-      runAt: new Date(runAt.getTime() + 30 * MILLISECONDS_PER_DAY).toISOString(),
+      runAt: new Date(afterDue.getTime() + 30 * MILLISECONDS_PER_DAY).toISOString(),
     });
 
     expect(afterAbandon.scanned).toBe(0);

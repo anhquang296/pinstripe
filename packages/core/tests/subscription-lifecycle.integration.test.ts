@@ -1,3 +1,4 @@
+import { PspTokenEnum } from '@clients/mock-psp.client';
 import { MILLISECONDS_PER_DAY, MILLISECONDS_PER_HOUR } from '@constants/time';
 import { EntitlementStatusEnum } from '@contracts/entitlements.types';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
@@ -17,11 +18,12 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+import { makePaymentMethod } from './factories';
 
 const LIVEMODE = false;
 const UNIT_AMOUNT = 500_000;
-const OK_METHOD = 'pm_card_ok';
-const DECLINED_METHOD = 'pm_card_declined';
+const OK_TOKEN = PspTokenEnum.VISA_OK;
+const DECLINED_TOKEN = PspTokenEnum.CARD_DECLINED;
 const SHARD = { shardIndex: 0, shardCount: 1 };
 const CLOCK_START = '2026-06-01T00:00:00.000Z';
 
@@ -36,7 +38,7 @@ afterAll(async () => {
 });
 
 interface ScenarioOverrides {
-  paymentMethod?: string;
+  token?: string;
   testClockId?: string;
 }
 
@@ -63,11 +65,14 @@ async function makeCustomer(overrides: ScenarioOverrides = {}): Promise<string> 
     {
       email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
-      defaultPaymentMethod: overrides.paymentMethod,
       testClockId: overrides.testClockId,
     },
     LIVEMODE,
   );
+
+  if (overrides.token) {
+    await makePaymentMethod(fastify, customer.id, overrides.token);
+  }
 
   return customer.id;
 }
@@ -106,6 +111,7 @@ async function readSubscriptionInvoice(subscriptionId: string) {
 
 async function runBilling(runAt: Date): Promise<void> {
   await fastify.billingRunService.runBillingShard({ ...SHARD, runAt: runAt.toISOString() });
+  await fastify.paymentService.drainProviderEvents();
 }
 
 function offsetFrom(instant: string, milliseconds: number): Date {
@@ -114,7 +120,7 @@ function offsetFrom(instant: string, milliseconds: number): Date {
 
 describe('BillingRunService.runBillingShard without a test clock', () => {
   it('rolls the period, drafts, finalizes and collects on the real clock alone', async () => {
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD });
+    const customerId = await makeCustomer({ token: OK_TOKEN });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId }], billingMode: BillingModeEnum.ARREARS },
@@ -134,7 +140,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
   });
 
   it('leaves the first failed collection incomplete and expires it after 23 hours', async () => {
-    const customerId = await makeCustomer({ paymentMethod: DECLINED_METHOD });
+    const customerId = await makeCustomer({ token: DECLINED_TOKEN });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId }] },
@@ -160,7 +166,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
   });
 
   it('moves a subscription that has paid before to past_due and then to unpaid', async () => {
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD });
+    const customerId = await makeCustomer({ token: OK_TOKEN });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId }] },
@@ -168,11 +174,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
     );
 
     await runBilling(offsetFrom(subscription.currentPeriodEnd, 8 * MILLISECONDS_PER_DAY));
-    await fastify.customerService.updateCustomer(
-      customerId,
-      { defaultPaymentMethod: DECLINED_METHOD },
-      LIVEMODE,
-    );
+    await makePaymentMethod(fastify, customerId, DECLINED_TOKEN);
 
     const paid = await readSubscription(subscription.id);
     let runAt = offsetFrom(paid.currentPeriodEnd, 8 * MILLISECONDS_PER_DAY);
@@ -230,7 +232,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
 describe('SubscriptionService.updateSubscription pauseCollection', () => {
   it('holds the next invoice as a draft while collection is paused', async () => {
     const testClockId = await makeTestClock();
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId }] },
@@ -265,7 +267,7 @@ describe('SubscriptionService.updateSubscription pauseCollection', () => {
 
   it('resumes by itself once resumesAt has passed', async () => {
     const testClockId = await makeTestClock();
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId }] },
@@ -302,7 +304,7 @@ describe('SubscriptionService.updateSubscription pauseCollection', () => {
     'leaves the cycle invoice $expected when collection is paused with $behavior',
     async ({ behavior, expected }) => {
       const testClockId = await makeTestClock();
-      const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+      const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
       const priceId = await makePrice();
       const subscription = await fastify.subscriptionService.createSubscription(
         { customerId, items: [{ priceId }] },
@@ -326,7 +328,7 @@ describe('SubscriptionService.updateSubscription pauseCollection', () => {
 describe('SubscriptionService.cancelSubscription cancelAt', () => {
   it('cancels on the requested day and revokes the entitlement', async () => {
     const testClockId = await makeTestClock();
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId }] },
@@ -410,7 +412,7 @@ describe('SubscriptionService trial end behavior', () => {
 
   it('keeps billing a trial that ends with a payment method on file', async () => {
     const testClockId = await makeTestClock();
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       {
@@ -435,7 +437,7 @@ describe('SubscriptionService trial end behavior', () => {
 describe('SubscriptionItemService', () => {
   it('keeps the item id when the quantity changes and opens a new billing window', async () => {
     const testClockId = await makeTestClock();
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId, quantity: 1 }] },
@@ -465,7 +467,7 @@ describe('SubscriptionItemService', () => {
 
   it('adds and removes an item through the resource', async () => {
     const testClockId = await makeTestClock();
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const secondPriceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
@@ -500,7 +502,7 @@ describe('SubscriptionItemService', () => {
 
   it('refuses to remove the last item of a subscription', async () => {
     const testClockId = await makeTestClock();
-    const customerId = await makeCustomer({ paymentMethod: OK_METHOD, testClockId });
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const subscription = await fastify.subscriptionService.createSubscription(
       { customerId, items: [{ priceId }] },
