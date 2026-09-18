@@ -39,6 +39,7 @@ function useDiscountInvalidation() {
     queryClient.invalidateQueries({ queryKey: queries.discount.coupons._def });
     queryClient.invalidateQueries({ queryKey: queries.discount.coupon._def });
     queryClient.invalidateQueries({ queryKey: queries.discount.promotionCodes._def });
+    queryClient.invalidateQueries({ queryKey: queries.discount.promotionCode._def });
     queryClient.invalidateQueries({ queryKey: queries.discount.discounts._def });
     queryClient.invalidateQueries({ queryKey: queries.discount.discount._def });
     queryClient.invalidateQueries({ queryKey: queries.invoice.invoices._def });

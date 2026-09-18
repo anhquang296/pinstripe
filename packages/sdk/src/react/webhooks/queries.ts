@@ -16,6 +16,18 @@ export function useWebhookEndpointsQuery(
   });
 }
 
+export function useWebhookEndpointQuery(
+  webhookEndpointId: string,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.webhook.endpoint(webhookEndpointId),
+    enabled: enabled && Boolean(webhookEndpointId),
+  });
+}
+
 export function useWebhookDeliveriesQuery(
   query?: FindWebhookDeliveriesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},

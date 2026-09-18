@@ -52,6 +52,18 @@ export function useDiscountsQuery(
   });
 }
 
+export function usePromotionCodeQuery(
+  promotionCodeId: string,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.discount.promotionCode(promotionCodeId),
+    enabled: enabled && Boolean(promotionCodeId),
+  });
+}
+
 export function useDiscountQuery(discountId: string, { enabled = true }: QueryProps = {}) {
   const queries = usePinstripeQueries();
 
