@@ -31,6 +31,7 @@ export class BillingRunService {
       {
         statuses: BILLABLE_SUBSCRIPTION_STATUSES,
         currentPeriodEndTo: job.runAt,
+        testClockIdIsNull: true,
         shardCount: job.shardCount,
         shardIndex: job.shardIndex,
       },
@@ -48,7 +49,7 @@ export class BillingRunService {
     }
 
     const lifecycle = await this.fastify.subscriptionService.runSubscriptionLifecycle(
-      { shardCount: job.shardCount, shardIndex: job.shardIndex },
+      { testClockIdIsNull: true, shardCount: job.shardCount, shardIndex: job.shardIndex },
       runAt,
     );
     const finalizeBeforeAt = new Date(runAt.getTime() - this.config.finalizeDelayMs);

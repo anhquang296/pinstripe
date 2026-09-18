@@ -54,6 +54,7 @@ const ROLLABLE_STATUSES = [
 
 export interface SubscriptionScanFilters {
   testClockId?: string;
+  testClockIdIsNull?: boolean;
   shardCount?: number;
   shardIndex?: number;
 }
@@ -343,6 +344,7 @@ export class SubscriptionService {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         statuses: ROLLABLE_STATUSES,
@@ -362,6 +364,7 @@ export class SubscriptionService {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         statuses: ROLLABLE_STATUSES,
@@ -398,6 +401,7 @@ export class SubscriptionService {
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         status: SubscriptionStatusEnum.PAUSED,
@@ -437,6 +441,7 @@ export class SubscriptionService {
     const stale = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
+        testClockIdIsNull: filters.testClockIdIsNull,
         shardCount: filters.shardCount,
         shardIndex: filters.shardIndex,
         status: SubscriptionStatusEnum.INCOMPLETE,

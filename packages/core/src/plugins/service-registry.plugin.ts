@@ -122,7 +122,10 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
       sessionTtlMinutes: fastify.config.CHECKOUT_SESSION_TTL_MINUTES,
     }),
   );
-  fastify.decorate('testClockService', new TestClockService(fastify));
+  fastify.decorate(
+    'testClockService',
+    new TestClockService(fastify, { isEnabled: fastify.config.TEST_CLOCKS_ENABLED }),
+  );
   fastify.decorate('meterService', new MeterService(fastify));
   fastify.decorate(
     'meterEventService',

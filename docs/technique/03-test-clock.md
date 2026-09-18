@@ -338,8 +338,11 @@ mốc mới dù việc cuốn kỳ hỏng giữa chừng.
   subscription ở kỳ tương lai mà không cách nào cuốn ngược.
 - **Gắn đồng hồ ngay lúc tạo customer.** Không có API gắn sau, và subscription chỉ kế thừa tại thời
   điểm được tạo.
-- **Không gắn test clock lên dữ liệu thật.** Đây là công cụ của môi trường dev và sandbox; một khách
-  production mang `testClockId` là một khách mà giờ của họ do người khác bấm.
+- **Chỉ bật ở UAT/staging.** Test clock chạy trên dữ liệu của môi trường đang bật nó (không còn test
+  mode, xem [ADR 0022](../adr/0022-drop-livemode.md)). `TEST_CLOCKS_ENABLED` phải là `false` ở
+  production; khi tắt thì route `/test_clocks` không tồn tại và gắn `testClockId` trả `BadRequestError`.
+- **Billing run bỏ qua subscription có đồng hồ.** Sweep theo giờ thật không động vào chúng; chỉ
+  `advance` của đồng hồ mới đẩy chúng đi.
 - **Service mới có hành vi theo thời gian phải nhận `testClockId`**, không mặc định `clock.now()` —
   nếu không, bảng giới hạn ở trên lại dài thêm một dòng.
 

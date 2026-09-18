@@ -49,6 +49,7 @@ export interface SubscriptionFilters {
   status?: SubscriptionStatus;
   statusNe?: SubscriptionStatus;
   testClockId?: string;
+  testClockIdIsNull?: boolean;
   currentPeriodEndTo?: string;
   cancelAtTo?: string;
   pauseResumesAtTo?: string;
@@ -87,6 +88,7 @@ export class SubscriptionRepository {
       filters.status ? eq(subscriptions.status, filters.status) : undefined,
       filters.statusNe ? ne(subscriptions.status, filters.statusNe) : undefined,
       filters.testClockId ? eq(subscriptions.testClockId, filters.testClockId) : undefined,
+      filters.testClockIdIsNull ? isNull(subscriptions.testClockId) : undefined,
       filters.currentPeriodEndTo
         ? lte(subscriptions.currentPeriodEnd, filters.currentPeriodEndTo)
         : undefined,

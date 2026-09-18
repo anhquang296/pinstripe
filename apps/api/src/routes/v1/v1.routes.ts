@@ -74,7 +74,9 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(webhookDeliveriesRoutes, { prefix: '/webhook_deliveries' });
   await fastify.register(metersRoutes, { prefix: '/billing/meters' });
   await fastify.register(meterEventsRoutes, { prefix: '/billing' });
-  await fastify.register(testClocksRoutes, { prefix: '/test_helpers/test_clocks' });
+  if (fastify.testClockService.isEnabled) {
+    await fastify.register(testClocksRoutes, { prefix: '/test_helpers/test_clocks' });
+  }
 
   fastify.get(
     '/ping',

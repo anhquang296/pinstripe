@@ -458,8 +458,25 @@ describe('CreditNoteService.createCreditNote', () => {
 
 describe('BillingRunService.runBillingShard', () => {
   it('drafts an invoice once for a due subscription no matter how often it runs', async () => {
-    const { subscriptionId } = await makeSubscription();
-    const periodEnd = await readPeriodEnd(subscriptionId);
+    const customer = await fastify.customerService.createCustomer({
+      email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+      currency: CurrencyEnum.VND,
+    });
+    const product = await fastify.productService.createProduct({
+      name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
+    });
+    const price = await fastify.priceService.createPrice({
+      productId: product.id,
+      currency: CurrencyEnum.VND,
+      unitAmount: BASE_AMOUNT,
+      recurring: { interval: RecurringIntervalEnum.MONTH },
+    });
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId: customer.id,
+      items: [{ priceId: price.id }],
+      billingMode: BillingModeEnum.ARREARS,
+    });
+    const periodEnd = await readPeriodEnd(subscription.id);
     const runAt = new Date(periodEnd.getTime() + 1_000);
     const job = { shardIndex: 0, shardCount: 1, runAt: runAt.toISOString() };
 

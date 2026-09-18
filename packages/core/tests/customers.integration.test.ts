@@ -1,8 +1,8 @@
-import { NotFoundError } from '@errors/app.error';
+import { BadRequestError, NotFoundError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { buildTestContext } from './context';
 
@@ -12,6 +12,10 @@ beforeAll(async () => {
   fastify = await buildTestContext();
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 afterAll(async () => {
   await fastify.close();
 });
@@ -19,6 +23,24 @@ afterAll(async () => {
 function buildEmail(): string {
   return `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`;
 }
+
+describe('CustomerService.createCustomer', () => {
+  it('throws BadRequestError when attaching a test clock while test clocks are disabled', async () => {
+    const testClock = await fastify.testClockService.createTestClock({
+      name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
+      frozenTime: '2026-06-01T00:00:00.000Z',
+    });
+    vi.spyOn(fastify.testClockService, 'isEnabled', 'get').mockReturnValue(false);
+
+    const act = fastify.customerService.createCustomer({
+      email: buildEmail(),
+      currency: CurrencyEnum.VND,
+      testClockId: testClock.id,
+    });
+
+    await expect(act).rejects.toThrowError(BadRequestError);
+  });
+});
 
 describe('CustomerService.deleteCustomer', () => {
   it('hides the customer from every later read', async () => {

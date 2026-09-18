@@ -76,4 +76,5 @@ export function loadTestEnv(): void {
   process.env.REDIS_KEY_PREFIX = TEST_REDIS_KEY_PREFIX;
   process.env.NODE_ENV = TEST_NODE_ENV;
   process.env.LOG_LEVEL = TEST_LOG_LEVEL;
+  process.env.TEST_CLOCKS_ENABLED = 'true';
 }

@@ -10,7 +10,7 @@ import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import { TaxExemptEnum } from '@contracts/taxes.types';
 import type { Customer } from '@database/schemas';
-import { ConflictError, NotFoundError } from '@errors/app.error';
+import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
@@ -21,11 +21,25 @@ export class CustomerService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createCustomer(payload: CreateCustomerPayload): Promise<CustomerResponse> {
-    const now = this.fastify.clock.now().toISOString();
+    if (this.canAttachTestClock(payload.testClockId)) {
+      const now = this.fastify.clock.now().toISOString();
 
-    const id = generateGid(ObjectPrefixEnum.CUSTOMER);
+      const id = generateGid(ObjectPrefixEnum.CUSTOMER);
 
-    return this.writeCustomer(id, payload, now);
+      return this.writeCustomer(id, payload, now);
+    }
+
+    throw new BadRequestError('Test clocks are disabled in this environment', {
+      param: 'testClockId',
+    });
+  }
+
+  private canAttachTestClock(testClockId: string | undefined): boolean {
+    if (testClockId) {
+      return this.fastify.testClockService.isEnabled;
+    }
+
+    return true;
   }
 
   private async writeCustomer(

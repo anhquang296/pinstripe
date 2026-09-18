@@ -132,6 +132,30 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
     expect(rolled.chargedThroughDate).toBe(subscription.currentPeriodEnd);
   });
 
+  it('skips a subscription whose customer runs on a test clock', async () => {
+    const testClockId = await makeTestClock();
+    const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
+    const priceId = await makePrice();
+    const subscription = await fastify.subscriptionService.createSubscription({
+      customerId,
+      items: [{ priceId }],
+      billingMode: BillingModeEnum.ARREARS,
+    });
+    const invoicesBefore = await fastify.invoiceRepository.findInvoices({
+      subscriptionId: subscription.id,
+    });
+
+    await runBilling(offsetFrom(subscription.currentPeriodEnd, 8 * MILLISECONDS_PER_DAY));
+
+    const unchanged = await readSubscription(subscription.id);
+    const invoicesAfter = await fastify.invoiceRepository.findInvoices({
+      subscriptionId: subscription.id,
+    });
+
+    expect(unchanged.currentPeriodStart).toBe(subscription.currentPeriodStart);
+    expect(invoicesAfter).toHaveLength(invoicesBefore.length);
+  });
+
   it('leaves the first failed collection incomplete and expires it after 23 hours', async () => {
     const customerId = await makeCustomer({ token: DECLINED_TOKEN });
     const priceId = await makePrice();
