@@ -80,9 +80,9 @@ function buildInclusiveAmounts(
   const shares = combinedTax.allocate(percentages);
 
   const amounts = _.map(inclusiveSnapshots, (snapshot, index): LineTaxAmount => {
-    const share = shares[index];
+    const amount = _.get(shares, [index, 'amount'], 0);
 
-    return { ...snapshot, amount: share ? share.amount : 0, taxableAmount };
+    return { ...snapshot, amount, taxableAmount };
   });
 
   return _.keyBy(amounts, 'taxRateId');

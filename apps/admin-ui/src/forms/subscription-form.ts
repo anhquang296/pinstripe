@@ -27,9 +27,11 @@ export const subscriptionFormDefaultValues: SubscriptionFormData = {
 export function subscriptionFormDataToPayload(
   formData: SubscriptionFormData,
 ): CreateSubscriptionPayload {
+  const trialPeriodDays = formData.trialPeriodDays > 0 ? formData.trialPeriodDays : undefined;
+
   return {
     customerId: formData.customerId,
     items: [{ priceId: formData.priceId }],
-    trialPeriodDays: formData.trialPeriodDays > 0 ? formData.trialPeriodDays : undefined,
+    trialPeriodDays,
   };
 }

@@ -88,6 +88,10 @@ export class LedgerService {
     const createdAt = this.fastify.clock.now().toISOString();
     const transactionId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
     const postings = await this.buildPostings(transactionId, payload, createdAt);
+    const { effectiveAt: requestedEffectiveAt, metadata = {} } = payload;
+    const effectiveAt = requestedEffectiveAt
+      ? new Date(requestedEffectiveAt).toISOString()
+      : createdAt;
 
     const postedTransaction = await this.writeTransaction(
       {
@@ -95,10 +99,10 @@ export class LedgerService {
         description: payload.description,
         currency: payload.currency,
         externalId: payload.externalId ?? null,
-        effectiveAt: payload.effectiveAt ? new Date(payload.effectiveAt).toISOString() : createdAt,
+        effectiveAt,
         reversesTransactionId: null,
         reversedByTransactionId: null,
-        metadata: payload.metadata ?? {},
+        metadata,
         createdAt,
       },
       postings,
@@ -189,14 +193,16 @@ export class LedgerService {
     const reversedAt = this.fastify.clock.now().toISOString();
     const reversalId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
     const postings: PostedLedgerPosting[] = _.map(originalPostings, (posting) => {
+      const direction =
+        posting.direction === PostingDirectionEnum.DEBIT
+          ? PostingDirectionEnum.CREDIT
+          : PostingDirectionEnum.DEBIT;
+
       return {
         id: generateGid(ObjectPrefixEnum.LEDGER_POSTING),
         transactionId: reversalId,
         accountId: posting.accountId,
-        direction:
-          posting.direction === PostingDirectionEnum.DEBIT
-            ? PostingDirectionEnum.CREDIT
-            : PostingDirectionEnum.DEBIT,
+        direction,
         amount: posting.amount,
         currency: posting.currency,
         createdAt: reversedAt,
@@ -351,7 +357,9 @@ export class LedgerService {
         SINGLE_ROW_LIMIT,
       );
 
-      return account?.id;
+      if (account) {
+        return account.id;
+      }
     }
 
     return undefined;
@@ -372,12 +380,14 @@ export class LedgerService {
     currency: Currency,
     customerId: string | undefined,
   ): Promise<LedgerAccountWithBalance | null> {
+    const customerIdIsNull = customerId ? undefined : true;
+
     const [account] = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
       {
         code,
         currency,
         customerId,
-        customerIdIsNull: customerId ? undefined : true,
+        customerIdIsNull,
       },
       SINGLE_ROW_LIMIT,
     );

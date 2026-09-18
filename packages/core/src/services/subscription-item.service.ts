@@ -104,12 +104,18 @@ export class SubscriptionItemService {
       subscriptionItem.subscriptionId,
     );
     const timing = await this.resolveTiming(subscription, payload.prorationBehavior);
+    const {
+      priceId = subscriptionItem.priceId,
+      quantity = subscriptionItem.quantity,
+      taxRates = subscriptionItem.taxRates,
+      metadata = subscriptionItem.metadata,
+    } = payload;
     const line: SubscriptionItemLine = {
       id: subscriptionItem.id,
-      priceId: payload.priceId ?? subscriptionItem.priceId,
-      quantity: payload.quantity ?? subscriptionItem.quantity,
-      taxRates: payload.taxRates ?? subscriptionItem.taxRates,
-      metadata: payload.metadata ?? subscriptionItem.metadata,
+      priceId,
+      quantity,
+      taxRates,
+      metadata,
     };
     const price = await this.fastify.priceRepository.getPrice(line.priceId);
 
@@ -206,13 +212,14 @@ export class SubscriptionItemService {
     timing: SubscriptionChangeTiming,
     tx: DatabaseTransaction,
   ): Promise<SubscriptionItemResponse> {
+    const { quantity = 1, taxRates = [], metadata = {} } = line;
     const subscriptionItem = {
       id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
       subscriptionId: subscription.id,
       priceId: line.priceId,
-      quantity: line.quantity ?? 1,
-      taxRates: line.taxRates ?? [],
-      metadata: line.metadata ?? {},
+      quantity,
+      taxRates,
+      metadata,
       createdAt: timing.now.toISOString(),
     } satisfies NewSubscriptionItem;
 
@@ -240,7 +247,11 @@ export class SubscriptionItemService {
     timing: SubscriptionChangeTiming,
     tx: DatabaseTransaction,
   ): Promise<SubscriptionItem> {
-    const quantity = line.quantity ?? subscriptionItem.quantity;
+    const {
+      quantity = subscriptionItem.quantity,
+      taxRates = subscriptionItem.taxRates,
+      metadata = subscriptionItem.metadata,
+    } = line;
     const isRebilled =
       line.priceId !== subscriptionItem.priceId || quantity !== subscriptionItem.quantity;
 
@@ -269,8 +280,8 @@ export class SubscriptionItemService {
       {
         priceId: line.priceId,
         quantity,
-        taxRates: line.taxRates ?? subscriptionItem.taxRates,
-        metadata: line.metadata ?? subscriptionItem.metadata,
+        taxRates,
+        metadata,
       },
       tx,
     );
@@ -337,8 +348,7 @@ export class SubscriptionItemService {
     prorationBehavior: ProrationBehavior | undefined,
   ): Promise<SubscriptionChangeTiming> {
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
-    const isProrated =
-      (prorationBehavior ?? ProrationBehaviorEnum.CREATE_PRORATIONS) !== ProrationBehaviorEnum.NONE;
+    const isProrated = prorationBehavior !== ProrationBehaviorEnum.NONE;
 
     if (isProrated) {
       return { now, boundary: now };
@@ -395,7 +405,9 @@ export class SubscriptionItemService {
       throw new BadRequestError(`No such subscription item: ${line.id}`, { param: 'items' });
     }
 
-    return _.find(available, { priceId: line.priceId }) ?? null;
+    const matchedItem = _.find(available, { priceId: line.priceId });
+
+    return matchedItem ?? null;
   }
 
   private static buildItemChange(

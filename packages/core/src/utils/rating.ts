@@ -163,8 +163,9 @@ function rateGraduatedTiers(
       return Money.zero(currency);
     }
 
-    const flatAmount = Money.of(tier.flatAmount ?? 0, currency);
-    const unitAmount = Money.of(tier.unitAmount ?? 0, currency);
+    const { flatAmount: tierFlatAmount = 0, unitAmount: tierUnitAmount = 0 } = tier;
+    const flatAmount = Money.of(tierFlatAmount, currency);
+    const unitAmount = Money.of(tierUnitAmount, currency);
 
     return flatAmount.add(unitAmount.multiply(unitsInTier, RATING_ROUNDING_POLICY));
   });
@@ -178,8 +179,9 @@ function rateVolumeTiers(tiers: readonly PriceTier[], quantity: number, currency
   });
 
   if (tier) {
-    const flatAmount = Money.of(tier.flatAmount ?? 0, currency);
-    const unitAmount = Money.of(tier.unitAmount ?? 0, currency);
+    const { flatAmount: tierFlatAmount = 0, unitAmount: tierUnitAmount = 0 } = tier;
+    const flatAmount = Money.of(tierFlatAmount, currency);
+    const unitAmount = Money.of(tierUnitAmount, currency);
 
     return flatAmount.add(unitAmount.multiply(quantity, RATING_ROUNDING_POLICY));
   }
@@ -199,7 +201,9 @@ export function ratePrice(price: RatingPrice, quantity: number): Money {
   }
 
   if (price.billingScheme === BillingSchemeEnum.PER_UNIT) {
-    const unitAmount = Money.of(price.unitAmount ?? 0, price.currency);
+    const { unitAmount: priceUnitAmount } = price;
+    const unitMinorAmount = priceUnitAmount === null ? 0 : priceUnitAmount;
+    const unitAmount = Money.of(unitMinorAmount, price.currency);
 
     return unitAmount.multiply(ratedQuantity, RATING_ROUNDING_POLICY);
   }

@@ -133,13 +133,15 @@ export class NotificationService {
     const paymentIntent = await this.resolvePaymentIntent(job.paymentIntentId);
     const amount = NotificationService.resolveAmount(job.kind, invoice, paymentIntent);
     const nextAttemptAt = NotificationService.resolveNextAttemptAt(invoice);
+    const invoiceNumber = _.get(invoice, 'number', null);
+    const declineCode = _.get(paymentIntent, 'declineCode', null);
 
     return {
       customerName: customer.name,
-      invoiceNumber: _.get(invoice, 'number', null),
+      invoiceNumber,
       amount,
       currency: customer.currency,
-      declineCode: _.get(paymentIntent, 'declineCode', null),
+      declineCode,
       nextAttemptAt,
       url: job.url,
     };

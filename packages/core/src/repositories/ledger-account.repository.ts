@@ -47,7 +47,11 @@ export class LedgerAccountRepository {
       .where(eq(ledgerAccounts.id, id))
       .limit(1);
 
-    return account ? LedgerAccountRepository.mergeBalance(account) : null;
+    if (account) {
+      return LedgerAccountRepository.mergeBalance(account);
+    }
+
+    return null;
   }
 
   async findLedgerAccounts(

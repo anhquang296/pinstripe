@@ -25,7 +25,7 @@ export default function PaymentIntentItem({
   isBusy,
   onRefund,
 }: PaymentIntentItemProps) {
-  const { latestChargeId } = paymentIntent;
+  const { latestChargeId, pspReference } = paymentIntent;
 
   const handleOnRefund = useCallback(() => {
     if (latestChargeId) {
@@ -63,7 +63,7 @@ export default function PaymentIntentItem({
         })}
       </td>
       <td className="px-4 py-3 font-mono text-xs text-slate-500">
-        {paymentIntent.pspReference ?? '—'}
+        {pspReference === null ? '—' : pspReference}
       </td>
       <td className="px-4 py-3">
         {isSucceeded ? (

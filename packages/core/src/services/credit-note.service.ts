@@ -59,6 +59,7 @@ export class CreditNoteService {
     const id = generateGid(ObjectPrefixEnum.CREDIT_NOTE);
     const refundPayload = await this.requestRefund(invoice, split, payload.reason, id);
     const now = this.fastify.clock.now().toISOString();
+    const { metadata = {} } = payload;
 
     const createdCreditNote = await this.fastify.database.master.transaction(async (tx) => {
       const sequenceValue = await this.fastify.numberSequenceRepository.claimNumberSequence(
@@ -86,7 +87,7 @@ export class CreditNoteService {
           refundId: _.get(refundPayload, 'id', null),
           ledgerTransactionId,
           reason: payload.reason,
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt: now,
         },
         CreditNoteService.buildLines(id, payload, now),
@@ -154,13 +155,10 @@ export class CreditNoteService {
       });
     }
 
+    const voidReason = payload.reason ?? null;
+
     await this.fastify.database.master.transaction(async (tx) => {
-      await this.recordTransition(
-        creditNote,
-        CreditNoteStatusEnum.VOID,
-        payload.reason ?? null,
-        tx,
-      );
+      await this.recordTransition(creditNote, CreditNoteStatusEnum.VOID, voidReason, tx);
       await this.recordCreditNoteEvent(creditNote, DomainEventTypeEnum.CREDIT_NOTE_VOIDED, tx);
     });
 
@@ -214,8 +212,7 @@ export class CreditNoteService {
     payload: CreateCreditNotePayload,
   ): Promise<CreditNoteSplit> {
     const amount = _.sumBy(payload.lines, 'amount');
-    const refundAmount = payload.refundAmount ?? 0;
-    const outOfBandAmount = payload.outOfBandAmount ?? 0;
+    const { refundAmount = 0, outOfBandAmount = 0 } = payload;
     const creditedAmount = await this.resolveCreditedAmount(invoice.id);
     const isPostPayment = invoice.amountPaid > 0;
 
@@ -552,12 +549,14 @@ export class CreditNoteService {
     createdAt: string,
   ): NewCreditNoteLineItem[] {
     return _.map(payload.lines, (line): NewCreditNoteLineItem => {
+      const { description = '', quantity = 1 } = line;
+
       return {
         id: generateGid(ObjectPrefixEnum.CREDIT_NOTE_LINE_ITEM),
         creditNoteId,
         invoiceLineItemId: line.invoiceLineItemId ?? null,
-        description: line.description ?? '',
-        quantity: line.quantity ?? 1,
+        description,
+        quantity,
         unitAmount: line.unitAmount ?? null,
         amount: line.amount,
         createdAt,

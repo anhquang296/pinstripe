@@ -55,8 +55,8 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     const report = await aggregateReport();
     const exception = _.find(report.exceptions, { reference: `charge:${chargeId}` });
 
-    expect(exception?.outcome).toBe(ReconciliationOutcomeEnum.MISSING_IN_INVOICES);
-    expect(exception?.invoiceAmount).toBe(0);
+    expect(_.get(exception, 'outcome')).toBe(ReconciliationOutcomeEnum.MISSING_IN_INVOICES);
+    expect(_.get(exception, 'invoiceAmount')).toBe(0);
   });
 
   it('scans past the first page instead of silently dropping the rest', async () => {

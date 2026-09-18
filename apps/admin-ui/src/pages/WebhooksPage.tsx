@@ -135,6 +135,8 @@ export default function WebhooksPage() {
             </thead>
             <tbody>
               {map(deliveries?.data, (delivery) => {
+                const { responseStatus, lastError } = delivery;
+
                 return (
                   <tr key={delivery.id} className="border-t border-slate-100">
                     <td className="px-4 py-3">{delivery.eventType}</td>
@@ -147,9 +149,9 @@ export default function WebhooksPage() {
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">{delivery.attemptCount}</td>
                     <td className="px-4 py-3 text-right tabular-nums">
-                      {delivery.responseStatus ?? '—'}
+                      {responseStatus === null ? '—' : responseStatus}
                     </td>
-                    <td className="px-4 py-3 text-xs text-red-600">{delivery.lastError ?? ''}</td>
+                    <td className="px-4 py-3 text-xs text-red-600">{lastError}</td>
                   </tr>
                 );
               })}

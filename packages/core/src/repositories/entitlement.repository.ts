@@ -52,16 +52,15 @@ export class EntitlementRepository {
     executor?: DatabaseTransaction,
   ): Promise<Entitlement | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
+    const { status, revokedAt = null, updatedAt = new Date().toISOString() } = payload;
+
     const [entitlement] = await db
       .insert(entitlements)
       .values(payload)
       .onConflictDoUpdate({
         target: [entitlements.subscriptionId, entitlements.productId],
-        set: {
-          status: payload.status,
-          revokedAt: payload.revokedAt ?? null,
-          updatedAt: payload.updatedAt ?? new Date().toISOString(),
-        },
+        set: { status, revokedAt, updatedAt },
       })
       .returning();
 

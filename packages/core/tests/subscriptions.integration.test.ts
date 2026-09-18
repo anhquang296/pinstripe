@@ -86,7 +86,7 @@ describe('SubscriptionService.createSubscription', () => {
     });
 
     expect(entitlements.data).toHaveLength(1);
-    expect(entitlements.data[0]?.status).toBe(EntitlementStatusEnum.ACTIVE);
+    expect(_.get(entitlements.data, '0.status')).toBe(EntitlementStatusEnum.ACTIVE);
   });
 
   it('refuses a one time price', async () => {
@@ -172,7 +172,7 @@ describe('SubscriptionService.cancelSubscription', () => {
     expect(canceling.status).toBe(SubscriptionStatusEnum.ACTIVE);
     expect(canceling.cancelAtPeriodEnd).toBe(true);
     expect(canceling.canceledAt).not.toBeNull();
-    expect(entitlements.data[0]?.status).toBe(EntitlementStatusEnum.ACTIVE);
+    expect(_.get(entitlements.data, '0.status')).toBe(EntitlementStatusEnum.ACTIVE);
 
     await fastify.testClockService.advanceTestClock(clockId, {
       frozenTime: '2026-02-02T00:00:00.000Z',
@@ -185,7 +185,7 @@ describe('SubscriptionService.cancelSubscription', () => {
 
     expect(ended.status).toBe(SubscriptionStatusEnum.CANCELED);
     expect(ended.endedAt).toBe('2026-02-01T00:00:00.000Z');
-    expect(afterEnd.data[0]?.status).toBe(EntitlementStatusEnum.REVOKED);
+    expect(_.get(afterEnd.data, '0.status')).toBe(EntitlementStatusEnum.REVOKED);
   });
 
   it('revokes entitlement immediately when cancelled outright', async () => {
@@ -202,7 +202,7 @@ describe('SubscriptionService.cancelSubscription', () => {
       customerId: customer.id,
     });
 
-    expect(entitlements.data[0]?.status).toBe(EntitlementStatusEnum.REVOKED);
+    expect(_.get(entitlements.data, '0.status')).toBe(EntitlementStatusEnum.REVOKED);
   });
 
   it('refuses to cancel a subscription that is already canceled', async () => {
@@ -261,7 +261,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
       return change.billedThrough === null;
     });
 
-    expect(_.map(updated.items, 'id')).toEqual([itemBefore?.id]);
+    expect(_.map(updated.items, 'id')).toEqual([_.get(itemBefore, 'id')]);
     expect(_.get(closedChange, 'billedThrough')).toBe(SWAP_AT);
     expect(_.get(openChange, 'billedFrom')).toBe(SWAP_AT);
     expect(_.get(openChange, 'quantity')).toBe(4);

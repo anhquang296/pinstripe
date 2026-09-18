@@ -32,11 +32,14 @@ function roundToInteger(value: number, policy: RoundingPolicy): number {
 
   if (policy === RoundingPolicyEnum.HALF_EVEN && fraction === 0.5) {
     const isFloorEven = floor % 2 === 0;
+    const evenMagnitude = isFloorEven ? floor : floor + 1;
 
-    return sign * (isFloorEven ? floor : floor + 1);
+    return sign * evenMagnitude;
   }
 
-  return sign * (fraction >= 0.5 ? floor + 1 : floor);
+  const roundedMagnitude = fraction >= 0.5 ? floor + 1 : floor;
+
+  return sign * roundedMagnitude;
 }
 
 export class Money {
@@ -112,7 +115,9 @@ export class Money {
     const distributed = _.sum(shares);
     const remainders = _.orderBy(
       _.map(weights, (weight, index) => {
-        return { index, remainder: (this.amount * weight) / totalWeight - (shares[index] ?? 0) };
+        const share = _.get(shares, index, 0);
+
+        return { index, remainder: (this.amount * weight) / totalWeight - share };
       }),
       'remainder',
       'desc',
@@ -125,7 +130,9 @@ export class Money {
       const target = remainders[cursor % remainders.length];
 
       if (target) {
-        shares[target.index] = (shares[target.index] ?? 0) + 1;
+        const share = _.get(shares, target.index, 0);
+
+        shares[target.index] = share + 1;
         leftover -= 1;
       }
 

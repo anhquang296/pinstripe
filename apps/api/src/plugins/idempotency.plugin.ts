@@ -18,10 +18,12 @@ export const idempotencyPlugin = fp(async (fastify) => {
       return;
     }
 
+    const { url: route = request.url } = request.routeOptions;
+
     const ticket = await fastify.idempotencyService.beginRequest({
       scope: IDEMPOTENCY_SCOPE,
       key,
-      route: request.routeOptions.url ?? request.url,
+      route,
       params: request.params,
       body: request.body,
     });

@@ -79,6 +79,7 @@ export class MeterService {
   private async writeMeter(payload: CreateMeterPayload, now: string): Promise<Meter> {
     const DEFAULT_VALUE_KEY = 'value';
     const id = generateGid(ObjectPrefixEnum.METER);
+    const { valueKey = DEFAULT_VALUE_KEY, metadata = {} } = payload;
 
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
@@ -88,9 +89,9 @@ export class MeterService {
             displayName: payload.displayName,
             eventName: payload.eventName,
             aggregation: payload.aggregation,
-            valueKey: payload.valueKey ?? DEFAULT_VALUE_KEY,
+            valueKey,
             status: MeterStatusEnum.ACTIVE,
-            metadata: payload.metadata ?? {},
+            metadata,
             createdAt: now,
             updatedAt: now,
           },

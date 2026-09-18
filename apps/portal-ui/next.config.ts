@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 
-const API_ORIGIN = process.env.API_ORIGIN ?? 'http://localhost:3000';
+const { API_ORIGIN = 'http://localhost:3000' } = process.env;
 
 const nextConfig: NextConfig = {
   async rewrites() {

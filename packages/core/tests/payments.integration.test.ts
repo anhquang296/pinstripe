@@ -194,7 +194,7 @@ describe('PaymentService.confirmPaymentIntent', () => {
       amountCaptured: BASE_AMOUNT,
       amountRefunded: 0,
     });
-    expect(charge?.balanceTransactionId).toBeNull();
+    expect(_.get(charge, 'balanceTransactionId')).toBeNull();
   });
 
   it('parks a card that needs 3DS in requires_action with somewhere to send the customer', async () => {
@@ -206,9 +206,12 @@ describe('PaymentService.confirmPaymentIntent', () => {
     await fastify.paymentService.drainProviderEvents();
 
     const stillWaiting = await fastify.paymentService.getPaymentIntent(paymentIntent.id);
+    const { pspReference, nextAction } = confirmed;
+    const expectedReference = pspReference === null ? 'no-reference' : pspReference;
+    const redirectUrl = _.get(nextAction, 'redirectUrl');
 
     expect(confirmed.status).toBe(PaymentIntentStatusEnum.REQUIRES_ACTION);
-    expect(confirmed.nextAction?.redirectUrl).toContain(confirmed.pspReference ?? 'no-reference');
+    expect(redirectUrl).toContain(expectedReference);
     expect(stillWaiting.status).toBe(PaymentIntentStatusEnum.REQUIRES_ACTION);
   });
 
@@ -217,7 +220,10 @@ describe('PaymentService.confirmPaymentIntent', () => {
     const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId });
     const confirmed = await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
 
-    fastify.psp.completeAuthentication(confirmed.pspReference ?? '');
+    const { pspReference } = confirmed;
+    const authenticationReference = pspReference === null ? '' : pspReference;
+
+    fastify.psp.completeAuthentication(authenticationReference);
     await fastify.paymentService.drainProviderEvents();
 
     const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id);
@@ -410,10 +416,13 @@ describe('PaymentService.handleProviderEvent', () => {
 
     await fastify.paymentService.drainProviderEvents();
 
+    const { pspReference } = confirmed;
+    const reference = pspReference === null ? '' : pspReference;
+
     await fastify.paymentService.handleProviderEvent(PspProviderEnum.MOCK, {
       id: `mockpsp_evt_${generateGid(ObjectPrefixEnum.PSP_EVENT)}`,
       type: PspEventTypeEnum.PAYMENT_SUCCEEDED,
-      reference: confirmed.pspReference ?? '',
+      reference,
       amount: BASE_AMOUNT,
     });
 

@@ -144,11 +144,9 @@ export class PinstripeTransport {
       headers[IDEMPOTENCY_KEY_HEADER] = idempotencyKey;
     }
 
-    return {
-      method,
-      headers,
-      body: payload === undefined ? undefined : JSON.stringify(payload),
-    };
+    const body = payload === undefined ? undefined : JSON.stringify(payload);
+
+    return { method, headers, body };
   }
 
   private _resolveIdempotencyKey(

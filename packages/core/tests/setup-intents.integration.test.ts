@@ -6,6 +6,7 @@ import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
@@ -86,7 +87,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
 
     expect(confirmed.status).toBe(SetupIntentStatusEnum.PROCESSING);
     expect(saved.status).toBe(SetupIntentStatusEnum.SUCCEEDED);
-    expect(customer?.defaultPaymentMethodId).toBe(paymentMethod.id);
+    expect(_.get(customer, 'defaultPaymentMethodId')).toBe(paymentMethod.id);
     expect(attached.customerId).toBe(customerId);
   });
 
@@ -116,13 +117,18 @@ describe('SetupIntentService.confirmSetupIntent', () => {
 
     const confirmed = await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {});
 
-    fastify.psp.completeAuthentication(confirmed.pspReference ?? '');
+    const { pspReference, nextAction } = confirmed;
+    const authenticationReference = pspReference === null ? '' : pspReference;
+    const expectedReference = pspReference === null ? 'no-reference' : pspReference;
+    const redirectUrl = _.get(nextAction, 'redirectUrl');
+
+    fastify.psp.completeAuthentication(authenticationReference);
     await fastify.paymentService.drainProviderEvents();
 
     const saved = await fastify.setupIntentService.getSetupIntent(setupIntent.id);
 
     expect(confirmed.status).toBe(SetupIntentStatusEnum.REQUIRES_ACTION);
-    expect(confirmed.nextAction?.redirectUrl).toContain(confirmed.pspReference ?? 'no-reference');
+    expect(redirectUrl).toContain(expectedReference);
     expect(saved.status).toBe(SetupIntentStatusEnum.SUCCEEDED);
   });
 
@@ -142,7 +148,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
 
     expect(failed.status).toBe(SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD);
     expect(failed.failureCode).toBe('expired_card');
-    expect(customer?.defaultPaymentMethodId).toBeNull();
+    expect(_.get(customer, 'defaultPaymentMethodId')).toBeNull();
   });
 
   it('refuses to confirm without a payment method to save', async () => {

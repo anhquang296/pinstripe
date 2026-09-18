@@ -31,21 +31,23 @@ export class SetupIntentService {
     const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload);
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.SETUP_INTENT);
+    const status = paymentMethodId
+      ? SetupIntentStatusEnum.REQUIRES_CONFIRMATION
+      : SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD;
+    const { usage = SetupIntentUsageEnum.OFF_SESSION, metadata = {} } = payload;
 
     const createdSetupIntent = await this.fastify.setupIntentRepository.createSetupIntent({
       id,
       customerId: customer.id,
-      status: paymentMethodId
-        ? SetupIntentStatusEnum.REQUIRES_CONFIRMATION
-        : SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD,
-      usage: payload.usage ?? SetupIntentUsageEnum.OFF_SESSION,
+      status,
+      usage,
       paymentMethodId,
       nextAction: null,
       cancellationReason: null,
       pspReference: null,
       failureCode: null,
       failureMessage: null,
-      metadata: payload.metadata ?? {},
+      metadata,
       createdAt,
       updatedAt: createdAt,
     });
@@ -62,7 +64,7 @@ export class SetupIntentService {
     payload: ConfirmSetupIntentPayload,
   ): Promise<SetupIntentResponse> {
     const setupIntent = await this.fastify.setupIntentRepository.getSetupIntent(id);
-    const paymentMethodId = payload.paymentMethodId ?? setupIntent.paymentMethodId;
+    const { paymentMethodId = setupIntent.paymentMethodId } = payload;
 
     if (!paymentMethodId) {
       throw new BadRequestError(`Setup intent ${id} has no payment method to save`, {
@@ -80,19 +82,21 @@ export class SetupIntentService {
       idempotencyKey: `setup:${setupIntent.id}`,
     });
     const isAwaitingAction = confirmation.status === PspIntentStatusEnum.REQUIRES_ACTION;
+    const status = isAwaitingAction
+      ? SetupIntentStatusEnum.REQUIRES_ACTION
+      : SetupIntentStatusEnum.PROCESSING;
+    const metadata = { ...setupIntent.metadata, ...payload.metadata };
 
     const confirmedSetupIntent = await this.fastify.setupIntentRepository.updateSetupIntent(
       setupIntent.id,
       {
-        status: isAwaitingAction
-          ? SetupIntentStatusEnum.REQUIRES_ACTION
-          : SetupIntentStatusEnum.PROCESSING,
+        status,
         paymentMethodId: paymentMethod.id,
         nextAction: confirmation.nextAction,
         pspReference: confirmation.reference,
         failureCode: null,
         failureMessage: null,
-        metadata: { ...setupIntent.metadata, ...(payload.metadata ?? {}) },
+        metadata,
         updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
@@ -112,14 +116,16 @@ export class SetupIntentService {
 
     SetupIntentService.assertTransition(setupIntent.status, SetupIntentStatusEnum.CANCELED);
 
+    const { cancellationReason = PaymentCancellationReasonEnum.REQUESTED_BY_CUSTOMER } = payload;
+    const metadata = { ...setupIntent.metadata, ...payload.metadata };
+
     const canceledSetupIntent = await this.fastify.setupIntentRepository.updateSetupIntent(
       setupIntent.id,
       {
         status: SetupIntentStatusEnum.CANCELED,
-        cancellationReason:
-          payload.cancellationReason ?? PaymentCancellationReasonEnum.REQUESTED_BY_CUSTOMER,
+        cancellationReason,
         nextAction: null,
-        metadata: { ...setupIntent.metadata, ...(payload.metadata ?? {}) },
+        metadata,
         updatedAt: this.fastify.clock.now().toISOString(),
       },
     );

@@ -191,10 +191,15 @@ describe('InvoiceService.finalizeInvoice', () => {
     }
 
     const sequenceValues = _.map(finalized, (invoice) => {
-      return Number(_.last((invoice.number ?? '').split('-')));
+      const { number: invoiceNumber } = invoice;
+      const numberSegments = invoiceNumber === null ? [''] : invoiceNumber.split('-');
+
+      return Number(_.last(numberSegments));
     });
     const gaps = _.filter(sequenceValues, (value, index) => {
-      return index > 0 && value !== (sequenceValues[index - 1] ?? 0) + 1;
+      const previousValue = _.get(sequenceValues, index - 1, 0);
+
+      return index > 0 && value !== previousValue + 1;
     });
 
     expect(gaps).toEqual([]);
@@ -437,9 +442,9 @@ describe('CreditNoteService.createCreditNote', () => {
 
     const settled = await fastify.invoiceRepository.findInvoice(open.id);
 
-    expect(settled?.status).toBe(InvoiceStatusEnum.PAID);
-    expect(settled?.nextAttemptAt).toBeNull();
-    expect(settled?.amountPaid).toBe(0);
+    expect(_.get(settled, 'status')).toBe(InvoiceStatusEnum.PAID);
+    expect(_.get(settled, 'nextAttemptAt')).toBeNull();
+    expect(_.get(settled, 'amountPaid')).toBe(0);
   });
 
   it('refuses to credit a draft that can still be edited', async () => {
@@ -525,10 +530,12 @@ describe('InvoiceService.issueProrationInvoice', () => {
       billingReason: BillingReasonEnum.SUBSCRIPTION_UPDATE,
     });
 
-    expect(prorationInvoice?.status).toBe(InvoiceStatusEnum.OPEN);
-    expect(prorationInvoice?.number).toMatch(/^INV-/);
-    expect(prorationInvoice?.total).toBeGreaterThan(0);
-    expect(_.map(prorationInvoice?.lineItems, 'type')).toEqual([LineItemTypeEnum.PRORATION]);
+    expect(_.get(prorationInvoice, 'status')).toBe(InvoiceStatusEnum.OPEN);
+    expect(_.get(prorationInvoice, 'number')).toMatch(/^INV-/);
+    expect(_.get(prorationInvoice, 'total')).toBeGreaterThan(0);
+    expect(_.map(_.get(prorationInvoice, 'lineItems'), 'type')).toEqual([
+      LineItemTypeEnum.PRORATION,
+    ]);
   });
 
   it('leaves the replacement remainder to the period end and never repeats the invoiced slice', async () => {

@@ -162,7 +162,7 @@ describe('DunningService.runDunningShard', () => {
 
       await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
       const retried = await readInvoiceRow(invoiceId);
-      const nextAttemptAt = _.get(retried, 'nextAttemptAt', null);
+      const { nextAttemptAt } = retried;
       const delayMs = (nextAttemptAt ? Date.parse(nextAttemptAt) : 0) - failedAt;
 
       expect(retried.status).toBe(InvoiceStatusEnum.OPEN);
@@ -397,10 +397,10 @@ describe('WebhookService.recordDeliveryResult', () => {
 
     const failed = await fastify.webhookRepository.findWebhookDelivery(deliveryId);
 
-    expect(failed?.status).toBe(WebhookDeliveryStatusEnum.FAILED);
-    expect(failed?.attemptCount).toBe(3);
-    expect(failed?.responseStatus).toBe(500);
-    expect(failed?.deliveredAt).toBeNull();
+    expect(_.get(failed, 'status')).toBe(WebhookDeliveryStatusEnum.FAILED);
+    expect(_.get(failed, 'attemptCount')).toBe(3);
+    expect(_.get(failed, 'responseStatus')).toBe(500);
+    expect(_.get(failed, 'deliveredAt')).toBeNull();
   });
 });
 

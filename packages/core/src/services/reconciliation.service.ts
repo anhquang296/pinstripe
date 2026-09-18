@@ -106,11 +106,13 @@ export class ReconciliationService {
     const refunds = await this.findSettledRefunds(windowStart, windowEnd);
 
     const payments = _.map(charges, (charge): ProcessorMovement => {
+      const invoiceAmount = charge.invoiceId ? _.get(settlementByChargeId, charge.id, 0) : null;
+
       return {
         reference: `charge:${charge.id}`,
         source: CHARGE_SOURCE,
         amount: charge.amountCaptured,
-        invoiceAmount: charge.invoiceId ? _.get(settlementByChargeId, charge.id, 0) : null,
+        invoiceAmount,
       };
     });
     const returns = _.map(refunds, (refund): ProcessorMovement => {

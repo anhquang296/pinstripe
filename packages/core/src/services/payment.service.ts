@@ -54,19 +54,22 @@ export class PaymentService {
     const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload);
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_INTENT);
+    const invoiceId = _.get(target.invoice, 'id', null);
+    const status = paymentMethodId
+      ? PaymentIntentStatusEnum.REQUIRES_CONFIRMATION
+      : PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD;
+    const { captureMethod = CaptureMethodEnum.AUTOMATIC, metadata = {} } = payload;
 
     const createdPaymentIntent = await this.fastify.paymentIntentRepository.createPaymentIntent({
       id,
-      invoiceId: _.get(target.invoice, 'id', null),
+      invoiceId,
       customerId: target.customerId,
-      status: paymentMethodId
-        ? PaymentIntentStatusEnum.REQUIRES_CONFIRMATION
-        : PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD,
+      status,
       currency: target.currency,
       amount: target.amount,
       amountCapturable: 0,
       amountReceived: 0,
-      captureMethod: payload.captureMethod ?? CaptureMethodEnum.AUTOMATIC,
+      captureMethod,
       paymentMethodId,
       latestChargeId: null,
       nextAction: null,
@@ -75,7 +78,7 @@ export class PaymentService {
       failureCode: null,
       declineCode: null,
       failureMessage: null,
-      metadata: payload.metadata ?? {},
+      metadata,
       createdAt,
       updatedAt: createdAt,
     });
@@ -107,20 +110,22 @@ export class PaymentService {
       idempotencyKey: `charge:${paymentIntent.id}:${previousCharges.length}`,
     });
     const isAwaitingAction = confirmation.status === PspIntentStatusEnum.REQUIRES_ACTION;
+    const status = isAwaitingAction
+      ? PaymentIntentStatusEnum.REQUIRES_ACTION
+      : PaymentIntentStatusEnum.PROCESSING;
+    const metadata = { ...paymentIntent.metadata, ...payload.metadata };
 
     const confirmedPaymentIntent = await this.fastify.paymentIntentRepository.updatePaymentIntent(
       paymentIntent.id,
       {
-        status: isAwaitingAction
-          ? PaymentIntentStatusEnum.REQUIRES_ACTION
-          : PaymentIntentStatusEnum.PROCESSING,
+        status,
         paymentMethodId: paymentMethod.id,
         nextAction: confirmation.nextAction,
         pspReference: confirmation.reference,
         failureCode: null,
         declineCode: null,
         failureMessage: null,
-        metadata: { ...paymentIntent.metadata, ...(payload.metadata ?? {}) },
+        metadata,
         updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
@@ -144,7 +149,7 @@ export class PaymentService {
       );
     }
 
-    const amount = payload.amount ?? paymentIntent.amountCapturable;
+    const { amount = paymentIntent.amountCapturable } = payload;
 
     if (amount > paymentIntent.amountCapturable) {
       throw new BadRequestError(
@@ -167,11 +172,13 @@ export class PaymentService {
       idempotencyKey: `capture:${paymentIntent.id}:${amount}`,
     });
 
+    const metadata = { ...paymentIntent.metadata, ...payload.metadata };
+
     const capturingPaymentIntent = await this.fastify.paymentIntentRepository.updatePaymentIntent(
       paymentIntent.id,
       {
         status: PaymentIntentStatusEnum.PROCESSING,
-        metadata: { ...paymentIntent.metadata, ...(payload.metadata ?? {}) },
+        metadata,
         updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
@@ -191,15 +198,17 @@ export class PaymentService {
 
     PaymentService.assertTransition(paymentIntent.status, PaymentIntentStatusEnum.CANCELED);
 
+    const { cancellationReason = PaymentCancellationReasonEnum.REQUESTED_BY_CUSTOMER } = payload;
+    const metadata = { ...paymentIntent.metadata, ...payload.metadata };
+
     const canceledPaymentIntent = await this.fastify.paymentIntentRepository.updatePaymentIntent(
       paymentIntent.id,
       {
         status: PaymentIntentStatusEnum.CANCELED,
-        cancellationReason:
-          payload.cancellationReason ?? PaymentCancellationReasonEnum.REQUESTED_BY_CUSTOMER,
+        cancellationReason,
         nextAction: null,
         amountCapturable: 0,
-        metadata: { ...paymentIntent.metadata, ...(payload.metadata ?? {}) },
+        metadata,
         updatedAt: this.fastify.clock.now().toISOString(),
       },
     );
@@ -307,10 +316,9 @@ export class PaymentService {
     }
 
     if (payload.type === PspEventTypeEnum.REFUND_FAILED) {
-      await this.fastify.refundService.handleRefundFailed(
-        payload.reference,
-        payload.failureMessage ?? null,
-      );
+      const failureMessage = payload.failureMessage ?? null;
+
+      await this.fastify.refundService.handleRefundFailed(payload.reference, failureMessage);
 
       return;
     }
@@ -322,12 +330,12 @@ export class PaymentService {
     }
 
     if (payload.type === PspEventTypeEnum.DISPUTE_CLOSED) {
-      await this.fastify.disputeService.handleDisputeClosed(
-        payload.reference,
+      const outcome =
         payload.outcome === DisputeOutcomeEnum.WON
           ? DisputeOutcomeEnum.WON
-          : DisputeOutcomeEnum.LOST,
-      );
+          : DisputeOutcomeEnum.LOST;
+
+      await this.fastify.disputeService.handleDisputeClosed(payload.reference, outcome);
 
       return;
     }
@@ -357,7 +365,7 @@ export class PaymentService {
   }
 
   private async applyDisputeOpened(payload: PspCallbackPayload): Promise<void> {
-    const { sourceReference, amount } = payload;
+    const { sourceReference, amount, reason = null } = payload;
 
     if (!sourceReference || !amount) {
       throw new BadRequestError(
@@ -365,20 +373,33 @@ export class PaymentService {
       );
     }
 
+    const disputeReason = mapPspDisputeReason(reason);
+
     await this.fastify.disputeService.handleDisputeOpened({
       pspReference: payload.reference,
       chargeReference: sourceReference,
       amount,
-      reason: mapPspDisputeReason(payload.reason ?? null),
+      reason: disputeReason,
     });
   }
 
   private async applyPaymentSuccess(payload: PspCallbackPayload): Promise<void> {
     const paymentIntent = await this.getCallbackPaymentIntent(payload.reference);
     const isAuthorizationOnly = payload.type === PspEventTypeEnum.PAYMENT_AUTHORIZED;
-    const amount = payload.amount ?? paymentIntent.amount;
+    const { amount = paymentIntent.amount, paymentMethodDetails = {} } = payload;
     const now = this.fastify.clock.now();
     const chargedAt = now.toISOString();
+    const capturedAmount = isAuthorizationOnly ? 0 : amount;
+    const capturableAmount = isAuthorizationOnly ? amount : 0;
+    const chargeStatus = isAuthorizationOnly
+      ? ChargeStatusEnum.PENDING
+      : ChargeStatusEnum.SUCCEEDED;
+    const chargeOutcome = isAuthorizationOnly
+      ? ChargeOutcomeEnum.AUTHORIZED
+      : ChargeOutcomeEnum.APPROVED;
+    const paymentIntentStatus = isAuthorizationOnly
+      ? PaymentIntentStatusEnum.REQUIRES_CAPTURE
+      : PaymentIntentStatusEnum.SUCCEEDED;
 
     const settled = await this.fastify.database.master.transaction(async (tx) => {
       const locked = await this.fastify.paymentIntentRepository.getLockedPaymentIntent(
@@ -394,11 +415,11 @@ export class PaymentService {
         locked,
         {
           amount,
-          amountCaptured: isAuthorizationOnly ? 0 : amount,
+          amountCaptured: capturedAmount,
           captured: !isAuthorizationOnly,
-          status: isAuthorizationOnly ? ChargeStatusEnum.PENDING : ChargeStatusEnum.SUCCEEDED,
-          outcome: isAuthorizationOnly ? ChargeOutcomeEnum.AUTHORIZED : ChargeOutcomeEnum.APPROVED,
-          paymentMethodDetails: payload.paymentMethodDetails ?? {},
+          status: chargeStatus,
+          outcome: chargeOutcome,
+          paymentMethodDetails,
           failureCode: null,
           declineCode: null,
           failureMessage: null,
@@ -410,11 +431,9 @@ export class PaymentService {
       const updatedPaymentIntent = await this.fastify.paymentIntentRepository.updatePaymentIntent(
         locked.id,
         {
-          status: isAuthorizationOnly
-            ? PaymentIntentStatusEnum.REQUIRES_CAPTURE
-            : PaymentIntentStatusEnum.SUCCEEDED,
-          amountCapturable: isAuthorizationOnly ? amount : 0,
-          amountReceived: isAuthorizationOnly ? 0 : amount,
+          status: paymentIntentStatus,
+          amountCapturable: capturableAmount,
+          amountReceived: capturedAmount,
           latestChargeId: charge.id,
           nextAction: null,
           failureCode: null,
@@ -476,7 +495,8 @@ export class PaymentService {
 
   private async applyPaymentFailure(payload: PspCallbackPayload): Promise<void> {
     const paymentIntent = await this.getCallbackPaymentIntent(payload.reference);
-    const declineCode = mapPspDeclineCode(payload.declineCode ?? null);
+    const { declineCode: pspDeclineCode = null, paymentMethodDetails = {} } = payload;
+    const declineCode = mapPspDeclineCode(pspDeclineCode);
     const now = this.fastify.clock.now();
     const failedAt = now.toISOString();
 
@@ -498,7 +518,7 @@ export class PaymentService {
           captured: false,
           status: ChargeStatusEnum.FAILED,
           outcome: ChargeOutcomeEnum.DECLINED,
-          paymentMethodDetails: payload.paymentMethodDetails ?? {},
+          paymentMethodDetails,
           failureCode: payload.failureCode ?? null,
           declineCode,
           failureMessage: payload.failureMessage ?? null,
@@ -618,7 +638,7 @@ export class PaymentService {
       return this.resolveInvoiceTarget(invoiceId, payload);
     }
 
-    const { customerId, amount, currency } = payload;
+    const { customerId, amount } = payload;
 
     if (!customerId) {
       throw new BadRequestError(
@@ -634,11 +654,12 @@ export class PaymentService {
     }
 
     const customer = await this.fastify.customerRepository.getCustomer(customerId);
+    const { currency = customer.currency } = payload;
 
     return {
       invoice: null,
       customerId: customer.id,
-      currency: currency ?? customer.currency,
+      currency,
       amount,
     };
   }
@@ -661,7 +682,7 @@ export class PaymentService {
       throw new ConflictError(`Invoice ${invoice.id} has nothing left to pay`);
     }
 
-    const amount = payload.amount ?? owed;
+    const { amount = owed } = payload;
 
     if (amount > owed) {
       throw new BadRequestError(
@@ -765,10 +786,10 @@ export class PaymentService {
     paymentIntent: PaymentIntent,
     payload: ConfirmPaymentIntentPayload,
   ): Promise<PaymentMethod> {
-    const requested = payload.paymentMethodId ?? paymentIntent.paymentMethodId;
+    const { paymentMethodId: requestedPaymentMethodId = paymentIntent.paymentMethodId } = payload;
 
-    if (requested) {
-      return this.fastify.paymentMethodService.getChargeablePaymentMethod(requested);
+    if (requestedPaymentMethodId) {
+      return this.fastify.paymentMethodService.getChargeablePaymentMethod(requestedPaymentMethodId);
     }
 
     const customer = await this.fastify.customerRepository.findCustomer(paymentIntent.customerId);

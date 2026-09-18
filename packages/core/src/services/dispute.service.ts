@@ -77,7 +77,7 @@ export class DisputeService {
           status: DisputeStatusEnum.UNDER_REVIEW,
           evidence: { ...dispute.evidence, ...payload.evidence },
           evidenceSubmittedAt,
-          metadata: { ...dispute.metadata, ...(payload.metadata ?? {}) },
+          metadata: { ...dispute.metadata, ...payload.metadata },
           updatedAt: evidenceSubmittedAt,
         },
         tx,

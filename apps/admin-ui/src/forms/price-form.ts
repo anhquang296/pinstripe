@@ -138,7 +138,11 @@ export const priceFormDefaultValues: PriceFormData = {
 };
 
 function toOptionalNumber(value: number | null): number | undefined {
-  return value === null ? undefined : value;
+  if (value === null) {
+    return undefined;
+  }
+
+  return value;
 }
 
 function toTierPayload(tier: PriceTierFormData): PriceTierPayload {
@@ -161,18 +165,25 @@ export function priceFormDataToPayload(formData: PriceFormData): CreatePricePayl
         usageType: formData.usageType,
       }
     : undefined;
+  const effectiveAt = formData.effectiveAt
+    ? new Date(formData.effectiveAt).toISOString()
+    : undefined;
+  const unitAmount = isTiered ? undefined : toOptionalNumber(formData.unitAmount);
+  const tiersMode = isTiered ? formData.tiersMode : undefined;
+  const tiers = isTiered ? map(formData.tiers, toTierPayload) : undefined;
+  const meterId = isMetered ? formData.meterId : undefined;
 
   return {
     productId: formData.productId,
     currency: formData.currency,
     lookupKey: formData.lookupKey || undefined,
     nickname: formData.nickname || undefined,
-    effectiveAt: formData.effectiveAt ? new Date(formData.effectiveAt).toISOString() : undefined,
+    effectiveAt,
     billingScheme: formData.billingScheme,
-    unitAmount: isTiered ? undefined : toOptionalNumber(formData.unitAmount),
-    tiersMode: isTiered ? formData.tiersMode : undefined,
-    tiers: isTiered ? map(formData.tiers, toTierPayload) : undefined,
-    meterId: isMetered ? formData.meterId : undefined,
+    unitAmount,
+    tiersMode,
+    tiers,
+    meterId,
     recurring,
   };
 }

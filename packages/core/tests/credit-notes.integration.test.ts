@@ -54,7 +54,10 @@ describe('CreditNoteService.createCreditNote after the invoice was paid', () => 
 
     await fastify.paymentService.drainProviderEvents();
 
-    const refund = await fastify.refundService.getRefund(creditNote.refundId ?? '');
+    const { refundId: creditNoteRefundId } = creditNote;
+    const refundId = creditNoteRefundId === null ? '' : creditNoteRefundId;
+
+    const refund = await fastify.refundService.getRefund(refundId);
     const cashAfter = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.CASH,
       CurrencyEnum.VND,

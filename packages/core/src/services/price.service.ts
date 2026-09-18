@@ -33,9 +33,7 @@ export class PriceService {
 
     const { billingScheme = BillingSchemeEnum.PER_UNIT } = payload;
 
-    const usageType = payload.recurring
-      ? (payload.recurring.usageType ?? UsageTypeEnum.LICENSED)
-      : null;
+    const { usageType } = PriceService.buildRecurringColumns(payload.recurring);
 
     PriceService.assertPriceShape(payload, billingScheme, usageType);
 
@@ -60,6 +58,14 @@ export class PriceService {
     now: string,
   ): Promise<Price> {
     const effectiveAt = PriceService.resolveEffectiveAt(payload.effectiveAt, now);
+    const {
+      nickname = '',
+      taxBehavior = TaxBehaviorEnum.UNSPECIFIED,
+      metadata = {},
+      recurring,
+    } = payload;
+    const type = recurring ? PriceTypeEnum.RECURRING : PriceTypeEnum.ONE_TIME;
+    const recurringColumns = PriceService.buildRecurringColumns(recurring);
 
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
@@ -71,24 +77,18 @@ export class PriceService {
             version,
             effectiveAt,
             active: true,
-            nickname: payload.nickname ?? '',
+            nickname,
             currency: payload.currency,
-            type: payload.recurring ? PriceTypeEnum.RECURRING : PriceTypeEnum.ONE_TIME,
+            type,
             billingScheme,
             unitAmount: payload.unitAmount ?? null,
-            taxBehavior: payload.taxBehavior ?? TaxBehaviorEnum.UNSPECIFIED,
-            recurringInterval: payload.recurring?.interval ?? null,
-            recurringIntervalCount: payload.recurring
-              ? (payload.recurring.intervalCount ?? DEFAULT_INTERVAL_COUNT)
-              : null,
-            usageType: payload.recurring
-              ? (payload.recurring.usageType ?? UsageTypeEnum.LICENSED)
-              : null,
+            taxBehavior,
+            ...recurringColumns,
             meterId: payload.meterId ?? null,
             tiersMode: payload.tiersMode ?? null,
             tiers: payload.tiers ?? null,
             transformQuantity: payload.transformQuantity ?? null,
-            metadata: payload.metadata ?? {},
+            metadata,
             createdAt: now,
             updatedAt: now,
           },
@@ -210,10 +210,28 @@ export class PriceService {
     if (lookupKey) {
       const latestPrice = await this.fastify.priceRepository.findLatestPrice(lookupKey);
 
-      return latestPrice ? latestPrice.version + 1 : 1;
+      if (latestPrice) {
+        return latestPrice.version + 1;
+      }
     }
 
     return 1;
+  }
+
+  private static buildRecurringColumns(
+    recurring: CreatePricePayload['recurring'],
+  ): Pick<Price, 'recurringInterval' | 'recurringIntervalCount' | 'usageType'> {
+    if (recurring) {
+      const {
+        interval,
+        intervalCount = DEFAULT_INTERVAL_COUNT,
+        usageType = UsageTypeEnum.LICENSED,
+      } = recurring;
+
+      return { recurringInterval: interval, recurringIntervalCount: intervalCount, usageType };
+    }
+
+    return { recurringInterval: null, recurringIntervalCount: null, usageType: null };
   }
 
   private async resolveCursor(id: string | undefined): Promise<RowCursor | undefined> {
@@ -277,6 +295,15 @@ export class PriceService {
   }
 
   private static buildPrice(entity: Price): PriceResponse {
+    const recurring =
+      entity.recurringInterval && entity.recurringIntervalCount && entity.usageType
+        ? {
+            interval: entity.recurringInterval,
+            intervalCount: entity.recurringIntervalCount,
+            usageType: entity.usageType,
+          }
+        : null;
+
     return {
       id: entity.id,
       productId: entity.productId,
@@ -290,14 +317,7 @@ export class PriceService {
       billingScheme: entity.billingScheme,
       unitAmount: entity.unitAmount,
       taxBehavior: entity.taxBehavior,
-      recurring:
-        entity.recurringInterval && entity.recurringIntervalCount && entity.usageType
-          ? {
-              interval: entity.recurringInterval,
-              intervalCount: entity.recurringIntervalCount,
-              usageType: entity.usageType,
-            }
-          : null,
+      recurring,
       meterId: entity.meterId,
       tiersMode: entity.tiersMode,
       tiers: entity.tiers,

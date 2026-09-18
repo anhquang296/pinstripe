@@ -110,14 +110,14 @@ export class InvoiceService {
   ) {}
 
   async createInvoice(payload: CreateInvoicePayload): Promise<InvoiceResponse> {
-    const { subscriptionId, customerId } = payload;
+    const { subscriptionId, customerId, metadata = {} } = payload;
 
     if (subscriptionId) {
       const subscription =
         await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
       const { invoice } = await this.ensureDraftInvoice(
         subscription,
-        payload.metadata ?? {},
+        metadata,
         InvoiceService.readCurrentPeriod(subscription),
       );
 
@@ -148,6 +148,9 @@ export class InvoiceService {
       collectionMethod = CollectionMethodEnum.CHARGE_AUTOMATICALLY,
       autoAdvance = true,
       daysUntilDue = null,
+      currency = customer.currency,
+      defaultTaxRates = [],
+      metadata = {},
     } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -159,15 +162,15 @@ export class InvoiceService {
           subscriptionId: null,
           status: InvoiceStatusEnum.DRAFT,
           billingReason: BillingReasonEnum.MANUAL,
-          currency: payload.currency ?? customer.currency,
+          currency,
           collectionMethod,
           autoAdvance,
           daysUntilDue,
           periodStart: createdAt,
           periodEnd: createdAt,
-          defaultTaxRates: payload.defaultTaxRates ?? [],
+          defaultTaxRates,
           automaticTaxEnabled: _.get(payload.automaticTax, 'enabled', false),
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt,
           updatedAt: createdAt,
         },
@@ -547,11 +550,17 @@ export class InvoiceService {
     const taxBehaviorByPriceId = await this.resolveTaxBehaviors(_.map(invoiceItems, 'priceId'));
 
     return _.map(invoiceItems, (invoiceItem): InvoiceDraftLine => {
+      const { priceId } = invoiceItem;
+      const taxBehavior =
+        priceId === null
+          ? TaxBehaviorEnum.UNSPECIFIED
+          : _.get(taxBehaviorByPriceId, priceId, TaxBehaviorEnum.UNSPECIFIED);
+
       return {
         subscriptionItemId: null,
         subscriptionItemChangeId: null,
         invoiceItemId: invoiceItem.id,
-        priceId: invoiceItem.priceId,
+        priceId,
         type: LineItemTypeEnum.INVOICEITEM,
         description: invoiceItem.description,
         quantity: invoiceItem.quantity,
@@ -561,11 +570,7 @@ export class InvoiceService {
         discountAmounts: [],
         taxAmounts: [],
         taxRateIds: invoiceItem.taxRates,
-        taxBehavior: _.get(
-          taxBehaviorByPriceId,
-          invoiceItem.priceId ?? '',
-          TaxBehaviorEnum.UNSPECIFIED,
-        ),
+        taxBehavior,
         periodStart: invoiceItem.periodStart,
         periodEnd: invoiceItem.periodEnd,
         prorationFactor: 1,
@@ -950,9 +955,9 @@ export class InvoiceService {
     InvoiceService.assertTransition(invoice.status, InvoiceStatusEnum.PAID);
 
     const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
-    const amountCredited = creditedByInvoiceId[invoice.id] ?? 0;
+    const amountCredited = _.get(creditedByInvoiceId, invoice.id, 0);
     const owed = invoice.amountDue - invoice.amountPaid - amountCredited;
-    const amount = payload.amount ?? owed;
+    const { amount = owed } = payload;
 
     if (amount > owed) {
       throw new BadRequestError(
@@ -964,15 +969,18 @@ export class InvoiceService {
     const amountPaid = invoice.amountPaid + amount;
     const isSettled = amountPaid + amountCredited >= invoice.amountDue;
     const paidAt = now.toISOString();
+    const status = isSettled ? InvoiceStatusEnum.PAID : invoice.status;
+    const settledPaidAt = isSettled ? paidAt : null;
+    const nextAttemptAt = isSettled ? null : invoice.nextAttemptAt;
 
     const updatedInvoice = await this.fastify.invoiceRepository.updateInvoice(
       invoice.id,
       {
         amountPaid,
         attempted: true,
-        status: isSettled ? InvoiceStatusEnum.PAID : invoice.status,
-        paidAt: isSettled ? paidAt : null,
-        nextAttemptAt: isSettled ? null : invoice.nextAttemptAt,
+        status,
+        paidAt: settledPaidAt,
+        nextAttemptAt,
         updatedAt: paidAt,
       },
       tx,
@@ -1027,7 +1035,7 @@ export class InvoiceService {
         {
           status: InvoiceStatusEnum.VOID,
           voidedAt,
-          metadata: { ...invoice.metadata, ...(payload.metadata ?? {}) },
+          metadata: { ...invoice.metadata, ...payload.metadata },
           updatedAt: voidedAt,
         },
         tx,
@@ -1158,10 +1166,13 @@ export class InvoiceService {
     }
 
     if (appliedBalance !== 0) {
+      const direction =
+        appliedBalance > 0 ? PostingDirectionEnum.DEBIT : PostingDirectionEnum.CREDIT;
+
       entries.push({
         accountCode: LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
         customerId: invoice.customerId,
-        direction: appliedBalance > 0 ? PostingDirectionEnum.DEBIT : PostingDirectionEnum.CREDIT,
+        direction,
         amount: Math.abs(appliedBalance),
       });
     }
@@ -1185,11 +1196,13 @@ export class InvoiceService {
     settlementReference: string | undefined,
     tx: DatabaseTransaction,
   ): Promise<void> {
+    const externalId = settlementReference ?? `invoice_payment:${invoice.id}:${invoice.amountPaid}`;
+
     await this.fastify.ledgerService.postTransaction(
       {
         description: `Invoice ${invoice.number} payment`,
         currency: invoice.currency,
-        externalId: settlementReference ?? `invoice_payment:${invoice.id}:${invoice.amountPaid}`,
+        externalId,
         entries: [
           {
             accountCode: LedgerAccountCodeEnum.CASH,
@@ -1239,10 +1252,13 @@ export class InvoiceService {
     }
 
     if (appliedBalance !== 0) {
+      const direction =
+        appliedBalance > 0 ? PostingDirectionEnum.CREDIT : PostingDirectionEnum.DEBIT;
+
       entries.push({
         accountCode: LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
         customerId: invoice.customerId,
-        direction: appliedBalance > 0 ? PostingDirectionEnum.CREDIT : PostingDirectionEnum.DEBIT,
+        direction,
         amount: Math.abs(appliedBalance),
       });
     }

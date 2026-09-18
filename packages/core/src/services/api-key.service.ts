@@ -87,9 +87,11 @@ export class ApiKeyService {
     const apiKey = await this.fastify.apiKeyRepository.getApiKey(id);
 
     const updatedAt = this.fastify.clock.now().toISOString();
+    const { revokedAt: currentRevokedAt } = apiKey;
+    const revokedAt = currentRevokedAt === null ? updatedAt : currentRevokedAt;
 
     const revokedApiKey = await this.fastify.apiKeyRepository.updateApiKey(apiKey.id, {
-      revokedAt: apiKey.revokedAt ?? updatedAt,
+      revokedAt,
       updatedAt: updatedAt,
     });
 
@@ -127,10 +129,12 @@ export class ApiKeyService {
     let createdCount = 0;
 
     for (const bootstrapKey of bootstrapKeys) {
+      const { type = ApiKeyTypeEnum.SECRET } = bootstrapKey;
+
       const createdApiKey = await this.fastify.apiKeyRepository.createApiKey({
         id: generateGid(ObjectPrefixEnum.API_KEY),
         name: bootstrapKey.name,
-        type: bootstrapKey.type ?? ApiKeyTypeEnum.SECRET,
+        type,
         scopes: [...bootstrapKey.scopes],
         tokenPrefix: bootstrapKey.token.slice(0, TOKEN_PREFIX_LENGTH),
         tokenHash: ApiKeyService.hashToken(bootstrapKey.token),

@@ -52,6 +52,8 @@ export class TaxIdService {
     customerId: string,
     now: string,
   ): Promise<TaxId> {
+    const { metadata = {} } = payload;
+
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const taxId = await this.fastify.taxIdRepository.createTaxId(
@@ -65,7 +67,7 @@ export class TaxIdService {
             verifiedName: null,
             verifiedAddress: null,
             verificationAttemptedAt: null,
-            metadata: payload.metadata ?? {},
+            metadata,
             createdAt: now,
             updatedAt: now,
           },
@@ -107,14 +109,16 @@ export class TaxIdService {
     const now = this.fastify.clock.now().toISOString();
     const status = TaxIdService.resolveVerificationStatus(taxId);
     const isVerified = status === TaxIdVerificationStatusEnum.VERIFIED;
+    const verifiedName = isVerified ? customer.name : null;
+    const verifiedAddress = isVerified ? TaxIdService.formatAddress(customer.address) : null;
 
     const verifiedTaxId = await this.fastify.database.master.transaction(async (tx) => {
       const updatedTaxId = await this.fastify.taxIdRepository.updateTaxId(
         taxIdId,
         {
           verificationStatus: status,
-          verifiedName: isVerified ? customer.name : null,
-          verifiedAddress: isVerified ? TaxIdService.formatAddress(customer.address) : null,
+          verifiedName,
+          verifiedAddress,
           verificationAttemptedAt: now,
           updatedAt: now,
         },

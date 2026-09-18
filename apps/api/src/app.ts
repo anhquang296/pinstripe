@@ -9,8 +9,9 @@ import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 
 export async function buildApp(): Promise<FastifyInstance> {
+  const { LOG_LEVEL = 'info' } = process.env;
   const fastify = Fastify({
-    logger: { level: process.env.LOG_LEVEL ?? 'info' },
+    logger: { level: LOG_LEVEL },
     genReqId: () => {
       return `req_${Math.random().toString(36).slice(2, 14)}`;
     },

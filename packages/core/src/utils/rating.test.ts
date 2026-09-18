@@ -149,7 +149,9 @@ describe('ratePrice graduated tiers', () => {
       return ratePrice(graduated, quantity).amount;
     });
     const isMonotonic = _.every(totals, (total, index) => {
-      return index === 0 || total >= (totals[index - 1] ?? 0);
+      const previousTotal = _.get(totals, index - 1, 0);
+
+      return index === 0 || total >= previousTotal;
     });
 
     expect(isMonotonic).toBe(true);

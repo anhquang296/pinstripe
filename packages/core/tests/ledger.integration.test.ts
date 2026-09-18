@@ -4,6 +4,7 @@ import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import { sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
@@ -122,11 +123,7 @@ describe('LedgerService.postTransaction', () => {
     );
 
     expect(imbalanced).toEqual([]);
-    expect(receivable?.balance).toBe(
-      pending.reduce((total, amount) => {
-        return total + amount;
-      }, 0),
-    );
+    expect(_.get(receivable, 'balance')).toBe(_.sum(pending));
   });
 });
 
@@ -170,8 +167,8 @@ describe('LedgerService.reverseTransaction', () => {
     );
     const original = await fastify.ledgerService.getTransaction(transactionId);
 
-    expect(before?.balance).toBe(250_000);
-    expect(after?.balance).toBe(0);
+    expect(_.get(before, 'balance')).toBe(250_000);
+    expect(_.get(after, 'balance')).toBe(0);
     expect(original.reversedByTransactionId).not.toBeNull();
   });
 

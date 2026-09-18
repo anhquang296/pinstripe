@@ -98,10 +98,12 @@ export class ReportingRepository {
 
     const totalByStatus = _.mapValues(_.keyBy(rows, 'status'), 'total');
 
-    return {
-      active: totalByStatus[SubscriptionStatusEnum.ACTIVE] ?? 0,
-      trialing: totalByStatus[SubscriptionStatusEnum.TRIALING] ?? 0,
-    };
+    const {
+      [SubscriptionStatusEnum.ACTIVE]: active = 0,
+      [SubscriptionStatusEnum.TRIALING]: trialing = 0,
+    } = totalByStatus;
+
+    return { active, trialing };
   }
 
   async countCanceledSubscriptions(

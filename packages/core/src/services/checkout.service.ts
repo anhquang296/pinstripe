@@ -63,6 +63,11 @@ export class CheckoutService {
     const id = generateGid(ObjectPrefixEnum.CHECKOUT_SESSION);
     const lineItems = CheckoutService.buildLineItems(id, drafts, prices, createdAt);
     const amountTotal = _.sumBy(lineItems, 'amountTotal');
+    const { metadata = {} } = payload;
+    const paymentStatus =
+      payload.mode === CheckoutSessionModeEnum.SETUP
+        ? CheckoutPaymentStatusEnum.NO_PAYMENT_REQUIRED
+        : CheckoutPaymentStatusEnum.UNPAID;
 
     const createdSession = await this.fastify.database.master.transaction(async (tx) => {
       const checkoutSession = await this.fastify.checkoutSessionRepository.createCheckoutSession(
@@ -70,10 +75,7 @@ export class CheckoutService {
           id,
           mode: payload.mode,
           status: CheckoutSessionStatusEnum.OPEN,
-          paymentStatus:
-            payload.mode === CheckoutSessionModeEnum.SETUP
-              ? CheckoutPaymentStatusEnum.NO_PAYMENT_REQUIRED
-              : CheckoutPaymentStatusEnum.UNPAID,
+          paymentStatus,
           customerId: customer.id,
           currency: customer.currency,
           amountSubtotal: amountTotal,
@@ -89,7 +91,7 @@ export class CheckoutService {
           setupIntentId: null,
           expiresAt: this.resolveExpiry(payload.expiresAt, now),
           completedAt: null,
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt,
           updatedAt: createdAt,
         },
@@ -523,7 +525,9 @@ export class CheckoutService {
     lineItems: CreateCheckoutSessionPayload['lineItems'],
   ): CheckoutLineItemDraft[] {
     return _.map(lineItems, (lineItem): CheckoutLineItemDraft => {
-      return { priceId: lineItem.priceId, quantity: lineItem.quantity ?? DEFAULT_QUANTITY };
+      const { priceId, quantity = DEFAULT_QUANTITY } = lineItem;
+
+      return { priceId, quantity };
     });
   }
 

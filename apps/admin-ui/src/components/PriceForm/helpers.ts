@@ -1,3 +1,7 @@
 export function toNullableNumber(value: string): number | null {
-  return value === '' ? null : Number(value);
+  if (value === '') {
+    return null;
+  }
+
+  return Number(value);
 }

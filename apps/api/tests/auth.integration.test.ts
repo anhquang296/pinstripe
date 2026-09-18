@@ -1,5 +1,6 @@
 import { ApiKeyScopeEnum, PINSTRIPE_API_VERSION } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
@@ -179,11 +180,10 @@ describe('key lifecycle', () => {
   it('returns the plaintext token once at creation and never again', async () => {
     const created = await mintApiKey(fastify, [ApiKeyScopeEnum.ADMIN]);
     const listed = await fastify.apiKeyService.findApiKeys({ limit: 100 });
-    const stored = listed.data.find((apiKey) => {
-      return apiKey.id === created.id;
-    });
+    const stored = _.find(listed.data, { id: created.id });
+    const storedToken = _.get(stored, 'token');
 
     expect(created.token).toMatch(/^sk_[0-9a-f]{48}$/);
-    expect(stored?.token).toBeNull();
+    expect(storedToken).toBeNull();
   });
 });

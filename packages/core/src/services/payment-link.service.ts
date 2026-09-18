@@ -48,25 +48,28 @@ export class PaymentLinkService {
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_LINK);
     const lineItems = _.map(payload.lineItems, (lineItem): NewPaymentLinkLineItem => {
+      const { quantity = DEFAULT_QUANTITY } = lineItem;
+
       return {
         id: generateGid(ObjectPrefixEnum.PAYMENT_LINK_LINE_ITEM),
         paymentLinkId: id,
         priceId: lineItem.priceId,
-        quantity: lineItem.quantity ?? DEFAULT_QUANTITY,
+        quantity,
         createdAt,
       };
     });
+    const { mode = CheckoutSessionModeEnum.PAYMENT, metadata = {} } = payload;
 
     const createdPaymentLink = await this.fastify.database.master.transaction(async (tx) => {
       const paymentLink = await this.fastify.paymentLinkRepository.createPaymentLink(
         {
           id,
           isActive: true,
-          mode: payload.mode ?? CheckoutSessionModeEnum.PAYMENT,
+          mode,
           currency,
           url: this.fastify.hostedUrlFactory.buildPaymentLinkUrl(id),
           successUrl: payload.successUrl,
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt,
           updatedAt: createdAt,
         },
@@ -92,13 +95,14 @@ export class PaymentLinkService {
   ): Promise<PaymentLinkResponse> {
     const paymentLink = await this.fastify.paymentLinkRepository.getPaymentLink(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+    const { isActive = paymentLink.isActive, successUrl = paymentLink.successUrl } = payload;
 
     const updatedPaymentLink = await this.fastify.database.master.transaction(async (tx) => {
       const revisedPaymentLink = await this.fastify.paymentLinkRepository.updatePaymentLink(
         paymentLink.id,
         {
-          isActive: payload.isActive ?? paymentLink.isActive,
-          successUrl: payload.successUrl ?? paymentLink.successUrl,
+          isActive,
+          successUrl,
           metadata: { ...paymentLink.metadata, ...payload.metadata },
           updatedAt,
         },

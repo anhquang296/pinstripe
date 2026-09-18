@@ -34,7 +34,13 @@ export class PromotionCodeService {
 
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PROMOTION_CODE);
-    const code = _.toUpper(payload.code ?? PromotionCodeService.buildCode());
+    const {
+      code: requestedCode = PromotionCodeService.buildCode(),
+      active = true,
+      firstTimeTransaction = false,
+      metadata = {},
+    } = payload;
+    const code = _.toUpper(requestedCode);
 
     try {
       const promotionCode = await this.fastify.promotionCodeRepository.createPromotionCode({
@@ -42,13 +48,13 @@ export class PromotionCodeService {
         code,
         couponId: coupon.id,
         customerId: payload.customerId ?? null,
-        active: payload.active ?? true,
+        active,
         maxRedemptions: payload.maxRedemptions ?? null,
         timesRedeemed: 0,
         expiresAt: payload.expiresAt ?? null,
-        firstTimeTransaction: payload.firstTimeTransaction ?? false,
+        firstTimeTransaction,
         minimumAmount: payload.minimumAmount ?? null,
-        metadata: payload.metadata ?? {},
+        metadata,
         createdAt: now,
         updatedAt: now,
       });
@@ -158,9 +164,11 @@ export class PromotionCodeService {
     payload: UpdatePromotionCodePayload,
   ): Promise<PromotionCodeResponse> {
     const existingPromotionCode = await this.fastify.promotionCodeRepository.getPromotionCode(id);
+    const { active = existingPromotionCode.active, metadata = existingPromotionCode.metadata } =
+      payload;
     const promotionCode = await this.fastify.promotionCodeRepository.updatePromotionCode(id, {
-      active: payload.active ?? existingPromotionCode.active,
-      metadata: payload.metadata ?? existingPromotionCode.metadata,
+      active,
+      metadata,
       updatedAt: this.fastify.clock.now().toISOString(),
     });
 
@@ -177,11 +185,12 @@ export class PromotionCodeService {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
+    const code = query.code ? _.toUpper(query.code) : undefined;
 
     const rows = await this.fastify.promotionCodeRepository.findPromotionCodes(
       {
         couponId: query.couponId,
-        code: query.code ? _.toUpper(query.code) : undefined,
+        code,
         active: query.active,
         beforeAt,
         afterAt,
