@@ -11,6 +11,7 @@ import {
   PaymentIntentStatusEnum,
   PspEventTypeEnum,
   PspProviderEnum,
+  RefundStatusEnum,
 } from '@contracts/payments.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
@@ -75,6 +76,21 @@ async function settle(paymentIntentId: string) {
   await fastify.paymentService.drainProviderEvents();
 
   return fastify.paymentService.getPaymentIntent(paymentIntentId, TEST_LIVEMODE);
+}
+
+async function settleCharge(invoiceId: string): Promise<string> {
+  const paymentIntent = await fastify.paymentService.createPaymentIntent(
+    { invoiceId },
+    TEST_LIVEMODE,
+  );
+  const settled = await settle(paymentIntent.id);
+  const { latestChargeId } = settled;
+
+  if (latestChargeId) {
+    return latestChargeId;
+  }
+
+  throw new Error('settleCharge() the payment intent settled without a charge');
 }
 
 describe('PaymentService.createPaymentIntent', () => {
@@ -509,79 +525,116 @@ describe('PaymentService.handleProviderEvent', () => {
 describe('RefundService.createRefund', () => {
   it('returns money already taken and reduces revenue rather than the receivable', async () => {
     const { invoiceId, customerId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent(
-      { invoiceId },
+    const chargeId = await settleCharge(invoiceId);
+
+    const refund = await fastify.refundService.createRefund(
+      { chargeId, amount: 200_000, reason: 'Khách trả lại dịch vụ' },
       TEST_LIVEMODE,
     );
 
-    const settled = await settle(paymentIntent.id);
-    const refund = await fastify.refundService.createRefund({
-      paymentIntentId: paymentIntent.id,
-      amount: 200_000,
-      reason: 'Khách trả lại dịch vụ',
-    });
+    await fastify.paymentService.drainProviderEvents();
+
+    const settledRefund = await fastify.refundService.getRefund(refund.id, TEST_LIVEMODE);
     const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
 
+    expect(refund.status).toBe(RefundStatusEnum.PENDING);
+    expect(settledRefund.status).toBe(RefundStatusEnum.SUCCEEDED);
     expect(refund.amount).toBe(200_000);
-    expect(refund.chargeId).toBe(settled.latestChargeId);
+    expect(refund.chargeId).toBe(chargeId);
     expect(refund.pspReference).toMatch(/^mockpsp_/);
     expect(invoice.amountRefunded).toBe(200_000);
     expect(await readReceivable(customerId)).toBe(0);
   });
 
-  it('refunds the whole payment when no amount is given', async () => {
+  it('refunds the whole charge when no amount is given', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent(
-      { invoiceId },
+    const chargeId = await settleCharge(invoiceId);
+
+    const refund = await fastify.refundService.createRefund(
+      { chargeId, reason: 'Hoàn toàn bộ' },
       TEST_LIVEMODE,
     );
-
-    await settle(paymentIntent.id);
-
-    const refund = await fastify.refundService.createRefund({
-      paymentIntentId: paymentIntent.id,
-      reason: 'Hoàn toàn bộ',
-    });
 
     expect(refund.amount).toBe(BASE_AMOUNT);
   });
 
-  it('refuses to refund more than the payment took', async () => {
+  it('takes a second refund on the same charge while there is money left', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent(
-      { invoiceId },
+    const chargeId = await settleCharge(invoiceId);
+
+    await fastify.refundService.createRefund(
+      { chargeId, amount: 100_000, reason: 'Phần một' },
+      TEST_LIVEMODE,
+    );
+    await fastify.paymentService.drainProviderEvents();
+
+    const second = await fastify.refundService.createRefund(
+      { chargeId, amount: 50_000, reason: 'Phần hai' },
       TEST_LIVEMODE,
     );
 
-    await settle(paymentIntent.id);
-    await fastify.refundService.createRefund({
-      paymentIntentId: paymentIntent.id,
-      amount: BASE_AMOUNT,
-      reason: 'Hoàn toàn bộ',
-    });
+    await fastify.paymentService.drainProviderEvents();
+
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+
+    expect(second.amount).toBe(50_000);
+    expect(invoice.amountRefunded).toBe(150_000);
+  });
+
+  it('refuses to refund more than the charge took', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const chargeId = await settleCharge(invoiceId);
+
+    await fastify.refundService.createRefund(
+      { chargeId, amount: BASE_AMOUNT, reason: 'Hoàn toàn bộ' },
+      TEST_LIVEMODE,
+    );
 
     await expect(
-      fastify.refundService.createRefund({
-        paymentIntentId: paymentIntent.id,
-        amount: 1,
-        reason: 'Một đồng nữa',
-      }),
+      fastify.refundService.createRefund(
+        { chargeId, amount: 1, reason: 'Một đồng nữa' },
+        TEST_LIVEMODE,
+      ),
     ).rejects.toThrow(BadRequestError);
   });
 
-  it('refuses to refund an intent that never took money', async () => {
-    const { invoiceId } = await makeOpenInvoice();
+  it('refuses to refund a charge that never took money', async () => {
+    const { invoiceId, customerId } = await makeOpenInvoice();
     const paymentIntent = await fastify.paymentService.createPaymentIntent(
       { invoiceId },
       TEST_LIVEMODE,
     );
+    const chargeId = generateGid(ObjectPrefixEnum.CHARGE);
+
+    await fastify.paymentIntentRepository.createCharge({
+      id: chargeId,
+      livemode: TEST_LIVEMODE,
+      paymentIntentId: paymentIntent.id,
+      customerId,
+      paymentMethodId: null,
+      currency: CurrencyEnum.VND,
+      amount: BASE_AMOUNT,
+      amountCaptured: 0,
+      amountRefunded: 0,
+      captured: false,
+      status: ChargeStatusEnum.FAILED,
+      outcome: ChargeOutcomeEnum.DECLINED,
+      balanceTransactionId: null,
+      paymentMethodDetails: {},
+      failureCode: null,
+      declineCode: null,
+      failureMessage: null,
+      pspReference: null,
+      metadata: {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     await expect(
-      fastify.refundService.createRefund({
-        paymentIntentId: paymentIntent.id,
-        amount: 1,
-        reason: 'Chưa thu được đồng nào',
-      }),
+      fastify.refundService.createRefund(
+        { chargeId, amount: 1, reason: 'Chưa thu được đồng nào' },
+        TEST_LIVEMODE,
+      ),
     ).rejects.toThrow(ConflictError);
   });
 });
@@ -589,18 +642,12 @@ describe('RefundService.createRefund', () => {
 describe('refund records are append-only in the database', () => {
   it('rejects a direct rewrite of a refund', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent(
-      { invoiceId },
+    const chargeId = await settleCharge(invoiceId);
+
+    const refund = await fastify.refundService.createRefund(
+      { chargeId, amount: 1_000, reason: 'Điều chỉnh nhỏ' },
       TEST_LIVEMODE,
     );
-
-    await settle(paymentIntent.id);
-
-    const refund = await fastify.refundService.createRefund({
-      paymentIntentId: paymentIntent.id,
-      amount: 1_000,
-      reason: 'Điều chỉnh nhỏ',
-    });
 
     const act = async () => {
       return fastify.database.master.execute(

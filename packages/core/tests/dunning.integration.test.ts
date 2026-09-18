@@ -136,7 +136,9 @@ describe('DunningService.runDunningShard', () => {
     await fastify.paymentService.drainProviderEvents();
 
     const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
-    const charges = await fastify.paymentIntentRepository.findCharges(_.map(intents, 'id'));
+    const charges = await fastify.paymentIntentRepository.findCharges({
+      paymentIntentIds: _.map(intents, 'id'),
+    });
 
     expect(firstRun.attempted).toBe(1);
     expect(secondRun.awaiting).toBe(1);
@@ -200,7 +202,9 @@ describe('DunningService.runDunningShard', () => {
     }
 
     const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
-    const charges = await fastify.paymentIntentRepository.findCharges(_.map(intents, 'id'));
+    const charges = await fastify.paymentIntentRepository.findCharges({
+      paymentIntentIds: _.map(intents, 'id'),
+    });
 
     expect(intents).toHaveLength(1);
     expect(charges.length).toBeGreaterThanOrEqual(3);
