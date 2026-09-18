@@ -14,7 +14,29 @@ export function buildWebhookSignature(payload: string, secret: string, signedAt:
   return `t=${timestamp},${SIGNATURE_SCHEME}=${digest}`;
 }
 
-export function isWebhookSignatureValid(payload: string, secret: string, header: string): boolean {
+export interface WebhookVerificationOptions {
+  toleranceSeconds?: number;
+  verifiedAt?: Date;
+}
+
+function isWithinTolerance(timestamp: string, toleranceSeconds: number, verifiedAt: Date): boolean {
+  const signedAtSeconds = Number(timestamp);
+
+  if (!Number.isFinite(signedAtSeconds)) {
+    return false;
+  }
+
+  const verifiedAtSeconds = Math.floor(verifiedAt.getTime() / MILLISECONDS_PER_SECOND);
+
+  return Math.abs(verifiedAtSeconds - signedAtSeconds) <= toleranceSeconds;
+}
+
+export function isWebhookSignatureValid(
+  payload: string,
+  secret: string,
+  header: string,
+  options: WebhookVerificationOptions = {},
+): boolean {
   const parts = _.fromPairs(
     _.map(header.split(','), (part) => {
       const [key, value] = part.split('=');
@@ -26,6 +48,12 @@ export function isWebhookSignatureValid(payload: string, secret: string, header:
   const signature = parts[SIGNATURE_SCHEME];
 
   if (!timestamp || !signature) {
+    return false;
+  }
+
+  const { toleranceSeconds, verifiedAt = new Date() } = options;
+
+  if (toleranceSeconds && !isWithinTolerance(timestamp, toleranceSeconds, verifiedAt)) {
     return false;
   }
 

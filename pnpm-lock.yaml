@@ -287,6 +287,9 @@ importers:
       '@sinclair/typebox':
         specifier: ^0.34.13
         version: 0.34.52
+      '@types/nodemailer':
+        specifier: ^8.0.2
+        version: 8.0.2
       bullmq:
         specifier: ^5.34.6
         version: 5.81.5
@@ -305,6 +308,9 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.18.1
+      nodemailer:
+        specifier: ^10.0.10
+        version: 10.0.10
       postgres:
         specifier: ^3.4.5
         version: 3.4.9
@@ -3057,6 +3063,12 @@ packages:
         integrity: sha512-xlvWf4Vs9n1PEVYwP1n4vvG07M6y8WgvJ2t0vbrWTmijsIHp1cS+uJ2kMIRdY3nHZK0nCYKrPeD171+SzF4/zw==,
       }
 
+  '@types/nodemailer@8.0.2':
+    resolution:
+      {
+        integrity: sha512-c7M5ox8p0nEOfbJ2E9Qcmt8/QCu/VzsiAhzBiZbvky2PhKZDHpKB3sQHBM5MEZNkCfBOaS6S9//AGPRTNB7IaA==,
+      }
+
   '@types/react-dom@19.3.0':
     resolution:
       {
@@ -5308,6 +5320,13 @@ packages:
         integrity: sha512-mIrE/Cw9y+9Au6dS5vDKDhQza9YvG6w+ZrS6X+ZzA7yFW/soAeaups4Qzn1bL6g5FVy8WtP79+0j82oPIbqRjQ==,
       }
     engines: { node: '>=18' }
+
+  nodemailer@10.0.10:
+    resolution:
+      {
+        integrity: sha512-He9XskOFms62SyAKkLu8CcGcYHAo+BSHSsORI8s4PJH8qZgZY4L4lDfvyN0twvmbpyG+eGrxpyBlskj9d9rJ8A==,
+      }
+    engines: { node: '>=20.0.0' }
 
   npm-run-path@5.3.0:
     resolution:
@@ -7827,6 +7846,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/nodemailer@8.0.2':
+    dependencies:
+      '@types/node': 22.20.2
+
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
     dependencies:
       '@types/react': 19.3.0
@@ -9399,6 +9422,8 @@ snapshots:
     optional: true
 
   node-releases@2.0.55: {}
+
+  nodemailer@10.0.10: {}
 
   npm-run-path@5.3.0:
     dependencies:
