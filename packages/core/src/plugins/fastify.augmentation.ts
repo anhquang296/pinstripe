@@ -1,4 +1,5 @@
 import type { MockPspClient } from '@clients/mock-psp.client';
+import type { SmtpClient } from '@clients/smtp.client';
 import type { Env } from '@config/env.schema';
 import type { DatabaseClient } from '@database/database.client';
 import type { ListenAddress, WorkflowSchedules } from '@plugins/config.plugin';
@@ -21,11 +22,14 @@ import type { MeterEventRepository } from '@repositories/meter-event.repository'
 import type { NumberSequenceRepository } from '@repositories/number-sequence.repository';
 import type { OutboxEventRepository } from '@repositories/outbox-event.repository';
 import type { PaymentIntentRepository } from '@repositories/payment-intent.repository';
+import type { PaymentMethodRepository } from '@repositories/payment-method.repository';
 import type { PriceRepository } from '@repositories/price.repository';
 import type { ProductRepository } from '@repositories/product.repository';
 import type { PromotionCodeRepository } from '@repositories/promotion-code.repository';
+import type { PspEventRepository } from '@repositories/psp-event.repository';
 import type { RefundRepository } from '@repositories/refund.repository';
 import type { ReportingRepository } from '@repositories/reporting.repository';
+import type { SetupIntentRepository } from '@repositories/setup-intent.repository';
 import type { SubscriptionRepository } from '@repositories/subscription.repository';
 import type { TaxIdRepository } from '@repositories/tax-id.repository';
 import type { TaxRateRepository } from '@repositories/tax-rate.repository';
@@ -49,8 +53,10 @@ import type { InvoiceItemService } from '@services/invoice-item.service';
 import type { LedgerService } from '@services/ledger.service';
 import type { MeterService } from '@services/meter.service';
 import type { MeterEventService } from '@services/meter-event.service';
+import type { NotificationService } from '@services/notification.service';
 import type { OutboxService } from '@services/outbox.service';
 import type { PaymentService } from '@services/payment.service';
+import type { PaymentMethodService } from '@services/payment-method.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
 import type { PromotionCodeService } from '@services/promotion-code.service';
@@ -58,6 +64,7 @@ import type { RatingService } from '@services/rating.service';
 import type { ReconciliationService } from '@services/reconciliation.service';
 import type { RefundService } from '@services/refund.service';
 import type { ReportingService } from '@services/reporting.service';
+import type { SetupIntentService } from '@services/setup-intent.service';
 import type { SubscriptionService } from '@services/subscription.service';
 import type { SubscriptionItemService } from '@services/subscription-item.service';
 import type { TaxService } from '@services/tax.service';
@@ -103,6 +110,9 @@ declare module 'fastify' {
     numberSequenceRepository: NumberSequenceRepository;
     creditNoteRepository: CreditNoteRepository;
     paymentIntentRepository: PaymentIntentRepository;
+    paymentMethodRepository: PaymentMethodRepository;
+    setupIntentRepository: SetupIntentRepository;
+    pspEventRepository: PspEventRepository;
     refundRepository: RefundRepository;
     webhookRepository: WebhookRepository;
     reportingRepository: ReportingRepository;
@@ -139,13 +149,17 @@ declare module 'fastify' {
     taxService: TaxService;
     creditNoteService: CreditNoteService;
     billingRunService: BillingRunService;
+    notificationService: NotificationService;
+    paymentMethodService: PaymentMethodService;
     paymentService: PaymentService;
+    setupIntentService: SetupIntentService;
     refundService: RefundService;
     dunningService: DunningService;
     webhookService: WebhookService;
     reportingService: ReportingService;
     reconciliationService: ReconciliationService;
     psp: MockPspClient;
+    mailer: SmtpClient | null;
     taxProvider: TaxProvider;
   }
 }

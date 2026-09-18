@@ -23,6 +23,8 @@ export interface WorkflowSchedules {
   dunningBatchSize: number;
   dunningJitterMs: number;
   dunningRetryDelayDays: number[];
+  dunningInFlightTimeoutMs: number;
+  pspCallbackPollIntervalMs: number;
   webhookMaxAttempts: number;
   webhookBackoffMs: number;
   webhookTimeoutMs: number;
@@ -54,6 +56,8 @@ export const configPlugin = fp(async (fastify) => {
     dunningBatchSize: config.DUNNING_BATCH_SIZE,
     dunningJitterMs: config.DUNNING_JITTER_MS,
     dunningRetryDelayDays: _.map(config.DUNNING_RETRY_DELAY_DAYS.split(','), Number),
+    dunningInFlightTimeoutMs: config.DUNNING_IN_FLIGHT_TIMEOUT_MS,
+    pspCallbackPollIntervalMs: config.PSP_CALLBACK_POLL_INTERVAL_MS,
     webhookMaxAttempts: config.WEBHOOK_MAX_ATTEMPTS,
     webhookBackoffMs: config.WEBHOOK_BACKOFF_MS,
     webhookTimeoutMs: config.WEBHOOK_TIMEOUT_MS,
