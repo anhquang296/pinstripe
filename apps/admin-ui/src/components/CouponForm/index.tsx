@@ -18,12 +18,13 @@ const DURATION_OPTIONS = [
 ];
 
 interface CouponFormProps {
+  mode: 'create' | 'edit';
   form: UseFormReturn<CouponFormData>;
   isSaving?: boolean;
   onSave: () => void;
 }
 
-export default function CouponForm({ form, isSaving, onSave }: CouponFormProps) {
+export default function CouponForm({ mode, form, isSaving, onSave }: CouponFormProps) {
   return (
     <form
       className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
@@ -38,40 +39,51 @@ export default function CouponForm({ form, isSaving, onSave }: CouponFormProps) 
         label="Tên"
         placeholder="Khai trương 20%"
       />
-      <RenderSelectField control={form.control} name="kind" label="Kiểu" options={KIND_OPTIONS} />
+      <RenderSelectField
+        control={form.control}
+        name="kind"
+        label="Kiểu"
+        options={KIND_OPTIONS}
+        isDisabled={mode === 'edit'}
+      />
       <RenderNumberField
         control={form.control}
         name="percentOff"
         label="Phần trăm giảm"
         minValue={0}
         maxValue={100}
+        isDisabled={mode === 'edit'}
       />
       <RenderNumberField
         control={form.control}
         name="amountOff"
         label="Số tiền giảm (VND)"
         minValue={0}
+        isDisabled={mode === 'edit'}
       />
       <RenderSelectField
         control={form.control}
         name="duration"
         label="Thời hạn"
         options={DURATION_OPTIONS}
+        isDisabled={mode === 'edit'}
       />
       <RenderNumberField
         control={form.control}
         name="durationInMonths"
         label="Số tháng"
         minValue={0}
+        isDisabled={mode === 'edit'}
       />
       <RenderNumberField
         control={form.control}
         name="maxRedemptions"
         label="Giới hạn lượt dùng (0 = không giới hạn)"
         minValue={0}
+        isDisabled={mode === 'edit'}
       />
       <Button type="submit" isDisabled={isSaving}>
-        Tạo coupon
+        {mode === 'create' ? 'Tạo coupon' : 'Lưu thay đổi'}
       </Button>
     </form>
   );
