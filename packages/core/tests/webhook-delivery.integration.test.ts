@@ -62,8 +62,8 @@ it('marks a delivery exhausted once it burns through the attempt budget', async 
   });
   const givenUp = await fastify.webhookRepository.findWebhookDelivery(deliveryId);
 
-  expect(stillRetrying?.status).toBe(WebhookDeliveryStatusEnum.FAILED);
-  expect(givenUp?.status).toBe(WebhookDeliveryStatusEnum.EXHAUSTED);
+  expect(_.get(stillRetrying, 'status')).toBe(WebhookDeliveryStatusEnum.FAILED);
+  expect(_.get(givenUp, 'status')).toBe(WebhookDeliveryStatusEnum.EXHAUSTED);
 });
 
 it('puts an exhausted delivery back to pending when it is replayed', async () => {

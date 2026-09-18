@@ -2,6 +2,7 @@ import { BadRequestError, NotFoundError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { buildTestContext } from './context';
@@ -70,18 +71,14 @@ describe('CustomerService.findCustomers', () => {
     }
 
     const firstPage = await fastify.customerService.findCustomers({ limit: 2 });
-    const secondPage = await fastify.customerService.findCustomers({
-      limit: 2,
-      startingAfter: firstPage.data[1]?.id,
-    });
+    const startingAfter = _.get(firstPage.data, '1.id');
+
+    const secondPage = await fastify.customerService.findCustomers({ limit: 2, startingAfter });
+    const firstCustomerId = _.get(firstPage.data, '0.id');
 
     expect(firstPage.data).toHaveLength(2);
     expect(firstPage.hasMore).toBe(true);
-    expect(
-      secondPage.data.map((customer) => {
-        return customer.id;
-      }),
-    ).not.toContain(firstPage.data[0]?.id);
+    expect(_.map(secondPage.data, 'id')).not.toContain(firstCustomerId);
   });
 });
 

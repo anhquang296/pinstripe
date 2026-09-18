@@ -40,10 +40,10 @@ describe('BalanceService.recordChargeSettlement', () => {
     );
     const fee = fastify.psp.calculateProcessingFee(BASE_AMOUNT);
 
-    expect(balanceTransaction?.type).toBe(BalanceTransactionTypeEnum.CHARGE);
-    expect(balanceTransaction?.gross).toBe(BASE_AMOUNT);
-    expect(balanceTransaction?.fee).toBe(fee);
-    expect(balanceTransaction?.net).toBe(BASE_AMOUNT - fee);
+    expect(_.get(balanceTransaction, 'type')).toBe(BalanceTransactionTypeEnum.CHARGE);
+    expect(_.get(balanceTransaction, 'gross')).toBe(BASE_AMOUNT);
+    expect(_.get(balanceTransaction, 'fee')).toBe(fee);
+    expect(_.get(balanceTransaction, 'net')).toBe(BASE_AMOUNT - fee);
     expect(Date.parse(_.get(balanceTransaction, 'availableOn', ''))).toBeGreaterThan(
       Date.parse(_.get(balanceTransaction, 'createdAt', '')),
     );
@@ -75,8 +75,8 @@ describe('BalanceService.getBalance', () => {
     const pending = _.find(balance.pending, { currency: CurrencyEnum.VND });
     const available = _.find(balance.available, { currency: CurrencyEnum.VND });
 
-    expect(pending?.amount).toBeGreaterThan(0);
-    expect(available?.amount).toBe(0);
+    expect(_.get(pending, 'amount')).toBeGreaterThan(0);
+    expect(_.get(available, 'amount')).toBe(0);
   });
 
   it('reports the disputed amount as reserved rather than spendable', async () => {
@@ -94,7 +94,7 @@ describe('BalanceService.getBalance', () => {
     const balance = await fastify.balanceService.getBalance();
     const reserved = _.find(balance.reserved, { currency: CurrencyEnum.VND });
 
-    expect(reserved?.amount).toBe(120_000);
+    expect(_.get(reserved, 'amount')).toBe(120_000);
   });
 });
 

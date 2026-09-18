@@ -4,6 +4,7 @@ import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
@@ -68,7 +69,7 @@ describe('PaymentMethodService.attachPaymentMethod', () => {
     const customer = await fastify.customerRepository.findCustomer(customerId);
 
     expect(attached.customerId).toBe(customerId);
-    expect(customer?.defaultPaymentMethodId).toBe(attached.id);
+    expect(_.get(customer, 'defaultPaymentMethodId')).toBe(attached.id);
   });
 
   it('refuses to move a payment method to a second customer', async () => {
@@ -105,7 +106,7 @@ describe('PaymentMethodService.detachPaymentMethod', () => {
 
     expect(detached.detachedAt).not.toBeNull();
     expect(detached.customerId).toBeNull();
-    expect(customer?.defaultPaymentMethodId).toBeNull();
+    expect(_.get(customer, 'defaultPaymentMethodId')).toBeNull();
   });
 
   it('refuses to charge a detached payment method', async () => {
@@ -170,6 +171,6 @@ describe('PaymentMethodService.findPaymentMethods', () => {
     const { data } = await fastify.paymentMethodService.findPaymentMethods({ customerId });
 
     expect(data).toHaveLength(1);
-    expect(data[0]?.customerId).toBe(customerId);
+    expect(_.get(data, '0.customerId')).toBe(customerId);
   });
 });

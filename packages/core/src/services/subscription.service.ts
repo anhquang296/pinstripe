@@ -78,20 +78,20 @@ export class SubscriptionService {
 
     const subscriptionId = generateGid(ObjectPrefixEnum.SUBSCRIPTION);
     const trialEnd = SubscriptionService.resolveTrialEnd(payload, now);
-    const anchor = payload.billingCycleAnchor
-      ? new Date(payload.billingCycleAnchor)
-      : (trialEnd ?? now);
+    const anchor = SubscriptionService.resolveBillingCycleAnchor(payload, trialEnd, now);
     const { interval, intervalCount } = resolveInterval(prices);
     const createdAt = now.toISOString();
     const currentPeriodEnd = trialEnd ?? advancePeriod(anchor, interval, intervalCount);
     const subscriptionItems = _.map(payload.items, (subscriptionItem) => {
+      const { quantity = 1, taxRates = [], metadata = {} } = subscriptionItem;
+
       return {
         id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
         subscriptionId,
         priceId: subscriptionItem.priceId,
-        quantity: subscriptionItem.quantity ?? 1,
-        taxRates: subscriptionItem.taxRates ?? [],
-        metadata: subscriptionItem.metadata ?? {},
+        quantity,
+        taxRates,
+        metadata,
         createdAt,
       } satisfies NewSubscriptionItem;
     });
@@ -116,24 +116,33 @@ export class SubscriptionService {
       ['trialSettings', 'endBehavior', 'missingPaymentMethod'],
       TrialEndBehaviorEnum.CREATE_INVOICE,
     );
+    const status = trialEnd ? SubscriptionStatusEnum.TRIALING : SubscriptionStatusEnum.ACTIVE;
+    const trialStartAt = trialEnd ? createdAt : null;
+    const trialEndAt = trialEnd ? trialEnd.toISOString() : null;
+    const {
+      collectionMethod = CollectionMethodEnum.CHARGE_AUTOMATICALLY,
+      billingMode = BillingModeEnum.ADVANCE,
+      defaultTaxRates = [],
+      metadata = {},
+    } = payload;
 
     const createdSubscription = await this.fastify.database.master.transaction(async (tx) => {
       const subscription = await this.fastify.subscriptionRepository.createSubscription(
         {
           id: subscriptionId,
           customerId: customer.id,
-          status: trialEnd ? SubscriptionStatusEnum.TRIALING : SubscriptionStatusEnum.ACTIVE,
+          status,
           currency: customer.currency,
-          collectionMethod: payload.collectionMethod ?? CollectionMethodEnum.CHARGE_AUTOMATICALLY,
-          billingMode: payload.billingMode ?? BillingModeEnum.ADVANCE,
+          collectionMethod,
+          billingMode,
           billingCycleAnchor: anchor.toISOString(),
           currentPeriodStart: createdAt,
           currentPeriodEnd: currentPeriodEnd.toISOString(),
           chargedThroughDate: null,
-          defaultTaxRates: payload.defaultTaxRates ?? [],
+          defaultTaxRates,
           defaultPaymentMethodId: payload.defaultPaymentMethodId ?? null,
-          trialStart: trialEnd ? createdAt : null,
-          trialEnd: trialEnd ? trialEnd.toISOString() : null,
+          trialStart: trialStartAt,
+          trialEnd: trialEndAt,
           trialEndBehaviorMissingPaymentMethod: missingPaymentMethod,
           pauseCollectionBehavior: null,
           pauseCollectionResumesAt: null,
@@ -145,7 +154,7 @@ export class SubscriptionService {
           canceledAt: null,
           endedAt: null,
           testClockId: customer.testClockId,
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt,
           updatedAt: createdAt,
         },
@@ -231,7 +240,7 @@ export class SubscriptionService {
     }
 
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
-    const prorationBehavior = payload.prorationBehavior ?? ProrationBehaviorEnum.CREATE_PRORATIONS;
+    const { prorationBehavior = ProrationBehaviorEnum.CREATE_PRORATIONS } = payload;
     const isProrated = prorationBehavior !== ProrationBehaviorEnum.NONE;
     const boundary = isProrated ? now : new Date(subscription.currentPeriodStart);
     const changes = this.resolveUpdateChanges(subscription, payload, now);
@@ -277,14 +286,13 @@ export class SubscriptionService {
     SubscriptionService.assertUpdatable(subscription);
 
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+    const { comment = null } = payload;
+    const cancellationComment = _.get(payload, ['cancellationDetails', 'comment'], comment);
+    const cancellationFeedback = _.get(payload, ['cancellationDetails', 'feedback'], null);
     const details: Partial<NewSubscription> = {
       cancellationReason: CancellationReasonEnum.CANCELLATION_REQUESTED,
-      cancellationComment: _.get(
-        payload,
-        ['cancellationDetails', 'comment'],
-        payload.comment ?? null,
-      ),
-      cancellationFeedback: _.get(payload, ['cancellationDetails', 'feedback'], null),
+      cancellationComment,
+      cancellationFeedback,
     };
 
     if (payload.cancelAt) {
@@ -378,15 +386,21 @@ export class SubscriptionService {
       const { cancelAt } = subscription;
 
       if (cancelAt && new Date(cancelAt).getTime() <= subscriptionNow.getTime()) {
+        const { canceledAt, cancellationReason } = subscription;
+        const resolvedCanceledAt = canceledAt === null ? cancelAt : canceledAt;
+        const resolvedCancellationReason =
+          cancellationReason === null
+            ? CancellationReasonEnum.CANCELLATION_REQUESTED
+            : cancellationReason;
+
         await this.writeSubscription(
           subscription.id,
           {
             status: SubscriptionStatusEnum.CANCELED,
-            canceledAt: subscription.canceledAt ?? cancelAt,
+            canceledAt: resolvedCanceledAt,
             endedAt: cancelAt,
             cancelAtPeriodEnd: false,
-            cancellationReason:
-              subscription.cancellationReason ?? CancellationReasonEnum.CANCELLATION_REQUESTED,
+            cancellationReason: resolvedCancellationReason,
             updatedAt: subscriptionNow.toISOString(),
           },
           DomainEventTypeEnum.SUBSCRIPTION_CANCELED,
@@ -516,11 +530,12 @@ export class SubscriptionService {
       ],
       subscription.status,
     );
+    const status = isRecovering ? SubscriptionStatusEnum.ACTIVE : subscription.status;
 
     await this.writeSubscription(
       subscriptionId,
       {
-        status: isRecovering ? SubscriptionStatusEnum.ACTIVE : subscription.status,
+        status,
         chargedThroughDate: chargedThroughDate.toISOString(),
         updatedAt: paidAt.toISOString(),
       },
@@ -533,11 +548,17 @@ export class SubscriptionService {
     payload: UpdateSubscriptionPayload,
     now: Date,
   ): Partial<NewSubscription> {
+    const {
+      cancelAtPeriodEnd = subscription.cancelAtPeriodEnd,
+      collectionMethod = subscription.collectionMethod,
+      defaultTaxRates = subscription.defaultTaxRates,
+      metadata = subscription.metadata,
+    } = payload;
     const changes: Partial<NewSubscription> = {
-      cancelAtPeriodEnd: payload.cancelAtPeriodEnd ?? subscription.cancelAtPeriodEnd,
-      collectionMethod: payload.collectionMethod ?? subscription.collectionMethod,
-      defaultTaxRates: payload.defaultTaxRates ?? subscription.defaultTaxRates,
-      metadata: payload.metadata ?? subscription.metadata,
+      cancelAtPeriodEnd,
+      collectionMethod,
+      defaultTaxRates,
+      metadata,
       updatedAt: now.toISOString(),
     };
 
@@ -639,15 +660,21 @@ export class SubscriptionService {
         });
       }
 
+      const { canceledAt, cancellationReason } = subscription;
+      const resolvedCanceledAt = canceledAt === null ? endedAt : canceledAt;
+      const resolvedCancellationReason =
+        cancellationReason === null
+          ? CancellationReasonEnum.CANCELLATION_REQUESTED
+          : cancellationReason;
+
       return this.writeSubscription(
         subscription.id,
         {
           status: SubscriptionStatusEnum.CANCELED,
           endedAt,
           cancelAtPeriodEnd: false,
-          canceledAt: subscription.canceledAt ?? endedAt,
-          cancellationReason:
-            subscription.cancellationReason ?? CancellationReasonEnum.CANCELLATION_REQUESTED,
+          canceledAt: resolvedCanceledAt,
+          cancellationReason: resolvedCancellationReason,
           updatedAt: endedAt,
         },
         DomainEventTypeEnum.SUBSCRIPTION_CANCELED,
@@ -805,6 +832,22 @@ export class SubscriptionService {
     }
 
     return undefined;
+  }
+
+  private static resolveBillingCycleAnchor(
+    payload: CreateSubscriptionPayload,
+    trialEnd: Date | null,
+    now: Date,
+  ): Date {
+    if (payload.billingCycleAnchor) {
+      return new Date(payload.billingCycleAnchor);
+    }
+
+    if (trialEnd !== null) {
+      return trialEnd;
+    }
+
+    return now;
   }
 
   private static resolveTrialEnd(payload: CreateSubscriptionPayload, now: Date): Date | null {

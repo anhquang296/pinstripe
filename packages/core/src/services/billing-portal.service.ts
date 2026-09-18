@@ -54,7 +54,7 @@ export class BillingPortalService {
           isActive: true,
           isDefault,
           businessName,
-          defaultReturnUrl: defaultReturnUrl,
+          defaultReturnUrl,
           features: { ...DEFAULT_FEATURES, ...payload.features },
           metadata,
           createdAt: createdAt,

@@ -1,6 +1,7 @@
 import type { PriceResponse, SubscriptionResponse } from '@pinstripe/core/contracts';
 import { ApiKeyScopeEnum, CurrencyEnum, RecurringIntervalEnum } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
@@ -72,16 +73,17 @@ it('keeps the item id when the quantity is updated', async () => {
   const price = await makePrice();
   const subscription = await makeSubscription(price.id);
   const [item] = subscription.items;
+  const itemId = _.get(item, 'id');
 
   const updated = await fastify.inject({
     method: 'POST',
-    url: `/v1/subscription_items/${item?.id}`,
+    url: `/v1/subscription_items/${itemId}`,
     headers: authHeaders,
     payload: { quantity: 5 },
   });
 
   expect(updated.statusCode).toBe(200);
-  expect(updated.json().id).toBe(item?.id);
+  expect(updated.json().id).toBe(itemId);
   expect(updated.json().quantity).toBe(5);
 });
 
@@ -89,10 +91,11 @@ it('refuses to delete the only item of a subscription', async () => {
   const price = await makePrice();
   const subscription = await makeSubscription(price.id);
   const [item] = subscription.items;
+  const itemId = _.get(item, 'id');
 
   const response = await fastify.inject({
     method: 'DELETE',
-    url: `/v1/subscription_items/${item?.id}`,
+    url: `/v1/subscription_items/${itemId}`,
     headers: authHeaders,
     payload: {},
   });

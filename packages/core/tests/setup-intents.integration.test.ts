@@ -87,7 +87,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
 
     expect(confirmed.status).toBe(SetupIntentStatusEnum.PROCESSING);
     expect(saved.status).toBe(SetupIntentStatusEnum.SUCCEEDED);
-    expect(customer?.defaultPaymentMethodId).toBe(paymentMethod.id);
+    expect(_.get(customer, 'defaultPaymentMethodId')).toBe(paymentMethod.id);
     expect(attached.customerId).toBe(customerId);
   });
 
@@ -148,7 +148,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
 
     expect(failed.status).toBe(SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD);
     expect(failed.failureCode).toBe('expired_card');
-    expect(customer?.defaultPaymentMethodId).toBeNull();
+    expect(_.get(customer, 'defaultPaymentMethodId')).toBeNull();
   });
 
   it('refuses to confirm without a payment method to save', async () => {

@@ -194,7 +194,7 @@ describe('PaymentService.confirmPaymentIntent', () => {
       amountCaptured: BASE_AMOUNT,
       amountRefunded: 0,
     });
-    expect(charge?.balanceTransactionId).toBeNull();
+    expect(_.get(charge, 'balanceTransactionId')).toBeNull();
   });
 
   it('parks a card that needs 3DS in requires_action with somewhere to send the customer', async () => {

@@ -3,6 +3,7 @@ import { UnauthorizedError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
@@ -59,8 +60,8 @@ describe('PortalSessionService.createPortalLink', () => {
     );
 
     expect(link.linkKey).toEqual(expect.any(String));
-    expect(portalSession?.status).toBe(PortalSessionStatusEnum.PENDING);
-    expect(portalSession?.sessionTokenHash).toBeNull();
+    expect(_.get(portalSession, 'status')).toBe(PortalSessionStatusEnum.PENDING);
+    expect(_.get(portalSession, 'sessionTokenHash')).toBeNull();
   });
 
   it('mints nothing and says nothing when no customer owns the address', async () => {
@@ -157,7 +158,7 @@ describe('BillingPortalService', () => {
     expect(first.isDefault).toBe(true);
     expect(second.features.canViewInvoiceHistory).toBe(true);
     expect(defaults).toHaveLength(1);
-    expect(defaults[0]?.id).toBe(second.id);
+    expect(_.get(defaults, '0.id')).toBe(second.id);
   });
 
   it('moves the default flag when an update promotes another configuration', async () => {
@@ -181,7 +182,7 @@ describe('BillingPortalService', () => {
     expect(promoted.isDefault).toBe(true);
     expect(demoted.isDefault).toBe(false);
     expect(defaults).toHaveLength(1);
-    expect(defaults[0]?.id).toBe(candidate.id);
+    expect(_.get(defaults, '0.id')).toBe(candidate.id);
   });
 
   it('hands a merchant-created session a portal session key the customer can use', async () => {

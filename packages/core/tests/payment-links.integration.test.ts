@@ -49,7 +49,7 @@ describe('PaymentLinkService.createPaymentLink', () => {
 
     expect(paymentLink.isActive).toBe(true);
     expect(paymentLink.mode).toBe(CheckoutSessionModeEnum.PAYMENT);
-    expect(paymentLink.lineItems[0]?.quantity).toBe(3);
+    expect(_.get(paymentLink.lineItems, '0.quantity')).toBe(3);
     expect(paymentLink.url).toContain(token);
     expect(
       _.some(published.data, (event) => {
@@ -112,7 +112,7 @@ describe('CheckoutService.createPaymentLinkCheckoutSession', () => {
 
     expect(checkoutSession.paymentLinkId).toBe(paymentLink.id);
     expect(checkoutSession.mode).toBe(CheckoutSessionModeEnum.SUBSCRIPTION);
-    expect(checkoutSession.lineItems[0]?.priceId).toBe(fixture.priceId);
+    expect(_.get(checkoutSession.lineItems, '0.priceId')).toBe(fixture.priceId);
   });
 
   it('refuses a link the merchant has switched off', async () => {

@@ -223,9 +223,9 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     });
     const exception = _.find(report.exceptions, { reference: strayReference });
 
-    expect(exception?.outcome).toBe(ReconciliationOutcomeEnum.MISSING_IN_PROCESSOR);
-    expect(exception?.ledgerAmount).toBe(77_000);
-    expect(exception?.processorAmount).toBeNull();
+    expect(_.get(exception, 'outcome')).toBe(ReconciliationOutcomeEnum.MISSING_IN_PROCESSOR);
+    expect(_.get(exception, 'ledgerAmount')).toBe(77_000);
+    expect(_.get(exception, 'processorAmount')).toBeNull();
   });
 
   it('reports the difference between the two sides, not just a list', async () => {
