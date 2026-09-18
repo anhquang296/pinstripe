@@ -81,6 +81,15 @@ export const updateUserSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const bootstrapUserSchema = Type.Object(
+  {
+    email: Type.String({ format: 'email', maxLength: 320 }),
+    name: Type.String({ minLength: 1, maxLength: 200 }),
+    password: Type.String({ minLength: 12, maxLength: 200 }),
+  },
+  { additionalProperties: false },
+);
+
 export const findUsersSchema = Type.Object(
   {
     role: Type.Optional(Type.Unsafe<UserRole>(Type.Enum(UserRoleEnum))),
