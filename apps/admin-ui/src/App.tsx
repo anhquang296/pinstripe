@@ -6,13 +6,16 @@ import CheckoutSessionsPage from '@pages/CheckoutSessionsPage';
 import CustomersPage from '@pages/CustomersPage';
 import DiscountsPage from '@pages/DiscountsPage';
 import InvoicesPage from '@pages/InvoicesPage';
-import LedgerPage from '@pages/LedgerPage';
+import LedgerAccountsPage from '@pages/LedgerAccountsPage';
+import LedgerTransactionsPage from '@pages/LedgerTransactionsPage';
 import MetersPage from '@pages/MetersPage';
+import OverviewPage from '@pages/OverviewPage';
+import PaymentIntentsPage from '@pages/PaymentIntentsPage';
 import PaymentLinksPage from '@pages/PaymentLinksPage';
-import PaymentsPage from '@pages/PaymentsPage';
 import PortalConfigurationsPage from '@pages/PortalConfigurationsPage';
 import PricesPage from '@pages/PricesPage';
 import ProductsPage from '@pages/ProductsPage';
+import RefundsPage from '@pages/RefundsPage';
 import ReportsPage from '@pages/ReportsPage';
 import SecuritySettingsPage from '@pages/SecuritySettingsPage';
 import SubscriptionsPage from '@pages/SubscriptionsPage';
@@ -28,7 +31,7 @@ export default function App() {
 
       <Route element={<RequireSession />}>
         <Route element={<AppLayout />}>
-          <Route index element={<Navigate to="/customers" replace />} />
+          <Route index element={<OverviewPage />} />
           <Route path="/settings/account" element={<AccountSettingsPage />} />
           <Route path="/settings/security" element={<SecuritySettingsPage />} />
 
@@ -59,11 +62,24 @@ export default function App() {
           <Route path="/checkout/portal" element={<PortalConfigurationsPage />} />
           <Route path="/checkout/portal/:configurationId" element={<PortalConfigurationsPage />} />
 
-          <Route path="/invoices" element={<InvoicesPage />} />
-          <Route path="/payments" element={<PaymentsPage />} />
-          <Route path="/webhooks" element={<WebhooksPage />} />
+          <Route path="/invoices" element={<Navigate to="/invoices/draft" replace />} />
+          <Route path="/invoices/:status" element={<InvoicesPage />} />
+          <Route path="/invoices/:status/:invoiceId" element={<InvoicesPage />} />
+
+          <Route path="/payments" element={<Navigate to="/payments/intents" replace />} />
+          <Route path="/payments/intents" element={<PaymentIntentsPage />} />
+          <Route path="/payments/intents/:paymentIntentId" element={<PaymentIntentsPage />} />
+          <Route path="/payments/refunds" element={<RefundsPage />} />
+          <Route path="/payments/refunds/:refundId" element={<RefundsPage />} />
+
+          <Route path="/ledger" element={<Navigate to="/ledger/accounts" replace />} />
+          <Route path="/ledger/accounts" element={<LedgerAccountsPage />} />
+          <Route path="/ledger/accounts/:accountId" element={<LedgerAccountsPage />} />
+          <Route path="/ledger/transactions" element={<LedgerTransactionsPage />} />
+          <Route path="/ledger/transactions/:transactionId" element={<LedgerTransactionsPage />} />
+
           <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/ledger" element={<LedgerPage />} />
+          <Route path="/webhooks" element={<WebhooksPage />} />
           <Route path="/test-clocks" element={<TestClocksPage />} />
         </Route>
       </Route>

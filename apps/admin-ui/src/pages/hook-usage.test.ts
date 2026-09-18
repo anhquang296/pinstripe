@@ -20,6 +20,10 @@ const DOMAINS = [
   'payment-links',
   'checkout',
   'billing-portal',
+  'invoices',
+  'payments',
+  'ledger',
+  'reporting',
 ];
 
 const HOOK_DECLARATION = /export function (use[A-Za-z0-9]+)/g;

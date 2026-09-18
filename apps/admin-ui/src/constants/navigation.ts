@@ -16,6 +16,18 @@ export interface NavigationGroup {
 
 export const NAVIGATION_GROUPS: NavigationGroup[] = [
   {
+    label: 'Tổng quan',
+    items: [
+      {
+        to: '/',
+        title: 'Tổng quan',
+        description: 'Doanh thu và đối soát gần nhất',
+        initials: 'TQ',
+        permission: PermissionEnum.BILLING_READ,
+      },
+    ],
+  },
+  {
     label: 'Sales',
     items: [
       {
@@ -70,7 +82,7 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         title: 'Ledger',
         description: 'Tài khoản và bút toán',
         initials: 'LE',
-        permission: PermissionEnum.LEDGER_WRITE,
+        permission: PermissionEnum.BILLING_READ,
       },
       {
         to: '/reports',

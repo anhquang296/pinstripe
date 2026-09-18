@@ -42,6 +42,7 @@ export default function AppSidebar() {
                   <NavLink
                     key={navigationItem.to}
                     to={navigationItem.to}
+                    end={navigationItem.to === '/'}
                     className={({ isActive }) => {
                       return cn(
                         'flex items-start gap-2 border-l-2 border-transparent px-4 py-2',
