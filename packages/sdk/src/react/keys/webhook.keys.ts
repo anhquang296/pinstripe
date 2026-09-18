@@ -13,6 +13,14 @@ export function createWebhookQueries(client: PinstripeClient) {
         },
       };
     },
+    endpoint: (webhookEndpointId: string) => {
+      return {
+        queryKey: [webhookEndpointId],
+        queryFn: () => {
+          return client.webhookEndpoints.get(webhookEndpointId);
+        },
+      };
+    },
     deliveries: (query?: FindWebhookDeliveriesQuery) => {
       return {
         queryKey: [query],
