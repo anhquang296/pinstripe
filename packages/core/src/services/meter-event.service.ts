@@ -37,7 +37,9 @@ export class MeterEventService {
 
     const insertedIds = await this.fastify.meterEventRepository.createMeterEvents([event]);
 
-    await this.rememberIdentifiers(_.isEmpty(insertedIds) ? [] : [event]);
+    const insertedEvents = _.isEmpty(insertedIds) ? [] : [event];
+
+    await this.rememberIdentifiers(insertedEvents);
 
     return MeterEventService.buildMeterEvent(event);
   }
@@ -125,14 +127,17 @@ export class MeterEventService {
 
     MeterEventService.assertWithinWindow(timestamp, receivedAt, this.config.dedupWindowDays);
 
+    const { identifier = generateGid(ObjectPrefixEnum.METER_EVENT), payload: eventPayload = {} } =
+      payload;
+
     return {
       id: generateGid(ObjectPrefixEnum.METER_EVENT),
-      identifier: payload.identifier ?? generateGid(ObjectPrefixEnum.METER_EVENT),
+      identifier,
       meterId: meter.id,
       customerId: payload.customerId,
       eventName: payload.eventName,
       value: MeterEventService.resolveValue(meter, payload),
-      payload: payload.payload ?? {},
+      payload: eventPayload,
       timestamp: timestamp.toISOString(),
       receivedAt: receivedAt.toISOString(),
     };
@@ -200,7 +205,7 @@ export class MeterEventService {
       return 1;
     }
 
-    const rawValue = payload.value ?? _.get(payload.payload, meter.valueKey);
+    const { value: rawValue = _.get(payload.payload, meter.valueKey) } = payload;
 
     if (_.isFinite(rawValue)) {
       return Number(rawValue);
@@ -221,6 +226,8 @@ export class MeterEventService {
   }
 
   private static buildMeterEvent(event: NewMeterEvent): MeterEventResponse {
+    const { payload = {} } = event;
+
     return {
       id: event.id,
       identifier: event.identifier,
@@ -228,7 +235,7 @@ export class MeterEventService {
       customerId: event.customerId,
       eventName: event.eventName,
       value: event.value,
-      payload: event.payload ?? {},
+      payload,
       timestamp: event.timestamp,
       receivedAt: event.receivedAt,
     };

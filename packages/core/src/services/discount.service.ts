@@ -43,8 +43,10 @@ export class DiscountService {
     const { coupon, promotionCodeId } = await this.redeemCoupon(payload, target);
 
     const now = this.fastify.clock.now().toISOString();
-    const startAt = target.startAt ?? now;
+    const { startAt: targetStartAt } = target;
+    const startAt = targetStartAt === null ? now : targetStartAt;
     const id = generateGid(ObjectPrefixEnum.DISCOUNT);
+    const { metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
       const discount = await this.fastify.discountRepository.createDiscount(
@@ -60,7 +62,7 @@ export class DiscountService {
           invoiceItemId: target.invoiceItemId,
           startAt,
           endAt: DiscountService.resolveEndAt(coupon, startAt),
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt: now,
           updatedAt: now,
         },
@@ -405,7 +407,8 @@ export class DiscountService {
           return true;
         }
 
-        const productId = _.get(productIdByPriceId, line.priceId ?? '', '');
+        const { priceId } = line;
+        const productId = priceId === null ? '' : _.get(productIdByPriceId, priceId, '');
 
         return _.includes(productIds, productId);
       })
@@ -431,7 +434,9 @@ export class DiscountService {
       ).amount;
     }
 
-    return Math.min(amountOff ?? 0, base);
+    const fixedAmountOff = amountOff ?? 0;
+
+    return Math.min(fixedAmountOff, base);
   }
 
   private async closeOnceDiscount(
@@ -493,11 +498,12 @@ export class DiscountService {
   async updateDiscount(id: string, payload: UpdateDiscountPayload): Promise<DiscountResponse> {
     const existingDiscount = await this.fastify.discountRepository.getDiscount(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+    const { metadata = existingDiscount.metadata } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
       const discount = await this.fastify.discountRepository.updateDiscount(
         id,
-        { metadata: payload.metadata ?? existingDiscount.metadata, updatedAt },
+        { metadata, updatedAt },
         tx,
       );
 

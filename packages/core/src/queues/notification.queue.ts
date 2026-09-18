@@ -35,15 +35,19 @@ export function buildNotificationSendJob(
   customerId: string,
   references: NotificationReferences = {},
 ): NotificationSendJob {
-  const invoiceId = references.invoiceId ?? null;
-  const paymentIntentId = references.paymentIntentId ?? null;
+  const {
+    invoiceId = null,
+    paymentIntentId = null,
+    url = null,
+    dedupeKey = invoiceId ?? paymentIntentId ?? customerId,
+  } = references;
 
   return {
     kind,
     customerId,
     invoiceId,
     paymentIntentId,
-    url: references.url ?? null,
-    dedupeKey: references.dedupeKey ?? invoiceId ?? paymentIntentId ?? customerId,
+    url,
+    dedupeKey,
   };
 }

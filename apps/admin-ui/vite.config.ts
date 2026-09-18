@@ -7,7 +7,11 @@ const ADMIN_UI_PORT = 5173;
 const API_ORIGIN = 'http://localhost:3000';
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '../../', '');
+  const { PINSTRIPE_ADMIN_API_KEY = '', PINSTRIPE_SECRET_API_KEY = '' } = loadEnv(
+    mode,
+    '../../',
+    '',
+  );
 
   return {
     plugins: [react(), tailwindcss(), tsconfigPaths()],
@@ -17,12 +21,12 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: API_ORIGIN,
           changeOrigin: true,
-          headers: { authorization: `Bearer ${env.PINSTRIPE_ADMIN_API_KEY ?? ''}` },
+          headers: { authorization: `Bearer ${PINSTRIPE_ADMIN_API_KEY}` },
         },
         '/v1': {
           target: API_ORIGIN,
           changeOrigin: true,
-          headers: { authorization: `Bearer ${env.PINSTRIPE_SECRET_API_KEY ?? ''}` },
+          headers: { authorization: `Bearer ${PINSTRIPE_SECRET_API_KEY}` },
         },
       },
     },

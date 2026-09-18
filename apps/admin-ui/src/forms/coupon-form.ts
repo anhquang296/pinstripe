@@ -60,15 +60,21 @@ export const couponFormDefaultValues: CouponFormData = {
 
 export function couponFormDataToPayload(formData: CouponFormData): CreateCouponPayload {
   const isPercent = formData.kind === 'percent';
+  const isRepeating = formData.duration === CouponDurationEnum.REPEATING;
+
+  const percentOff = isPercent ? formData.percentOff : undefined;
+  const amountOff = isPercent ? undefined : formData.amountOff;
+  const currency = isPercent ? undefined : CurrencyEnum.VND;
+  const durationInMonths = isRepeating ? formData.durationInMonths : undefined;
+  const maxRedemptions = formData.maxRedemptions > 0 ? formData.maxRedemptions : undefined;
 
   return {
     name: formData.name,
     duration: formData.duration,
-    percentOff: isPercent ? formData.percentOff : undefined,
-    amountOff: isPercent ? undefined : formData.amountOff,
-    currency: isPercent ? undefined : CurrencyEnum.VND,
-    durationInMonths:
-      formData.duration === CouponDurationEnum.REPEATING ? formData.durationInMonths : undefined,
-    maxRedemptions: formData.maxRedemptions > 0 ? formData.maxRedemptions : undefined,
+    percentOff,
+    amountOff,
+    currency,
+    durationInMonths,
+    maxRedemptions,
   };
 }

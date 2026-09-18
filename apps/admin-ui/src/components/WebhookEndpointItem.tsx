@@ -16,13 +16,13 @@ export default function WebhookEndpointItem({
   onToggle,
 }: WebhookEndpointItemProps) {
   const isEnabled = endpoint.status === WebhookEndpointStatusEnum.ENABLED;
+  const nextStatus = isEnabled
+    ? WebhookEndpointStatusEnum.DISABLED
+    : WebhookEndpointStatusEnum.ENABLED;
 
   const handleOnToggle = useCallback(() => {
-    onToggle(
-      endpoint.id,
-      isEnabled ? WebhookEndpointStatusEnum.DISABLED : WebhookEndpointStatusEnum.ENABLED,
-    );
-  }, [endpoint.id, isEnabled, onToggle]);
+    onToggle(endpoint.id, nextStatus);
+  }, [endpoint.id, nextStatus, onToggle]);
 
   return (
     <tr className="border-t border-slate-100 align-top">

@@ -22,10 +22,13 @@ const SINGLE_ROW_LIMIT = 1;
 export class RefundService {
   constructor(private readonly fastify: FastifyInstance) {}
 
-  async createRefund(payload: CreateRefundPayload, creditNoteId?: string): Promise<RefundResponse> {
+  async createRefund(
+    payload: CreateRefundPayload,
+    creditNoteId: string | null = null,
+  ): Promise<RefundResponse> {
     const charge = await this.getSucceededCharge(payload.chargeId);
     const refundable = await this.resolveRefundableAmount(charge);
-    const amount = payload.amount ?? refundable;
+    const { amount = refundable, metadata = {} } = payload;
 
     if (amount > refundable) {
       throw new BadRequestError(
@@ -38,8 +41,8 @@ export class RefundService {
       charge,
       amount,
       payload.reason,
-      creditNoteId ?? null,
-      payload.metadata ?? {},
+      creditNoteId,
+      metadata,
     );
     const createdRefund = await this.fastify.database.master.transaction(async (tx) => {
       return this.writeRefund(refundPayload, tx);
@@ -151,12 +154,13 @@ export class RefundService {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
+    const statuses = query.status ? [query.status] : undefined;
     const rows = await this.fastify.refundRepository.findRefunds(
       {
         invoiceId: query.invoiceId,
         chargeId: query.chargeId,
         paymentIntentId: query.paymentIntentId,
-        statuses: query.status ? [query.status] : undefined,
+        statuses,
         beforeAt,
         afterAt,
       },
@@ -193,8 +197,9 @@ export class RefundService {
     return _.map(refunds, (refund) => {
       const latest = latestByRefundId[refund.id];
       const status: RefundStatus = _.get(latest, 'status', RefundStatusEnum.PENDING);
+      const failureReason = _.get(latest, 'failureReason', null);
 
-      return RefundService.buildRefund(refund, status, _.get(latest, 'failureReason', null));
+      return RefundService.buildRefund(refund, status, failureReason);
     });
   }
 

@@ -19,16 +19,17 @@ export class ProductService {
   async createProduct(payload: CreateProductPayload): Promise<ProductResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PRODUCT);
+    const { description = '', active = true, unitLabel = '', metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
       const product = await this.fastify.productRepository.createProduct(
         {
           id,
           name: payload.name,
-          description: payload.description ?? '',
-          active: payload.active ?? true,
-          unitLabel: payload.unitLabel ?? '',
-          metadata: payload.metadata ?? {},
+          description,
+          active,
+          unitLabel,
+          metadata,
           createdAt: now,
           updatedAt: now,
         },

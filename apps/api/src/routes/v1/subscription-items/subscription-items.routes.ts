@@ -82,9 +82,11 @@ export const subscriptionItemsRoutes: FastifyPluginAsyncTypebox = async (fastify
       },
     },
     async (request, reply) => {
+      const { body: payload = {} } = request;
+
       const deletedSubscriptionItem = await fastify.subscriptionItemService.deleteSubscriptionItem(
         request.params.subscriptionItemId,
-        request.body ?? {},
+        payload,
       );
 
       return ApiResponse.success(reply, deletedSubscriptionItem);

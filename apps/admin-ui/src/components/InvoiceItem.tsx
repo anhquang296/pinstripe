@@ -47,10 +47,12 @@ export default function InvoiceItem({
 
   const isDraft = invoice.status === InvoiceStatusEnum.DRAFT;
   const isOpen = invoice.status === InvoiceStatusEnum.OPEN;
+  const { number, id } = invoice;
+  const numberLabel = number === null ? id : number;
 
   return (
     <tr className="border-t border-slate-100 align-top">
-      <td className="px-4 py-3 font-mono text-xs text-slate-500">{invoice.number ?? invoice.id}</td>
+      <td className="px-4 py-3 font-mono text-xs text-slate-500">{numberLabel}</td>
       <td className="px-4 py-3">
         <span
           className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[invoice.status] ?? ''}`}

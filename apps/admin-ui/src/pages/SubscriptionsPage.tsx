@@ -61,9 +61,12 @@ export default function SubscriptionsPage() {
     return [
       { value: '', label: '— chọn bảng giá —' },
       ...map(recurringPrices, (price) => {
+        const { id, lookupKey, version } = price;
+        const priceName = lookupKey === null ? id : lookupKey;
+
         return {
-          value: price.id,
-          label: `${price.lookupKey ?? price.id} · v${price.version} · ${formatPriceAmount(price)}`,
+          value: id,
+          label: `${priceName} · v${version} · ${formatPriceAmount(price)}`,
         };
       }),
     ];

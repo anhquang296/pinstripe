@@ -47,22 +47,30 @@ export class CustomerService {
     payload: CreateCustomerPayload,
     now: string,
   ): Promise<Customer> {
+    const {
+      name = '',
+      description = '',
+      phone = '',
+      taxExempt = TaxExemptEnum.NONE,
+      metadata = {},
+    } = payload;
+
     try {
       return await this.fastify.database.master.transaction(async (tx) => {
         const customer = await this.fastify.customerRepository.createCustomer(
           {
             id,
             email: payload.email ?? null,
-            name: payload.name ?? '',
-            description: payload.description ?? '',
-            phone: payload.phone ?? '',
+            name,
+            description,
+            phone,
             taxId: payload.taxId ?? null,
-            taxExempt: payload.taxExempt ?? TaxExemptEnum.NONE,
+            taxExempt,
             address: payload.address ?? null,
             currency: payload.currency,
             defaultPaymentMethodId: payload.defaultPaymentMethodId ?? null,
             testClockId: payload.testClockId ?? null,
-            metadata: payload.metadata ?? {},
+            metadata,
             createdAt: now,
             updatedAt: now,
           },

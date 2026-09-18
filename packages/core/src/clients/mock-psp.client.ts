@@ -309,10 +309,13 @@ export class MockPspClient {
   private _pendingEvents: PspCallbackPayload[];
 
   constructor(mockPspConfig: MockPspConfig, logger: FastifyBaseLogger) {
-    const { referencePrefix, authenticationUrl } = mockPspConfig;
+    const {
+      referencePrefix = DEFAULT_REFERENCE_PREFIX,
+      authenticationUrl = DEFAULT_AUTHENTICATION_URL,
+    } = mockPspConfig;
 
-    this._referencePrefix = referencePrefix ?? DEFAULT_REFERENCE_PREFIX;
-    this._authenticationUrl = authenticationUrl ?? DEFAULT_AUTHENTICATION_URL;
+    this._referencePrefix = referencePrefix;
+    this._authenticationUrl = authenticationUrl;
     this._logger = logger;
     this._paymentsByReference = new Map();
     this._setupsByReference = new Map();
@@ -630,13 +633,22 @@ export class MockPspClient {
     const behaviour = MockPspClient.readBehaviour(payment.token);
 
     if (behaviour.failureCode) {
+      const { declineCode: behaviourDeclineCode, failureMessage: behaviourFailureMessage } =
+        behaviour;
+      const declineCode =
+        behaviourDeclineCode === null ? DeclineCodeEnum.GENERIC_DECLINE : behaviourDeclineCode;
+      const failureMessage =
+        behaviourFailureMessage === null
+          ? 'The payment could not be completed'
+          : behaviourFailureMessage;
+
       this._pendingEvents.push({
         id: this.buildEventId(),
         type: PspEventTypeEnum.PAYMENT_FAILED,
         reference,
         failureCode: behaviour.failureCode,
-        declineCode: behaviour.declineCode ?? DeclineCodeEnum.GENERIC_DECLINE,
-        failureMessage: behaviour.failureMessage ?? 'The payment could not be completed',
+        declineCode,
+        failureMessage,
         paymentMethodDetails: { token: payment.token },
       });
 
@@ -649,9 +661,13 @@ export class MockPspClient {
       payment.captured = payment.amount;
     }
 
+    const eventType = isManual
+      ? PspEventTypeEnum.PAYMENT_AUTHORIZED
+      : PspEventTypeEnum.PAYMENT_SUCCEEDED;
+
     this._pendingEvents.push({
       id: this.buildEventId(),
-      type: isManual ? PspEventTypeEnum.PAYMENT_AUTHORIZED : PspEventTypeEnum.PAYMENT_SUCCEEDED,
+      type: eventType,
       reference,
       amount: payment.amount,
       paymentMethodDetails: { token: payment.token },
@@ -668,13 +684,20 @@ export class MockPspClient {
     const behaviour = MockPspClient.readBehaviour(setup.token);
 
     if (behaviour.failureCode) {
+      const { declineCode: behaviourDeclineCode, failureMessage: behaviourFailureMessage } =
+        behaviour;
+      const declineCode =
+        behaviourDeclineCode === null ? DeclineCodeEnum.GENERIC_DECLINE : behaviourDeclineCode;
+      const failureMessage =
+        behaviourFailureMessage === null ? 'The card could not be saved' : behaviourFailureMessage;
+
       this._pendingEvents.push({
         id: this.buildEventId(),
         type: PspEventTypeEnum.SETUP_FAILED,
         reference,
         failureCode: behaviour.failureCode,
-        declineCode: behaviour.declineCode ?? DeclineCodeEnum.GENERIC_DECLINE,
-        failureMessage: behaviour.failureMessage ?? 'The card could not be saved',
+        declineCode,
+        failureMessage,
       });
 
       return;

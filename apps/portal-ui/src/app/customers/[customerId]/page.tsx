@@ -99,9 +99,13 @@ export default async function CustomerPortalPage({ params }: CustomerPortalPageP
             </thead>
             <tbody>
               {map(invoices.data, (invoice) => {
+                const { number } = invoice;
+
                 return (
                   <tr key={invoice.id} className="border-t border-slate-100">
-                    <td className="px-4 py-3 font-mono text-xs">{invoice.number ?? '—'}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      {number === null ? '—' : number}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[invoice.status] ?? ''}`}

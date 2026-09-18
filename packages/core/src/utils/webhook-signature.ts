@@ -39,9 +39,9 @@ export function isWebhookSignatureValid(
 ): boolean {
   const parts = _.fromPairs(
     _.map(header.split(','), (part) => {
-      const [key, value] = part.split('=');
+      const [key = '', value = ''] = part.split('=');
 
-      return [key ?? '', value ?? ''];
+      return [key, value];
     }),
   );
   const timestamp = parts.t;

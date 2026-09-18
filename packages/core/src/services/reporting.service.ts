@@ -35,7 +35,7 @@ export class ReportingService {
   async aggregateRevenueSummary(
     query: AggregateRevenueSummaryQuery,
   ): Promise<RevenueSummaryResponse> {
-    const currency = query.currency ?? CurrencyEnum.VND;
+    const { currency = CurrencyEnum.VND } = query;
     const now = this.fastify.clock.now();
     const asOf = now.toISOString();
     const { windowStart, windowEnd } = ReportingService.resolveWindow(query, now);
@@ -166,12 +166,7 @@ export class ReportingService {
       return;
     }
 
-    const { percentOff, amountOff } = coupon;
-    const amount =
-      percentOff === null
-        ? Math.min(amountOff ?? 0, base)
-        : Money.of(base, currency).multiply(percentOff / PERCENT_DIVISOR, MRR_ROUNDING_POLICY)
-            .amount;
+    const amount = ReportingService.resolveDiscountAmount(coupon, base, currency);
 
     if (amount <= 0) {
       return;
@@ -187,6 +182,25 @@ export class ReportingService {
         line.amount -= share.amount;
       }
     });
+  }
+
+  private static resolveDiscountAmount(coupon: Coupon, base: number, currency: Currency): number {
+    const { percentOff, amountOff } = coupon;
+
+    if (percentOff !== null) {
+      const discountMoney = Money.of(base, currency).multiply(
+        percentOff / PERCENT_DIVISOR,
+        MRR_ROUNDING_POLICY,
+      );
+
+      return discountMoney.amount;
+    }
+
+    if (amountOff !== null) {
+      return Math.min(amountOff, base);
+    }
+
+    return Math.min(0, base);
   }
 
   private static resolveEligibleIndexes(

@@ -31,11 +31,15 @@ export const promotionCodeFormDefaultValues: PromotionCodeFormData = {
 export function promotionCodeFormDataToPayload(
   formData: PromotionCodeFormData,
 ): CreatePromotionCodePayload {
+  const maxRedemptions = formData.maxRedemptions > 0 ? formData.maxRedemptions : undefined;
+  const minimumAmount = formData.minimumAmount > 0 ? formData.minimumAmount : undefined;
+  const firstTimeTransaction = formData.firstTimeTransaction === 'yes' ? true : undefined;
+
   return {
     couponId: formData.couponId,
     code: formData.code || undefined,
-    maxRedemptions: formData.maxRedemptions > 0 ? formData.maxRedemptions : undefined,
-    minimumAmount: formData.minimumAmount > 0 ? formData.minimumAmount : undefined,
-    firstTimeTransaction: formData.firstTimeTransaction === 'yes' ? true : undefined,
+    maxRedemptions,
+    minimumAmount,
+    firstTimeTransaction,
   };
 }

@@ -23,10 +23,11 @@ export class CouponService {
 
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.COUPON);
+    const { name = '', appliesToProductIds = [], metadata = {} } = payload;
 
     const coupon = await this.fastify.couponRepository.createCoupon({
       id,
-      name: payload.name ?? '',
+      name,
       percentOff: payload.percentOff ?? null,
       amountOff: payload.amountOff ?? null,
       currency: payload.currency ?? null,
@@ -35,9 +36,9 @@ export class CouponService {
       maxRedemptions: payload.maxRedemptions ?? null,
       timesRedeemed: 0,
       redeemBy: payload.redeemBy ?? null,
-      appliesToProductIds: payload.appliesToProductIds ?? [],
+      appliesToProductIds,
       valid: true,
-      metadata: payload.metadata ?? {},
+      metadata,
       createdAt: now,
       updatedAt: now,
     });
@@ -91,9 +92,11 @@ export class CouponService {
 
   async updateCoupon(id: string, payload: UpdateCouponPayload): Promise<CouponResponse> {
     const existingCoupon = await this.fastify.couponRepository.getCoupon(id);
+    const { name = existingCoupon.name, metadata = existingCoupon.metadata } = payload;
+
     const coupon = await this.fastify.couponRepository.updateCoupon(id, {
-      name: payload.name ?? existingCoupon.name,
-      metadata: payload.metadata ?? existingCoupon.metadata,
+      name,
+      metadata,
       updatedAt: this.fastify.clock.now().toISOString(),
     });
 

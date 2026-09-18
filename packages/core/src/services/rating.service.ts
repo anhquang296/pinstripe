@@ -291,6 +291,9 @@ export class RatingService {
     period: RatingPeriod,
     isCredit: boolean,
   ): RatingLine {
+    const usageStart = window.isPartial ? window.start : null;
+    const usageEnd = window.isPartial ? window.end : null;
+
     return {
       subscriptionItemId: change.subscriptionItemId,
       subscriptionItemChangeId: change.id,
@@ -299,8 +302,8 @@ export class RatingService {
       quantity: change.quantity,
       periodStart: period.periodStart,
       periodEnd: period.periodEnd,
-      usageStart: window.isPartial ? window.start : null,
-      usageEnd: window.isPartial ? window.end : null,
+      usageStart,
+      usageEnd,
       isCredit,
     };
   }

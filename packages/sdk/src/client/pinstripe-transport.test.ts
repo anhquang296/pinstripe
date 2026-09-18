@@ -11,11 +11,12 @@ function jsonResponse(body: unknown, status = 200, headers: Record<string, strin
 }
 
 function setup(fetchImpl: FetchImpl, overrides: { apiKey?: string; maxRetries?: number } = {}) {
+  const { apiKey, maxRetries = 0 } = overrides;
   const client = new PinstripeClient({
     baseUrl: '',
     fetch: fetchImpl,
-    maxRetries: overrides.maxRetries ?? 0,
-    apiKey: overrides.apiKey,
+    maxRetries,
+    apiKey,
   });
 
   return { client };

@@ -6,7 +6,8 @@ const HEALTHY_STATUS_CODE = 200;
 const DRAINING_STATUS_CODE = 503;
 
 export async function buildContext(): Promise<FastifyInstance> {
-  const fastify = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
+  const { LOG_LEVEL = 'info' } = process.env;
+  const fastify = Fastify({ logger: { level: LOG_LEVEL } });
   let isDraining = false;
 
   await fastify.register(corePlugin);
@@ -18,8 +19,9 @@ export async function buildContext(): Promise<FastifyInstance> {
 
   fastify.get('/healthz', async (_request, reply) => {
     const statusCode = isDraining ? DRAINING_STATUS_CODE : HEALTHY_STATUS_CODE;
+    const status = isDraining ? 'draining' : 'ok';
 
-    return reply.code(statusCode).send({ status: isDraining ? 'draining' : 'ok' });
+    return reply.code(statusCode).send({ status });
   });
 
   return fastify;

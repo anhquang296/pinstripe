@@ -26,6 +26,7 @@ export class CustomerBalanceTransactionService {
     const now = this.fastify.clock.now().toISOString();
 
     const id = generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION);
+    const { description = '', metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
       const customer = await this.fastify.customerRepository.getLockedCustomer(customerId, tx);
@@ -48,8 +49,8 @@ export class CustomerBalanceTransactionService {
             currency: payload.currency,
             amount: payload.amount,
             endingBalance,
-            description: payload.description ?? '',
-            metadata: payload.metadata ?? {},
+            description,
+            metadata,
             createdAt: now,
           },
           tx,
@@ -88,6 +89,12 @@ export class CustomerBalanceTransactionService {
     }
 
     const isCreditGranted = amount < 0;
+    const balanceDirection = isCreditGranted
+      ? PostingDirectionEnum.CREDIT
+      : PostingDirectionEnum.DEBIT;
+    const revenueDirection = isCreditGranted
+      ? PostingDirectionEnum.DEBIT
+      : PostingDirectionEnum.CREDIT;
 
     await this.fastify.ledgerService.postTransaction(
       {
@@ -98,12 +105,12 @@ export class CustomerBalanceTransactionService {
           {
             accountCode: LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
             customerId,
-            direction: isCreditGranted ? PostingDirectionEnum.CREDIT : PostingDirectionEnum.DEBIT,
+            direction: balanceDirection,
             amount: Math.abs(amount),
           },
           {
             accountCode: LedgerAccountCodeEnum.REVENUE,
-            direction: isCreditGranted ? PostingDirectionEnum.DEBIT : PostingDirectionEnum.CREDIT,
+            direction: revenueDirection,
             amount: Math.abs(amount),
           },
         ],

@@ -48,7 +48,8 @@ export default function PriceForm({
   const isRecurring = priceType === PriceTypeEnum.RECURRING;
   const isMetered = isRecurring && usageType === UsageTypeEnum.METERED;
   const isTiered = billingScheme === BillingSchemeEnum.TIERED;
-  const tiersError = get(errors.tiers, 'root.message', get(errors.tiers, 'message'));
+  const tiersArrayError = get(errors.tiers, 'message');
+  const tiersError = get(errors.tiers, 'root.message', tiersArrayError);
 
   const handleOnAddTier = () => {
     append({ upTo: null, unitAmount: null, flatAmount: null });

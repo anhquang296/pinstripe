@@ -77,9 +77,11 @@ export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
+      const { body: payload = {} } = request;
+
       const subscription = await fastify.subscriptionService.cancelSubscription(
         request.params.subscriptionId,
-        request.body ?? {},
+        payload,
       );
 
       return ApiResponse.success(reply, subscription);

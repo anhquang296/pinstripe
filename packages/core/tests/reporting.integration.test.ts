@@ -152,9 +152,11 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {});
     await fastify.paymentService.drainProviderEvents();
 
-    const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id);
+    const { latestChargeId } = await fastify.paymentService.getPaymentIntent(paymentIntent.id);
+    const chargeId = latestChargeId === null ? '' : latestChargeId;
+
     const refund = await fastify.refundService.createRefund({
-      chargeId: settled.latestChargeId ?? '',
+      chargeId,
       amount: 100_000,
       reason: 'Đối soát',
     });

@@ -27,7 +27,16 @@ export class InvoiceItemService {
 
     const id = generateGid(ObjectPrefixEnum.INVOICE_ITEM);
 
-    const { quantity = 1 } = payload;
+    const {
+      quantity = 1,
+      currency = customer.currency,
+      description = '',
+      discountable = true,
+      taxRates = [],
+      periodStart = now,
+      periodEnd = now,
+      metadata = {},
+    } = payload;
     const amount = await this.resolveAmount(payload, quantity);
 
     await this.assertInvoiceIsDraft(payload.invoiceId);
@@ -40,16 +49,16 @@ export class InvoiceItemService {
           invoiceId: payload.invoiceId ?? null,
           subscriptionId: payload.subscriptionId ?? null,
           priceId: payload.priceId ?? null,
-          currency: payload.currency ?? customer.currency,
-          description: payload.description ?? '',
+          currency,
+          description,
           quantity,
           unitAmount: payload.unitAmount ?? null,
           amount,
-          discountable: payload.discountable ?? true,
-          taxRates: payload.taxRates ?? [],
-          periodStart: payload.periodStart ?? now,
-          periodEnd: payload.periodEnd ?? now,
-          metadata: payload.metadata ?? {},
+          discountable,
+          taxRates,
+          periodStart,
+          periodEnd,
+          metadata,
           createdAt: now,
           updatedAt: now,
         },
@@ -124,8 +133,14 @@ export class InvoiceItemService {
 
     await this.assertInvoiceIsDraft(existingInvoiceItem.invoiceId ?? undefined);
 
-    const quantity = payload.quantity ?? existingInvoiceItem.quantity;
-    const unitAmount = payload.unitAmount ?? existingInvoiceItem.unitAmount;
+    const {
+      quantity = existingInvoiceItem.quantity,
+      unitAmount = existingInvoiceItem.unitAmount,
+      description = existingInvoiceItem.description,
+      discountable = existingInvoiceItem.discountable,
+      taxRates = existingInvoiceItem.taxRates,
+      metadata = existingInvoiceItem.metadata,
+    } = payload;
 
     const amount = InvoiceItemService.resolveUpdatedAmount(
       payload,
@@ -140,13 +155,13 @@ export class InvoiceItemService {
       const invoiceItem = await this.fastify.invoiceItemRepository.updateInvoiceItem(
         id,
         {
-          description: payload.description ?? existingInvoiceItem.description,
+          description,
           quantity,
           unitAmount,
           amount,
-          discountable: payload.discountable ?? existingInvoiceItem.discountable,
-          taxRates: payload.taxRates ?? existingInvoiceItem.taxRates,
-          metadata: payload.metadata ?? existingInvoiceItem.metadata,
+          discountable,
+          taxRates,
+          metadata,
           updatedAt,
         },
         tx,

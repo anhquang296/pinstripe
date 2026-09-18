@@ -39,12 +39,14 @@ interface TaxRateOverrides {
 
 async function makeTaxRate(overrides: TaxRateOverrides = {}): Promise<string> {
   const { percentage = 10, inclusive = true, country, state } = overrides;
+  const jurisdiction = country ?? 'internal';
+
   const taxRate = await fastify.taxRateService.createTaxRate({
     displayName: `VAT ${percentage}`,
     percentage,
     inclusive,
     taxType: TaxTypeEnum.VAT,
-    jurisdiction: country ?? 'internal',
+    jurisdiction,
     country,
     state,
   });
@@ -60,11 +62,13 @@ interface CustomerOverrides {
 
 async function makeCustomerId(overrides: CustomerOverrides = {}): Promise<string> {
   const { currency = CurrencyEnum.VND, country, taxExempt } = overrides;
+  const address = country ? { country } : undefined;
+
   const customer = await fastify.customerService.createCustomer({
     name: 'Tax Buyer',
     currency,
     taxExempt,
-    address: country ? { country } : undefined,
+    address,
   });
 
   return customer.id;

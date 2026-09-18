@@ -21,6 +21,10 @@ export class NumberSequenceRepository {
       .where(eq(numberSequences.name, name))
       .returning({ nextValue: numberSequences.nextValue });
 
-    return claimed ? claimed.nextValue - 1 : null;
+    if (claimed) {
+      return claimed.nextValue - 1;
+    }
+
+    return null;
   }
 }

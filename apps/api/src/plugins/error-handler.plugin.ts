@@ -44,8 +44,10 @@ export const errorHandlerPlugin = fp(async (fastify) => {
 
     request.log.error({ error }, 'setErrorHandler() error');
 
+    const { statusCode = 500 } = error;
+
     return reply
-      .code(error.statusCode ?? 500)
+      .code(statusCode)
       .send(buildErrorBody(ErrorTypeEnum.API, 'An unexpected error occurred', request.id));
   });
 

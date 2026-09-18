@@ -21,21 +21,22 @@ export class TaxRateService {
   async createTaxRate(payload: CreateTaxRatePayload): Promise<TaxRateResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.TAX_RATE);
+    const { description = '', jurisdiction = '', active = true, metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
       const taxRate = await this.fastify.taxRateRepository.createTaxRate(
         {
           id,
           displayName: payload.displayName,
-          description: payload.description ?? '',
+          description,
           percentage: payload.percentage,
           inclusive: payload.inclusive,
-          jurisdiction: payload.jurisdiction ?? '',
+          jurisdiction,
           country: payload.country ?? null,
           state: payload.state ?? null,
           taxType: payload.taxType,
-          active: payload.active ?? true,
-          metadata: payload.metadata ?? {},
+          active,
+          metadata,
           createdAt: now,
           updatedAt: now,
         },
@@ -59,16 +60,23 @@ export class TaxRateService {
   async updateTaxRate(id: string, payload: UpdateTaxRatePayload): Promise<TaxRateResponse> {
     const existingTaxRate = await this.fastify.taxRateRepository.getTaxRate(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+    const {
+      displayName = existingTaxRate.displayName,
+      description = existingTaxRate.description,
+      jurisdiction = existingTaxRate.jurisdiction,
+      active = existingTaxRate.active,
+      metadata = existingTaxRate.metadata,
+    } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
       const taxRate = await this.fastify.taxRateRepository.updateTaxRate(
         id,
         {
-          displayName: payload.displayName ?? existingTaxRate.displayName,
-          description: payload.description ?? existingTaxRate.description,
-          jurisdiction: payload.jurisdiction ?? existingTaxRate.jurisdiction,
-          active: payload.active ?? existingTaxRate.active,
-          metadata: payload.metadata ?? existingTaxRate.metadata,
+          displayName,
+          description,
+          jurisdiction,
+          active,
+          metadata,
           updatedAt,
         },
         tx,

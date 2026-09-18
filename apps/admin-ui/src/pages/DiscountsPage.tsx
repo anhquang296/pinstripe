@@ -164,13 +164,15 @@ export default function DiscountsPage() {
           </thead>
           <tbody>
             {map(promotionCodes?.data, (promotionCode) => {
+              const { minimumAmount } = promotionCode;
+
               return (
                 <tr key={promotionCode.id} className="border-t border-slate-100">
                   <td className="px-4 py-3 font-mono text-xs">{promotionCode.code}</td>
                   <td className="px-4 py-3 font-mono text-xs">{promotionCode.couponId}</td>
                   <td className="px-4 py-3">{promotionCode.active ? 'có' : 'không'}</td>
                   <td className="px-4 py-3">{promotionCode.timesRedeemed}</td>
-                  <td className="px-4 py-3">{promotionCode.minimumAmount ?? '—'}</td>
+                  <td className="px-4 py-3">{minimumAmount === null ? '—' : minimumAmount}</td>
                   <td className="px-4 py-3">
                     {promotionCode.firstTimeTransaction ? 'chỉ lần đầu' : '—'}
                   </td>
@@ -195,13 +197,15 @@ export default function DiscountsPage() {
           </thead>
           <tbody>
             {map(discounts?.data, (discount) => {
+              const { endAt } = discount;
+
               return (
                 <tr key={discount.id} className="border-t border-slate-100">
                   <td className="px-4 py-3 font-mono text-xs">{discount.id}</td>
                   <td className="px-4 py-3 font-mono text-xs">{discount.couponId}</td>
                   <td className="px-4 py-3">{discount.level}</td>
                   <td className="px-4 py-3">{discount.startAt}</td>
-                  <td className="px-4 py-3">{discount.endAt ?? '—'}</td>
+                  <td className="px-4 py-3">{endAt === null ? '—' : endAt}</td>
                   <td className="px-4 py-3">
                     <Button
                       variant="ghost"

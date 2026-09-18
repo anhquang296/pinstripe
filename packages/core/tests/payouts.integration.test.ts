@@ -110,7 +110,9 @@ describe('PayoutService.settleDuePayouts', () => {
     const payout = await makeDuePayout();
     const { pspReference } = await fastify.payoutService.getPayout(payout.id);
 
-    fastify.psp.failPayout(pspReference ?? '');
+    const payoutReference = pspReference ?? '';
+
+    fastify.psp.failPayout(payoutReference);
 
     await fastify.paymentService.drainProviderEvents();
 

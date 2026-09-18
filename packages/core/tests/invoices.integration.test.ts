@@ -191,10 +191,15 @@ describe('InvoiceService.finalizeInvoice', () => {
     }
 
     const sequenceValues = _.map(finalized, (invoice) => {
-      return Number(_.last((invoice.number ?? '').split('-')));
+      const { number: invoiceNumber } = invoice;
+      const numberSegments = invoiceNumber === null ? [''] : invoiceNumber.split('-');
+
+      return Number(_.last(numberSegments));
     });
     const gaps = _.filter(sequenceValues, (value, index) => {
-      return index > 0 && value !== (sequenceValues[index - 1] ?? 0) + 1;
+      const previousValue = _.get(sequenceValues, index - 1, 0);
+
+      return index > 0 && value !== previousValue + 1;
     });
 
     expect(gaps).toEqual([]);

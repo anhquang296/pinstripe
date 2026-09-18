@@ -32,7 +32,12 @@ export class BillingPortalService {
   ): Promise<BillingPortalConfigurationResponse> {
     const createdAt = this.fastify.clock.now().toISOString();
 
-    const isDefault = payload.isDefault ?? false;
+    const {
+      isDefault = false,
+      businessName = DEFAULT_BUSINESS_NAME,
+      defaultReturnUrl = null,
+      metadata = {},
+    } = payload;
 
     const id = generateGid(ObjectPrefixEnum.BILLING_PORTAL_CONFIGURATION);
 
@@ -48,10 +53,10 @@ export class BillingPortalService {
           id,
           isActive: true,
           isDefault,
-          businessName: payload.businessName ?? DEFAULT_BUSINESS_NAME,
-          defaultReturnUrl: payload.defaultReturnUrl ?? null,
+          businessName,
+          defaultReturnUrl: defaultReturnUrl,
           features: { ...DEFAULT_FEATURES, ...payload.features },
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt: createdAt,
           updatedAt: createdAt,
         },
@@ -73,6 +78,12 @@ export class BillingPortalService {
     const configuration =
       await this.fastify.billingPortalConfigurationRepository.getBillingPortalConfiguration(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+    const {
+      isActive = configuration.isActive,
+      isDefault = configuration.isDefault,
+      businessName = configuration.businessName,
+      defaultReturnUrl = configuration.defaultReturnUrl,
+    } = payload;
 
     const updatedConfiguration = await this.fastify.database.master.transaction(async (tx) => {
       if (payload.isDefault) {
@@ -84,10 +95,10 @@ export class BillingPortalService {
       return this.fastify.billingPortalConfigurationRepository.updateBillingPortalConfiguration(
         configuration.id,
         {
-          isActive: payload.isActive ?? configuration.isActive,
-          isDefault: payload.isDefault ?? configuration.isDefault,
-          businessName: payload.businessName ?? configuration.businessName,
-          defaultReturnUrl: payload.defaultReturnUrl ?? configuration.defaultReturnUrl,
+          isActive,
+          isDefault,
+          businessName,
+          defaultReturnUrl,
           features: { ...configuration.features, ...payload.features },
           metadata: { ...configuration.metadata, ...payload.metadata },
           updatedAt,
@@ -136,13 +147,14 @@ export class BillingPortalService {
     );
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.BILLING_PORTAL_SESSION);
+    const { returnUrl = configuration.defaultReturnUrl } = payload;
     const session = await this.fastify.billingPortalSessionRepository.createBillingPortalSession({
       id,
       customerId: customer.id,
       configurationId: configuration.id,
       portalSessionId: portalSession.portalSessionId,
       url: portalSession.url,
-      returnUrl: payload.returnUrl ?? configuration.defaultReturnUrl,
+      returnUrl,
       expiresAt: portalSession.sessionExpiresAt,
       createdAt,
     });

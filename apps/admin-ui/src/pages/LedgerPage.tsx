@@ -38,7 +38,11 @@ export default function LedgerPage() {
 
   const handleOnTransactionSelect = useCallback((transactionId: string) => {
     setSelectedTransactionId((current) => {
-      return current === transactionId ? null : transactionId;
+      if (current === transactionId) {
+        return null;
+      }
+
+      return transactionId;
     });
   }, []);
 

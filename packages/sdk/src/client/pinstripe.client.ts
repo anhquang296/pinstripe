@@ -105,7 +105,7 @@ function buildTransportConfig(pinstripeConfig: PinstripeConfig): TransportConfig
   const {
     baseUrl = DEFAULT_BASE_URL,
     apiKey,
-    fetch: fetchImpl,
+    fetch: fetchImpl = resolveGlobalFetch(),
     maxRetries = DEFAULT_MAX_RETRIES,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     shouldGenerateIdempotencyKey = true,
@@ -114,7 +114,7 @@ function buildTransportConfig(pinstripeConfig: PinstripeConfig): TransportConfig
   return {
     baseUrl,
     apiKey: apiKey ?? null,
-    fetch: fetchImpl ?? resolveGlobalFetch(),
+    fetch: fetchImpl,
     maxRetries,
     timeoutMs,
     shouldGenerateIdempotencyKey,

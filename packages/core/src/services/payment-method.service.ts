@@ -28,15 +28,17 @@ export class PaymentMethodService {
     });
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_METHOD);
+    const customerId = _.get(customer, 'id', null);
+    const { billingDetails = {}, metadata = {} } = payload;
 
     const createdPaymentMethod = await this.fastify.paymentMethodRepository.createPaymentMethod({
       id,
-      customerId: _.get(customer, 'id', null),
+      customerId,
       type: payload.type,
       card: tokenized.card,
-      billingDetails: payload.billingDetails ?? {},
+      billingDetails,
       pspToken: payload.token,
-      metadata: payload.metadata ?? {},
+      metadata,
       createdAt,
       updatedAt: createdAt,
     });
@@ -134,14 +136,16 @@ export class PaymentMethodService {
       });
     }
 
+    const updatedCard = payload.card && card ? { ...card, ...payload.card } : card;
+    const billingDetails = { ...paymentMethod.billingDetails, ...payload.billingDetails };
+    const metadata = { ...paymentMethod.metadata, ...payload.metadata };
+
     const updatedPaymentMethod = await this.fastify.paymentMethodRepository.updatePaymentMethod(
       paymentMethod.id,
       {
-        card: payload.card && card ? { ...card, ...payload.card } : card,
-        billingDetails: payload.billingDetails
-          ? { ...paymentMethod.billingDetails, ...payload.billingDetails }
-          : paymentMethod.billingDetails,
-        metadata: { ...paymentMethod.metadata, ...(payload.metadata ?? {}) },
+        card: updatedCard,
+        billingDetails,
+        metadata,
         updatedAt: this.fastify.clock.now().toISOString(),
       },
     );

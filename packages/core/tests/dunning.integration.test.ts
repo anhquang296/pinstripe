@@ -162,7 +162,7 @@ describe('DunningService.runDunningShard', () => {
 
       await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
       const retried = await readInvoiceRow(invoiceId);
-      const nextAttemptAt = _.get(retried, 'nextAttemptAt', null);
+      const { nextAttemptAt } = retried;
       const delayMs = (nextAttemptAt ? Date.parse(nextAttemptAt) : 0) - failedAt;
 
       expect(retried.status).toBe(InvoiceStatusEnum.OPEN);

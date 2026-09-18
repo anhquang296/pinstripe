@@ -49,6 +49,8 @@ export class PayoutService {
       idempotencyKey: `payout:${id}`,
     });
 
+    const { metadata = {} } = payload;
+
     const createdPayout = await this.fastify.database.master.transaction(async (tx) => {
       const payout = await this.fastify.payoutRepository.createPayout(
         {
@@ -64,7 +66,7 @@ export class PayoutService {
           failureCode: null,
           failureMessage: null,
           pspReference: pspPayout.reference,
-          metadata: payload.metadata ?? {},
+          metadata,
           createdAt,
           updatedAt: createdAt,
         },

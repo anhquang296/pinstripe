@@ -46,14 +46,15 @@ export class WebhookService {
   ): Promise<WebhookEndpointResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.WEBHOOK_ENDPOINT);
+    const { description = '', metadata = {} } = payload;
     const createdEndpoint = await this.fastify.webhookRepository.createWebhookEndpoint({
       id,
       url: payload.url,
       status: WebhookEndpointStatusEnum.ENABLED,
       enabledEvents: [...payload.enabledEvents],
-      description: payload.description ?? '',
+      description,
       secret: WebhookService.buildSecret(),
-      metadata: payload.metadata ?? {},
+      metadata,
       createdAt: now,
       updatedAt: now,
     });
@@ -71,9 +72,11 @@ export class WebhookService {
   ): Promise<WebhookEndpointResponse> {
     await this.fastify.webhookRepository.getWebhookEndpoint(id);
 
+    const enabledEvents = payload.enabledEvents ? [...payload.enabledEvents] : undefined;
+
     const updatedEndpoint = await this.fastify.webhookRepository.updateWebhookEndpoint(id, {
       status: payload.status,
-      enabledEvents: payload.enabledEvents ? [...payload.enabledEvents] : undefined,
+      enabledEvents,
       description: payload.description,
       metadata: payload.metadata,
       updatedAt: this.fastify.clock.now().toISOString(),
@@ -286,7 +289,11 @@ export class WebhookService {
       return WebhookDeliveryStatusEnum.SUCCEEDED;
     }
 
-    return isExhausted ? WebhookDeliveryStatusEnum.EXHAUSTED : WebhookDeliveryStatusEnum.FAILED;
+    if (isExhausted) {
+      return WebhookDeliveryStatusEnum.EXHAUSTED;
+    }
+
+    return WebhookDeliveryStatusEnum.FAILED;
   }
 
   private async resolveEndpointCursor(id: string | undefined): Promise<RowCursor | undefined> {
@@ -307,13 +314,15 @@ export class WebhookService {
     entity: WebhookEndpoint,
     options: { hasSecret: boolean },
   ): WebhookEndpointResponse {
+    const secret = options.hasSecret ? entity.secret : null;
+
     return {
       id: entity.id,
       url: entity.url,
       status: entity.status,
       enabledEvents: entity.enabledEvents,
       description: entity.description,
-      secret: options.hasSecret ? entity.secret : null,
+      secret,
       metadata: entity.metadata,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
