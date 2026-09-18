@@ -111,9 +111,16 @@ export class DisputeService {
     }
 
     const charge = await this.getSettledCharge(payload.chargeReference);
+
     const createdAt = this.fastify.clock.now().toISOString();
+
     const id = generateGid(ObjectPrefixEnum.DISPUTE);
-    const invoiceId = await this.resolveInvoiceId(charge.paymentIntentId);
+
+    const paymentIntent = await this.fastify.paymentIntentRepository.findPaymentIntent(
+      charge.paymentIntentId,
+    );
+
+    const invoiceId = _.get(paymentIntent, 'invoiceId', null);
 
     const openedDispute = await this.fastify.database.master.transaction(async (tx) => {
       const dispute = await this.fastify.disputeRepository.createDispute(
@@ -217,6 +224,7 @@ export class DisputeService {
     }
 
     const subscriptionId = await this.resolveSubscriptionId(dispute);
+
     const invoice = dispute.invoiceId
       ? await this.fastify.invoiceRepository.findInvoice(dispute.invoiceId)
       : null;
@@ -282,13 +290,6 @@ export class DisputeService {
     }
 
     throw new NotFoundError(`No settled charge for processor reference ${pspReference}`);
-  }
-
-  private async resolveInvoiceId(paymentIntentId: string): Promise<string | null> {
-    const paymentIntent =
-      await this.fastify.paymentIntentRepository.findPaymentIntent(paymentIntentId);
-
-    return _.get(paymentIntent, 'invoiceId', null);
   }
 
   private async getProcessorDispute(pspReference: string): Promise<Dispute> {
