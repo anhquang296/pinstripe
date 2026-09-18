@@ -1,6 +1,7 @@
 import AppLayout from '@components/AppLayout';
 import RequireSession from '@components/RequireSession';
 import AccountSettingsPage from '@pages/AccountSettingsPage';
+import ApiKeysPage from '@pages/ApiKeysPage';
 import AuthPage from '@pages/AuthPage';
 import CheckoutSessionsPage from '@pages/CheckoutSessionsPage';
 import CustomersPage from '@pages/CustomersPage';
@@ -17,11 +18,14 @@ import PricesPage from '@pages/PricesPage';
 import ProductsPage from '@pages/ProductsPage';
 import RefundsPage from '@pages/RefundsPage';
 import ReportsPage from '@pages/ReportsPage';
+import RolesPage from '@pages/RolesPage';
 import SecuritySettingsPage from '@pages/SecuritySettingsPage';
 import SubscriptionsPage from '@pages/SubscriptionsPage';
 import TaxRatesPage from '@pages/TaxRatesPage';
 import TestClocksPage from '@pages/TestClocksPage';
-import WebhooksPage from '@pages/WebhooksPage';
+import UsersPage from '@pages/UsersPage';
+import WebhookDeliveriesPage from '@pages/WebhookDeliveriesPage';
+import WebhookEndpointsPage from '@pages/WebhookEndpointsPage';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 export default function App() {
@@ -79,8 +83,20 @@ export default function App() {
           <Route path="/ledger/transactions/:transactionId" element={<LedgerTransactionsPage />} />
 
           <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/webhooks" element={<WebhooksPage />} />
+
+          <Route path="/webhooks" element={<Navigate to="/webhooks/endpoints" replace />} />
+          <Route path="/webhooks/endpoints" element={<WebhookEndpointsPage />} />
+          <Route path="/webhooks/endpoints/:webhookEndpointId" element={<WebhookEndpointsPage />} />
+          <Route path="/webhooks/deliveries" element={<WebhookDeliveriesPage />} />
+
+          <Route path="/api-keys" element={<ApiKeysPage />} />
+
           <Route path="/test-clocks" element={<TestClocksPage />} />
+          <Route path="/test-clocks/:testClockId" element={<TestClocksPage />} />
+
+          <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/users/:userId" element={<UsersPage />} />
+          <Route path="/admin/roles" element={<RolesPage />} />
         </Route>
       </Route>
     </Routes>
