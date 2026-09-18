@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { Redis } from 'ioredis';
 import postgres from 'postgres';
+import type { GlobalSetupContext } from 'vitest/node';
 
 import { loadTestEnv, readDatabaseName, readRequiredEnv, resolveAdminDatabaseUrl } from './env';
 
@@ -54,7 +55,13 @@ async function flushRedis(): Promise<void> {
   await redis.quit();
 }
 
-export async function setup(): Promise<void> {
+export async function setup({ config }: GlobalSetupContext): Promise<void> {
+  const { TEST_SUITE_NAME } = config.env;
+
+  if (TEST_SUITE_NAME) {
+    process.env.TEST_SUITE_NAME = TEST_SUITE_NAME;
+  }
+
   loadTestEnv();
 
   const databaseUrl = readRequiredEnv('DATABASE_URL');

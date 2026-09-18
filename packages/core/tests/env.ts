@@ -4,8 +4,6 @@ import { resolve } from 'node:path';
 import _ from 'lodash';
 
 const ENV_FILE = resolve(import.meta.dirname, '../../../.env');
-const TEST_DATABASE_SUFFIX = '_test';
-const TEST_REDIS_KEY_PREFIX = 'pinstripe_test';
 const TEST_NODE_ENV = 'test';
 const TEST_LOG_LEVEL = 'fatal';
 const DATABASE_NAME_PATTERN = /^[a-zA-Z0-9_]+$/;
@@ -48,15 +46,16 @@ export function readDatabaseName(databaseUrl: string): string {
   throw new Error(`readDatabaseName() refusing unsafe database name ${name}`);
 }
 
-export function resolveTestDatabaseUrl(databaseUrl: string): string {
+export function resolveTestDatabaseUrl(databaseUrl: string, suiteName: string): string {
   const url = new URL(databaseUrl);
   const name = readDatabaseName(databaseUrl);
+  const databaseSuffix = `_${suiteName}_test`;
 
-  if (_.endsWith(name, TEST_DATABASE_SUFFIX)) {
+  if (_.endsWith(name, databaseSuffix)) {
     return url.toString();
   }
 
-  url.pathname = `/${name}${TEST_DATABASE_SUFFIX}`;
+  url.pathname = `/${name}${databaseSuffix}`;
 
   return url.toString();
 }
@@ -72,8 +71,10 @@ export function resolveAdminDatabaseUrl(databaseUrl: string): string {
 export function loadTestEnv(): void {
   readEnvFile();
 
-  process.env.DATABASE_URL = resolveTestDatabaseUrl(readRequiredEnv('DATABASE_URL'));
-  process.env.REDIS_KEY_PREFIX = TEST_REDIS_KEY_PREFIX;
+  const suiteName = readRequiredEnv('TEST_SUITE_NAME');
+
+  process.env.DATABASE_URL = resolveTestDatabaseUrl(readRequiredEnv('DATABASE_URL'), suiteName);
+  process.env.REDIS_KEY_PREFIX = `pinstripe_${suiteName}_test`;
   process.env.NODE_ENV = TEST_NODE_ENV;
   process.env.LOG_LEVEL = TEST_LOG_LEVEL;
   process.env.TEST_CLOCKS_ENABLED = 'true';
