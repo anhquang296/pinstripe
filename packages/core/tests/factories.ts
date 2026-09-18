@@ -1,4 +1,7 @@
+import { PspTokenEnum } from '@clients/mock-psp.client';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
+import type { PaymentMethodResponse } from '@contracts/payment-methods.types';
+import { PaymentMethodTypeEnum } from '@contracts/payment-methods.types';
 import { RecurringIntervalEnum } from '@contracts/prices.types';
 import type { BillingMode } from '@contracts/subscriptions.types';
 import { BillingModeEnum } from '@contracts/subscriptions.types';
@@ -8,13 +11,13 @@ import type { FastifyInstance } from 'fastify';
 
 const DEFAULT_CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const DEFAULT_UNIT_AMOUNT = 500_000;
-const DEFAULT_PAYMENT_METHOD = 'pm_card_ok';
+const DEFAULT_TOKEN = PspTokenEnum.VISA_OK;
 
 export const TEST_LIVEMODE = false;
 
 export interface SubscriptionOverrides {
   unitAmount?: number;
-  paymentMethod?: string;
+  token?: string;
   frozenTime?: string;
   billingMode?: BillingMode;
 }
@@ -25,6 +28,7 @@ export interface SubscriptionFixture {
   productId: string;
   priceId: string;
   testClockId: string;
+  paymentMethodId: string;
 }
 
 export interface OpenInvoiceFixture extends SubscriptionFixture {
@@ -37,7 +41,7 @@ export async function makeSubscription(
 ): Promise<SubscriptionFixture> {
   const {
     unitAmount = DEFAULT_UNIT_AMOUNT,
-    paymentMethod = DEFAULT_PAYMENT_METHOD,
+    token = DEFAULT_TOKEN,
     frozenTime = DEFAULT_CLOCK_START,
     billingMode = BillingModeEnum.ADVANCE,
   } = overrides;
@@ -51,10 +55,10 @@ export async function makeSubscription(
       email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
       testClockId: clock.id,
-      defaultPaymentMethod: paymentMethod,
     },
     TEST_LIVEMODE,
   );
+  const paymentMethod = await makePaymentMethod(fastify, customer.id, token);
   const product = await fastify.productService.createProduct(
     { name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}` },
     TEST_LIVEMODE,
@@ -83,7 +87,25 @@ export async function makeSubscription(
     productId: product.id,
     priceId: price.id,
     testClockId: clock.id,
+    paymentMethodId: paymentMethod.id,
   };
+}
+
+export async function makePaymentMethod(
+  fastify: FastifyInstance,
+  customerId: string,
+  token: string = DEFAULT_TOKEN,
+): Promise<PaymentMethodResponse> {
+  const paymentMethod = await fastify.paymentMethodService.createPaymentMethod(
+    { type: PaymentMethodTypeEnum.CARD, token, customerId },
+    TEST_LIVEMODE,
+  );
+
+  return fastify.paymentMethodService.attachPaymentMethod(
+    paymentMethod.id,
+    { customerId, shouldBeDefault: true },
+    TEST_LIVEMODE,
+  );
 }
 
 export async function makeOpenInvoice(

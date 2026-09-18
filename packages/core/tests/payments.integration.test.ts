@@ -1,19 +1,33 @@
+import { PspTokenEnum } from '@clients/mock-psp.client';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import { LedgerAccountCodeEnum } from '@contracts/ledger.types';
-import { PaymentAttemptOutcomeEnum, PaymentIntentStatusEnum } from '@contracts/payments.types';
+import {
+  CaptureMethodEnum,
+  ChargeOutcomeEnum,
+  ChargeStatusEnum,
+  DeclineCodeEnum,
+  PaymentCancellationReasonEnum,
+  PaymentIntentStatusEnum,
+  PspEventTypeEnum,
+  PspProviderEnum,
+} from '@contracts/payments.types';
 import { BadRequestError, ConflictError } from '@errors/app.error';
 import { CurrencyEnum } from '@utils/currency';
+import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
-import { makeOpenInvoice as makeOpenInvoiceFixture } from './factories';
+import {
+  makeOpenInvoice as makeOpenInvoiceFixture,
+  makePaymentMethod,
+  TEST_LIVEMODE,
+} from './factories';
 
 const CLOCK_START = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
 const BASE_AMOUNT = 500_000;
-const DECLINED_METHOD = 'pm_card_declined';
 
 let fastify: FastifyInstance;
 
@@ -25,8 +39,24 @@ afterAll(async () => {
   await fastify.close();
 });
 
-async function makeOpenInvoice(): Promise<{ invoiceId: string; customerId: string }> {
-  return makeOpenInvoiceFixture(fastify, { unitAmount: BASE_AMOUNT, frozenTime: CLOCK_START });
+interface InvoiceFixture {
+  invoiceId: string;
+  customerId: string;
+  paymentMethodId: string;
+}
+
+async function makeOpenInvoice(token?: string): Promise<InvoiceFixture> {
+  const fixture = await makeOpenInvoiceFixture(fastify, {
+    unitAmount: BASE_AMOUNT,
+    frozenTime: CLOCK_START,
+    token,
+  });
+
+  return {
+    invoiceId: fixture.invoiceId,
+    customerId: fixture.customerId,
+    paymentMethodId: fixture.paymentMethodId,
+  };
 }
 
 async function readReceivable(customerId: string): Promise<number> {
@@ -40,21 +70,35 @@ async function readReceivable(customerId: string): Promise<number> {
   return account.balance;
 }
 
+async function settle(paymentIntentId: string) {
+  await fastify.paymentService.confirmPaymentIntent(paymentIntentId, {}, TEST_LIVEMODE);
+  await fastify.paymentService.drainProviderEvents();
+
+  return fastify.paymentService.getPaymentIntent(paymentIntentId, TEST_LIVEMODE);
+}
+
 describe('PaymentService.createPaymentIntent', () => {
   it('defaults the amount to what the invoice still owes', async () => {
     const { invoiceId } = await makeOpenInvoice();
 
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
     expect(paymentIntent.amount).toBe(BASE_AMOUNT);
     expect(paymentIntent.status).toBe(PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD);
+    expect(paymentIntent.captureMethod).toBe(CaptureMethodEnum.AUTOMATIC);
   });
 
   it('rejects an intent larger than what is still owed', async () => {
     const { invoiceId } = await makeOpenInvoice();
 
     await expect(
-      fastify.paymentService.createPaymentIntent({ invoiceId, amount: BASE_AMOUNT + 1 }, false),
+      fastify.paymentService.createPaymentIntent(
+        { invoiceId, amount: BASE_AMOUNT + 1 },
+        TEST_LIVEMODE,
+      ),
     ).rejects.toThrow(BadRequestError);
   });
 
@@ -63,101 +107,423 @@ describe('PaymentService.createPaymentIntent', () => {
 
     await fastify.invoiceService.voidInvoice(invoiceId, {});
 
-    await expect(fastify.paymentService.createPaymentIntent({ invoiceId }, false)).rejects.toThrow(
-      ConflictError,
+    await expect(
+      fastify.paymentService.createPaymentIntent({ invoiceId }, TEST_LIVEMODE),
+    ).rejects.toThrow(ConflictError);
+  });
+
+  it('takes a standalone payment that is attached to no invoice at all', async () => {
+    const customer = await fastify.customerService.createCustomer(
+      {
+        email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+        currency: CurrencyEnum.VND,
+      },
+      TEST_LIVEMODE,
     );
+
+    await makePaymentMethod(fastify, customer.id);
+
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { customerId: customer.id, amount: 120_000 },
+      TEST_LIVEMODE,
+    );
+    const settled = await settle(paymentIntent.id);
+
+    expect(settled.invoiceId).toBeNull();
+    expect(settled.status).toBe(PaymentIntentStatusEnum.SUCCEEDED);
+    expect(settled.amountReceived).toBe(120_000);
+  });
+
+  it('refuses a standalone payment with no amount to charge', async () => {
+    const customer = await fastify.customerService.createCustomer(
+      {
+        email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+        currency: CurrencyEnum.VND,
+      },
+      TEST_LIVEMODE,
+    );
+
+    await expect(
+      fastify.paymentService.createPaymentIntent({ customerId: customer.id }, TEST_LIVEMODE),
+    ).rejects.toThrow(BadRequestError);
+  });
+
+  it('refuses a payment intent with neither an invoice nor a customer', async () => {
+    await expect(
+      fastify.paymentService.createPaymentIntent({ amount: 1_000 }, TEST_LIVEMODE),
+    ).rejects.toThrow(BadRequestError);
   });
 });
 
 describe('PaymentService.confirmPaymentIntent', () => {
-  it('settles the invoice and moves the receivable into cash', async () => {
-    const { invoiceId, customerId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+  it('leaves the intent processing rather than claiming the money is in', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
     const confirmed = await fastify.paymentService.confirmPaymentIntent(
       paymentIntent.id,
       {},
-      false,
+      TEST_LIVEMODE,
     );
-    const invoice = await fastify.invoiceService.getInvoice(invoiceId, false);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
 
-    expect(confirmed.status).toBe(PaymentIntentStatusEnum.SUCCEEDED);
+    expect(confirmed.status).toBe(PaymentIntentStatusEnum.PROCESSING);
     expect(confirmed.pspReference).toMatch(/^mockpsp_/);
+    expect(confirmed.charges).toHaveLength(0);
+    expect(invoice.status).toBe(InvoiceStatusEnum.OPEN);
+  });
+
+  it('settles the invoice and moves the receivable into cash once the callback lands', async () => {
+    const { invoiceId, customerId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+
+    const settled = await settle(paymentIntent.id);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+
+    expect(settled.status).toBe(PaymentIntentStatusEnum.SUCCEEDED);
+    expect(settled.amountReceived).toBe(BASE_AMOUNT);
+    expect(settled.latestChargeId).not.toBeNull();
     expect(invoice.status).toBe(InvoiceStatusEnum.PAID);
     expect(await readReceivable(customerId)).toBe(0);
   });
 
-  it('leaves the invoice untouched when the processor declines', async () => {
-    const { invoiceId, customerId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
-
-    const declined = await fastify.paymentService.confirmPaymentIntent(
-      paymentIntent.id,
-      {
-        paymentMethod: DECLINED_METHOD,
-      },
-      false,
+  it('records one captured charge behind the intent it settled', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
     );
-    const invoice = await fastify.invoiceService.getInvoice(invoiceId, false);
+
+    const settled = await settle(paymentIntent.id);
+    const [charge] = settled.charges;
+
+    expect(settled.charges).toHaveLength(1);
+    expect(charge).toMatchObject({
+      status: ChargeStatusEnum.SUCCEEDED,
+      outcome: ChargeOutcomeEnum.APPROVED,
+      captured: true,
+      amountCaptured: BASE_AMOUNT,
+      amountRefunded: 0,
+    });
+    expect(charge?.balanceTransactionId).toBeNull();
+  });
+
+  it('parks a card that needs 3DS in requires_action with somewhere to send the customer', async () => {
+    const { invoiceId } = await makeOpenInvoice(PspTokenEnum.VISA_3DS);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+
+    const confirmed = await fastify.paymentService.confirmPaymentIntent(
+      paymentIntent.id,
+      {},
+      TEST_LIVEMODE,
+    );
+
+    await fastify.paymentService.drainProviderEvents();
+
+    const stillWaiting = await fastify.paymentService.getPaymentIntent(
+      paymentIntent.id,
+      TEST_LIVEMODE,
+    );
+
+    expect(confirmed.status).toBe(PaymentIntentStatusEnum.REQUIRES_ACTION);
+    expect(confirmed.nextAction?.redirectUrl).toContain(confirmed.pspReference ?? 'no-reference');
+    expect(stillWaiting.status).toBe(PaymentIntentStatusEnum.REQUIRES_ACTION);
+  });
+
+  it('finishes a 3DS payment through the callback and pays the invoice exactly once', async () => {
+    const { invoiceId } = await makeOpenInvoice(PspTokenEnum.VISA_3DS);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+    const confirmed = await fastify.paymentService.confirmPaymentIntent(
+      paymentIntent.id,
+      {},
+      TEST_LIVEMODE,
+    );
+
+    fastify.psp.completeAuthentication(confirmed.pspReference ?? '');
+    await fastify.paymentService.drainProviderEvents();
+
+    const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id, TEST_LIVEMODE);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+    const payments = await fastify.invoiceRepository.findInvoicePayments([invoiceId]);
+
+    expect(settled.status).toBe(PaymentIntentStatusEnum.SUCCEEDED);
+    expect(settled.charges).toHaveLength(1);
+    expect(invoice.status).toBe(InvoiceStatusEnum.PAID);
+    expect(payments).toHaveLength(1);
+  });
+
+  it('leaves the invoice untouched when the processor declines', async () => {
+    const { invoiceId, customerId } = await makeOpenInvoice(PspTokenEnum.CARD_DECLINED);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+
+    const declined = await settle(paymentIntent.id);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
 
     expect(declined.status).toBe(PaymentIntentStatusEnum.REQUIRES_PAYMENT_METHOD);
+    expect(declined.declineCode).toBe(DeclineCodeEnum.GENERIC_DECLINE);
     expect(declined.failureCode).toBe('card_declined');
     expect(invoice.status).toBe(InvoiceStatusEnum.OPEN);
     expect(await readReceivable(customerId)).toBe(BASE_AMOUNT);
   });
 
-  it('keeps every attempt on the record so a decline is still auditable', async () => {
-    const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
-
-    await fastify.paymentService.confirmPaymentIntent(
-      paymentIntent.id,
-      {
-        paymentMethod: DECLINED_METHOD,
-      },
-      false,
+  it('keeps a declined charge on the record so the attempt is still auditable', async () => {
+    const { invoiceId, customerId } = await makeOpenInvoice(PspTokenEnum.CARD_DECLINED);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
     );
+
+    await settle(paymentIntent.id);
+
+    const workingPaymentMethod = await makePaymentMethod(fastify, customerId);
     const succeeded = await fastify.paymentService.confirmPaymentIntent(
       paymentIntent.id,
-      {
-        paymentMethod: 'pm_card_ok',
-      },
-      false,
+      { paymentMethodId: workingPaymentMethod.id },
+      TEST_LIVEMODE,
     );
 
-    expect(_.map(succeeded.attempts, 'outcome')).toEqual([
-      PaymentAttemptOutcomeEnum.DECLINED,
-      PaymentAttemptOutcomeEnum.SUCCEEDED,
+    await fastify.paymentService.drainProviderEvents();
+
+    const final = await fastify.paymentService.getPaymentIntent(succeeded.id, TEST_LIVEMODE);
+
+    expect(_.map(final.charges, 'outcome')).toEqual([
+      ChargeOutcomeEnum.DECLINED,
+      ChargeOutcomeEnum.APPROVED,
     ]);
   });
 
   it('refuses to confirm an intent that already succeeded', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
+    await settle(paymentIntent.id);
 
     await expect(
-      fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false),
+      fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE),
     ).rejects.toThrow(ConflictError);
+  });
+
+  it('refuses to confirm when there is no payment method anywhere to charge', async () => {
+    const customer = await fastify.customerService.createCustomer(
+      {
+        email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
+        currency: CurrencyEnum.VND,
+      },
+      TEST_LIVEMODE,
+    );
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { customerId: customer.id, amount: 10_000 },
+      TEST_LIVEMODE,
+    );
+
+    await expect(
+      fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE),
+    ).rejects.toThrow(BadRequestError);
+  });
+});
+
+describe('PaymentService.capturePaymentIntent', () => {
+  it('holds an authorization in requires_capture instead of taking the money', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId, captureMethod: CaptureMethodEnum.MANUAL },
+      TEST_LIVEMODE,
+    );
+
+    const authorized = await settle(paymentIntent.id);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+    const [charge] = authorized.charges;
+
+    expect(authorized.status).toBe(PaymentIntentStatusEnum.REQUIRES_CAPTURE);
+    expect(authorized.amountCapturable).toBe(BASE_AMOUNT);
+    expect(authorized.amountReceived).toBe(0);
+    expect(charge).toMatchObject({ outcome: ChargeOutcomeEnum.AUTHORIZED, captured: false });
+    expect(invoice.status).toBe(InvoiceStatusEnum.OPEN);
+  });
+
+  it('pays the invoice when the authorization is captured', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId, captureMethod: CaptureMethodEnum.MANUAL },
+      TEST_LIVEMODE,
+    );
+
+    await settle(paymentIntent.id);
+    await fastify.paymentService.capturePaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE);
+    await fastify.paymentService.drainProviderEvents();
+
+    const captured = await fastify.paymentService.getPaymentIntent(paymentIntent.id, TEST_LIVEMODE);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+
+    expect(captured.status).toBe(PaymentIntentStatusEnum.SUCCEEDED);
+    expect(captured.amountReceived).toBe(BASE_AMOUNT);
+    expect(invoice.status).toBe(InvoiceStatusEnum.PAID);
+  });
+
+  it('refuses to capture more than was authorized', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId, captureMethod: CaptureMethodEnum.MANUAL },
+      TEST_LIVEMODE,
+    );
+
+    await settle(paymentIntent.id);
+
+    await expect(
+      fastify.paymentService.capturePaymentIntent(
+        paymentIntent.id,
+        { amount: BASE_AMOUNT + 1 },
+        TEST_LIVEMODE,
+      ),
+    ).rejects.toThrow(BadRequestError);
+  });
+
+  it('refuses to capture an intent that never authorized anything', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+
+    await expect(
+      fastify.paymentService.capturePaymentIntent(paymentIntent.id, {}, TEST_LIVEMODE),
+    ).rejects.toThrow(ConflictError);
+  });
+});
+
+describe('PaymentService.cancelPaymentIntent', () => {
+  it('keeps the reason the intent was given up on', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+
+    const canceled = await fastify.paymentService.cancelPaymentIntent(
+      paymentIntent.id,
+      { cancellationReason: PaymentCancellationReasonEnum.DUPLICATE },
+      TEST_LIVEMODE,
+    );
+
+    expect(canceled.status).toBe(PaymentIntentStatusEnum.CANCELED);
+    expect(canceled.cancellationReason).toBe(PaymentCancellationReasonEnum.DUPLICATE);
+  });
+
+  it('defaults the reason to the customer having asked', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+
+    const canceled = await fastify.paymentService.cancelPaymentIntent(
+      paymentIntent.id,
+      {},
+      TEST_LIVEMODE,
+    );
+
+    expect(canceled.cancellationReason).toBe(PaymentCancellationReasonEnum.REQUESTED_BY_CUSTOMER);
+  });
+});
+
+describe('PaymentService.handleProviderEvent', () => {
+  it('applies a redelivered callback exactly once', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+    const confirmed = await fastify.paymentService.confirmPaymentIntent(
+      paymentIntent.id,
+      {},
+      TEST_LIVEMODE,
+    );
+    const [event] = fastify.psp.takePendingEvents();
+
+    if (!event) {
+      throw new Error('the simulated processor queued no callback to redeliver');
+    }
+
+    const first = await fastify.paymentService.handleProviderEvent(PspProviderEnum.MOCK, event);
+    const second = await fastify.paymentService.handleProviderEvent(PspProviderEnum.MOCK, event);
+
+    const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id, TEST_LIVEMODE);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+    const payments = await fastify.invoiceRepository.findInvoicePayments([invoiceId]);
+
+    expect(confirmed.status).toBe(PaymentIntentStatusEnum.PROCESSING);
+    expect(first.isDuplicate).toBe(false);
+    expect(second.isDuplicate).toBe(true);
+    expect(settled.charges).toHaveLength(1);
+    expect(invoice.amountPaid).toBe(BASE_AMOUNT);
+    expect(payments).toHaveLength(1);
+  });
+
+  it('ignores a second callback that arrives under a new event id for a settled intent', async () => {
+    const { invoiceId } = await makeOpenInvoice();
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
+    const confirmed = await fastify.paymentService.confirmPaymentIntent(
+      paymentIntent.id,
+      {},
+      TEST_LIVEMODE,
+    );
+
+    await fastify.paymentService.drainProviderEvents();
+
+    await fastify.paymentService.handleProviderEvent(PspProviderEnum.MOCK, {
+      id: `mockpsp_evt_${generateGid(ObjectPrefixEnum.PSP_EVENT)}`,
+      type: PspEventTypeEnum.PAYMENT_SUCCEEDED,
+      reference: confirmed.pspReference ?? '',
+      amount: BASE_AMOUNT,
+    });
+
+    const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id, TEST_LIVEMODE);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+
+    expect(settled.charges).toHaveLength(1);
+    expect(invoice.amountPaid).toBe(BASE_AMOUNT);
   });
 });
 
 describe('RefundService.createRefund', () => {
   it('returns money already taken and reduces revenue rather than the receivable', async () => {
     const { invoiceId, customerId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
-
+    const settled = await settle(paymentIntent.id);
     const refund = await fastify.refundService.createRefund({
       paymentIntentId: paymentIntent.id,
       amount: 200_000,
       reason: 'Khách trả lại dịch vụ',
     });
-    const invoice = await fastify.invoiceService.getInvoice(invoiceId, false);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
 
     expect(refund.amount).toBe(200_000);
+    expect(refund.chargeId).toBe(settled.latestChargeId);
     expect(refund.pspReference).toMatch(/^mockpsp_/);
     expect(invoice.amountRefunded).toBe(200_000);
     expect(await readReceivable(customerId)).toBe(0);
@@ -165,9 +531,12 @@ describe('RefundService.createRefund', () => {
 
   it('refunds the whole payment when no amount is given', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
+    await settle(paymentIntent.id);
 
     const refund = await fastify.refundService.createRefund({
       paymentIntentId: paymentIntent.id,
@@ -179,9 +548,12 @@ describe('RefundService.createRefund', () => {
 
   it('refuses to refund more than the payment took', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
+    await settle(paymentIntent.id);
     await fastify.refundService.createRefund({
       paymentIntentId: paymentIntent.id,
       amount: BASE_AMOUNT,
@@ -199,7 +571,10 @@ describe('RefundService.createRefund', () => {
 
   it('refuses to refund an intent that never took money', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
     await expect(
       fastify.refundService.createRefund({
@@ -211,12 +586,15 @@ describe('RefundService.createRefund', () => {
   });
 });
 
-describe('payment records are append-only in the database', () => {
+describe('refund records are append-only in the database', () => {
   it('rejects a direct rewrite of a refund', async () => {
     const { invoiceId } = await makeOpenInvoice();
-    const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId }, false);
+    const paymentIntent = await fastify.paymentService.createPaymentIntent(
+      { invoiceId },
+      TEST_LIVEMODE,
+    );
 
-    await fastify.paymentService.confirmPaymentIntent(paymentIntent.id, {}, false);
+    await settle(paymentIntent.id);
 
     const refund = await fastify.refundService.createRefund({
       paymentIntentId: paymentIntent.id,
