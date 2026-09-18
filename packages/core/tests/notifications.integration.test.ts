@@ -143,11 +143,45 @@ describe('NotificationService.dispatchNotification', () => {
 
     const queue = fastify.queues.resolve('NotificationQueue');
     const queued = await queue.getJobs(['waiting', 'delayed', 'active', 'completed']);
-    const matching = _.filter(queued, (job) => {
-      return _.get(job.data, 'invoiceId') === invoiceId;
+    const matching = _.filter(queued, {
+      data: { invoiceId, kind: NotificationKindEnum.INVOICE_FINALIZED },
     });
 
     expect(customerId).not.toBe('');
     expect(matching).toHaveLength(1);
+  });
+
+  it('queues exactly one invoice_sent job when an invoice is finalized', async () => {
+    const { invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+
+    const queue = fastify.queues.resolve('NotificationQueue');
+    const queued = await queue.getJobs(['waiting', 'delayed', 'active', 'completed']);
+    const matching = _.filter(queued, {
+      data: { invoiceId, kind: NotificationKindEnum.INVOICE_SENT },
+    });
+
+    expect(matching).toHaveLength(1);
+  });
+});
+
+describe('NotificationService.sendNotification for invoice_sent', () => {
+  it('mails the customer the hosted invoice link', async () => {
+    const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+    const customer = await fastify.customerService.getCustomer(customerId, TEST_LIVEMODE);
+    const invoice = await fastify.invoiceService.getInvoice(invoiceId, TEST_LIVEMODE);
+
+    const outcome = await fastify.notificationService.sendNotification(
+      buildNotificationSendJob(NotificationKindEnum.INVOICE_SENT, TEST_LIVEMODE, customerId, {
+        invoiceId,
+        url: invoice.hostedInvoiceUrl,
+      }),
+    );
+
+    const { email } = customer;
+    const subject = await findDeliveredSubject(String(email));
+
+    expect(invoice.hostedInvoiceUrl).not.toBeNull();
+    expect(outcome).toBe(NotificationOutcomeEnum.SENT);
+    expect(subject).toContain('Your invoice');
   });
 });

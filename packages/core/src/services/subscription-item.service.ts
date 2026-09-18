@@ -43,7 +43,9 @@ export class SubscriptionItemService {
     livemode: boolean,
   ): Promise<ListResponse<SubscriptionItemResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const subscription = await this.getSubscription(query.subscriptionId, livemode);
+
     const rows = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
       deletedAtIsNull: true,

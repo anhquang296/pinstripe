@@ -187,6 +187,37 @@ describe('BillingPortalService', () => {
     expect(defaults[0]?.id).toBe(second.id);
   });
 
+  it('moves the default flag when an update promotes another configuration', async () => {
+    const previousDefault = await fastify.billingPortalService.createConfiguration(
+      { businessName: 'Mặc định cũ', isDefault: true },
+      TEST_LIVEMODE,
+    );
+    const candidate = await fastify.billingPortalService.createConfiguration(
+      { businessName: 'Ứng viên' },
+      TEST_LIVEMODE,
+    );
+
+    const promoted = await fastify.billingPortalService.updateConfiguration(
+      candidate.id,
+      { isDefault: true },
+      TEST_LIVEMODE,
+    );
+    const demoted = await fastify.billingPortalService.getConfiguration(
+      previousDefault.id,
+      TEST_LIVEMODE,
+    );
+    const defaults =
+      await fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations({
+        livemode: TEST_LIVEMODE,
+        isDefault: true,
+      });
+
+    expect(promoted.isDefault).toBe(true);
+    expect(demoted.isDefault).toBe(false);
+    expect(defaults).toHaveLength(1);
+    expect(defaults[0]?.id).toBe(candidate.id);
+  });
+
   it('hands a merchant-created session a portal session key the customer can use', async () => {
     const customer = await makeCustomer();
 

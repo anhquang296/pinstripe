@@ -68,6 +68,38 @@ describe('PaymentLinkService.createPaymentLink', () => {
   });
 });
 
+describe('PaymentLinkService.findPaymentLinks', () => {
+  it('returns only switched-off links with their line items when asked for inactive ones', async () => {
+    const fixture = await makeFixture();
+    const activeLink = await fastify.paymentLinkService.createPaymentLink(
+      { successUrl: SUCCESS_URL, lineItems: [{ priceId: fixture.priceId }] },
+      TEST_LIVEMODE,
+    );
+    const inactiveLink = await fastify.paymentLinkService.createPaymentLink(
+      { successUrl: SUCCESS_URL, lineItems: [{ priceId: fixture.priceId, quantity: 2 }] },
+      TEST_LIVEMODE,
+    );
+
+    await fastify.paymentLinkService.updatePaymentLink(
+      inactiveLink.id,
+      { isActive: false },
+      TEST_LIVEMODE,
+    );
+
+    const result = await fastify.paymentLinkService.findPaymentLinks(
+      { isActive: false, limit: 100 },
+      TEST_LIVEMODE,
+    );
+    const listedIds = _.map(result.data, 'id');
+    const listedInactiveLink = _.find(result.data, { id: inactiveLink.id });
+
+    expect(listedIds).toContain(inactiveLink.id);
+    expect(listedIds).not.toContain(activeLink.id);
+    expect(_.every(result.data, { isActive: false })).toBe(true);
+    expect(_.get(listedInactiveLink, 'lineItems.0.quantity')).toBe(2);
+  });
+});
+
 describe('CheckoutService.createPaymentLinkCheckoutSession', () => {
   it('opens a checkout session that carries the link line items', async () => {
     const fixture = await makeFixture();

@@ -131,3 +131,42 @@ describe('portal account surface', () => {
     expect(afterwards.statusCode).toBe(401);
   });
 });
+
+describe('merchant billing portal session', () => {
+  it('opens a portal session the customer can use through /portal/me', async () => {
+    const email = 'merchant-opened@portal.test';
+    const customerId = await makeCustomer(email);
+    const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1], { livemode: TEST_LIVEMODE });
+
+    const created = await fastify.inject({
+      method: 'POST',
+      url: '/v1/billing_portal/sessions',
+      headers: buildAuthHeaders(secretKey.token),
+      payload: { customerId },
+    });
+    const sessionKey = new URL(created.json().url).searchParams.get('sessionKey');
+    const me = await fastify.inject({
+      method: 'GET',
+      url: '/portal/me',
+      headers: buildAuthHeaders(String(sessionKey)),
+    });
+
+    expect(created.statusCode).toBe(201);
+    expect(sessionKey).not.toBeNull();
+    expect(me.statusCode).toBe(200);
+    expect(me.json().email).toBe(email);
+  });
+
+  it('refuses a publishable portal key on the merchant route', async () => {
+    const customerId = await makeCustomer('merchant-refused@portal.test');
+
+    const response = await fastify.inject({
+      method: 'POST',
+      url: '/v1/billing_portal/sessions',
+      headers: portalKeyHeaders,
+      payload: { customerId },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+});
