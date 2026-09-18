@@ -13,5 +13,13 @@ export function createTestClockQueries(client: PinstripeClient) {
         },
       };
     },
+    testClock: (testClockId: string) => {
+      return {
+        queryKey: [testClockId],
+        queryFn: () => {
+          return client.testHelpers.testClocks.get(testClockId);
+        },
+      };
+    },
   });
 }

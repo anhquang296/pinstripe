@@ -58,5 +58,13 @@ export function createInvoiceQueries(client: PinstripeClient) {
         },
       };
     },
+    creditNote: (creditNoteId: string) => {
+      return {
+        queryKey: [creditNoteId],
+        queryFn: () => {
+          return client.creditNotes.get(creditNoteId);
+        },
+      };
+    },
   });
 }

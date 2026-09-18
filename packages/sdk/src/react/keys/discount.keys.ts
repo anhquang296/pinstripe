@@ -33,6 +33,14 @@ export function createDiscountQueries(client: PinstripeClient) {
         },
       };
     },
+    promotionCode: (promotionCodeId: string) => {
+      return {
+        queryKey: [promotionCodeId],
+        queryFn: () => {
+          return client.promotionCodes.get(promotionCodeId);
+        },
+      };
+    },
     discounts: (query?: FindDiscountsQuery) => {
       return {
         queryKey: [query],
