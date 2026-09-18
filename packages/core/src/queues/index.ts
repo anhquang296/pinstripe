@@ -1,4 +1,5 @@
 export * from '@queues/billing.queue';
+export * from '@queues/checkout.queue';
 export * from '@queues/domain-event.queue';
 export * from '@queues/dunning.queue';
 export * from '@queues/ledger.queue';

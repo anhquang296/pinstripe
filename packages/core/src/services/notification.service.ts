@@ -1,4 +1,4 @@
-import type { Customer, Invoice, PaymentIntent } from '@database/schemas';
+import type { Customer, Invoice, PaymentIntent, PortalSession } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { NotificationKind, NotificationSendJob } from '@queues/notification.queue';
 import {
@@ -25,8 +25,33 @@ export class NotificationService {
 
   async dispatchNotification(job: NotificationSendJob): Promise<Job<NotificationSendJob>> {
     return this.fastify.queues.resolve(QueueNameEnum.NOTIFICATION).add(NOTIFICATION_SEND_JOB, job, {
-      jobId: `notification:${job.kind}:${job.invoiceId ?? job.paymentIntentId ?? job.customerId}`,
+      jobId: `notification:${job.kind}:${job.dedupeKey}`,
     });
+  }
+
+  async dispatchInvoiceSent(invoice: Invoice, url: string): Promise<void> {
+    await this.dispatchNotification(
+      buildNotificationSendJob(
+        NotificationKindEnum.INVOICE_SENT,
+        invoice.livemode,
+        invoice.customerId,
+        { invoiceId: invoice.id, url },
+      ),
+    );
+  }
+
+  async dispatchPortalMagicLink(
+    portalSession: PortalSession,
+    url: string,
+  ): Promise<NotificationOutcome> {
+    return this.sendNotification(
+      buildNotificationSendJob(
+        NotificationKindEnum.PORTAL_MAGIC_LINK,
+        portalSession.livemode,
+        portalSession.customerId,
+        { url, dedupeKey: portalSession.id },
+      ),
+    );
   }
 
   async dispatchInvoiceFinalized(invoice: Invoice): Promise<void> {
@@ -130,6 +155,7 @@ export class NotificationService {
       currency: customer.currency,
       declineCode: _.get(paymentIntent, 'declineCode', null),
       nextAttemptAt: _.get(invoice, 'nextAttemptAt', null),
+      url: job.url,
     };
   }
 

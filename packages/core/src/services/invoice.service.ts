@@ -262,8 +262,22 @@ export class InvoiceService {
     const finalizedInvoice = await this.fastify.database.master.transaction(async (tx) => {
       return this.writeFinalizedInvoice(invoice, lines, now, tx);
     });
+    const sentInvoice = await this.issueInvoiceDocument(finalizedInvoice);
 
-    return this.buildInvoice(finalizedInvoice);
+    return this.buildInvoice(sentInvoice);
+  }
+
+  private async issueInvoiceDocument(invoice: Invoice): Promise<Invoice> {
+    try {
+      return await this.fastify.invoiceDocumentService.issueInvoiceDocument(invoice);
+    } catch (error) {
+      this.fastify.log.error(
+        { error, invoiceId: invoice.id },
+        '[InvoiceService] issueInvoiceDocument() error',
+      );
+
+      return invoice;
+    }
   }
 
   async ensureBillableDraft(subscription: Subscription): Promise<EnsuredInvoice> {
@@ -705,6 +719,8 @@ export class InvoiceService {
       {
         number: InvoiceService.formatNumber(INVOICE_NUMBER_PREFIX, sequenceValue),
         status: InvoiceStatusEnum.OPEN,
+        hostedInvoiceUrl: this.fastify.hostedUrlFactory.buildInvoiceUrl(invoice.id),
+        invoicePdf: this.fastify.hostedUrlFactory.buildInvoicePdfUrl(invoice.id),
         ...totals,
         automaticTaxStatus,
         finalizedAt: now,
@@ -1496,6 +1512,9 @@ export class InvoiceService {
           prorationFactor: lineItem.prorationFactor,
         };
       }),
+      hostedInvoiceUrl: invoice.hostedInvoiceUrl,
+      invoicePdf: invoice.invoicePdf,
+      sentAt: invoice.sentAt ? invoice.sentAt.toISOString() : null,
       finalizedAt: invoice.finalizedAt ? invoice.finalizedAt.toISOString() : null,
       paidAt: invoice.paidAt ? invoice.paidAt.toISOString() : null,
       voidedAt: invoice.voidedAt ? invoice.voidedAt.toISOString() : null,

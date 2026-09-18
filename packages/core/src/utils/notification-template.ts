@@ -11,6 +11,7 @@ export interface NotificationContext {
   currency: Currency;
   declineCode: string | null;
   nextAttemptAt: Date | null;
+  url: string | null;
 }
 
 export interface NotificationEmail {
@@ -36,6 +37,14 @@ function buildAmountLabel(amount: number, currency: Currency): string {
   return Money.of(amount, currency).toString();
 }
 
+function buildUrlLabel(url: string | null): string {
+  if (url) {
+    return url;
+  }
+
+  return 'your billing portal';
+}
+
 function buildNotificationBody(
   kind: NotificationKind,
   context: NotificationContext,
@@ -49,6 +58,30 @@ function buildNotificationBody(
       lines: [
         `We have issued ${invoiceLabel} for ${amountLabel}.`,
         'You can settle it from your billing portal at any time.',
+      ],
+    };
+  }
+
+  if (kind === NotificationKindEnum.INVOICE_SENT) {
+    const urlLabel = buildUrlLabel(context.url);
+
+    return {
+      subject: `Your ${invoiceLabel} for ${amountLabel}`,
+      lines: [
+        `We have issued ${invoiceLabel} for ${amountLabel}.`,
+        `You can read it, download the PDF and pay it here: ${urlLabel}`,
+      ],
+    };
+  }
+
+  if (kind === NotificationKindEnum.PORTAL_MAGIC_LINK) {
+    const urlLabel = buildUrlLabel(context.url);
+
+    return {
+      subject: 'Your billing portal sign-in link',
+      lines: [
+        'Use this link to open your billing portal. It works once and expires shortly.',
+        urlLabel,
       ],
     };
   }

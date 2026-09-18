@@ -1,6 +1,8 @@
 import { ApiKeyService } from '@services/api-key.service';
 import { BalanceService } from '@services/balance.service';
+import { BillingPortalService } from '@services/billing-portal.service';
 import { BillingRunService } from '@services/billing-run.service';
+import { CheckoutService } from '@services/checkout.service';
 import { ClockService } from '@services/clock.service';
 import { CouponService } from '@services/coupon.service';
 import { CreditNoteService } from '@services/credit-note.service';
@@ -14,6 +16,7 @@ import { EventService } from '@services/event.service';
 import { ExpansionService } from '@services/expansion.service';
 import { IdempotencyService } from '@services/idempotency.service';
 import { InvoiceService } from '@services/invoice.service';
+import { InvoiceDocumentService } from '@services/invoice-document.service';
 import { InvoiceItemService } from '@services/invoice-item.service';
 import { LedgerService } from '@services/ledger.service';
 import { MeterService } from '@services/meter.service';
@@ -21,8 +24,10 @@ import { MeterEventService } from '@services/meter-event.service';
 import { NotificationService } from '@services/notification.service';
 import { OutboxService } from '@services/outbox.service';
 import { PaymentService } from '@services/payment.service';
+import { PaymentLinkService } from '@services/payment-link.service';
 import { PaymentMethodService } from '@services/payment-method.service';
 import { PayoutService } from '@services/payout.service';
+import { PortalSessionService } from '@services/portal-session.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
 import { PromotionCodeService } from '@services/promotion-code.service';
@@ -98,6 +103,23 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
     new BillingRunService(fastify, {
       batchSize: fastify.workflowSchedules.billingRunBatchSize,
       finalizeDelayMs: fastify.workflowSchedules.invoiceFinalizeDelayMs,
+    }),
+  );
+  fastify.decorate('invoiceDocumentService', new InvoiceDocumentService(fastify));
+  fastify.decorate(
+    'portalSessionService',
+    new PortalSessionService(fastify, {
+      linkTtlMinutes: fastify.config.PORTAL_LINK_TTL_MINUTES,
+      sessionTtlMinutes: fastify.config.PORTAL_SESSION_TTL_MINUTES,
+      portalBaseUrl: fastify.config.PORTAL_BASE_URL,
+    }),
+  );
+  fastify.decorate('billingPortalService', new BillingPortalService(fastify));
+  fastify.decorate('paymentLinkService', new PaymentLinkService(fastify));
+  fastify.decorate(
+    'checkoutService',
+    new CheckoutService(fastify, {
+      sessionTtlMinutes: fastify.config.CHECKOUT_SESSION_TTL_MINUTES,
     }),
   );
   fastify.decorate('testClockService', new TestClockService(fastify));
