@@ -6,6 +6,9 @@
 #   ./scripts/overnight-roadmap.sh             chạy thật
 #   PHASES="14 15" ./scripts/overnight-roadmap.sh
 #
+# Roadmap khác chạy qua wrapper đặt ROADMAP / PHASES / BRANCH_PREFIX / EXTRA_GATE rồi exec file này,
+# ví dụ ./scripts/overnight-roadmap-v3.sh cho docs/ROADMAP-V3.md.
+#
 # Nguyên tắc: script cầm danh sách phase, script chạy gate, script push và mở PR.
 # Agent chỉ viết code và commit. Mọi lời tự khai của agent đều được kiểm chứng lại bằng git + gate.
 
@@ -33,7 +36,16 @@ cd "$REPO_ROOT"
 PHASES="${PHASES:-14 15 16 17 18 19 20}"
 BASE_BRANCH="${BASE_BRANCH:-master}"
 BRANCH_PREFIX="${BRANCH_PREFIX:-overnight/phase-}"
-ROADMAP="docs/ROADMAP-V2.md"
+ROADMAP="${ROADMAP:-docs/ROADMAP-V2.md}"
+
+# Lệnh gate bổ sung, chạy sau `pnpm test:integration` trong cùng subshell nên chịu cùng timeout.
+# Rỗng = gate như cũ.
+EXTRA_GATE="${EXTRA_GATE:-}"
+
+GATE_COMMANDS="pnpm lint && pnpm turbo run typecheck --force && pnpm turbo run test --force && pnpm test:integration"
+if [[ -n "$EXTRA_GATE" ]]; then
+  GATE_COMMANDS="$GATE_COMMANDS && $EXTRA_GATE"
+fi
 
 DEADLINE_HOURS="${DEADLINE_HOURS:-8}"
 # 0 = không đặt trần. Với token subscription thì `total_cost_usd` chỉ là ước lượng quy đổi,
@@ -147,6 +159,10 @@ gate() {
     pnpm turbo run test --force          || exit 1
     echo "### pnpm test:integration"
     pnpm test:integration                || exit 1
+    if [[ -n "$EXTRA_GATE" ]]; then
+      echo "### $EXTRA_GATE"
+      bash -c "$EXTRA_GATE"              || exit 1
+    fi
   ) >"$out" 2>&1 &
   local pid=$!
   set +m
@@ -235,18 +251,16 @@ phase_title() {
 build_prompt() {
   local n="$1" title="$2" branch="$3"
   cat <<PROMPT
-Đọc mục "## Phase ${n} — ${title}" trong ${ROADMAP}.
+Đọc mục "## Phase ${n} — ${title}" trong ${ROADMAP}, cùng mọi mục chung đứng trước các phase
+(quyết định khung, sự thật nền, …) — phase được viết với giả định bạn đã đọc chúng.
 
 Triển khai TRỌN VẸN phase đó: mọi bullet trong **Deliverables.**, thoả mọi điều kiện trong **Xong khi.**
 Tuân thủ convention trong CLAUDE.md và .claude/rules/ (chúng đã nằm sẵn trong context của bạn).
 Viết test cho code mới theo .claude/rules/agentkit/core/testing.md — integration test phải có hậu tố
 .integration.test.ts, nếu không nó sẽ không bao giờ chạy.
 
-Gate bắt buộc. Tự chạy, tự sửa, lặp cho tới khi cả bốn lệnh sạch:
-  pnpm lint
-  pnpm turbo run typecheck --force
-  pnpm turbo run test --force
-  pnpm test:integration
+Gate bắt buộc. Tự chạy, tự sửa, lặp cho tới khi mọi lệnh sạch:
+  ${GATE_COMMANDS}
 
 Khi sạch: commit lên branch hiện tại (${branch}). Nhiều commit nhỏ, mỗi commit một việc, tốt hơn
 một commit to. Message commit đầu: 'phase ${n}: ${title}'.
@@ -256,7 +270,7 @@ TUYỆT ĐỐI KHÔNG:
 - git checkout / git switch sang branch khác, hay đụng vào ${BASE_BRANCH}
 - git commit --no-verify (husky pre-commit là một phần của gate)
 - sửa ${ROADMAP} — script lo việc đánh dấu trạng thái
-- sửa .github/, turbo.json, hay scripts/overnight-roadmap.sh
+- sửa .github/, turbo.json, hay scripts/overnight-roadmap*.sh
 
 Nếu sau 3 lần thử vẫn không làm gate sạch được: DỪNG, đừng commit code hỏng, in NEED_HUMAN kèm lý do
 cụ thể (lệnh nào đỏ, lỗi gì).
@@ -289,7 +303,7 @@ Việc đã làm nằm trong các commit 'wip:' trên branch hiện tại — đ
 biết mình đang ở đâu, đừng làm lại từ đầu.
 
 Làm nốt phần còn thiếu, rồi đưa gate về xanh:
-  pnpm lint && pnpm turbo run typecheck --force && pnpm turbo run test --force && pnpm test:integration
+  ${GATE_COMMANDS}
 
 Commit lên branch hiện tại. Không git push, không đổi branch, không --no-verify.
 PROMPT
@@ -302,8 +316,8 @@ Gate đang ĐỎ trên branch hiện tại cho Phase ${n}. Đây là 200 dòng c
 
 $(tail -200 "$gate_log")
 
-Sửa cho sạch, rồi commit. Bốn lệnh phải xanh hết:
-  pnpm lint && pnpm turbo run typecheck --force && pnpm turbo run test --force && pnpm test:integration
+Sửa cho sạch, rồi commit. Mọi lệnh phải xanh hết:
+  ${GATE_COMMANDS}
 
 Đừng nới lỏng test hay tắt rule để làm nó xanh. Đừng git push, đừng đổi branch, đừng --no-verify.
 Không sửa được thì in NEED_HUMAN kèm lý do.
@@ -413,7 +427,7 @@ run_phase() {
   mark_roadmap "$n"
   if [[ -n "$(git status --porcelain)" ]]; then
     git add "$ROADMAP"
-    git commit -q -m "docs: đánh dấu phase $n xong trong ROADMAP-V2"
+    git commit -q -m "docs: đánh dấu phase $n xong trong $(basename "$ROADMAP" .md)"
   fi
 
   git push -q -u origin "$branch"
@@ -425,7 +439,7 @@ Phase $n của \`$ROADMAP\`: **$title**
 Sinh tự động bởi \`scripts/overnight-roadmap.sh\`, chạy lúc $(basename "$RUN_DIR").
 
 Gate đã xanh trước khi PR được mở (script tự chạy, không phải agent tự khai):
-\`pnpm lint\` · \`pnpm turbo run typecheck --force\` · \`pnpm turbo run test --force\` · \`pnpm test:integration\`
+\`${GATE_COMMANDS}\`
 
 Base là \`$base\`, không phải \`$BASE_BRANCH\` — PR này stacked lên phase trước. Merge theo thứ tự phase.
 
