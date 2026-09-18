@@ -1,5 +1,6 @@
 import AppLayout from '@components/AppLayout';
 import CustomersPage from '@pages/CustomersPage';
+import DiscountsPage from '@pages/DiscountsPage';
 import InvoicesPage from '@pages/InvoicesPage';
 import LedgerPage from '@pages/LedgerPage';
 import MetersPage from '@pages/MetersPage';
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/meters" element={<MetersPage />} />
         <Route path="/rating" element={<RatingPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
+        <Route path="/discounts" element={<DiscountsPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/webhooks" element={<WebhooksPage />} />
         <Route path="/reports" element={<ReportsPage />} />

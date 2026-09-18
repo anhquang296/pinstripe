@@ -1,5 +1,6 @@
 export * from '@database/schemas/api-keys.schema';
 export * from '@database/schemas/customers.schema';
+export * from '@database/schemas/discounts.schema';
 export * from '@database/schemas/entitlements.schema';
 export * from '@database/schemas/events.schema';
 export * from '@database/schemas/idempotency-keys.schema';

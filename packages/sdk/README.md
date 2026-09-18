@@ -63,9 +63,9 @@ const { mutate: finalizeInvoice } = useFinalizeInvoiceMutation({
 
 ## Bề mặt
 
-`customers`, `products`, `prices`, `subscriptions`, `entitlements`, `invoices`, `creditNotes`, `paymentIntents`, `refunds`, `webhookEndpoints`, `webhookDeliveries`, `billing.{meters,meterEvents,meterEventBatches}`, `testHelpers.testClocks`, và `admin.{ledgerAccounts,ledgerTransactions,reporting}`.
+`customers`, `products`, `prices`, `subscriptions`, `entitlements`, `invoices`, `invoiceItems`, `creditNotes`, `coupons`, `promotionCodes`, `discounts`, `paymentIntents`, `refunds`, `webhookEndpoints`, `webhookDeliveries`, `billing.{meters,meterEvents,meterEventBatches}`, `testHelpers.testClocks`, và `admin.{ledgerAccounts,ledgerTransactions,reporting}`.
 
-`admin.*` đi qua một transport thứ hai mang `adminApiKey` và base path `/api/v1/admin`. Bề mặt khuyết ở vài chỗ (`entitlements` chỉ `find`, `products` không có `delete`, `creditNotes` không có `void`) là hình dạng thật của API — đừng lấp.
+`admin.*` đi qua một transport thứ hai mang `adminApiKey` và base path `/api/v1/admin`. Bề mặt khuyết ở vài chỗ (`entitlements` chỉ `find`, `products` không có `delete`, `creditNotes` không có `void`, `promotionCodes` không có `delete`) là hình dạng thật của API — đừng lấp.
 
 ## Idempotency và retry
 

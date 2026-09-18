@@ -1,4 +1,5 @@
 import { BadRequestError } from '@errors/app.error';
+import { CouponService } from '@services/coupon.service';
 import { CustomerService } from '@services/customer.service';
 import { ProductService } from '@services/product.service';
 import { SubscriptionService } from '@services/subscription.service';
@@ -40,8 +41,17 @@ export class ExpansionService {
       },
     };
 
+    const coupon: ExpansionTarget = {
+      idField: 'couponId',
+      findRelated: (ids, livemode) => {
+        return this.findCoupons(ids, livemode);
+      },
+    };
+
     this.targetsByObject = {
       invoice: { customer, subscription },
+      discount: { customer, coupon },
+      promotion_code: { coupon },
       invoiceitem: { customer },
       customer_balance_transaction: { customer },
       subscription: { customer },
@@ -147,6 +157,19 @@ export class ExpansionService {
     return new Map(
       _.map(customers, (customer) => {
         return [customer.id, CustomerService.buildCustomer(customer)];
+      }),
+    );
+  }
+
+  private async findCoupons(
+    ids: readonly string[],
+    livemode: boolean,
+  ): Promise<Map<string, unknown>> {
+    const coupons = await this.fastify.couponRepository.findCoupons({ ids, livemode }, ids.length);
+
+    return new Map(
+      _.map(coupons, (coupon) => {
+        return [coupon.id, CouponService.buildCoupon(coupon)];
       }),
     );
   }

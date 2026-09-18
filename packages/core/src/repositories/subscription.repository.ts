@@ -27,6 +27,7 @@ import {
 import _ from 'lodash';
 
 export interface SubscriptionItemFilters {
+  ids?: readonly string[];
   subscriptionIds?: readonly string[];
   deletedAtIsNull?: boolean;
   billedFromBeforeAt?: Date;
@@ -112,6 +113,7 @@ export class SubscriptionRepository {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
 
     const where = and(
+      filters.ids ? inArray(subscriptionItems.id, [...filters.ids]) : undefined,
       subscriptionIds ? inArray(subscriptionItems.subscriptionId, [...subscriptionIds]) : undefined,
       filters.deletedAtIsNull === undefined
         ? undefined

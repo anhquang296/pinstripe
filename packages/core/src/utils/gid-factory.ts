@@ -3,6 +3,9 @@ import { typeid } from 'typeid-js';
 
 export enum ObjectPrefixEnum {
   CUSTOMER = 'cus',
+  COUPON = 'coupon',
+  PROMOTION_CODE = 'promo',
+  DISCOUNT = 'di',
   PRODUCT = 'prod',
   PRICE = 'price',
   SUBSCRIPTION = 'sub',

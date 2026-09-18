@@ -66,12 +66,13 @@ Hoá đơn `subscription_update` được tạo, phát hành và post sổ cái 
 | 1   | [invoice.service.ts:115](../../packages/core/src/services/invoice.service.ts)     | `assertTransition(status → open)`                                                             |
 | 2   | [invoice.service.ts:123-127](../../packages/core/src/services/invoice.service.ts) | `subscription.currentPeriodStart` phải còn khớp `invoice.periodStart`, lệch → `ConflictError` |
 | 3   | [invoice.service.ts:129](../../packages/core/src/services/invoice.service.ts)     | `ratingService.rateUpcomingInvoice` — tính tiền **tại thời điểm này**                         |
-| 4   | [invoice.service.ts:131](../../packages/core/src/services/invoice.service.ts)     | `dueAt = now + INVOICE_DUE_DAYS`                                                              |
-| 5   | [invoice.service.ts:149-156](../../packages/core/src/services/invoice.service.ts) | `claimNumberSequence(INVOICE)` trong transaction — cấp số từ `number_sequences`               |
-| 6   | [invoice.service.ts:158](../../packages/core/src/services/invoice.service.ts)     | INSERT `invoice_line_items` — bản chụp bất biến của kết quả rating                            |
-| 7   | [invoice.service.ts:160-173](../../packages/core/src/services/invoice.service.ts) | UPDATE: `number = INV-000123`, `status = open`, `subtotal`/`total`, `nextAttemptAt = dueAt`   |
-| 8   | [postReceivable:336-362](../../packages/core/src/services/invoice.service.ts)     | bút toán: **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue`                        |
-| 9   | [invoice.service.ts:180](../../packages/core/src/services/invoice.service.ts)     | event `invoice.finalized`                                                                     |
+| 4   | [invoice.service.ts:419](../../packages/core/src/services/invoice.service.ts)     | `discountService.applyDiscounts` — ghi `discountAmounts` xuống từng dòng, trước khi ráp tổng  |
+| 5   | [invoice.service.ts:131](../../packages/core/src/services/invoice.service.ts)     | `dueAt = now + INVOICE_DUE_DAYS`                                                              |
+| 6   | [invoice.service.ts:149-156](../../packages/core/src/services/invoice.service.ts) | `claimNumberSequence(INVOICE)` trong transaction — cấp số từ `number_sequences`               |
+| 7   | [invoice.service.ts:158](../../packages/core/src/services/invoice.service.ts)     | INSERT `invoice_line_items` — bản chụp bất biến của kết quả rating                            |
+| 8   | [invoice.service.ts:160-173](../../packages/core/src/services/invoice.service.ts) | UPDATE: `number = INV-000123`, `status = open`, `subtotal`/`total`, `nextAttemptAt = dueAt`   |
+| 9   | [postReceivable:336-362](../../packages/core/src/services/invoice.service.ts)     | bút toán: **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue`                        |
+| 10  | [invoice.service.ts:180](../../packages/core/src/services/invoice.service.ts)     | event `invoice.finalized`                                                                     |
 
 Bước 2 chặn một lỗi cụ thể: subscription đã sang kỳ mới trong lúc hoá đơn còn nháp thì rating sẽ trả về số của kỳ **mới**, dán nhầm vào hoá đơn của kỳ **cũ**.
 

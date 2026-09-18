@@ -18,6 +18,10 @@ import { and, count, eq, gte, inArray, isNotNull, lt, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface RecurringCommitment {
+  subscriptionId: string;
+  subscriptionItemId: string;
+  customerId: string;
+  productId: string;
   unitAmount: number;
   quantity: number;
   interval: RecurringInterval;
@@ -53,6 +57,10 @@ export class ReportingRepository {
   ): Promise<RecurringCommitment[]> {
     return this._db.master
       .select({
+        subscriptionId: subscriptions.id,
+        subscriptionItemId: subscriptionItems.id,
+        customerId: subscriptions.customerId,
+        productId: prices.productId,
         unitAmount: sql<number>`coalesce(${prices.unitAmount}, 0)::int`,
         quantity: subscriptionItems.quantity,
         interval: sql<RecurringInterval>`${prices.recurringInterval}`,

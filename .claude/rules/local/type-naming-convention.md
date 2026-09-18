@@ -41,6 +41,9 @@ cursor. Two conditions here have no row in that table and keep an explicit opera
 - `statusNe` — "every status except this one" (`findSubscriptions` excluding `canceled`).
 - `customerIdIsNull` — the discriminant between a shared ledger account and a per-customer one,
   which is a real `IS NULL`, not an absent filter.
+- `activeAt` — a row whose validity window covers this instant (`start_at <= value` **and**
+  `end_at is null or end_at > value`), used by `findDiscounts`. Two columns and a null branch, so
+  neither `…BeforeAt` nor `…AfterAt` describes it.
 
 Everything else follows the table exactly: `email`, `active`, `status`, `productId` for equality,
 `ids` for set membership, `beforeAt` / `afterAt` for cursors.

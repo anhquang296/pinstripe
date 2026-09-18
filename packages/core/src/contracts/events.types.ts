@@ -21,6 +21,7 @@ export enum AggregateTypeEnum {
   INVOICEITEM = 'invoiceitem',
   CREDIT_NOTE = 'credit_note',
   CUSTOMER_BALANCE_TRANSACTION = 'customer_balance_transaction',
+  DISCOUNT = 'discount',
   PAYMENT_INTENT = 'payment_intent',
   REFUND = 'refund',
 }
@@ -53,6 +54,9 @@ export enum DomainEventTypeEnum {
   INVOICEITEM_DELETED = 'invoiceitem.deleted',
   CREDIT_NOTE_CREATED = 'credit_note.created',
   CUSTOMER_BALANCE_TRANSACTION_CREATED = 'customer_balance_transaction.created',
+  CUSTOMER_DISCOUNT_CREATED = 'customer.discount.created',
+  CUSTOMER_DISCOUNT_UPDATED = 'customer.discount.updated',
+  CUSTOMER_DISCOUNT_DELETED = 'customer.discount.deleted',
   PAYMENT_INTENT_SUCCEEDED = 'payment_intent.succeeded',
   PAYMENT_INTENT_FAILED = 'payment_intent.failed',
   REFUND_CREATED = 'refund.created',

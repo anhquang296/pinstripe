@@ -416,10 +416,11 @@ export class InvoiceService {
     tx: DatabaseTransaction,
   ): Promise<Invoice> {
     const customer = await this.getLockedCustomer(invoice.customerId, tx);
-    const totals = InvoiceService.assembleInvoiceTotals(lines, customer.balance);
+    const discountedLines = await this.fastify.discountService.applyDiscounts(invoice, lines, tx);
+    const totals = InvoiceService.assembleInvoiceTotals(discountedLines, customer.balance);
     const dueAt = this.resolveDueAt(invoice, now);
 
-    const lineItems = _.map(lines, (line): NewInvoiceLineItem => {
+    const lineItems = _.map(discountedLines, (line): NewInvoiceLineItem => {
       return {
         id: generateGid(ObjectPrefixEnum.INVOICE_LINE_ITEM),
         livemode: invoice.livemode,
