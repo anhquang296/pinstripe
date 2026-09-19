@@ -40,3 +40,8 @@ export const LEDGER_TABS = [
   { to: '/ledger/accounts', label: 'Accounts' },
   { to: '/ledger/transactions', label: 'Transactions' },
 ];
+
+export const WEBHOOK_TABS = [
+  { to: '/webhooks/endpoints', label: 'Endpoints' },
+  { to: '/webhooks/deliveries', label: 'Deliveries' },
+];

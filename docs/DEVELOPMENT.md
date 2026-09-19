@@ -13,20 +13,49 @@ pnpm db:migrate
 pnpm dev
 ```
 
-| Service             | Cổng  | Ghi chú                                                       |
-| ------------------- | ----- | ------------------------------------------------------------- |
-| api                 | 3000  | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*`    |
-| worker outbox       | 3001  | relay outbox → domain event queue                             |
-| worker domain-event | 3002  | consume domain event                                          |
-| worker ledger       | 3003  | quét sổ lệch mỗi 60s                                          |
-| worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn               |
-| worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                     |
-| worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                  |
-| admin-ui            | 5173  | Vite, proxy `/api` sang api kèm admin key                     |
-| portal-ui           | 3100  | Next.js; cần `PINSTRIPE_API_URL` + `PINSTRIPE_SECRET_API_KEY` |
-| postgres            | 55432 | user/pass/db: `pinstripe`                                     |
-| redis               | 56379 |                                                               |
-| mailpit             | 58025 | UI xem email dev                                              |
+| Service             | Cổng  | Ghi chú                                                            |
+| ------------------- | ----- | ------------------------------------------------------------------ |
+| api                 | 3000  | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*`         |
+| worker outbox       | 3001  | relay outbox → domain event queue                                  |
+| worker domain-event | 3002  | consume domain event                                               |
+| worker ledger       | 3003  | quét sổ lệch mỗi 60s                                               |
+| worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn                    |
+| worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                          |
+| worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                       |
+| admin-ui            | 5173  | Vite, proxy `/api` và `/v1` sang api; xác thực bằng cookie session |
+| portal-ui           | 3100  | Next.js; cần `PINSTRIPE_API_URL` + `PINSTRIPE_SECRET_API_KEY`      |
+| postgres            | 55432 | user/pass/db: `pinstripe`                                          |
+| redis               | 56379 |                                                                    |
+| mailpit             | 58025 | UI xem email dev                                                   |
+
+## Đăng nhập dashboard
+
+`apps/admin-ui` đi bằng cookie session của better-auth, không bằng API key: Vite chỉ proxy `/api` và
+`/v1` sang API, không chèn header nào, nên một bản build ra khỏi `vite dev` xác thực đúng như khi dev.
+
+Biến môi trường của đường đăng nhập, đọc trong `better-auth.plugin.ts`:
+
+| Biến                               | Ghi chú                                        |
+| ---------------------------------- | ---------------------------------------------- |
+| `BETTER_AUTH_SECRET`               | tối thiểu 32 ký tự, ký cookie session          |
+| `ADMIN_UI_ORIGIN`                  | origin được phép POST vào `/api/v1/auth/*`     |
+| `ADMIN_SESSION_IDLE_TTL_MINUTES`   | hết hạn khi không dùng                         |
+| `ADMIN_SESSION_ABSOLUTE_TTL_HOURS` | hết hạn tuyệt đối tính từ lúc tạo session      |
+| `GOOGLE_OAUTH_CLIENT_ID`           | Google chỉ bật khi có đủ cả ba biến `GOOGLE_*` |
+| `GOOGLE_OAUTH_CLIENT_SECRET`       |                                                |
+| `GOOGLE_OAUTH_ALLOWED_DOMAIN`      | domain duy nhất được đăng nhập bằng Google     |
+
+Sign-up không tồn tại ở server. Admin đầu tiên được tạo bằng route management, idempotent:
+
+```bash
+curl -X POST http://localhost:3000/api/v1/management/users/bootstrap \
+  -H "Authorization: Bearer $MANAGEMENT_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@pinstripe.test","name":"Admin","password":"<tối thiểu 12 ký tự>"}'
+```
+
+Người dùng tiếp theo tạo trong dashboard ở `/admin/users`. Không có đường xoá user: hạ quyền hay vô
+hiệu hoá đi qua cập nhật, để `UserService` còn giữ được luật admin active cuối cùng.
 
 ## Lệnh hay dùng
 

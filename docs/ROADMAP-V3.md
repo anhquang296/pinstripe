@@ -37,7 +37,7 @@ làm thay đổi**, không để cuối. Rule đang cấm `better-auth/react` tr
 | 29    | admin-ui nền: HeroUI, theme mockup, shell, better-auth-ui, guard             | XL       | Frontend | Xong       |
 | 30    | Màn Sales                                                                    | XL       | Frontend | Xong       |
 | 31    | Màn Finance + Tổng quan                                                      | L        | Frontend | Xong       |
-| 32    | Màn Developers + Admin, dọn code cũ, chốt rule và docs                       | L        | Frontend | Chưa       |
+| 32    | Màn Developers + Admin, dọn code cũ, chốt rule và docs                       | L        | Frontend | Xong       |
 
 ## Đường ngắn nhất
 

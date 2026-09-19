@@ -104,11 +104,37 @@ export const NAVIGATION_GROUPS: NavigationGroup[] = [
         permission: PermissionEnum.INTEGRATION_WRITE,
       },
       {
+        to: '/api-keys',
+        title: 'API keys',
+        description: 'Khoá của machine caller',
+        initials: 'AK',
+        permission: PermissionEnum.API_KEY_MANAGE,
+      },
+      {
         to: '/test-clocks',
         title: 'Test clocks',
         description: 'Tua thời gian để thử billing',
         initials: 'TC',
         permission: PermissionEnum.TEST_CLOCK_WRITE,
+      },
+    ],
+  },
+  {
+    label: 'Admin',
+    items: [
+      {
+        to: '/admin/users',
+        title: 'Users',
+        description: 'Người vận hành và vai trò',
+        initials: 'US',
+        permission: PermissionEnum.USER_MANAGE,
+      },
+      {
+        to: '/admin/roles',
+        title: 'Roles',
+        description: 'Ma trận quyền theo vai trò',
+        initials: 'RO',
+        permission: PermissionEnum.USER_MANAGE,
       },
     ],
   },
