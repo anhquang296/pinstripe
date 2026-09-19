@@ -1,0 +1,45 @@
+import { usePinstripeContext } from '@react/pinstripe.provider';
+import type { MutationProps } from '@react/react-query.types';
+import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { CreateUserPayload, UpdateUserPayload, UserResponse } from '@type/contracts.types';
+
+export interface UpdateUserVariables {
+  id: string;
+  payload: UpdateUserPayload;
+}
+
+export function useCreateUserMutation({ successMessage }: MutationProps<UserResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client, queries } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: (payload: CreateUserPayload) => {
+      return client.admin.users.create(payload);
+    },
+    onSuccess: (user) => {
+      queryClient.invalidateQueries({ queryKey: queries.user.users._def });
+      notifySuccess(user);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useUpdateUserMutation({ successMessage }: MutationProps<UserResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client, queries } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: ({ id, payload }: UpdateUserVariables) => {
+      return client.admin.users.update(id, payload);
+    },
+    onSuccess: (user, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queries.user.user(id).queryKey });
+      queryClient.invalidateQueries({ queryKey: queries.user.users._def });
+      notifySuccess(user);
+    },
+    onError: notifyError,
+  });
+}

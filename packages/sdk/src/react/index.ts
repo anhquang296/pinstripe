@@ -1,3 +1,6 @@
+export { useAccountQuery } from '@react/account/queries';
+export { useCreateApiKeyMutation, useDeleteApiKeyMutation } from '@react/api-keys/mutations';
+export { useApiKeysQuery } from '@react/api-keys/queries';
 export type { CreateCustomerBalanceTransactionVariables } from '@react/customers/mutations';
 export {
   useCreateCustomerBalanceTransactionMutation,
@@ -98,6 +101,9 @@ export {
 export { useTestClocksQuery } from '@react/test-clocks/queries';
 export type { PinstripeMutationCallbacksResult } from '@react/usePinstripeMutationCallbacks';
 export { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+export type { UpdateUserVariables } from '@react/users/mutations';
+export { useCreateUserMutation, useUpdateUserMutation } from '@react/users/mutations';
+export { useUserQuery, useUsersQuery } from '@react/users/queries';
 export {
   useCreateWebhookEndpointMutation,
   useUpdateWebhookEndpointMutation,
