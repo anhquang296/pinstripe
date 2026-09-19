@@ -13,7 +13,9 @@ export default function AppTopbar() {
   });
 
   const activeEntry = find(navigationEntries, (navigationEntry) => {
-    return startsWith(pathname, navigationEntry.item.to);
+    const { to } = navigationEntry.item;
+
+    return pathname === to || startsWith(pathname, `${to}/`);
   });
 
   const groupLabel = get(activeEntry, 'group', 'Pinstripe');
