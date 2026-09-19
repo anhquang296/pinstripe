@@ -16,6 +16,7 @@ import _ from 'lodash';
 const CREDENTIAL_PROVIDER_ID = 'credential';
 const SESSION_UPDATE_AGE_SECONDS = 300;
 const MIN_PASSWORD_LENGTH = 12;
+const MS_PER_SECOND = 1000;
 
 const VENDOR_MODEL_PREFIXES: Record<string, ObjectPrefix> = {
   user: ObjectPrefixEnum.USER,
@@ -48,6 +49,7 @@ export type BetterAuthConfig = {
   secret: string;
   trustedOrigins: string[];
   sessionIdleTtlSeconds: number;
+  sessionAbsoluteTtlSeconds: number;
   googleOauthConfig: GoogleOauthConfig | null;
 };
 
@@ -73,15 +75,23 @@ export class BetterAuthConfigError extends Error {
 
 export class BetterAuthClient {
   private _auth: ReturnType<typeof BetterAuthClient.buildAuth>;
+  private _baseUrl: string;
+  private _sessionAbsoluteTtlSeconds: number;
   private _isGoogleEnabled: boolean;
   private _logger: Logger;
 
   constructor(betterAuthConfig: BetterAuthConfig, logger: Logger) {
-    const { googleOauthConfig } = betterAuthConfig;
+    const { baseUrl, sessionAbsoluteTtlSeconds, googleOauthConfig } = betterAuthConfig;
 
     this._auth = BetterAuthClient.buildAuth(betterAuthConfig, logger);
+    this._baseUrl = baseUrl;
+    this._sessionAbsoluteTtlSeconds = sessionAbsoluteTtlSeconds;
     this._isGoogleEnabled = googleOauthConfig !== null;
     this._logger = logger;
+  }
+
+  get baseUrl(): string {
+    return this._baseUrl;
   }
 
   get isGoogleEnabled(): boolean {
@@ -94,6 +104,31 @@ export class BetterAuthClient {
 
   async getSession(headers: Headers) {
     return this._auth.api.getSession({ headers, query: { disableCookieCache: true } });
+  }
+
+  async findActiveSession(headers: Headers) {
+    const authSession = await this.getSession(headers);
+
+    if (!authSession) {
+      return null;
+    }
+
+    const { session } = authSession;
+    const absoluteExpiresAt =
+      session.createdAt.getTime() + this._sessionAbsoluteTtlSeconds * MS_PER_SECOND;
+
+    if (absoluteExpiresAt > Date.now()) {
+      return authSession;
+    }
+
+    await this.revokeSession(session.token);
+
+    this._logger.info(
+      { sessionId: session.id, userId: session.userId },
+      '[BetterAuthClient] findActiveSession() session revoked, absolute ttl reached',
+    );
+
+    return null;
   }
 
   async revokeSession(token: string): Promise<void> {

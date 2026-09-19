@@ -1,4 +1,5 @@
 import { verifyManagementRequest } from '@hooks/verify-management-request';
+import { usersRoutes } from '@routes/management/users/users.routes';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import type { FastifyInstance } from 'fastify';
@@ -7,6 +8,8 @@ const RELAY_BATCH_SIZE = 100;
 
 export async function managementRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.addHook('preHandler', verifyManagementRequest);
+
+  await fastify.register(usersRoutes, { prefix: '/users' });
 
   fastify.post(
     '/outbox/relay',

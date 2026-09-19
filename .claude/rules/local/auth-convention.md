@@ -33,11 +33,13 @@ Does **not** apply to:
 
 ## Route catch-all `/api/v1/auth/*`
 
-Đây là ngoại lệ có chủ ý của `fastify/route-convention.md` §"Every route declares a schema": handler của better-auth tự validate body. Bù lại, route **bắt buộc** làm ba việc sau.
+Đây là ngoại lệ có chủ ý của `fastify/route-convention.md` §"Every route declares a schema": handler của better-auth tự validate body. Bù lại, route **bắt buộc** làm năm việc sau.
 
-- **Check `Origin === ADMIN_UI_ORIGIN` cho mọi POST.** better-auth 1.7 **không** chặn Origin lạ ở `/sign-in/email` (probe thấy trả 200), nên login CSRF phải được chặn ở phía mình.
-- **Không trả `token` ra body.** Response sign-in của better-auth có `token` session trong JSON, khiến JS đọc được. Route phải thay body bằng `AccountResponse` theo envelope của repo.
-- **Map lỗi non-2xx sang `AppError`** (`UnauthorizedError`, `ForbiddenError`, `BadRequestError`…), để SDK chỉ phải xử lý một envelope `PinstripeError`.
+- **Check `Origin === ADMIN_UI_ORIGIN` cho mọi POST.** better-auth 1.7 **không** chặn Origin lạ ở `/sign-in/email` (probe thấy trả 200), nên login CSRF phải được chặn ở phía mình. GET không check, vì callback Google là một GET cross-site.
+- **Không trả `token` ra body.** Body 2xx giữ nguyên shape của vendor — `@better-auth-ui/heroui` đọc thẳng `data.user` và `data.session.id`, đổi sang envelope của repo là gãy toàn bộ UI auth — nhưng route xoá `token` (top-level ở sign-in, `session.token` ở `/get-session`).
+- **Map lỗi non-2xx sang `AppError`** (`UnauthorizedError`, `ForbiddenError`, `BadRequestError`…), để SDK chỉ phải xử lý một envelope `PinstripeError`. **Giữ `code` gốc của better-auth** làm `code` của envelope: `INVALID_EMAIL_OR_PASSWORD` phải đến được UI, nếu không mọi lỗi login rơi về một thông báo chung chung.
+- **`/update-user` chỉ nhận key `name` và `image`.** Key khác → `BadRequestError`; đó là đường duy nhất browser chạm được tới bản ghi user, và role không đi qua đó.
+- **`/get-session` đi qua `BetterAuthClient.findActiveSession`**, chứ không forward thẳng: helper đọc `session.createdAt`, quá `ADMIN_SESSION_ABSOLUTE_TTL_HOURS` thì `revokeSession` và trả `null`. Idle TTL của better-auth không biết gì về TTL tuyệt đối.
 
 ```ts
 // CORRECT — allowlist, rồi mới forward
@@ -48,6 +50,9 @@ const AUTH_PATHS = [
   '/sign-out',
   '/get-session',
   '/change-password',
+  '/list-accounts',
+  '/revoke-other-sessions',
+  '/update-user',
 ];
 
 // WRONG — forward mọi thứ, /admin/* và /sign-up/* lộ ra browser
@@ -56,9 +61,15 @@ fastify.all('/*', async (request, reply) => {
 });
 ```
 
+Allowlist trên là đóng. `/list-sessions` và `/revoke-session` **không** được mở: cả hai cần token session thô, mà token cố tình không ra khỏi server — nên card `ActiveSessions` của better-auth-ui bị bỏ, thay bằng nút "đăng xuất thiết bị khác" trên `/revoke-other-sessions`.
+
+Admin đầu tiên được tạo bằng `POST /api/v1/management/users/bootstrap` (`verifyManagementRequest`, `UserService.ensureUser`, role `admin`, idempotent) — không phải bằng `/sign-up/*`, thứ vẫn 404 với mọi caller.
+
 ## Frontend và SDK
 
-- SDK không import `better-auth`, và admin-ui không dùng `better-auth/react`: đó là một HTTP client thứ hai, trái với `sdk-convention.md`. SDK bọc các path trong allowlist thành resource `auth.*` giống mọi resource khác.
+- SDK không import `better-auth`. SDK bọc các path trong allowlist thành resource `auth.*` giống mọi resource khác.
+- `better-auth/react` được phép ở **đúng một file của admin-ui**: `apps/admin-ui/src/lib/auth-client.ts`, và chỉ để dựng `createAuthClient` cho `@better-auth-ui/heroui`. Client đó **phải** override `basePath: '/api/v1/auth'`. Mọi domain call khác đi qua `@pinstripe/sdk` — một file thứ hai import `better-auth/react` là HTTP client thứ hai, trái với `sdk-convention.md`.
+- **Không** dùng `adminClient()` hay plugin `admin` của better-auth-ui. Chúng gọi `/admin/*`, đi vòng qua luật admin active cuối cùng và qua audit; quản trị user đi qua `UserService` + SDK.
 - Browser và API phải cùng origin (reverse proxy, hoặc Vite proxy khi dev). Cookie là `SameSite=Lax` (mặc định của better-auth), không đổi sang `Strict`, vì callback Google là một GET cross-site.
 
 ## Env
@@ -70,9 +81,13 @@ Chỉ đọc chúng trong `better-auth.plugin.ts`; client nhận config đã res
 ## NEVER Do
 
 - Forward một path ngoài allowlist tới handler của better-auth, nhất là `/admin/*` và `/sign-up/*`.
-- Trả nguyên body sign-in của better-auth, vì trong đó có `token`, ra cho browser.
+- Mở `/list-sessions` hay `/revoke-session` — chúng cần token session thô.
+- Trả nguyên body sign-in của better-auth, vì trong đó có `token`, ra cho browser; hoặc đổi body 2xx sang envelope của repo, vì better-auth-ui đọc thẳng shape của vendor.
+- Nuốt `code` của better-auth khi map lỗi sang `AppError`.
+- Nhận key ngoài `name` / `image` ở `/update-user`.
 - Bỏ check `Origin` ở route auth với lý do better-auth đã tự check.
 - Đổi role, ban hay đặt password bằng cách gọi thẳng `fastify.betterAuth` từ route; đi qua `UserService`.
 - Dùng `isoTimestamp` trên bảng auth, hoặc đổi id của chúng sang id mặc định của better-auth.
-- Import `better-auth` vào `packages/sdk` hay vào một app frontend.
+- Import `better-auth` vào `packages/sdk`, hay `better-auth/react` vào bất kỳ file nào của admin-ui ngoài `src/lib/auth-client.ts`.
+- Dùng `adminClient()` hay plugin `admin` của better-auth-ui.
 - Đặt cookie auth `SameSite=Strict`.
