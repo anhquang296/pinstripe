@@ -13,6 +13,14 @@ export function createLedgerQueries(client: PinstripeClient) {
         },
       };
     },
+    account: (ledgerAccountId: string) => {
+      return {
+        queryKey: [ledgerAccountId],
+        queryFn: () => {
+          return client.admin.ledgerAccounts.get(ledgerAccountId);
+        },
+      };
+    },
     transactions: (query?: FindLedgerTransactionsQuery) => {
       return {
         queryKey: [query],

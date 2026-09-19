@@ -16,6 +16,18 @@ export function useLedgerAccountsQuery(
   });
 }
 
+export function useLedgerAccountQuery(
+  ledgerAccountId: string,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({
+    ...queries.ledger.account(ledgerAccountId),
+    enabled: enabled && Boolean(ledgerAccountId),
+  });
+}
+
 export function useLedgerTransactionsQuery(
   query?: FindLedgerTransactionsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},

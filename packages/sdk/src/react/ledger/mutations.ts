@@ -21,6 +21,7 @@ function useLedgerInvalidation() {
 
     queryClient.invalidateQueries({ queryKey: queries.ledger.transactions._def });
     queryClient.invalidateQueries({ queryKey: queries.ledger.accounts._def });
+    queryClient.invalidateQueries({ queryKey: queries.ledger.account._def });
   };
 }
 

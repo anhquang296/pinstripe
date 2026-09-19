@@ -1,7 +1,7 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { FindSubscriptionsQuery } from '@type/contracts.types';
+import type { FindSubscriptionItemsQuery, FindSubscriptionsQuery } from '@type/contracts.types';
 
 export function createSubscriptionQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.SUBSCRIPTION, {
@@ -18,6 +18,22 @@ export function createSubscriptionQueries(client: PinstripeClient) {
         queryKey: [subscriptionId],
         queryFn: () => {
           return client.subscriptions.get(subscriptionId);
+        },
+      };
+    },
+    subscriptionItems: (query: FindSubscriptionItemsQuery) => {
+      return {
+        queryKey: [query],
+        queryFn: () => {
+          return client.subscriptionItems.find(query);
+        },
+      };
+    },
+    subscriptionItem: (subscriptionItemId: string) => {
+      return {
+        queryKey: [subscriptionItemId],
+        queryFn: () => {
+          return client.subscriptionItems.get(subscriptionItemId);
         },
       };
     },

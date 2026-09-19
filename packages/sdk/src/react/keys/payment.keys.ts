@@ -13,11 +13,27 @@ export function createPaymentQueries(client: PinstripeClient) {
         },
       };
     },
+    paymentIntent: (paymentIntentId: string) => {
+      return {
+        queryKey: [paymentIntentId],
+        queryFn: () => {
+          return client.paymentIntents.get(paymentIntentId);
+        },
+      };
+    },
     refunds: (query?: FindRefundsQuery) => {
       return {
         queryKey: [query],
         queryFn: () => {
           return client.refunds.find(query);
+        },
+      };
+    },
+    refund: (refundId: string) => {
+      return {
+        queryKey: [refundId],
+        queryFn: () => {
+          return client.refunds.get(refundId);
         },
       };
     },
