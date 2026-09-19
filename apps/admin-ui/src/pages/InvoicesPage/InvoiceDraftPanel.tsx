@@ -1,14 +1,13 @@
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
+import { Button, Input, Label, ListBox, Select, TextField } from '@heroui/react';
+import { map } from 'lodash-es';
 
 interface InvoiceDraftPanelProps {
   subscriptionOptions: { value: string; label: string }[];
   selectedSubscriptionId: string;
   creditAmount: string;
   isCreating: boolean;
-  onSubscriptionChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  onCreditAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubscriptionChange: (subscriptionId: unknown) => void;
+  onCreditAmountChange: (creditAmount: string) => void;
   onDraft: () => void;
 }
 
@@ -22,23 +21,41 @@ export default function InvoiceDraftPanel({
   onDraft,
 }: InvoiceDraftPanelProps) {
   return (
-    <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
-      <SelectField
-        label="Subscription"
-        options={subscriptionOptions}
-        value={selectedSubscriptionId}
-        onChange={onSubscriptionChange}
-      />
-      <Button onClick={onDraft} disabled={isCreating || !selectedSubscriptionId}>
+    <div className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4">
+      <Select
+        className="flex flex-col gap-1"
+        placeholder="— chọn subscription —"
+        selectedKey={selectedSubscriptionId === '' ? null : selectedSubscriptionId}
+        onSelectionChange={onSubscriptionChange}
+      >
+        <Label>Subscription</Label>
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover>
+          <ListBox>
+            {map(subscriptionOptions, (subscriptionOption) => {
+              return (
+                <ListBox.Item key={subscriptionOption.value} id={subscriptionOption.value}>
+                  {subscriptionOption.label}
+                </ListBox.Item>
+              );
+            })}
+          </ListBox>
+        </Select.Popover>
+      </Select>
+      <Button onPress={onDraft} isDisabled={isCreating || !selectedSubscriptionId}>
         Tạo hóa đơn nháp
       </Button>
       <TextField
-        label="Số tiền credit note"
-        type="number"
-        className="w-40"
+        className="flex w-40 flex-col gap-1"
         value={creditAmount}
         onChange={onCreditAmountChange}
-      />
+      >
+        <Label>Số tiền credit note</Label>
+        <Input type="number" />
+      </TextField>
     </div>
   );
 }

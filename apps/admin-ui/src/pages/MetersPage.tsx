@@ -1,8 +1,6 @@
 import MeterForm from '@components/MeterForm';
 import MeterItem from '@components/MeterItem';
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
+import PageCard from '@components/PageCard';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
 import { MILLISECONDS_PER_DAY } from '@constants/time';
 import type { MeterFormData } from '@forms/meter-form';
@@ -11,6 +9,7 @@ import {
   meterFormDefaultValues,
   meterFormResolver,
 } from '@forms/meter-form';
+import { Button, Input, Label, ListBox, Select, TextField } from '@heroui/react';
 import type { GetMeterEventSummaryQuery } from '@pinstripe/sdk';
 import {
   useCreateMeterEventMutation,
@@ -19,7 +18,7 @@ import {
   useMeterEventSummaryQuery,
   useMetersQuery,
 } from '@pinstripe/sdk/react';
-import { find, map } from 'lodash-es';
+import { find, map, toString } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -62,21 +61,15 @@ export default function MetersPage() {
   });
 
   const meterOptions = useMemo(() => {
-    return [
-      { value: '', label: '— chọn meter —' },
-      ...map(meters?.data, (meter) => {
-        return { value: meter.id, label: `${meter.displayName} (${meter.eventName})` };
-      }),
-    ];
+    return map(meters?.data, (meter) => {
+      return { value: meter.id, label: `${meter.displayName} (${meter.eventName})` };
+    });
   }, [meters]);
 
   const customerOptions = useMemo(() => {
-    return [
-      { value: '', label: '— chọn khách hàng —' },
-      ...map(customers?.data, (customer) => {
-        return { value: customer.id, label: customer.name || customer.email || customer.id };
-      }),
-    ];
+    return map(customers?.data, (customer) => {
+      return { value: customer.id, label: customer.name || customer.email || customer.id };
+    });
   }, [customers]);
 
   const handleOnSave = form.handleSubmit(async (formData) => {
@@ -84,17 +77,15 @@ export default function MetersPage() {
     form.reset(meterFormDefaultValues);
   });
 
-  const handleOnMeterChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMeterId(event.target.value);
+  const handleOnMeterChange = useCallback((key: unknown) => {
+    setSelectedMeterId(toString(key));
   }, []);
 
-  const handleOnCustomerChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCustomerId(event.target.value);
-    setUsageWindow(buildUsageWindow(event.target.value));
-  }, []);
+  const handleOnCustomerChange = useCallback((key: unknown) => {
+    const customerId = toString(key);
 
-  const handleOnValueChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setEventValue(event.target.value);
+    setSelectedCustomerId(customerId);
+    setUsageWindow(buildUsageWindow(customerId));
   }, []);
 
   const handleOnSendEvent = useCallback(async () => {
@@ -112,15 +103,10 @@ export default function MetersPage() {
   }, [createMeterEvent, eventValue, meters, selectedCustomerId, selectedMeterId]);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Meters</h1>
-        <p className="text-sm text-slate-500">
-          Event thô là append-only. Tổng hợp tính lúc đọc, nên đổi cách tính giá vẫn dựng lại được
-          số cũ.
-        </p>
-      </div>
-
+    <PageCard
+      title="Meters"
+      description="Event thô là append-only. Tổng hợp tính lúc đọc, nên đổi cách tính giá vẫn dựng lại được số cũ."
+    >
       <MeterForm form={form} isSaving={isSaving} onSave={handleOnSave} />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -149,26 +135,61 @@ export default function MetersPage() {
           Usage {USAGE_WINDOW_DAYS} ngày gần nhất
         </h2>
         <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4">
-          <SelectField
-            label="Meter"
-            options={meterOptions}
-            value={selectedMeterId}
-            onChange={handleOnMeterChange}
-          />
-          <SelectField
-            label="Khách hàng"
-            options={customerOptions}
-            value={selectedCustomerId}
-            onChange={handleOnCustomerChange}
-          />
+          <Select
+            className="flex flex-col gap-1"
+            placeholder="— chọn meter —"
+            selectedKey={selectedMeterId === '' ? null : selectedMeterId}
+            onSelectionChange={handleOnMeterChange}
+          >
+            <Label>Meter</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {map(meterOptions, (meterOption) => {
+                  return (
+                    <ListBox.Item key={meterOption.value} id={meterOption.value}>
+                      {meterOption.label}
+                    </ListBox.Item>
+                  );
+                })}
+              </ListBox>
+            </Select.Popover>
+          </Select>
+          <Select
+            className="flex flex-col gap-1"
+            placeholder="— chọn khách hàng —"
+            selectedKey={selectedCustomerId === '' ? null : selectedCustomerId}
+            onSelectionChange={handleOnCustomerChange}
+          >
+            <Label>Khách hàng</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {map(customerOptions, (customerOption) => {
+                  return (
+                    <ListBox.Item key={customerOption.value} id={customerOption.value}>
+                      {customerOption.label}
+                    </ListBox.Item>
+                  );
+                })}
+              </ListBox>
+            </Select.Popover>
+          </Select>
           <TextField
-            label="Giá trị"
-            type="number"
-            className="w-24"
+            className="flex w-24 flex-col gap-1"
             value={eventValue}
-            onChange={handleOnValueChange}
-          />
-          <Button variant="ghost" onClick={handleOnSendEvent} disabled={isSending}>
+            onChange={setEventValue}
+          >
+            <Label>Giá trị</Label>
+            <Input type="number" />
+          </TextField>
+          <Button variant="ghost" onPress={handleOnSendEvent} isDisabled={isSending}>
             Bắn 1 event
           </Button>
           {summary ? (
@@ -183,6 +204,6 @@ export default function MetersPage() {
           ) : null}
         </div>
       </section>
-    </div>
+    </PageCard>
   );
 }

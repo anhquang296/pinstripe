@@ -1,6 +1,6 @@
-import Button from '@components/ui/Button';
-import TextField from '@components/ui/TextField';
+import RenderTextField from '@components/fields/RenderTextField';
 import type { ReverseTransactionFormData } from '@forms/reverse-transaction-form';
+import { Button } from '@heroui/react';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface ReverseTransactionFormProps {
@@ -16,20 +16,18 @@ export default function ReverseTransactionForm({
   isSaving,
   onSave,
 }: ReverseTransactionFormProps) {
-  const { errors } = form.formState;
-
   return (
     <form
-      className="flex flex-wrap items-end gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4"
+      className="flex flex-wrap items-end gap-4 rounded-md border border-warning-soft bg-warning-soft p-4"
       onSubmit={onSave}
     >
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="reason"
         label={`Lý do đảo ${transactionId}`}
         placeholder="Phát hành nhầm kỳ"
-        error={errors.reason?.message}
-        {...form.register('reason')}
       />
-      <Button type="submit" disabled={isSaving}>
+      <Button type="submit" isDisabled={isSaving}>
         Xác nhận đảo
       </Button>
     </form>

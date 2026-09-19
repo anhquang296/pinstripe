@@ -1,7 +1,9 @@
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
+import RenderDateField from '@components/fields/RenderDateField';
+import RenderNumberField from '@components/fields/RenderNumberField';
+import RenderSelectField from '@components/fields/RenderSelectField';
+import RenderTextField from '@components/fields/RenderTextField';
 import type { PriceFormData } from '@forms/price-form';
+import { Button } from '@heroui/react';
 import { BillingSchemeEnum, PriceTypeEnum, UsageTypeEnum } from '@pinstripe/core/contracts';
 import { get, map } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
@@ -15,7 +17,6 @@ import {
   TIERS_MODE_OPTIONS,
   USAGE_TYPE_OPTIONS,
 } from './constants';
-import { toNullableNumber } from './helpers';
 import PriceTierItem from './PriceTierItem';
 
 interface PriceFormOption {
@@ -57,106 +58,103 @@ export default function PriceForm({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
+      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
       onSubmit={onSave}
     >
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="productId"
         label="Product"
         options={productOptions}
-        error={errors.productId?.message}
-        {...form.register('productId')}
       />
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="lookupKey"
         label="Lookup key"
         placeholder="pro_monthly_vnd"
-        error={errors.lookupKey?.message}
-        {...form.register('lookupKey')}
       />
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="currency"
         label="Tiền tệ"
         options={CURRENCY_OPTIONS}
         className="min-w-28"
-        error={errors.currency?.message}
-        {...form.register('currency')}
       />
-      <TextField
+      <RenderTextField
+        control={form.control}
+        name="nickname"
         label="Nickname"
         placeholder="Pro theo tháng"
-        error={errors.nickname?.message}
-        {...form.register('nickname')}
       />
-      <TextField
+      <RenderDateField
+        control={form.control}
+        name="effectiveAt"
         label="Hiệu lực từ"
-        type="datetime-local"
+        hasTime
         className="w-56"
-        error={errors.effectiveAt?.message}
-        {...form.register('effectiveAt')}
       />
 
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="priceType"
         label="Loại giá"
         options={PRICE_TYPE_OPTIONS}
-        error={errors.priceType?.message}
-        {...form.register('priceType')}
       />
 
       {isRecurring ? (
         <>
-          <SelectField
+          <RenderSelectField
+            control={form.control}
+            name="interval"
             label="Chu kỳ"
             options={INTERVAL_OPTIONS}
-            error={errors.interval?.message}
-            {...form.register('interval')}
           />
-          <TextField
+          <RenderNumberField
+            control={form.control}
+            name="intervalCount"
             label="Số chu kỳ"
-            type="number"
-            min={1}
+            minValue={1}
             className="w-28"
-            error={errors.intervalCount?.message}
-            {...form.register('intervalCount', { setValueAs: toNullableNumber })}
           />
-          <SelectField
+          <RenderSelectField
+            control={form.control}
+            name="usageType"
             label="Lượng dùng"
             options={USAGE_TYPE_OPTIONS}
-            error={errors.usageType?.message}
-            {...form.register('usageType')}
           />
         </>
       ) : null}
 
       {isMetered ? (
-        <SelectField
+        <RenderSelectField
+          control={form.control}
+          name="meterId"
           label="Meter"
           options={meterOptions}
-          error={errors.meterId?.message}
-          {...form.register('meterId')}
         />
       ) : null}
 
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="billingScheme"
         label="Cách tính giá"
         options={BILLING_SCHEME_OPTIONS}
-        error={errors.billingScheme?.message}
-        {...form.register('billingScheme')}
       />
 
       {isTiered ? (
-        <SelectField
+        <RenderSelectField
+          control={form.control}
+          name="tiersMode"
           label="Kiểu bậc"
           options={TIERS_MODE_OPTIONS}
-          error={errors.tiersMode?.message}
-          {...form.register('tiersMode')}
         />
       ) : (
-        <TextField
+        <RenderNumberField
+          control={form.control}
+          name="unitAmount"
           label="Đơn giá"
-          type="number"
-          min={0}
-          placeholder="799000"
+          minValue={0}
           className="w-36"
-          error={errors.unitAmount?.message}
-          {...form.register('unitAmount', { setValueAs: toNullableNumber })}
         />
       )}
 
@@ -167,19 +165,19 @@ export default function PriceForm({
           })}
 
           <div className="flex items-center gap-3">
-            <Button type="button" variant="ghost" onClick={handleOnAddTier}>
+            <Button type="button" variant="ghost" onPress={handleOnAddTier}>
               Thêm bậc
             </Button>
-            <span className="text-xs text-slate-500">
+            <span className="text-app-description text-[12px]">
               Bậc cuối để trống ô “Đến mức” để bắt hết phần còn lại.
             </span>
           </div>
 
-          {tiersError ? <span className="text-xs text-red-600">{tiersError}</span> : null}
+          {tiersError ? <span className="text-[12px] text-danger">{tiersError}</span> : null}
         </div>
       ) : null}
 
-      <Button type="submit" disabled={isSaving}>
+      <Button type="submit" isDisabled={isSaving}>
         Tạo price
       </Button>
     </form>

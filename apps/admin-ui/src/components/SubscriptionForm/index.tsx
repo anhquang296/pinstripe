@@ -1,8 +1,8 @@
-import Button from '@components/ui/Button';
-import SelectField from '@components/ui/SelectField';
-import TextField from '@components/ui/TextField';
+import RenderNumberField from '@components/fields/RenderNumberField';
+import RenderSelectField from '@components/fields/RenderSelectField';
 import { COLLECTION_METHOD_LABELS } from '@constants/collection-method';
 import type { SubscriptionFormData } from '@forms/subscription-form';
+import { Button } from '@heroui/react';
 import { map } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -33,40 +33,37 @@ export default function SubscriptionForm({
   isSaving,
   onSave,
 }: SubscriptionFormProps) {
-  const { errors } = form.formState;
-
   return (
     <form
-      className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-200 bg-white p-4"
+      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
       onSubmit={onSave}
     >
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="customerId"
         label="Khách hàng"
         options={customerOptions}
-        error={errors.customerId?.message}
-        {...form.register('customerId')}
       />
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="priceId"
         label="Bảng giá"
         options={priceOptions}
-        error={errors.priceId?.message}
-        {...form.register('priceId')}
       />
-      <SelectField
+      <RenderSelectField
+        control={form.control}
+        name="collectionMethod"
         label="Cách thu tiền"
         options={collectionMethodOptions}
-        error={errors.collectionMethod?.message}
-        {...form.register('collectionMethod')}
       />
-      <TextField
+      <RenderNumberField
+        control={form.control}
+        name="trialPeriodDays"
         label="Trial (ngày)"
-        type="number"
-        min={0}
+        minValue={0}
         className="w-28"
-        error={errors.trialPeriodDays?.message}
-        {...form.register('trialPeriodDays', { valueAsNumber: true })}
       />
-      <Button type="submit" disabled={isSaving}>
+      <Button type="submit" isDisabled={isSaving}>
         Tạo subscription
       </Button>
     </form>

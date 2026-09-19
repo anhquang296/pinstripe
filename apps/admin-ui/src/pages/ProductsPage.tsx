@@ -1,3 +1,4 @@
+import PageCard from '@components/PageCard';
 import ProductForm from '@components/ProductForm';
 import ProductItem from '@components/ProductItem';
 import { PAGE_LIMIT } from '@constants/pagination';
@@ -31,9 +32,7 @@ export default function ProductsPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Products</h1>
-
+    <PageCard title="Products" description="Danh mục sản phẩm bán theo gói.">
       <ProductForm form={form} isSaving={isSaving} onSave={handleOnSave} />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -52,9 +51,9 @@ export default function ProductsPage() {
             })}
           </tbody>
         </table>
-        {isPending ? <p className="px-4 py-3 text-slate-500">Đang tải…</p> : null}
-        {error ? <p className="px-4 py-3 text-red-600">{error.message}</p> : null}
+        {isPending ? <p className="text-app-description px-4 py-3">Đang tải…</p> : null}
+        {error ? <p className="px-4 py-3 text-danger">{error.message}</p> : null}
       </div>
-    </div>
+    </PageCard>
   );
 }

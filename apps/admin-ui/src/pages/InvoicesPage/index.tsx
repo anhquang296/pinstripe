@@ -1,4 +1,5 @@
 import InvoiceItem from '@components/InvoiceItem';
+import PageCard from '@components/PageCard';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@constants/pagination';
 import { toast } from '@lib/toast';
 import type { PaymentIntentResponse } from '@pinstripe/sdk';
@@ -12,7 +13,7 @@ import {
   useSubscriptionsQuery,
   useVoidInvoiceMutation,
 } from '@pinstripe/sdk/react';
-import { get, map } from 'lodash-es';
+import { get, map, toString } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 
 import CreditNoteCard from './CreditNoteCard';
@@ -56,20 +57,13 @@ export default function InvoicesPage() {
   });
 
   const subscriptionOptions = useMemo(() => {
-    return [
-      { value: '', label: '— chọn subscription —' },
-      ...map(subscriptions?.data, (subscription) => {
-        return { value: subscription.id, label: `${subscription.id} · ${subscription.status}` };
-      }),
-    ];
+    return map(subscriptions?.data, (subscription) => {
+      return { value: subscription.id, label: `${subscription.id} · ${subscription.status}` };
+    });
   }, [subscriptions]);
 
-  const handleOnSubscriptionChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSubscriptionId(event.target.value);
-  }, []);
-
-  const handleOnCreditAmountChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setCreditAmount(event.target.value);
+  const handleOnSubscriptionChange = useCallback((key: unknown) => {
+    setSelectedSubscriptionId(toString(key));
   }, []);
 
   const handleOnDraft = useCallback(() => {
@@ -130,22 +124,17 @@ export default function InvoicesPage() {
   const isBusy = isFinalizing || isCharging || isVoiding || isCrediting;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Invoices</h1>
-        <p className="text-sm text-slate-500">
-          Nháp còn sửa được. Phát hành rồi thì số và số tiền đóng băng — sai thì ra credit note,
-          không sửa ngược.
-        </p>
-      </div>
-
+    <PageCard
+      title="Invoices"
+      description="Nháp còn sửa được. Phát hành rồi thì số và số tiền đóng băng — sai thì ra credit note, không sửa ngược."
+    >
       <InvoiceDraftPanel
         subscriptionOptions={subscriptionOptions}
         selectedSubscriptionId={selectedSubscriptionId}
         creditAmount={creditAmount}
         isCreating={isCreating}
         onSubscriptionChange={handleOnSubscriptionChange}
-        onCreditAmountChange={handleOnCreditAmountChange}
+        onCreditAmountChange={setCreditAmount}
         onDraft={handleOnDraft}
       />
 
@@ -184,6 +173,6 @@ export default function InvoicesPage() {
       </div>
 
       <CreditNoteCard creditNotes={creditNoteRows} />
-    </div>
+    </PageCard>
   );
 }

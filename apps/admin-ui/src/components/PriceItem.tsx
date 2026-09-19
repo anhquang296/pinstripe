@@ -1,4 +1,4 @@
-import Button from '@components/ui/Button';
+import { Button } from '@heroui/react';
 import { formatPriceAmount } from '@lib/price';
 import type { PriceResponse } from '@pinstripe/core/contracts';
 
@@ -40,7 +40,7 @@ export default function PriceItem({ price, onToggleActive }: PriceItemProps) {
         </span>
       </td>
       <td className="px-4 py-3">
-        <Button variant="ghost" onClick={handleOnToggleActive}>
+        <Button variant="ghost" onPress={handleOnToggleActive}>
           {price.active ? 'Ngừng bán' : 'Mở bán lại'}
         </Button>
       </td>
