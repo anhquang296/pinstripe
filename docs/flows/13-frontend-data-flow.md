@@ -64,13 +64,13 @@ Update một bản ghi thì invalidate cả key chi tiết lẫn `_def` của da
 
 ### Cấu hình chung
 
-[main.tsx:11-13](../../apps/admin-ui/src/main.tsx): `retry: 1`, `refetchOnWindowFocus: false`. Provider: `QueryClientProvider` → `BrowserRouter` → `App`, cộng `<Toaster>` của sonner.
+[QueryProvider.tsx](../../apps/admin-ui/src/providers/QueryProvider.tsx): `retry: 1`, `refetchOnWindowFocus: false`. Provider ghép trong [ProviderRegistry.tsx](../../apps/admin-ui/src/providers/ProviderRegistry.tsx): `QueryProvider` → `AdminPinstripeProvider` → `RoutesProvider`, cộng `<Toaster>` của sonner.
 
-12 trang, mặc định chuyển hướng về `/customers` — [App.tsx:18-35](../../apps/admin-ui/src/App.tsx). Tất cả nằm trong layout chung `AppLayout`.
+Route khai trong [routes/def.tsx](../../apps/admin-ui/src/features/dashboard/routes/def.tsx) bằng path của [routes/paths.ts](../../apps/admin-ui/src/features/dashboard/routes/paths.ts). Mọi màn nằm sau `RequireSession`, trong layout chung `AppLayout`.
 
 ### Form
 
-React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/forms/` (`customer-form.ts`, `product-form.ts`, `meter-form.ts`, `subscription-form.ts`, `test-clock-form.ts`, `reverse-transaction-form.ts`), ghép với component tương ứng dưới `src/components/<X>Form/`.
+React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/common/forms/` (`customer-form.ts`, `product-form.ts`, `meter-form.ts`, `subscription-form.ts`, `test-clock-form.ts`, `reverse-transaction-form.ts`…), ghép với component tương ứng dưới `src/features/dashboard/components/<X>Form/`.
 
 ## portal-ui
 

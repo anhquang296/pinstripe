@@ -4,7 +4,7 @@ import { react } from '@pinstripe/eslint-config/react';
 const BETTER_AUTH_IMPORTS = {
   group: ['better-auth', 'better-auth/*', 'better-auth/**'],
   message:
-    'auth-convention: better-auth is imported in src/lib/auth-client.ts and nowhere else — every other call goes through @pinstripe/sdk.',
+    'auth-convention: better-auth is imported in src/libs/auth-client.ts and nowhere else — every other call goes through @pinstripe/sdk.',
 };
 
 const REACT_ARIA_IMPORTS = {
@@ -37,7 +37,7 @@ export default [
     },
   },
   {
-    files: ['src/lib/auth-client.ts'],
+    files: ['src/libs/auth-client.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
