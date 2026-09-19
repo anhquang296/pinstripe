@@ -16,6 +16,7 @@ import { InvoiceItemsResource } from '@resources/invoice-items.resource';
 import { InvoicesResource } from '@resources/invoices.resource';
 import { PaymentIntentsResource } from '@resources/payment-intents.resource';
 import { PaymentLinksResource } from '@resources/payment-links.resource';
+import { PortalMembershipsResource } from '@resources/portal-memberships.resource';
 import { PricesResource } from '@resources/prices.resource';
 import { ProductsResource } from '@resources/products.resource';
 import { PromotionCodesResource } from '@resources/promotion-codes.resource';
@@ -42,6 +43,7 @@ export class PinstripeClient {
   readonly discounts: DiscountsResource;
   readonly taxRates: TaxRatesResource;
   readonly taxIds: TaxIdsResource;
+  readonly portalMemberships: PortalMembershipsResource;
   readonly paymentIntents: PaymentIntentsResource;
   readonly paymentLinks: PaymentLinksResource;
   readonly refunds: RefundsResource;
@@ -77,6 +79,7 @@ export class PinstripeClient {
     this.discounts = new DiscountsResource(this._transport);
     this.taxRates = new TaxRatesResource(this._transport);
     this.taxIds = new TaxIdsResource(this._transport);
+    this.portalMemberships = new PortalMembershipsResource(this._transport);
     this.paymentIntents = new PaymentIntentsResource(this._transport);
     this.paymentLinks = new PaymentLinksResource(this._transport);
     this.refunds = new RefundsResource(this._transport);

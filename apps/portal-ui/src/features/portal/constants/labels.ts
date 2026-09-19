@@ -2,6 +2,7 @@ import type {
   CollectionMethod,
   InvoiceStatus,
   PortalPaymentChannel,
+  PortalRole,
   RecurringInterval,
   SubscriptionStatus,
 } from '@pinstripe/core/contracts';
@@ -9,6 +10,7 @@ import {
   CollectionMethodEnum,
   InvoiceStatusEnum,
   PortalPaymentChannelEnum,
+  PortalRoleEnum,
   RecurringIntervalEnum,
   SubscriptionStatusEnum,
 } from '@pinstripe/core/contracts';
@@ -46,6 +48,11 @@ export const COLLECTION_METHOD_LABELS: Record<CollectionMethod, string> = {
   [CollectionMethodEnum.SEND_INVOICE]: 'Chuyển khoản theo hóa đơn',
   [CollectionMethodEnum.OFFSET_TICKET]: 'Cấn trừ tiền bán vé',
   [CollectionMethodEnum.DEBIT_WALLET]: 'Trừ ví nhà xe',
+};
+
+export const PORTAL_ROLE_LABELS: Record<PortalRole, string> = {
+  [PortalRoleEnum.OWNER]: 'Chủ xe',
+  [PortalRoleEnum.ACCOUNTANT]: 'Kế toán nhà xe',
 };
 
 export const PAYMENT_CHANNEL_LABELS: Record<PortalPaymentChannel, string> = {

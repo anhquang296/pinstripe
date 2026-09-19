@@ -4,6 +4,7 @@ import DetailList from '@common/components/DetailList';
 import PageCard from '@common/components/PageCard';
 import { formatCurrency, formatDateTime } from '@common/utils/format';
 import PaymentMethodList from '@features/portal/components/PaymentMethodList';
+import { PORTAL_ROLE_LABELS } from '@features/portal/constants/labels';
 import { Alert, Card, Link } from '@heroui/react';
 import type { PortalIdentityResponse } from '@pinstripe/sdk';
 import { usePortalAccountQuery, usePortalPaymentMethodsQuery } from '@pinstripe/sdk/react/portal';
@@ -40,7 +41,8 @@ export default function AccountPage() {
   const { data: paymentMethods } = usePortalPaymentMethodsQuery({ limit: 20 });
 
   if (account) {
-    const { sessionExpiresAt, accountantName, accountantEmail } = account;
+    const { sessionExpiresAt, accountantName, accountantEmail, role, userEmail } = account;
+    const roleLabel = role ? PORTAL_ROLE_LABELS[role] : 'Truy cập bằng link Vexere gửi';
     const sessionLabel = sessionExpiresAt ? formatDateTime(sessionExpiresAt) : '—';
     const accountantEmailValue = accountantEmail ? (
       <Link href={`mailto:${accountantEmail}`}>{accountantEmail}</Link>
@@ -55,6 +57,8 @@ export default function AccountPage() {
             <DetailList
               items={[
                 { label: 'Tên nhà xe', value: account.name },
+                { label: 'Bạn đăng nhập bằng', value: buildOptionalText(userEmail) },
+                { label: 'Vai trò của bạn', value: roleLabel },
                 { label: 'Mã số thuế', value: buildOptionalText(account.taxId) },
                 { label: 'Email thanh toán', value: buildOptionalText(account.email) },
                 { label: 'Số điện thoại', value: buildOptionalText(account.phone) },

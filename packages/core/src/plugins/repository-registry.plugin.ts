@@ -27,6 +27,7 @@ import { PaymentLinkRepository } from '@repositories/payment-link.repository';
 import { PaymentMethodRepository } from '@repositories/payment-method.repository';
 import { PayoutRepository } from '@repositories/payout.repository';
 import { PortalSessionRepository } from '@repositories/portal-session.repository';
+import { PortalUserRepository } from '@repositories/portal-user.repository';
 import { PriceRepository } from '@repositories/price.repository';
 import { ProductRepository } from '@repositories/product.repository';
 import { PromotionCodeRepository } from '@repositories/promotion-code.repository';
@@ -89,6 +90,7 @@ export const repositoryRegistryPlugin = fp(async (fastify) => {
   fastify.decorate('taxRateRepository', new TaxRateRepository(fastify.database));
   fastify.decorate('taxIdRepository', new TaxIdRepository(fastify.database));
   fastify.decorate('portalSessionRepository', new PortalSessionRepository(fastify.database));
+  fastify.decorate('portalUserRepository', new PortalUserRepository(fastify.database));
   fastify.decorate(
     'billingPortalConfigurationRepository',
     new BillingPortalConfigurationRepository(fastify.database),

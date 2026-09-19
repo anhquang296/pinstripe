@@ -9,6 +9,7 @@ import {
   portalIdentitySchema,
   portalSessionSchema,
   portalSubscriptionSchema,
+  switchPortalCustomerSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
 import { readPortalAuth } from '@utils/request-auth';
@@ -18,15 +19,20 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     '/me',
     { schema: { response: { 200: portalIdentitySchema } } },
     async (request, reply) => {
-      const { customerId, portalSessionId } = readPortalAuth(request);
+      const { customerId, portalSessionId, portalUserId, role } = readPortalAuth(request);
       const customer = await fastify.customerService.getCustomer(customerId);
       const portalSession = await fastify.portalSessionService.getPortalSession(portalSessionId);
+      const { userEmail, memberships } =
+        await fastify.portalUserService.findPortalUserAccess(portalUserId);
       const {
         [CUSTOMER_ACCOUNTANT_NAME_KEY]: accountantName = null,
         [CUSTOMER_ACCOUNTANT_EMAIL_KEY]: accountantEmail = null,
       } = customer.metadata;
 
       return ApiResponse.success(reply, {
+        userEmail,
+        role,
+        memberships,
         customerId: customer.id,
         email: customer.email,
         name: customer.name,
@@ -39,6 +45,19 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
         accountantEmail,
         sessionExpiresAt: portalSession.sessionExpiresAt,
       });
+    },
+  );
+
+  fastify.post(
+    '/sessions/current',
+    { schema: { body: switchPortalCustomerSchema, response: { 200: portalSessionSchema } } },
+    async (request, reply) => {
+      const portalSession = await fastify.portalSessionService.switchPortalSessionCustomer(
+        readPortalAuth(request),
+        request.body.customerId,
+      );
+
+      return ApiResponse.success(reply, portalSession);
     },
   );
 

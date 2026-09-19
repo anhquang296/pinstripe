@@ -34,6 +34,7 @@ export * from '@services/payment-link.service';
 export * from '@services/payment-method.service';
 export * from '@services/payout.service';
 export * from '@services/portal-session.service';
+export * from '@services/portal-user.service';
 export * from '@services/price.service';
 export * from '@services/product.service';
 export * from '@services/promotion-code.service';

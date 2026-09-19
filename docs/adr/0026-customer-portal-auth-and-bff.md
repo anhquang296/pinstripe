@@ -113,10 +113,30 @@ trùng, đổi lại một lần enqueue thất bại sẽ mất thư đó.
 Mọi template email chuyển sang tiếng Việt, và nội dung HTML được escape (tên khách trước đây chèn thẳng
 vào `<p>`).
 
+### 10. Người dùng portal và vai trò
+
+Danh tính portal là **người**, không phải customer:
+
+- `portal_users` (một dòng mỗi email, lưu chữ thường) và `portal_memberships` (người ↔ customer, vai trò
+  `owner` = Chủ xe hoặc `accountant` = Kế toán nhà xe, unique theo cặp). Magic link tra theo email của
+  người và được gửi tới **chính email đó**.
+- Email thanh toán của customer (`customers.email`) luôn là `owner`: membership đó được đảm bảo lúc
+  đăng nhập, không cần backfill, và `DELETE /v1/portal_memberships/:id` từ chối gỡ nó (400) — muốn thu
+  hồi thì đổi email thanh toán.
+- `portal_sessions.portal_user_id` nullable: `null` là link do Vexere mở bằng
+  `billing_portal/sessions`, gắn với một customer, không có vai trò và không đổi được nhà xe.
+- Membership được đọc lại ở **mỗi request** (`authenticatePortalSession`), nên đổi vai trò hay gỡ quyền
+  có hiệu lực ngay, không cần thu hồi session.
+- Một người nhiều nhà xe chọn nhà xe trên topbar: `POST /portal/sessions/current` đổi `customer_id` của
+  session sau khi kiểm tra membership.
+- Kế toán Vexere quản lý người dùng trong tab "Người dùng portal" của drawer customer qua
+  `/v1/portal_memberships` (`customer.write`). Không có tự đăng ký.
+
+Hiện hai vai trò chỉ khác nhau ở phần hiển thị: portal chưa có thao tác ghi nào cần phân quyền.
+
 ## Hệ quả
 
-- Danh tính portal hiện là **customer**, không phải người: ai giữ hộp thư `customers.email` là vào
-  được. Chưa có vai trò Chủ xe / Kế toán nhà xe, chưa có nhiều người dùng cho một nhà xe.
+- Ai giữ hộp thư của một người dùng portal là vào được với quyền của người đó; không có mật khẩu hay 2FA.
 - Session sống `PORTAL_SESSION_TTL_MINUTES` (mặc định 60), không gia hạn trượt.
 - Portal phải deploy với `PINSTRIPE_API_URL` + `PINSTRIPE_PORTAL_API_KEY`, và **không bao giờ** với
   secret key.

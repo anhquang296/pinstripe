@@ -36,6 +36,7 @@ import type { PaymentLinkRepository } from '@repositories/payment-link.repositor
 import type { PaymentMethodRepository } from '@repositories/payment-method.repository';
 import type { PayoutRepository } from '@repositories/payout.repository';
 import type { PortalSessionRepository } from '@repositories/portal-session.repository';
+import type { PortalUserRepository } from '@repositories/portal-user.repository';
 import type { PriceRepository } from '@repositories/price.repository';
 import type { ProductRepository } from '@repositories/product.repository';
 import type { PromotionCodeRepository } from '@repositories/promotion-code.repository';
@@ -83,6 +84,7 @@ import type { PaymentLinkService } from '@services/payment-link.service';
 import type { PaymentMethodService } from '@services/payment-method.service';
 import type { PayoutService } from '@services/payout.service';
 import type { PortalSessionService } from '@services/portal-session.service';
+import type { PortalUserService } from '@services/portal-user.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
 import type { PromotionCodeService } from '@services/promotion-code.service';
@@ -156,6 +158,7 @@ declare module 'fastify' {
     taxRateRepository: TaxRateRepository;
     taxIdRepository: TaxIdRepository;
     portalSessionRepository: PortalSessionRepository;
+    portalUserRepository: PortalUserRepository;
     billingPortalConfigurationRepository: BillingPortalConfigurationRepository;
     billingPortalSessionRepository: BillingPortalSessionRepository;
     checkoutSessionRepository: CheckoutSessionRepository;
@@ -206,6 +209,7 @@ declare module 'fastify' {
     bankTransferService: BankTransferService;
     invoiceReminderService: InvoiceReminderService;
     portalSessionService: PortalSessionService;
+    portalUserService: PortalUserService;
     billingPortalService: BillingPortalService;
     paymentLinkService: PaymentLinkService;
     checkoutService: CheckoutService;

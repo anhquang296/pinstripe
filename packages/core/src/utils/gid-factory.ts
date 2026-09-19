@@ -47,6 +47,8 @@ export enum ObjectPrefixEnum {
   REQUEST = 'req',
   API_KEY = 'ak',
   PORTAL_SESSION = 'prtl',
+  PORTAL_USER = 'pusr',
+  PORTAL_MEMBERSHIP = 'pmem',
   BILLING_PORTAL_CONFIGURATION = 'bpc',
   BILLING_PORTAL_SESSION = 'bps',
   CHECKOUT_SESSION = 'cs',

@@ -3,7 +3,11 @@ import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
 import type { MutationProps } from '@react/react-query.types';
 import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { PortalSessionResponse, RedeemPortalLinkPayload } from '@type/contracts.types';
+import type {
+  PortalSessionResponse,
+  RedeemPortalLinkPayload,
+  SwitchPortalCustomerPayload,
+} from '@type/contracts.types';
 
 export function useCreatePortalSessionMutation({
   successMessage,
@@ -18,6 +22,25 @@ export function useCreatePortalSessionMutation({
     },
     onSuccess: (portalSession) => {
       queryClient.removeQueries({ queryKey: [PinstripeQuerySubjectEnum.PORTAL] });
+      notifySuccess(portalSession);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useUpdatePortalSessionMutation({
+  successMessage,
+}: MutationProps<PortalSessionResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: (payload: SwitchPortalCustomerPayload) => {
+      return client.portal.sessions.update(payload);
+    },
+    onSuccess: (portalSession) => {
+      queryClient.invalidateQueries({ queryKey: [PinstripeQuerySubjectEnum.PORTAL] });
       notifySuccess(portalSession);
     },
     onError: notifyError,

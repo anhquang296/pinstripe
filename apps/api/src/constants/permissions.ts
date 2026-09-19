@@ -6,6 +6,7 @@ export const READ_OPERATION_PREFIXES = ['find', 'get'];
 export const OPERATION_PERMISSIONS: Record<string, Permission> = {
   customers: PermissionEnum.CUSTOMER_WRITE,
   'customers.delete': PermissionEnum.CUSTOMER_DELETE,
+  portalMemberships: PermissionEnum.CUSTOMER_WRITE,
   invoices: PermissionEnum.INVOICE_WRITE,
   'invoices.void': PermissionEnum.INVOICE_VOID,
   invoiceItems: PermissionEnum.INVOICE_WRITE,

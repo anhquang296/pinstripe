@@ -1,4 +1,6 @@
 import { InvoiceStatusEnum } from '@contracts/invoices.types';
+import type { PortalRole } from '@contracts/portal-memberships.types';
+import { PortalRoleEnum } from '@contracts/portal-memberships.types';
 import type { RecurringInterval, UsageType } from '@contracts/prices.types';
 import { RecurringIntervalEnum, UsageTypeEnum } from '@contracts/prices.types';
 import type { CollectionMethod, SubscriptionStatus } from '@contracts/subscriptions.types';
@@ -58,7 +60,23 @@ export const portalIdentitySchema = Type.Object({
   accountantName: Type.Union([Type.String(), Type.Null()]),
   accountantEmail: Type.Union([Type.String(), Type.Null()]),
   sessionExpiresAt: Type.Union([Type.String(), Type.Null()]),
+  userEmail: Type.Union([Type.String(), Type.Null()]),
+  role: Type.Union([Type.Unsafe<PortalRole>(Type.Enum(PortalRoleEnum)), Type.Null()]),
+  memberships: Type.Array(
+    Type.Object({
+      customerId: Type.String(),
+      customerName: Type.String(),
+      role: Type.Unsafe<PortalRole>(Type.Enum(PortalRoleEnum)),
+    }),
+  ),
 });
+
+export const switchPortalCustomerSchema = Type.Object(
+  {
+    customerId: Type.String({ minLength: 1 }),
+  },
+  { additionalProperties: false },
+);
 
 export const portalPaymentSchema = Type.Object({
   id: Type.String(),
@@ -200,8 +218,11 @@ export type PortalSubscriptionResponse = Static<typeof portalSubscriptionSchema>
 export type PortalPaymentResponse = Static<typeof portalPaymentSchema>;
 export type FindPortalPaymentsQuery = Static<typeof findPortalPaymentsSchema>;
 export type PortalBankTransferResponse = Static<typeof portalBankTransferSchema>;
+export type SwitchPortalCustomerPayload = Static<typeof switchPortalCustomerSchema>;
 
 export interface PortalAuth {
   portalSessionId: string;
   customerId: string;
+  portalUserId: string | null;
+  role: PortalRole | null;
 }

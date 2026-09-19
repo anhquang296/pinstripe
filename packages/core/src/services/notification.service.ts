@@ -51,9 +51,11 @@ export class NotificationService {
   async dispatchPortalMagicLink(
     portalSession: PortalSession,
     url: string,
+    references: Pick<NotificationReferences, 'recipient'>,
   ): Promise<NotificationOutcome> {
     return this.sendNotification(
       buildNotificationSendJob(NotificationKindEnum.PORTAL_MAGIC_LINK, portalSession.customerId, {
+        ...references,
         url,
         dedupeKey: portalSession.id,
       }),

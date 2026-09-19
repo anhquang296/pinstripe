@@ -114,6 +114,12 @@ export {
 } from '@react/pinstripe.provider';
 export type { PinstripeQuerySubject } from '@react/pinstripe-query-subject';
 export { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+export {
+  useCreatePortalMembershipMutation,
+  useDeletePortalMembershipMutation,
+  useUpdatePortalMembershipMutation,
+} from '@react/portal-memberships/mutations';
+export { usePortalMembershipsQuery } from '@react/portal-memberships/queries';
 export { useCreatePriceMutation, useUpdatePriceMutation } from '@react/prices/mutations';
 export { usePriceQuery, usePricesQuery } from '@react/prices/queries';
 export { useCreateProductMutation, useUpdateProductMutation } from '@react/products/mutations';

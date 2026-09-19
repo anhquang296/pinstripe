@@ -23,6 +23,7 @@ export * from '@contracts/payment-methods.types';
 export * from '@contracts/payments.types';
 export * from '@contracts/payouts.types';
 export * from '@contracts/portal.types';
+export * from '@contracts/portal-memberships.types';
 export * from '@contracts/prices.types';
 export * from '@contracts/products.types';
 export * from '@contracts/rating.types';

@@ -30,6 +30,7 @@ import { formatCurrency, formatDate } from '@common/utils/format';
 import BalanceTransactionForm from '@features/dashboard/components/BalanceTransactionForm';
 import CustomerForm from '@features/dashboard/components/CustomerForm';
 import TaxIdForm from '@features/dashboard/components/TaxIdForm';
+import CustomerPortalUsersTab from '@features/dashboard/views/pages/CustomersPage/CustomerPortalUsersTab';
 import { TrashBin } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
@@ -59,6 +60,7 @@ const BALANCE_TAB = 'balance';
 const TAX_ID_TAB = 'tax_id';
 const SUBSCRIPTION_TAB = 'subscription';
 const INVOICE_TAB = 'invoice';
+const PORTAL_USER_TAB = 'portal_user';
 
 const TABS = [
   { key: DETAIL_TAB, label: 'Chi tiết' },
@@ -66,6 +68,7 @@ const TABS = [
   { key: TAX_ID_TAB, label: 'Tax IDs' },
   { key: SUBSCRIPTION_TAB, label: 'Subscriptions' },
   { key: INVOICE_TAB, label: 'Invoices' },
+  { key: PORTAL_USER_TAB, label: 'Người dùng portal' },
 ];
 
 interface CustomerDrawerProps {
@@ -461,6 +464,8 @@ export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerPr
           ]}
         />
       ) : null}
+
+      {activeTab === PORTAL_USER_TAB ? <CustomerPortalUsersTab customerId={customerId} /> : null}
 
       <ConfirmDialog
         isOpen={isDeleteOpen}

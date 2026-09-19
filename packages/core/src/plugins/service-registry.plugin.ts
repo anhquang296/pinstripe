@@ -34,6 +34,7 @@ import { PaymentLinkService } from '@services/payment-link.service';
 import { PaymentMethodService } from '@services/payment-method.service';
 import { PayoutService } from '@services/payout.service';
 import { PortalSessionService } from '@services/portal-session.service';
+import { PortalUserService } from '@services/portal-user.service';
 import { PriceService } from '@services/price.service';
 import { ProductService } from '@services/product.service';
 import { PromotionCodeService } from '@services/promotion-code.service';
@@ -160,6 +161,7 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
       portalBaseUrl: fastify.config.PORTAL_BASE_URL,
     }),
   );
+  fastify.decorate('portalUserService', new PortalUserService(fastify));
   fastify.decorate('billingPortalService', new BillingPortalService(fastify));
   fastify.decorate('paymentLinkService', new PaymentLinkService(fastify));
   fastify.decorate(

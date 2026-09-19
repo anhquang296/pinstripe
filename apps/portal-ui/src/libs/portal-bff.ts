@@ -42,6 +42,11 @@ const PORTAL_ROUTES: readonly PortalRoute[] = [
     pattern: /^sessions$/,
     credential: PortalCredentialEnum.SESSION,
   },
+  {
+    method: HttpMethodEnum.POST,
+    pattern: /^sessions\/current$/,
+    credential: PortalCredentialEnum.SESSION,
+  },
   { method: HttpMethodEnum.GET, pattern: /^me$/, credential: PortalCredentialEnum.SESSION },
   { method: HttpMethodEnum.GET, pattern: /^invoices$/, credential: PortalCredentialEnum.SESSION },
   {

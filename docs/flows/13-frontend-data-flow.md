@@ -92,6 +92,8 @@ API /portal/*
 - `middleware.ts` chuyển về `/login` khi thiếu cookie; `RequirePortalSession` bắt 401 của `/portal/me`
   khi phiên hết hạn giữa chừng.
 - `/customers/*` (trang cũ đọc bằng secret key) redirect về `/login`. Không còn rewrite `/api/*`.
+- Người dùng có quyền ở nhiều nhà xe thấy bộ chọn nhà xe trên topbar (`useUpdatePortalSessionMutation`
+  → `POST /bff/portal/sessions/current`); vai trò và email đăng nhập hiện trên topbar và trang Tài khoản.
 - Màn: `/` Tổng quan (`usePortalInvoiceTotalsQuery`, 5 hóa đơn gần nhất, gói đang dùng), `/invoices`
   (tab `?view=all|upcoming|overdue|paid`, phân trang cursor, xuất CSV), `/invoices/[invoiceId]` (chi tiết,
   tải PDF qua `/bff/portal/invoices/:id/pdf`, thẻ chuyển khoản + VietQR, các lần thanh toán),

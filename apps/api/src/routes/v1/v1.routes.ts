@@ -22,6 +22,7 @@ import { paymentIntentsRoutes } from '@routes/v1/payment-intents/payment-intents
 import { paymentLinksRoutes } from '@routes/v1/payment-links/payment-links.routes';
 import { paymentMethodsRoutes } from '@routes/v1/payment-methods/payment-methods.routes';
 import { payoutsRoutes } from '@routes/v1/payouts/payouts.routes';
+import { portalMembershipsRoutes } from '@routes/v1/portal-memberships/portal-memberships.routes';
 import { pricesRoutes } from '@routes/v1/prices/prices.routes';
 import { productsRoutes } from '@routes/v1/products/products.routes';
 import { promotionCodesRoutes } from '@routes/v1/promotion-codes/promotion-codes.routes';
@@ -65,6 +66,7 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(discountsRoutes, { prefix: '/discounts' });
   await fastify.register(taxRatesRoutes, { prefix: '/tax_rates' });
   await fastify.register(taxIdsRoutes, { prefix: '/tax_ids' });
+  await fastify.register(portalMembershipsRoutes, { prefix: '/portal_memberships' });
   await fastify.register(paymentIntentsRoutes, { prefix: '/payment_intents' });
   await fastify.register(paymentMethodsRoutes, { prefix: '/payment_methods' });
   await fastify.register(setupIntentsRoutes, { prefix: '/setup_intents' });

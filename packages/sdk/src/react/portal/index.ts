@@ -1,6 +1,7 @@
 export {
   useCreatePortalSessionMutation,
   useDeletePortalSessionMutation,
+  useUpdatePortalSessionMutation,
 } from '@react/portal/mutations';
 export {
   usePortalAccountQuery,

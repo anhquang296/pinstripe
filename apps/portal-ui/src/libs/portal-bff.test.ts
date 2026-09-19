@@ -166,6 +166,38 @@ it.each([
   expect(fetchMock).toHaveBeenCalledWith(`http://api.test/portal/${path}`, expect.anything());
 });
 
+it('switches the operator with the session cookie, and only from the portal itself', async () => {
+  const { fetchMock } = setup(Response.json({ id: 'ps_1', customerId: 'cus_2' }));
+  const payload = { customerId: 'cus_2' };
+
+  const switched = await handlePortalBffRequest(
+    buildRequest('POST', 'sessions/current', {
+      headers: { origin: PORTAL_ORIGIN },
+      body: payload,
+      sessionKey: 'raw-session-key',
+    }),
+    ['sessions', 'current'],
+  );
+  const forged = await handlePortalBffRequest(
+    buildRequest('POST', 'sessions/current', {
+      headers: { origin: 'http://attacker.test' },
+      body: payload,
+      sessionKey: 'raw-session-key',
+    }),
+    ['sessions', 'current'],
+  );
+
+  expect(switched.status).toBe(200);
+  expect(forged.status).toBe(403);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(fetchMock).toHaveBeenCalledWith(
+    'http://api.test/portal/sessions/current',
+    expect.objectContaining({
+      headers: expect.objectContaining({ authorization: 'Bearer raw-session-key' }),
+    }),
+  );
+});
+
 it('refuses an invoice path that is not an id', async () => {
   const { fetchMock } = setup();
 

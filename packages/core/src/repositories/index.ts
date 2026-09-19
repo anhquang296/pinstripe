@@ -28,6 +28,7 @@ export * from '@repositories/payment-link.repository';
 export * from '@repositories/payment-method.repository';
 export * from '@repositories/payout.repository';
 export * from '@repositories/portal-session.repository';
+export * from '@repositories/portal-user.repository';
 export * from '@repositories/price.repository';
 export * from '@repositories/product.repository';
 export * from '@repositories/promotion-code.repository';
