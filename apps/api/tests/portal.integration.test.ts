@@ -1,5 +1,12 @@
-import { ApiKeyScopeEnum, ApiKeyTypeEnum, CurrencyEnum } from '@pinstripe/core/contracts';
+import {
+  ApiKeyScopeEnum,
+  ApiKeyTypeEnum,
+  CollectionMethodEnum,
+  CurrencyEnum,
+  PORTAL_CLIENT_IP_HEADER,
+} from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
+import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
@@ -79,6 +86,65 @@ describe('portal link surface', () => {
   });
 });
 
+describe('portal sign-in rate limit', () => {
+  it('refuses more link requests for one address than the window allows, whatever the client', async () => {
+    const portalKey = await mintApiKey(fastify, [ApiKeyScopeEnum.PORTAL], {
+      type: ApiKeyTypeEnum.PUBLISHABLE,
+    });
+    const headers = buildAuthHeaders(portalKey.token);
+    const { portalRateLimit } = fastify.workflowSchedules;
+
+    const statusCodes: number[] = [];
+
+    for (const attempt of _.range(portalRateLimit + 1)) {
+      const response = await fastify.inject({
+        method: 'POST',
+        url: '/portal/links',
+        headers: { ...headers, [PORTAL_CLIENT_IP_HEADER]: `10.0.0.${attempt}` },
+        payload: { email: 'flooded@portal.test' },
+      });
+
+      statusCodes.push(response.statusCode);
+    }
+
+    expect(_.initial(statusCodes)).toEqual(_.fill(Array(portalRateLimit), 202));
+    expect(_.last(statusCodes)).toBe(429);
+  });
+
+  it('refuses more session redemptions from one client than the window allows', async () => {
+    const portalKey = await mintApiKey(fastify, [ApiKeyScopeEnum.PORTAL], {
+      type: ApiKeyTypeEnum.PUBLISHABLE,
+    });
+    const headers = buildAuthHeaders(portalKey.token);
+    const { portalRateLimit } = fastify.workflowSchedules;
+    const clientHeaders = { ...headers, [PORTAL_CLIENT_IP_HEADER]: '10.0.1.1' };
+
+    const statusCodes: number[] = [];
+
+    for (const attempt of _.range(portalRateLimit + 1)) {
+      const response = await fastify.inject({
+        method: 'POST',
+        url: '/portal/sessions',
+        headers: clientHeaders,
+        payload: { linkKey: `guessed-link-key-number-${attempt}` },
+      });
+
+      statusCodes.push(response.statusCode);
+    }
+
+    const otherClient = await fastify.inject({
+      method: 'POST',
+      url: '/portal/sessions',
+      headers: { ...headers, [PORTAL_CLIENT_IP_HEADER]: '10.0.1.2' },
+      payload: { linkKey: 'guessed-link-key-other-client' },
+    });
+
+    expect(_.initial(statusCodes)).toEqual(_.fill(Array(portalRateLimit), 401));
+    expect(_.last(statusCodes)).toBe(429);
+    expect(otherClient.statusCode).toBe(401);
+  });
+});
+
 describe('portal account surface', () => {
   it('answers /portal/me for the customer behind the session key', async () => {
     const email = 'me@portal.test';
@@ -101,6 +167,30 @@ describe('portal account surface', () => {
     });
 
     expect(response.statusCode).toBe(400);
+  });
+
+  it('never lists a draft invoice to the customer', async () => {
+    const headers = await makeSessionHeaders('drafts@portal.test');
+    const me = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+    const customerId = String(me.json().customerId);
+    const draftInvoice = await fastify.invoiceService.createInvoice({
+      customerId,
+      collectionMethod: CollectionMethodEnum.SEND_INVOICE,
+      daysUntilDue: 7,
+    });
+    const issuedDraft = await fastify.invoiceService.createInvoice({
+      customerId,
+      collectionMethod: CollectionMethodEnum.SEND_INVOICE,
+      daysUntilDue: 7,
+    });
+    const openInvoice = await fastify.invoiceService.finalizeInvoice(issuedDraft.id);
+
+    const response = await fastify.inject({ method: 'GET', url: '/portal/invoices', headers });
+    const invoiceIds = _.map(response.json().data, 'id');
+
+    expect(response.statusCode).toBe(200);
+    expect(invoiceIds).toContain(openInvoice.id);
+    expect(invoiceIds).not.toContain(draftInvoice.id);
   });
 
   it('refuses a request with no session key', async () => {
@@ -142,15 +232,22 @@ describe('merchant billing portal session', () => {
       headers: buildAuthHeaders(secretKey.token),
       payload: { customerId },
     });
-    const sessionKey = new URL(created.json().url).searchParams.get('sessionKey');
+    const portalUrl = new URL(created.json().url);
+    const redeemed = await fastify.inject({
+      method: 'POST',
+      url: '/portal/sessions',
+      headers: portalKeyHeaders,
+      payload: { linkKey: String(portalUrl.searchParams.get('linkKey')) },
+    });
     const me = await fastify.inject({
       method: 'GET',
       url: '/portal/me',
-      headers: buildAuthHeaders(String(sessionKey)),
+      headers: buildAuthHeaders(String(redeemed.json().sessionKey)),
     });
 
     expect(created.statusCode).toBe(201);
-    expect(sessionKey).not.toBeNull();
+    expect(portalUrl.searchParams.has('sessionKey')).toBe(false);
+    expect(redeemed.statusCode).toBe(201);
     expect(me.statusCode).toBe(200);
     expect(me.json().email).toBe(email);
   });

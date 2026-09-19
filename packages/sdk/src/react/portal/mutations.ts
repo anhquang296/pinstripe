@@ -1,0 +1,44 @@
+import { usePinstripeContext } from '@react/pinstripe.provider';
+import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import type { MutationProps } from '@react/react-query.types';
+import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { PortalSessionResponse, RedeemPortalLinkPayload } from '@type/contracts.types';
+
+export function useCreatePortalSessionMutation({
+  successMessage,
+}: MutationProps<PortalSessionResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: (payload: RedeemPortalLinkPayload) => {
+      return client.portal.sessions.create(payload);
+    },
+    onSuccess: (portalSession) => {
+      queryClient.removeQueries({ queryKey: [PinstripeQuerySubjectEnum.PORTAL] });
+      notifySuccess(portalSession);
+    },
+    onError: notifyError,
+  });
+}
+
+export function useDeletePortalSessionMutation({
+  successMessage,
+}: MutationProps<PortalSessionResponse> = {}) {
+  const queryClient = useQueryClient();
+  const { client } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: () => {
+      return client.portal.sessions.delete();
+    },
+    onSuccess: (portalSession) => {
+      queryClient.removeQueries({ queryKey: [PinstripeQuerySubjectEnum.PORTAL] });
+      notifySuccess(portalSession);
+    },
+    onError: notifyError,
+  });
+}

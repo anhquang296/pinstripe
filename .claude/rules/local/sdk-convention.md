@@ -93,9 +93,16 @@ Tag không khai tay: `v1.routes.ts` gán tag từ prefix, và route không tag b
 
 **Mỗi method của resource phải có ít nhất một hook gọi tới.** `src/react/hook-coverage.test.ts` duyệt
 mọi resource của `PinstripeClient` rồi khẳng định điều đó, nên thêm một method mà không thêm hook là
-một test đỏ. Ngoại lệ duy nhất là `portal.*` — trừ `portal.links.create`, phần còn lại là bề mặt của
-`portal-ui`, và danh sách ngoại lệ nằm ngay trong test đó. App không bao giờ gọi thẳng resource: đường
-duy nhất tới dữ liệu là hook.
+một test đỏ. Danh sách ngoại lệ nằm ngay trong test đó và chỉ còn những method `portal.*` mà
+`portal-ui` chưa có màn dùng tới; mỗi phase của portal thêm hook thì gỡ method tương ứng khỏi danh
+sách. App không bao giờ gọi thẳng resource: đường duy nhất tới dữ liệu là hook.
+
+Hook của bề mặt khách hàng (`portal.*`) sống ở entry riêng `@pinstripe/sdk/react/portal`
+(`src/react/portal/`), không nằm trong barrel `src/react/index.ts`. Lý do là hai test đối xứng dưới
+đây: admin-ui không bao giờ dùng hook của khách hàng, và `portal-ui` không dùng hook của dashboard.
+Key của chúng vẫn đăng ký trong `createPinstripeQueries` dưới subject `PinstripeQuerySubjectEnum.PORTAL`,
+nên cả hai entry dùng chung một `PinstripeProvider`. `useCreatePortalLinkMutation` là ngoại lệ lịch sử:
+nó ở barrel chính vì admin-ui dùng nó để gửi link cho khách, và `portal-ui` cũng import nó từ đó.
 
 Đầu kia của cùng một sợi dây nằm ở `apps/admin-ui/src/hook-usage.test.ts`: nó đọc barrel
 `@pinstripe/sdk/react`, lấy mọi export kết thúc bằng `Query` hay `Mutation`, rồi khẳng định mỗi cái
@@ -104,6 +111,9 @@ hook mà không có màn dùng tới là một test đỏ, và đó là thứ gi
 ai gọi. `usePinstripeClient` / `usePinstripeContext` / `usePinstripeQueries` /
 `usePinstripeMutationCallbacks` không nằm trong tập đó vì chúng là plumbing của provider, không phải
 hook dữ liệu — hình dạng tên quyết định điều đó, không phải một danh sách.
+
+`apps/portal-ui/src/hook-usage.test.ts` làm đúng việc đó cho barrel `src/react/portal/index.ts`:
+mọi hook portal phải có màn dùng tới trong `apps/portal-ui/src`, cũng không có danh sách ngoại lệ.
 
 Toast: một package không import được `sonner`. Mutation hook trong SDK tự invalidate rồi gọi `onMutationError` / `onMutationSuccess` từ provider; app nối `toast` vào đó **một lần** (`apps/admin-ui/src/providers/AdminPinstripeProvider.tsx`). Yêu cầu "đúng một toast entry point" của rule được thoả về mặt cấu trúc, và chuỗi text ở lại trong app — SDK không sở hữu chữ tiếng Việt nào.
 
@@ -127,6 +137,11 @@ PINSTRIPE_SECRET_API_KEY
 PINSTRIPE_ADMIN_API_KEY
 PINSTRIPE_MAX_RETRIES, PINSTRIPE_TIMEOUT_MS
 ```
+
+`PINSTRIPE_PORTAL_API_KEY` không thuộc SDK: nó là key scope `portal` mà lớp BFF của `portal-ui`
+(`apps/portal-ui/src/libs/portal-bff.ts`) gắn vào hai route đăng nhập `/portal/links` và
+`/portal/sessions`. File đó là proxy phía server có allowlist, không phải HTTP client thứ hai — trình
+duyệt vẫn chỉ đi qua `PinstripeClient({ baseUrl: '/bff' })` và hook của SDK. Xem ADR 0026.
 
 `SECRET_API_KEY` / `ADMIN_API_KEY` (không prefix) là env **của server API** — `packages/core/src/config/env.schema.ts` validate chúng để so khớp key đến. Hai họ tên khác vai, đừng gộp và đừng cho SDK một fallback chain.
 

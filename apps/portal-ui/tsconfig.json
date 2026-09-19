@@ -3,7 +3,10 @@
   "compilerOptions": {
     "paths": {
       "@app/*": ["./src/app/*"],
-      "@lib/*": ["./src/lib/*"]
+      "@common/*": ["./src/common/*"],
+      "@features/*": ["./src/features/*"],
+      "@libs/*": ["./src/libs/*"],
+      "@providers/*": ["./src/providers/*"]
     }
   },
   "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", ".next/types/**/*.ts"],

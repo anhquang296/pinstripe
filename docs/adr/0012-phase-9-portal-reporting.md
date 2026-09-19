@@ -1,7 +1,8 @@
 # ADR 0012 — Portal, reporting & reconciliation (Phase 9)
 
 Ngày: 2026-09-16
-Trạng thái: Accepted
+Trạng thái: Accepted — §7 và phần portal của "Hạn chế đã biết" bị thay thế bởi
+[ADR 0026](0026-customer-portal-auth-and-bff.md).
 
 ## Bối cảnh
 

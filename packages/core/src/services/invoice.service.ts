@@ -1074,7 +1074,10 @@ export class InvoiceService {
     return this.buildInvoice(invoice);
   }
 
-  async findInvoices(query: FindInvoicesQuery): Promise<ListResponse<InvoiceResponse>> {
+  async findInvoices(
+    query: FindInvoicesQuery,
+    statuses?: readonly InvoiceStatus[],
+  ): Promise<ListResponse<InvoiceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
@@ -1083,6 +1086,7 @@ export class InvoiceService {
         customerId: query.customerId,
         subscriptionId: query.subscriptionId,
         status: query.status,
+        statuses,
         beforeAt,
         afterAt,
       },

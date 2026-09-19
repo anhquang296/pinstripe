@@ -13,6 +13,10 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.js"
     },
+    "./react/portal": {
+      "types": "./dist/react/portal/index.d.ts",
+      "import": "./dist/react/portal/index.js"
+    },
     "./node": {
       "types": "./dist/node/index.d.ts",
       "import": "./dist/node/index.js"

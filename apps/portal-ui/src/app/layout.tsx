@@ -1,17 +1,24 @@
 import './globals.css';
 
+import { ProviderRegistry } from '@providers/ProviderRegistry';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
 export const metadata: Metadata = {
-  title: 'Pinstripe Portal',
-  description: 'Self-service billing portal',
+  title: 'Cổng nhà xe · Pinstripe',
+  description: 'Theo dõi công nợ, hóa đơn và gói dịch vụ của nhà xe',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="vi">
+      <body>
+        <ProviderRegistry>{children}</ProviderRegistry>
+      </body>
     </html>
   );
 }

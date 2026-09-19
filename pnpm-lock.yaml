@@ -252,12 +252,30 @@ importers:
 
   apps/portal-ui:
     dependencies:
+      '@heroui/react':
+        specifier: ^3.2.6
+        version: 3.2.6(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-aria/utils@3.34.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-aria@3.52.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
+      '@heroui/styles':
+        specifier: ^3.2.6
+        version: 3.2.6(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
+      '@hookform/resolvers':
+        specifier: ^5.9.1
+        version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.88.0(react@19.3.0))(zod@4.6.5)
+      '@lukemorales/query-key-factory':
+        specifier: ^1.3.4
+        version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
       '@pinstripe/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@pinstripe/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      '@tanstack/react-query':
+        specifier: ^5.62.7
+        version: 5.102.8(react@19.3.0)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
@@ -270,6 +288,18 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.3.0(react@19.3.0)
+      react-hook-form:
+        specifier: ^7.88.0
+        version: 7.88.0(react@19.3.0)
+      sonner:
+        specifier: ^2.0.8
+        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      tailwind-merge:
+        specifier: ^3.7.0
+        version: 3.7.0
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
     devDependencies:
       '@pinstripe/eslint-config':
         specifier: workspace:*
@@ -301,6 +331,12 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: ^5.1.4
+        version: 5.1.4(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
 
   apps/worker:
     dependencies:
@@ -15931,6 +15967,17 @@ snapshots:
       tsconfck: 3.1.6(typescript@5.9.3)
     optionalDependencies:
       vite: 6.4.3(@types/node@24.13.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
+  vite-tsconfig-paths@5.1.4(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)):
+    dependencies:
+      debug: 4.4.3
+      globrex: 0.1.2
+      tsconfck: 3.1.6(typescript@5.9.3)
+    optionalDependencies:
+      vite: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
     transitivePeerDependencies:
       - supports-color
       - typescript

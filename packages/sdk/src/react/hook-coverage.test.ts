@@ -8,11 +8,8 @@ import { expect, it } from 'vitest';
 const REACT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 
 const UNCOVERED_METHODS = [
-  'portal.account.get',
   'portal.invoices.find',
   'portal.paymentMethods.find',
-  'portal.sessions.create',
-  'portal.sessions.delete',
   'portal.subscriptions.find',
 ];
 

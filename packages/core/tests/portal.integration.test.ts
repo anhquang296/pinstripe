@@ -185,16 +185,33 @@ describe('BillingPortalService', () => {
     expect(_.get(defaults, '0.id')).toBe(candidate.id);
   });
 
-  it('hands a merchant-created session a portal session key the customer can use', async () => {
+  it('hands a merchant-created session a one-time link rather than a session key', async () => {
     const customer = await makeCustomer();
 
     const session = await fastify.billingPortalService.createSession({ customerId: customer.id });
     const portalSession = await fastify.portalSessionService.getPortalSession(
       session.portalSessionId,
     );
+    const linkKey = new URL(session.url).searchParams.get('linkKey');
 
-    expect(session.url).toContain('sessionKey=');
+    expect(session.url).not.toContain('sessionKey');
+    expect(linkKey).toEqual(expect.any(String));
+    expect(session.expiresAt).toBe(portalSession.linkExpiresAt);
+    expect(portalSession.status).toBe(PortalSessionStatusEnum.PENDING);
+    expect(portalSession.customerId).toBe(customer.id);
+  });
+
+  it('lets the customer redeem the merchant-created link exactly once', async () => {
+    const customer = await makeCustomer();
+    const session = await fastify.billingPortalService.createSession({ customerId: customer.id });
+    const linkKey = String(new URL(session.url).searchParams.get('linkKey'));
+
+    const portalSession = await fastify.portalSessionService.redeemPortalLink({ linkKey });
+
     expect(portalSession.status).toBe(PortalSessionStatusEnum.ACTIVE);
     expect(portalSession.customerId).toBe(customer.id);
+    await expect(fastify.portalSessionService.redeemPortalLink({ linkKey })).rejects.toThrow(
+      UnauthorizedError,
+    );
   });
 });
