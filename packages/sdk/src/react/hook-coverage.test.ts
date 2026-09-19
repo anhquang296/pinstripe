@@ -7,7 +7,7 @@ import { expect, it } from 'vitest';
 
 const REACT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 
-const UNCOVERED_METHODS = ['portal.paymentMethods.find'];
+const UNCOVERED_METHODS: string[] = [];
 
 function collectResourceMethods(owner: object, prefix: string): string[] {
   const methods: string[] = [];

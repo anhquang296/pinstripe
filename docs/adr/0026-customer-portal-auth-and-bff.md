@@ -87,11 +87,36 @@ dùng pdfkit với Noto Sans (OFL, gói `@expo-google-fonts/noto-sans`) nhúng v
 bằng tiếng Việt. PDF vẫn được sinh một lần lúc phát hành và lưu lại; file cũ trong storage không tự
 sinh lại.
 
+### 8. Thanh toán: đọc lịch sử, chỉ dẫn chuyển khoản, không cổng thanh toán
+
+- **Lịch sử thanh toán** đọc từ `invoice_payments` — mọi đường thu (cổng, cấn trừ vé/trừ ví của đối
+  tác, kế toán ghi nhận tay) đều ghi vào đó. Kênh suy ra từ dòng thanh toán: có `paymentIntentId` là
+  thẻ/cổng; `settlementReference` bắt đầu `collection_attempt:` là cấn trừ vé hoặc trừ ví theo
+  `collectionMethod` của hóa đơn; còn lại là "kế toán ghi nhận". Không có bảng mới.
+- **Chuyển khoản + VietQR**: `GET /portal/invoices/:invoiceId/bank_transfer` trả tài khoản nhận (env
+  `BANK_TRANSFER_*`, một tài khoản chung) và payload VietQR theo chuẩn EMVCo/NAPAS (`buildVietQrPayload`,
+  CRC-16/CCITT-FALSE), số tiền là `amountRemaining`, nội dung là số hóa đơn bỏ ký tự đặc biệt. Chỉ cho
+  hóa đơn `open`, VND, còn nợ; thiếu cấu hình thì 404 và portal ẩn khối này. Tiền vẫn do kế toán đối
+  soát và ghi nhận trong admin-ui — portal **không** tự đánh dấu đã trả.
+- **Kế toán phụ trách** đọc từ `customers.metadata.accountantName` / `accountantEmail`.
+- **Xuất CSV** `GET /portal/invoice_exports` (UTF-8 BOM để Excel đọc đúng dấu, tối đa 5.000 dòng).
+
+### 9. Nhắc nợ chạy trong worker notification
+
+`InvoiceReminderService` chạy theo `INVOICE_REMINDER_INTERVAL_MS` trong `NotificationWorkflow`, chỉ cho
+hóa đơn `send_invoice` còn mở (hóa đơn thu tự động do dunning lo): T−3 (`due_soon`) và T+1 (`overdue`)
+gửi nhà xe, cc kế toán phụ trách; T+5 (`overdue_internal`) gửi `BILLING_OPS_EMAIL`. Hóa đơn quá hạn hơn
+30 ngày không được nhắc lần đầu, để lần bật tính năng không dội thư cho nợ cũ. Bảng `invoice_reminders`
+(unique `invoice_id + kind`) được ghi **trước** khi xếp email vào hàng đợi: chạy lại không bao giờ gửi
+trùng, đổi lại một lần enqueue thất bại sẽ mất thư đó.
+
+Mọi template email chuyển sang tiếng Việt, và nội dung HTML được escape (tên khách trước đây chèn thẳng
+vào `<p>`).
+
 ## Hệ quả
 
 - Danh tính portal hiện là **customer**, không phải người: ai giữ hộp thư `customers.email` là vào
   được. Chưa có vai trò Chủ xe / Kế toán nhà xe, chưa có nhiều người dùng cho một nhà xe.
 - Session sống `PORTAL_SESSION_TTL_MINUTES` (mặc định 60), không gia hạn trượt.
-- Email magic link vẫn bằng tiếng Anh như mọi template khác; Việt hoá cả bộ template là việc riêng.
 - Portal phải deploy với `PINSTRIPE_API_URL` + `PINSTRIPE_PORTAL_API_KEY`, và **không bao giờ** với
   secret key.

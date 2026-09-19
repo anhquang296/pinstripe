@@ -36,6 +36,13 @@ export enum CreditNoteStatusEnum {
 }
 export type CreditNoteStatus = `${CreditNoteStatusEnum}`;
 
+export enum InvoiceReminderKindEnum {
+  DUE_SOON = 'due_soon',
+  OVERDUE = 'overdue',
+  OVERDUE_INTERNAL = 'overdue_internal',
+}
+export type InvoiceReminderKind = `${InvoiceReminderKindEnum}`;
+
 export enum BillingReasonEnum {
   SUBSCRIPTION_CREATE = 'subscription_create',
   SUBSCRIPTION_CYCLE = 'subscription_cycle',

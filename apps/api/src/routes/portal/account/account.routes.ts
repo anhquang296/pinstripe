@@ -1,5 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
+  CUSTOMER_ACCOUNTANT_EMAIL_KEY,
+  CUSTOMER_ACCOUNTANT_NAME_KEY,
   findPortalPaymentMethodsSchema,
   findPortalSubscriptionsSchema,
   ListResponseSchema,
@@ -19,6 +21,10 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       const { customerId, portalSessionId } = readPortalAuth(request);
       const customer = await fastify.customerService.getCustomer(customerId);
       const portalSession = await fastify.portalSessionService.getPortalSession(portalSessionId);
+      const {
+        [CUSTOMER_ACCOUNTANT_NAME_KEY]: accountantName = null,
+        [CUSTOMER_ACCOUNTANT_EMAIL_KEY]: accountantEmail = null,
+      } = customer.metadata;
 
       return ApiResponse.success(reply, {
         customerId: customer.id,
@@ -28,6 +34,9 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
         taxId: customer.taxId,
         address: customer.address,
         currency: customer.currency,
+        balance: customer.balance,
+        accountantName,
+        accountantEmail,
         sessionExpiresAt: portalSession.sessionExpiresAt,
       });
     },

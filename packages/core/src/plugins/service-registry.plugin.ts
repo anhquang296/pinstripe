@@ -1,6 +1,9 @@
+import type { Env } from '@config/env.schema';
 import { ApiKeyService } from '@services/api-key.service';
 import { AuditLogService } from '@services/audit-log.service';
 import { BalanceService } from '@services/balance.service';
+import type { BankTransferConfig } from '@services/bank-transfer.service';
+import { BankTransferService } from '@services/bank-transfer.service';
 import { BillingPortalService } from '@services/billing-portal.service';
 import { BillingRunService } from '@services/billing-run.service';
 import { CheckoutService } from '@services/checkout.service';
@@ -19,6 +22,7 @@ import { IdempotencyService } from '@services/idempotency.service';
 import { InvoiceService } from '@services/invoice.service';
 import { InvoiceDocumentService } from '@services/invoice-document.service';
 import { InvoiceItemService } from '@services/invoice-item.service';
+import { InvoiceReminderService } from '@services/invoice-reminder.service';
 import { LedgerService } from '@services/ledger.service';
 import { MeterService } from '@services/meter.service';
 import { MeterEventService } from '@services/meter-event.service';
@@ -47,6 +51,31 @@ import { TestClockService } from '@services/test-clock.service';
 import { UserService } from '@services/user.service';
 import { WebhookService } from '@services/webhook.service';
 import fp from 'fastify-plugin';
+
+function resolveBankTransferConfig(config: Env): BankTransferConfig | null {
+  const {
+    BANK_TRANSFER_BANK_BIN,
+    BANK_TRANSFER_BANK_NAME,
+    BANK_TRANSFER_ACCOUNT_NUMBER,
+    BANK_TRANSFER_ACCOUNT_NAME,
+  } = config;
+
+  if (
+    BANK_TRANSFER_BANK_BIN &&
+    BANK_TRANSFER_BANK_NAME &&
+    BANK_TRANSFER_ACCOUNT_NUMBER &&
+    BANK_TRANSFER_ACCOUNT_NAME
+  ) {
+    return {
+      bankBin: BANK_TRANSFER_BANK_BIN,
+      bankName: BANK_TRANSFER_BANK_NAME,
+      accountNumber: BANK_TRANSFER_ACCOUNT_NUMBER,
+      accountName: BANK_TRANSFER_ACCOUNT_NAME,
+    };
+  }
+
+  return null;
+}
 
 export const serviceRegistryPlugin = fp(async (fastify) => {
   fastify.decorate(
@@ -112,6 +141,17 @@ export const serviceRegistryPlugin = fp(async (fastify) => {
     }),
   );
   fastify.decorate('invoiceDocumentService', new InvoiceDocumentService(fastify));
+  fastify.decorate(
+    'bankTransferService',
+    new BankTransferService(fastify, resolveBankTransferConfig(fastify.config)),
+  );
+  fastify.decorate(
+    'invoiceReminderService',
+    new InvoiceReminderService(fastify, {
+      billingOpsEmail: fastify.config.BILLING_OPS_EMAIL ?? null,
+      portalBaseUrl: fastify.config.PORTAL_BASE_URL,
+    }),
+  );
   fastify.decorate(
     'portalSessionService',
     new PortalSessionService(fastify, {

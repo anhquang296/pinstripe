@@ -1,15 +1,68 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   findPortalInvoicesSchema,
+  findPortalPaymentsSchema,
   invoiceSchema,
   ListResponseSchema,
+  portalBankTransferSchema,
   portalInvoiceParamsSchema,
   portalInvoiceTotalsSchema,
+  portalPaymentSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
 import { readPortalAuth } from '@utils/request-auth';
 
 export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
+  fastify.get(
+    '/invoice_exports',
+    { schema: { querystring: findPortalInvoicesSchema } },
+    async (request, reply) => {
+      const CSV_CONTENT_TYPE = 'text/csv; charset=utf-8';
+
+      const { customerId } = readPortalAuth(request);
+      const csv = await fastify.invoiceService.exportCustomerInvoices(customerId, request.query);
+      const exportedOn = fastify.clock.now().toISOString().slice(0, 10);
+
+      return reply
+        .type(CSV_CONTENT_TYPE)
+        .header('content-disposition', `attachment; filename="hoa-don-${exportedOn}.csv"`)
+        .send(csv);
+    },
+  );
+
+  fastify.get(
+    '/invoices/:invoiceId/bank_transfer',
+    { schema: { params: portalInvoiceParamsSchema, response: { 200: portalBankTransferSchema } } },
+    async (request, reply) => {
+      const { customerId } = readPortalAuth(request);
+      const bankTransfer = await fastify.bankTransferService.getCustomerBankTransfer(
+        customerId,
+        request.params.invoiceId,
+      );
+
+      return ApiResponse.success(reply, bankTransfer);
+    },
+  );
+
+  fastify.get(
+    '/payments',
+    {
+      schema: {
+        querystring: findPortalPaymentsSchema,
+        response: { 200: ListResponseSchema(portalPaymentSchema) },
+      },
+    },
+    async (request, reply) => {
+      const { customerId } = readPortalAuth(request);
+      const payments = await fastify.invoiceService.findCustomerInvoicePayments(
+        customerId,
+        request.query,
+      );
+
+      return ApiResponse.success(reply, payments);
+    },
+  );
+
   fastify.get(
     '/invoices',
     {

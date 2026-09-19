@@ -93,9 +93,10 @@ Tag không khai tay: `v1.routes.ts` gán tag từ prefix, và route không tag b
 
 **Mỗi method của resource phải có ít nhất một hook gọi tới.** `src/react/hook-coverage.test.ts` duyệt
 mọi resource của `PinstripeClient` rồi khẳng định điều đó, nên thêm một method mà không thêm hook là
-một test đỏ. Danh sách ngoại lệ nằm ngay trong test đó và chỉ còn những method `portal.*` mà
-`portal-ui` chưa có màn dùng tới; mỗi phase của portal thêm hook thì gỡ method tương ứng khỏi danh
-sách. App không bao giờ gọi thẳng resource: đường duy nhất tới dữ liệu là hook.
+một test đỏ. Danh sách ngoại lệ trong test đó hiện rỗng — mọi method, kể cả `portal.*`, đều có
+hook; đừng thêm lại một ngoại lệ thay vì viết hook. App không bao giờ gọi thẳng resource: đường duy
+nhất tới dữ liệu là hook. Link tải file (PDF, CSV của portal) là `<a href>` qua BFF, không phải method
+SDK.
 
 Hook của bề mặt khách hàng (`portal.*`) sống ở entry riêng `@pinstripe/sdk/react/portal`
 (`src/react/portal/`), không nằm trong barrel `src/react/index.ts`. Lý do là hai test đối xứng dưới

@@ -16,6 +16,7 @@ export enum ObjectPrefixEnum {
   INVOICE_LINE_ITEM = 'il',
   INVOICE_ITEM = 'ii',
   INVOICE_PAYMENT = 'inpay',
+  INVOICE_REMINDER = 'inrem',
   CREDIT_NOTE = 'cn',
   CREDIT_NOTE_LINE_ITEM = 'cnli',
   CREDIT_NOTE_TRANSITION = 'cntr',

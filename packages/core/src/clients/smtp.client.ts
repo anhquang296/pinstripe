@@ -13,6 +13,7 @@ export type SmtpConfig = {
 
 export interface SendMailPayload {
   to: string;
+  cc?: string[];
   subject: string;
   text: string;
   html: string;
@@ -51,6 +52,7 @@ export class SmtpClient {
       const sent = await this._transport.sendMail({
         from: this._fromAddress,
         to: payload.to,
+        cc: payload.cc,
         subject: payload.subject,
         text: payload.text,
         html: payload.html,

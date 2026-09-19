@@ -1,6 +1,5 @@
+import { INVOICE_STATUS_LABELS } from '@constants/invoice-labels';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
-import type { InvoiceStatus } from '@contracts/invoices.types';
-import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import type { Customer, Invoice, InvoiceLineItem } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { Currency } from '@utils/currency';
@@ -13,14 +12,6 @@ import _ from 'lodash';
 
 const DOCUMENT_LOCALE = 'vi-VN';
 const DOCUMENT_TIME_ZONE = 'Asia/Ho_Chi_Minh';
-
-const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
-  [InvoiceStatusEnum.DRAFT]: 'Bản nháp',
-  [InvoiceStatusEnum.OPEN]: 'Chưa thanh toán',
-  [InvoiceStatusEnum.PAID]: 'Đã thanh toán',
-  [InvoiceStatusEnum.VOID]: 'Đã hủy',
-  [InvoiceStatusEnum.UNCOLLECTIBLE]: 'Không thu được',
-};
 
 function formatDocumentMoney(minorAmount: number, currency: Currency): string {
   return new Intl.NumberFormat(DOCUMENT_LOCALE, {

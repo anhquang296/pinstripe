@@ -22,7 +22,14 @@ import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.t
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import { RefundStatusEnum } from '@contracts/payments.types';
-import type { FindPortalInvoicesQuery, PortalInvoiceTotalsResponse } from '@contracts/portal.types';
+import type {
+  FindPortalInvoicesQuery,
+  FindPortalPaymentsQuery,
+  PortalInvoiceTotalsResponse,
+  PortalPaymentChannel,
+  PortalPaymentResponse,
+} from '@contracts/portal.types';
+import { PortalPaymentChannelEnum } from '@contracts/portal.types';
 import type { TaxBehavior } from '@contracts/prices.types';
 import { TaxBehaviorEnum } from '@contracts/prices.types';
 import type { RatedInvoiceResponse } from '@contracts/rating.types';
@@ -38,6 +45,7 @@ import type {
   InvoiceLineDiscountAmount,
   InvoiceLineItem,
   InvoiceLineItemTaxAmount,
+  InvoicePayment,
   NewInvoiceLineItem,
   NewInvoiceLineItemTaxAmount,
   Subscription,
@@ -50,6 +58,7 @@ import type { RatingPeriod } from '@services/rating.service';
 import { advancePeriod } from '@utils/billing-period';
 import { assertCollectionMethodUsable } from '@utils/collection-method';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
+import { buildInvoicesCsv } from '@utils/invoice-csv';
 import { buildInvoiceTotals } from '@utils/invoice-totals';
 import type { LineItemType } from '@utils/rating';
 import { LineItemTypeEnum } from '@utils/rating';
@@ -1121,6 +1130,82 @@ export class InvoiceService {
     throw new NotFoundError(`No such invoice: ${id}`);
   }
 
+  async findCustomerInvoicePayments(
+    customerId: string,
+    query: FindPortalPaymentsQuery,
+  ): Promise<ListResponse<PortalPaymentResponse>> {
+    const INVOICE_SCAN_LIMIT = 1000;
+
+    const { limit = DEFAULT_PAGE_LIMIT, invoiceId } = query;
+    const invoices = await this.fastify.invoiceRepository.findInvoices(
+      { customerId, statuses: CUSTOMER_VISIBLE_INVOICE_STATUSES },
+      INVOICE_SCAN_LIMIT,
+    );
+    const scopedInvoices = invoiceId ? _.filter(invoices, { id: invoiceId }) : invoices;
+    const invoicesById = _.keyBy(scopedInvoices, 'id');
+    const invoicePayments = await this.fastify.invoiceRepository.findInvoicePayments(
+      _.map(scopedInvoices, 'id'),
+    );
+    const orderedPayments = _.orderBy(invoicePayments, ['paidAt', 'id'], ['desc', 'desc']);
+
+    return {
+      url: '/portal/payments',
+      hasMore: orderedPayments.length > limit,
+      data: _(orderedPayments)
+        .take(limit)
+        .flatMap((invoicePayment) => {
+          const invoice = invoicesById[invoicePayment.invoiceId];
+
+          if (invoice) {
+            return [
+              {
+                id: invoicePayment.id,
+                invoiceId: invoice.id,
+                invoiceNumber: invoice.number,
+                amount: invoicePayment.amount,
+                currency: invoice.currency,
+                channel: InvoiceService.resolvePaymentChannel(invoicePayment, invoice),
+                paidAt: invoicePayment.paidAt,
+              },
+            ];
+          }
+
+          return [];
+        })
+        .value(),
+    };
+  }
+
+  async exportCustomerInvoices(
+    customerId: string,
+    query: FindPortalInvoicesQuery,
+  ): Promise<string> {
+    const EXPORT_PAGE_SIZE = 100;
+    const EXPORT_ROW_LIMIT = 5000;
+
+    const exportedInvoices: InvoiceResponse[] = [];
+
+    let startingAfter: string | undefined;
+    let hasMore = true;
+
+    while (hasMore && exportedInvoices.length < EXPORT_ROW_LIMIT) {
+      const page = await this.findCustomerInvoices(customerId, {
+        ...query,
+        limit: EXPORT_PAGE_SIZE,
+        startingAfter,
+      });
+      const lastInvoice = _.last(page.data);
+
+      exportedInvoices.push(...page.data);
+      hasMore = page.hasMore && lastInvoice !== undefined;
+      startingAfter = _.get(lastInvoice, 'id');
+    }
+
+    const now = await this.fastify.clockService.resolveCustomerNow(customerId);
+
+    return buildInvoicesCsv(exportedInvoices, now);
+  }
+
   async aggregateCustomerInvoiceTotals(customerId: string): Promise<PortalInvoiceTotalsResponse> {
     const OPEN_INVOICE_LIMIT = 1000;
     const DUE_SOON_DAYS = 7;
@@ -1486,6 +1571,34 @@ export class InvoiceService {
     ]);
 
     return _.mapValues(_.keyBy(rows, 'invoiceId'), 'refundedAmount');
+  }
+
+  private static resolvePaymentChannel(
+    invoicePayment: InvoicePayment,
+    invoice: Invoice,
+  ): PortalPaymentChannel {
+    const PARTNER_SETTLEMENT_PREFIX = 'collection_attempt:';
+
+    const { paymentIntentId, settlementReference } = invoicePayment;
+    const { collectionMethod } = invoice;
+    const isPartnerSettlement = _.startsWith(
+      _.toString(settlementReference),
+      PARTNER_SETTLEMENT_PREFIX,
+    );
+
+    if (paymentIntentId) {
+      return PortalPaymentChannelEnum.CARD;
+    }
+
+    if (isPartnerSettlement && collectionMethod === CollectionMethodEnum.OFFSET_TICKET) {
+      return PortalPaymentChannelEnum.OFFSET_TICKET;
+    }
+
+    if (isPartnerSettlement && collectionMethod === CollectionMethodEnum.DEBIT_WALLET) {
+      return PortalPaymentChannelEnum.DEBIT_WALLET;
+    }
+
+    return PortalPaymentChannelEnum.RECORDED;
   }
 
   private static resolveAmountRemaining(invoice: Invoice, amountCredited: number): number {

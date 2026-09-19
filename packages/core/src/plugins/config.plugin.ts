@@ -37,6 +37,7 @@ export interface WorkflowSchedules {
   apiRateWindowSeconds: number;
   portalRateLimit: number;
   portalRateWindowSeconds: number;
+  invoiceReminderIntervalMs: number;
 }
 
 export const configPlugin = fp(async (fastify) => {
@@ -78,5 +79,6 @@ export const configPlugin = fp(async (fastify) => {
     apiRateWindowSeconds: config.API_RATE_WINDOW_SECONDS,
     portalRateLimit: config.PORTAL_RATE_LIMIT,
     portalRateWindowSeconds: config.PORTAL_RATE_WINDOW_SECONDS,
+    invoiceReminderIntervalMs: config.INVOICE_REMINDER_INTERVAL_MS,
   });
 });

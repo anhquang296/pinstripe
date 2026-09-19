@@ -3,11 +3,11 @@
 import PageCard from '@common/components/PageCard';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import InvoicesTable from '@features/portal/components/InvoicesTable';
-import { Tabs } from '@heroui/react';
+import { buttonVariants, Tabs } from '@heroui/react';
 import { InvoiceStatusEnum } from '@pinstripe/core/contracts';
 import type { FindPortalInvoicesQuery, InvoiceResponse } from '@pinstripe/sdk';
 import { usePortalInvoicesQuery } from '@pinstripe/sdk/react/portal';
-import { find, get, last, map, toString } from 'lodash-es';
+import { find, get, last, map, mapValues, toString } from 'lodash-es';
 import { useRouter } from 'next/navigation';
 import type { Key } from 'react';
 import { use } from 'react';
@@ -62,6 +62,8 @@ export default function InvoicesPage({ searchParams }: InvoicesPageProps) {
     { hasPlaceholder: true },
   );
   const invoiceRows = get(invoices, 'data', []);
+  const exportSearch = new URLSearchParams(mapValues(activeView.query, toString)).toString();
+  const exportUrl = `/bff/portal/invoice_exports?${exportSearch}`;
 
   const handleOnViewChange = (key: Key) => {
     resetPage();
@@ -81,7 +83,15 @@ export default function InvoicesPage({ searchParams }: InvoicesPageProps) {
   };
 
   return (
-    <PageCard title="Hóa đơn" description="Tra cứu hóa đơn theo trạng thái và tải bản PDF.">
+    <PageCard
+      title="Hóa đơn"
+      description="Tra cứu hóa đơn theo trạng thái và tải bản PDF."
+      actions={
+        <a className={buttonVariants({ variant: 'secondary' })} href={exportUrl} download>
+          Xuất Excel (CSV)
+        </a>
+      }
+    >
       <Tabs className="w-fit" selectedKey={activeView.key} onSelectionChange={handleOnViewChange}>
         <Tabs.ListContainer>
           <Tabs.List aria-label="Lọc hóa đơn">

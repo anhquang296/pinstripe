@@ -1,20 +1,24 @@
 import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
-import type { BillingReason, InvoiceStatus } from '@contracts/invoices.types';
+import type { BillingReason, InvoiceReminderKind, InvoiceStatus } from '@contracts/invoices.types';
+import type { CollectionMethod } from '@contracts/subscriptions.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type {
   Invoice,
   InvoiceLineItem,
   InvoiceLineItemTaxAmount,
   InvoicePayment,
+  InvoiceReminder,
   NewInvoice,
   NewInvoiceLineItem,
   NewInvoiceLineItemTaxAmount,
   NewInvoicePayment,
+  NewInvoiceReminder,
 } from '@database/schemas';
 import {
   invoiceLineItems,
   invoiceLineItemTaxAmounts,
   invoicePayments,
+  invoiceReminders,
   invoices,
 } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
@@ -27,6 +31,7 @@ export interface InvoiceFilters {
   subscriptionId?: string;
   status?: InvoiceStatus;
   statuses?: readonly InvoiceStatus[];
+  collectionMethod?: CollectionMethod;
   billingReason?: BillingReason;
   periodStart?: string;
   periodEndBeforeAt?: string;
@@ -169,6 +174,32 @@ export class InvoiceRepository {
       .orderBy(asc(invoicePayments.paidAt), asc(invoicePayments.id));
   }
 
+  async findInvoiceReminders(
+    invoiceIds: readonly string[],
+    kind: InvoiceReminderKind,
+  ): Promise<InvoiceReminder[]> {
+    if (_.isEmpty(invoiceIds)) {
+      return [];
+    }
+
+    return this._db.master
+      .select()
+      .from(invoiceReminders)
+      .where(
+        and(inArray(invoiceReminders.invoiceId, [...invoiceIds]), eq(invoiceReminders.kind, kind)),
+      );
+  }
+
+  async createInvoiceReminder(payload: NewInvoiceReminder): Promise<InvoiceReminder | null> {
+    const [invoiceReminder] = await this._db.master
+      .insert(invoiceReminders)
+      .values(payload)
+      .onConflictDoNothing({ target: [invoiceReminders.invoiceId, invoiceReminders.kind] })
+      .returning();
+
+    return invoiceReminder ?? null;
+  }
+
   async createInvoicePayment(
     payload: NewInvoicePayment,
     executor?: DatabaseTransaction,
@@ -196,6 +227,9 @@ export class InvoiceRepository {
       filters.subscriptionId ? eq(invoices.subscriptionId, filters.subscriptionId) : undefined,
       filters.status ? eq(invoices.status, filters.status) : undefined,
       filters.statuses ? inArray(invoices.status, [...filters.statuses]) : undefined,
+      filters.collectionMethod
+        ? eq(invoices.collectionMethod, filters.collectionMethod)
+        : undefined,
       filters.billingReason ? eq(invoices.billingReason, filters.billingReason) : undefined,
       filters.periodStart ? eq(invoices.periodStart, filters.periodStart) : undefined,
       filters.periodEndBeforeAt ? lte(invoices.periodEnd, filters.periodEndBeforeAt) : undefined,

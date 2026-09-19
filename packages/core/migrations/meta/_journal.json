@@ -225,6 +225,13 @@
       "when": 1789747328718,
       "tag": "0031_better_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1789813391399,
+      "tag": "0032_spotty_scourge",
+      "breakpoints": true
     }
   ]
 }

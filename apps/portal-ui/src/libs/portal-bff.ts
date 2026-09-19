@@ -46,9 +46,15 @@ const PORTAL_ROUTES: readonly PortalRoute[] = [
   { method: HttpMethodEnum.GET, pattern: /^invoices$/, credential: PortalCredentialEnum.SESSION },
   {
     method: HttpMethodEnum.GET,
-    pattern: /^invoices\/[A-Za-z0-9_]+(\/pdf)?$/,
+    pattern: /^invoices\/[A-Za-z0-9_]+(\/pdf|\/bank_transfer)?$/,
     credential: PortalCredentialEnum.SESSION,
   },
+  {
+    method: HttpMethodEnum.GET,
+    pattern: /^invoice_exports$/,
+    credential: PortalCredentialEnum.SESSION,
+  },
+  { method: HttpMethodEnum.GET, pattern: /^payments$/, credential: PortalCredentialEnum.SESSION },
   {
     method: HttpMethodEnum.GET,
     pattern: /^invoice_totals$/,

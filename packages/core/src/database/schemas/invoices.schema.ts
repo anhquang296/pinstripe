@@ -2,6 +2,7 @@ import type {
   BillingReason,
   CreditNoteStatus,
   CreditNoteType,
+  InvoiceReminderKind,
   InvoiceStatus,
   NumberSequence,
 } from '@contracts/invoices.types';
@@ -353,6 +354,26 @@ export const invoicePayments = pgTable(
   },
 );
 
+export const invoiceReminders = pgTable(
+  'invoice_reminders',
+  {
+    id: text('id').primaryKey(),
+    invoiceId: text('invoice_id')
+      .notNull()
+      .references(() => {
+        return invoices.id;
+      }),
+    kind: text('kind').$type<InvoiceReminderKind>().notNull(),
+    sentAt: isoTimestamp('sent_at').notNull(),
+    createdAt: isoTimestamp('created_at')
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => {
+    return [uniqueIndex('invoice_reminders_invoice_id_kind_idx').on(table.invoiceId, table.kind)];
+  },
+);
+
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
@@ -369,3 +390,5 @@ export type InvoiceItem = typeof invoiceItems.$inferSelect;
 export type NewInvoiceItem = typeof invoiceItems.$inferInsert;
 export type InvoicePayment = typeof invoicePayments.$inferSelect;
 export type NewInvoicePayment = typeof invoicePayments.$inferInsert;
+export type InvoiceReminder = typeof invoiceReminders.$inferSelect;
+export type NewInvoiceReminder = typeof invoiceReminders.$inferInsert;

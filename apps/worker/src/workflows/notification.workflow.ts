@@ -1,27 +1,63 @@
-import type { NotificationSendJob } from '@pinstripe/core/queues';
-import { NOTIFICATION_QUEUE } from '@pinstripe/core/queues';
+import type { InvoiceReminderRunJob, NotificationSendJob } from '@pinstripe/core/queues';
+import {
+  INVOICE_REMINDER_RUN_JOB,
+  NOTIFICATION_QUEUE,
+  QueueNameEnum,
+} from '@pinstripe/core/queues';
+import { InvoiceReminderRunProcessor } from '@workflows/processors/invoice-reminder-run.processor';
 import { NotificationSendProcessor } from '@workflows/processors/notification-send.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';
 import { Worker } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 
-export class NotificationWorkflow implements Workflow {
-  private readonly worker: Worker<NotificationSendJob>;
-  private readonly processor: NotificationSendProcessor;
+const INVOICE_REMINDER_SCHEDULER_ID = 'invoice-reminder-scheduler';
 
-  constructor(fastify: FastifyInstance) {
+type NotificationQueueJob = NotificationSendJob | InvoiceReminderRunJob;
+
+export class NotificationWorkflow implements Workflow {
+  private readonly worker: Worker<NotificationQueueJob>;
+  private readonly processor: NotificationSendProcessor;
+  private readonly invoiceReminderProcessor: InvoiceReminderRunProcessor;
+
+  constructor(private readonly fastify: FastifyInstance) {
     this.processor = new NotificationSendProcessor(fastify);
-    this.worker = new Worker<NotificationSendJob>(
+    this.invoiceReminderProcessor = new InvoiceReminderRunProcessor(fastify);
+    this.worker = new Worker<NotificationQueueJob>(
       NOTIFICATION_QUEUE,
-      async (job: Job<NotificationSendJob>) => {
-        await this.processor.handle(job);
+      async (job: Job<NotificationQueueJob>) => {
+        if (job.name === INVOICE_REMINDER_RUN_JOB) {
+          await this.invoiceReminderProcessor.handle();
+
+          return;
+        }
+
+        await this.processor.handle(job as Job<NotificationSendJob>);
       },
       { connection: fastify.workerConnection, prefix: fastify.queuePrefix },
     );
+
+    void this.dispatchInvoiceReminderSchedule().catch((error: unknown) => {
+      fastify.log.error(
+        { error },
+        '[NotificationWorkflow] dispatchInvoiceReminderSchedule() error',
+      );
+    });
   }
 
   async destroy(): Promise<void> {
     await this.worker.close();
+  }
+
+  private async dispatchInvoiceReminderSchedule(): Promise<void> {
+    const { invoiceReminderIntervalMs } = this.fastify.workflowSchedules;
+
+    await this.fastify.queues
+      .resolve(QueueNameEnum.NOTIFICATION)
+      .upsertJobScheduler(
+        INVOICE_REMINDER_SCHEDULER_ID,
+        { every: invoiceReminderIntervalMs },
+        { name: INVOICE_REMINDER_RUN_JOB, data: {} },
+      );
   }
 }

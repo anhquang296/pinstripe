@@ -22,6 +22,7 @@ pnpm dev
 | worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn                     |
 | worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                           |
 | worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                        |
+| worker notification | 3007  | gửi email; nhắc nợ chuyển khoản mỗi `INVOICE_REMINDER_INTERVAL_MS`  |
 | admin-ui            | 5173  | Vite, proxy `/api` và `/v1` sang api; xác thực bằng cookie session  |
 | portal-ui           | 3100  | Next.js + BFF; cần `PINSTRIPE_API_URL` + `PINSTRIPE_PORTAL_API_KEY` |
 | postgres            | 55432 | user/pass/db: `pinstripe`                                           |

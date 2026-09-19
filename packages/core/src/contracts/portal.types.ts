@@ -13,6 +13,14 @@ export enum PortalSessionStatusEnum {
 }
 export type PortalSessionStatus = `${PortalSessionStatusEnum}`;
 
+export enum PortalPaymentChannelEnum {
+  CARD = 'card',
+  OFFSET_TICKET = 'offset_ticket',
+  DEBIT_WALLET = 'debit_wallet',
+  RECORDED = 'recorded',
+}
+export type PortalPaymentChannel = `${PortalPaymentChannelEnum}`;
+
 export const portalSessionSchema = Type.Object({
   id: Type.String(),
   customerId: Type.String(),
@@ -46,7 +54,40 @@ export const portalIdentitySchema = Type.Object({
     Type.Null(),
   ]),
   currency: Type.String(),
+  balance: Type.Integer(),
+  accountantName: Type.Union([Type.String(), Type.Null()]),
+  accountantEmail: Type.Union([Type.String(), Type.Null()]),
   sessionExpiresAt: Type.Union([Type.String(), Type.Null()]),
+});
+
+export const portalPaymentSchema = Type.Object({
+  id: Type.String(),
+  invoiceId: Type.String(),
+  invoiceNumber: Type.Union([Type.String(), Type.Null()]),
+  amount: Type.Integer(),
+  currency: Type.String(),
+  channel: Type.Unsafe<PortalPaymentChannel>(Type.Enum(PortalPaymentChannelEnum)),
+  paidAt: Type.String(),
+});
+
+export const findPortalPaymentsSchema = Type.Object(
+  {
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 20 })),
+    invoiceId: Type.Optional(Type.String({ minLength: 1 })),
+  },
+  { additionalProperties: false },
+);
+
+export const portalBankTransferSchema = Type.Object({
+  invoiceId: Type.String(),
+  bankName: Type.String(),
+  bankBin: Type.String(),
+  accountNumber: Type.String(),
+  accountName: Type.String(),
+  amount: Type.Integer(),
+  currency: Type.String(),
+  transferContent: Type.String(),
+  qrPayload: Type.String(),
 });
 
 export const portalSubscriptionSchema = Type.Object({
@@ -156,6 +197,9 @@ export type FindPortalSubscriptionsQuery = Static<typeof findPortalSubscriptions
 export type FindPortalPaymentMethodsQuery = Static<typeof findPortalPaymentMethodsSchema>;
 export type PortalInvoiceTotalsResponse = Static<typeof portalInvoiceTotalsSchema>;
 export type PortalSubscriptionResponse = Static<typeof portalSubscriptionSchema>;
+export type PortalPaymentResponse = Static<typeof portalPaymentSchema>;
+export type FindPortalPaymentsQuery = Static<typeof findPortalPaymentsSchema>;
+export type PortalBankTransferResponse = Static<typeof portalBankTransferSchema>;
 
 export interface PortalAuth {
   portalSessionId: string;

@@ -150,6 +150,22 @@ it('forwards one invoice of the customer by its id', async () => {
   );
 });
 
+it.each([
+  { path: 'payments', segments: ['payments'] },
+  { path: 'invoice_exports', segments: ['invoice_exports'] },
+  { path: 'invoices/in_01abc/bank_transfer', segments: ['invoices', 'in_01abc', 'bank_transfer'] },
+])('forwards the session read $path', async ({ path, segments }) => {
+  const { fetchMock } = setup(Response.json({}));
+
+  const response = await handlePortalBffRequest(
+    buildRequest('GET', path, { sessionKey: 'raw-session-key' }),
+    segments,
+  );
+
+  expect(response.status).toBe(200);
+  expect(fetchMock).toHaveBeenCalledWith(`http://api.test/portal/${path}`, expect.anything());
+});
+
 it('refuses an invoice path that is not an id', async () => {
   const { fetchMock } = setup();
 

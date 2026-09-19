@@ -1,7 +1,12 @@
 import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { FindPortalInvoicesQuery, FindPortalSubscriptionsQuery } from '@type/contracts.types';
+import type {
+  FindPortalInvoicesQuery,
+  FindPortalPaymentMethodsQuery,
+  FindPortalPaymentsQuery,
+  FindPortalSubscriptionsQuery,
+} from '@type/contracts.types';
 
 export function usePortalAccountQuery({ enabled = true }: QueryProps = {}) {
   const queries = usePinstripeQueries();
@@ -32,6 +37,30 @@ export function usePortalInvoiceTotalsQuery({ enabled = true }: QueryProps = {})
   const queries = usePinstripeQueries();
 
   return useQuery({ ...queries.portal.invoiceTotals, enabled });
+}
+
+export function usePortalBankTransferQuery(invoiceId: string, { enabled = true }: QueryProps = {}) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({ ...queries.portal.bankTransfer(invoiceId), enabled, retry: false });
+}
+
+export function usePortalPaymentsQuery(
+  query?: FindPortalPaymentsQuery,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({ ...queries.portal.payments(query), enabled });
+}
+
+export function usePortalPaymentMethodsQuery(
+  query?: FindPortalPaymentMethodsQuery,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({ ...queries.portal.paymentMethods(query), enabled });
 }
 
 export function usePortalSubscriptionsQuery(

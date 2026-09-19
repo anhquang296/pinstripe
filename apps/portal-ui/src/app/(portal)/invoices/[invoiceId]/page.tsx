@@ -3,7 +3,13 @@
 import PageCard from '@common/components/PageCard';
 import InvoiceDetail from '@features/portal/components/InvoiceDetail';
 import { Alert, Link, Spinner } from '@heroui/react';
-import { usePortalInvoiceQuery } from '@pinstripe/sdk/react/portal';
+import { InvoiceStatusEnum } from '@pinstripe/core/contracts';
+import {
+  usePortalBankTransferQuery,
+  usePortalInvoiceQuery,
+  usePortalPaymentsQuery,
+} from '@pinstripe/sdk/react/portal';
+import { get } from 'lodash-es';
 import { use } from 'react';
 
 interface InvoicePageProps {
@@ -13,9 +19,21 @@ interface InvoicePageProps {
 export default function InvoicePage({ params }: InvoicePageProps) {
   const { invoiceId } = use(params);
   const { data: invoice, isPending } = usePortalInvoiceQuery(invoiceId);
+  const isOpen = get(invoice, 'status') === InvoiceStatusEnum.OPEN;
+  const { data: bankTransfer } = usePortalBankTransferQuery(invoiceId, { enabled: isOpen });
+  const { data: payments, isPending: isPaymentsPending } = usePortalPaymentsQuery({ invoiceId });
 
   if (invoice) {
-    return <InvoiceDetail invoice={invoice} />;
+    const payableBankTransfer = isOpen && bankTransfer ? bankTransfer : null;
+
+    return (
+      <InvoiceDetail
+        invoice={invoice}
+        bankTransfer={payableBankTransfer}
+        payments={get(payments, 'data', [])}
+        isPaymentsLoading={isPaymentsPending}
+      />
+    );
   }
 
   if (isPending) {

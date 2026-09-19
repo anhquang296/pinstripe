@@ -1,7 +1,12 @@
 import type { PinstripeClient } from '@client/pinstripe.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
-import type { FindPortalInvoicesQuery, FindPortalSubscriptionsQuery } from '@type/contracts.types';
+import type {
+  FindPortalInvoicesQuery,
+  FindPortalPaymentMethodsQuery,
+  FindPortalPaymentsQuery,
+  FindPortalSubscriptionsQuery,
+} from '@type/contracts.types';
 
 export function createPortalQueries(client: PinstripeClient) {
   return createQueryKeys(PinstripeQuerySubjectEnum.PORTAL, {
@@ -32,6 +37,30 @@ export function createPortalQueries(client: PinstripeClient) {
       queryFn: () => {
         return client.portal.invoiceTotals.get();
       },
+    },
+    bankTransfer: (invoiceId: string) => {
+      return {
+        queryKey: [invoiceId],
+        queryFn: () => {
+          return client.portal.bankTransfers.get(invoiceId);
+        },
+      };
+    },
+    payments: (query?: FindPortalPaymentsQuery) => {
+      return {
+        queryKey: [query],
+        queryFn: () => {
+          return client.portal.payments.find(query);
+        },
+      };
+    },
+    paymentMethods: (query?: FindPortalPaymentMethodsQuery) => {
+      return {
+        queryKey: [query],
+        queryFn: () => {
+          return client.portal.paymentMethods.find(query);
+        },
+      };
     },
     subscriptions: (query?: FindPortalSubscriptionsQuery) => {
       return {

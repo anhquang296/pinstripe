@@ -1,12 +1,14 @@
 import type {
   CollectionMethod,
   InvoiceStatus,
+  PortalPaymentChannel,
   RecurringInterval,
   SubscriptionStatus,
 } from '@pinstripe/core/contracts';
 import {
   CollectionMethodEnum,
   InvoiceStatusEnum,
+  PortalPaymentChannelEnum,
   RecurringIntervalEnum,
   SubscriptionStatusEnum,
 } from '@pinstripe/core/contracts';
@@ -44,6 +46,13 @@ export const COLLECTION_METHOD_LABELS: Record<CollectionMethod, string> = {
   [CollectionMethodEnum.SEND_INVOICE]: 'Chuyển khoản theo hóa đơn',
   [CollectionMethodEnum.OFFSET_TICKET]: 'Cấn trừ tiền bán vé',
   [CollectionMethodEnum.DEBIT_WALLET]: 'Trừ ví nhà xe',
+};
+
+export const PAYMENT_CHANNEL_LABELS: Record<PortalPaymentChannel, string> = {
+  [PortalPaymentChannelEnum.CARD]: 'Thẻ / cổng thanh toán',
+  [PortalPaymentChannelEnum.OFFSET_TICKET]: 'Cấn trừ tiền bán vé',
+  [PortalPaymentChannelEnum.DEBIT_WALLET]: 'Trừ ví nhà xe',
+  [PortalPaymentChannelEnum.RECORDED]: 'Chuyển khoản (kế toán ghi nhận)',
 };
 
 export const RECURRING_INTERVAL_LABELS: Record<RecurringInterval, string> = {

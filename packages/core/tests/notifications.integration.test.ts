@@ -18,6 +18,7 @@ interface MailpitMessage {
   ID: string;
   Subject: string;
   To: { Address: string }[];
+  Cc: { Address: string }[];
 }
 
 interface MailpitSearch {
@@ -69,7 +70,7 @@ describe('NotificationService.sendNotification', () => {
     const subject = await findDeliveredSubject(String(email));
 
     expect(outcome).toBe(NotificationOutcomeEnum.SENT);
-    expect(subject).toContain('Payment received for invoice');
+    expect(subject).toContain('Đã nhận thanh toán cho hóa đơn');
   });
 
   it('tells a declined customer which code the bank sent back', async () => {
@@ -94,7 +95,7 @@ describe('NotificationService.sendNotification', () => {
     const subject = await findDeliveredSubject(String(email));
 
     expect(outcome).toBe(NotificationOutcomeEnum.SENT);
-    expect(subject).toContain('was declined');
+    expect(subject).toContain('bị từ chối');
   });
 
   it('skips a customer with no email rather than failing the job', async () => {
@@ -175,6 +176,50 @@ describe('NotificationService.sendNotification for invoice_sent', () => {
 
     expect(invoice.hostedInvoiceUrl).not.toBeNull();
     expect(outcome).toBe(NotificationOutcomeEnum.SENT);
-    expect(subject).toContain('Your invoice');
+    expect(subject).toContain('Hóa đơn');
+  });
+});
+
+describe('NotificationService.sendNotification for invoice reminders', () => {
+  async function findDeliveredMessage(email: string): Promise<MailpitMessage | null> {
+    const response = await fetch(
+      `${MAILPIT_API_URL}/search?query=${encodeURIComponent(`to:${email}`)}`,
+    );
+    const search = (await response.json()) as MailpitSearch;
+
+    return _.head(search.messages) ?? null;
+  }
+
+  it('copies the accountant in charge on a reminder to the operator', async () => {
+    const accountantEmail = `${generateGid(ObjectPrefixEnum.CUSTOMER)}@vexere.test`;
+    const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+    const customer = await fastify.customerService.updateCustomer(customerId, {
+      metadata: { accountantEmail },
+    });
+
+    await fastify.notificationService.sendNotification(
+      buildNotificationSendJob(NotificationKindEnum.INVOICE_OVERDUE, customerId, { invoiceId }),
+    );
+
+    const message = await findDeliveredMessage(String(customer.email));
+
+    expect(_.get(message, 'Subject')).toContain('đã quá hạn thanh toán');
+    expect(_.map(_.get(message, 'Cc', []), 'Address')).toEqual([accountantEmail]);
+  });
+
+  it('sends the internal overdue notice to the billing inbox instead of the operator', async () => {
+    const billingInbox = `${generateGid(ObjectPrefixEnum.CUSTOMER)}@ops.vexere.test`;
+    const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+
+    await fastify.notificationService.sendNotification(
+      buildNotificationSendJob(NotificationKindEnum.INVOICE_OVERDUE_INTERNAL, customerId, {
+        invoiceId,
+        recipient: billingInbox,
+      }),
+    );
+
+    const message = await findDeliveredMessage(billingInbox);
+
+    expect(_.get(message, 'Subject')).toContain('[Nội bộ]');
   });
 });

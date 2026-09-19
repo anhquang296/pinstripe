@@ -3,17 +3,26 @@ import DetailList from '@common/components/DetailList';
 import PageCard from '@common/components/PageCard';
 import StatusChip from '@common/components/StatusChip';
 import { formatCurrency, formatDate } from '@common/utils/format';
+import BankTransferCard from '@features/portal/components/BankTransferCard';
+import PaymentsTable from '@features/portal/components/PaymentsTable';
 import { COLLECTION_METHOD_LABELS } from '@features/portal/constants/labels';
 import {
   resolveInvoiceStatusLabel,
   resolveOverdueDays,
 } from '@features/portal/utils/invoice-state';
 import { buttonVariants, Card, Link } from '@heroui/react';
-import type { InvoiceResponse } from '@pinstripe/sdk';
+import type {
+  InvoiceResponse,
+  PortalBankTransferResponse,
+  PortalPaymentResponse,
+} from '@pinstripe/sdk';
 import { map } from 'lodash-es';
 
 interface InvoiceDetailProps {
   invoice: InvoiceResponse;
+  bankTransfer: PortalBankTransferResponse | null;
+  payments: PortalPaymentResponse[];
+  isPaymentsLoading: boolean;
 }
 
 type InvoiceLineItem = InvoiceResponse['lineItems'][number];
@@ -26,7 +35,12 @@ function buildOptionalDate(isoDate: string | null): string {
   return '—';
 }
 
-export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
+export default function InvoiceDetail({
+  invoice,
+  bankTransfer,
+  payments,
+  isPaymentsLoading,
+}: InvoiceDetailProps) {
   const now = new Date();
   const { number, currency } = invoice;
   const { label, tone } = resolveInvoiceStatusLabel(invoice, now);
@@ -152,6 +166,19 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
           </dl>
         </Card.Content>
       </Card>
+
+      {bankTransfer ? <BankTransferCard bankTransfer={bankTransfer} /> : null}
+
+      <Card>
+        <Card.Header>
+          <Card.Title>Các lần thanh toán</Card.Title>
+        </Card.Header>
+      </Card>
+      <PaymentsTable
+        payments={payments}
+        isLoading={isPaymentsLoading}
+        emptyMessage="Hóa đơn này chưa ghi nhận khoản thanh toán nào."
+      />
     </PageCard>
   );
 }

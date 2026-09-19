@@ -1,5 +1,10 @@
+import { CUSTOMER_ACCOUNTANT_EMAIL_KEY } from '@constants/customer';
 import type { Customer, Invoice, PaymentIntent, PortalSession } from '@database/schemas';
-import type { NotificationKind, NotificationSendJob } from '@queues/notification.queue';
+import type {
+  NotificationKind,
+  NotificationReferences,
+  NotificationSendJob,
+} from '@queues/notification.queue';
 import {
   buildNotificationSendJob,
   NOTIFICATION_SEND_JOB,
@@ -18,6 +23,12 @@ export enum NotificationOutcomeEnum {
   SKIPPED_NO_EMAIL = 'skipped_no_email',
 }
 export type NotificationOutcome = `${NotificationOutcomeEnum}`;
+
+const REMINDER_NOTIFICATION_KINDS: readonly NotificationKind[] = [
+  NotificationKindEnum.INVOICE_DUE_SOON,
+  NotificationKindEnum.INVOICE_OVERDUE,
+  NotificationKindEnum.INVOICE_OVERDUE_INTERNAL,
+];
 
 export class NotificationService {
   constructor(private readonly fastify: FastifyInstance) {}
@@ -45,6 +56,19 @@ export class NotificationService {
       buildNotificationSendJob(NotificationKindEnum.PORTAL_MAGIC_LINK, portalSession.customerId, {
         url,
         dedupeKey: portalSession.id,
+      }),
+    );
+  }
+
+  async dispatchInvoiceReminder(
+    invoice: Invoice,
+    kind: NotificationKind,
+    references: Pick<NotificationReferences, 'url' | 'recipient'>,
+  ): Promise<void> {
+    await this.dispatchNotification(
+      buildNotificationSendJob(kind, invoice.customerId, {
+        ...references,
+        invoiceId: invoice.id,
       }),
     );
   }
@@ -96,9 +120,9 @@ export class NotificationService {
     }
 
     const customer = await this.fastify.customerRepository.getCustomer(job.customerId);
-    const { email } = customer;
+    const recipient = job.recipient || customer.email;
 
-    if (!email) {
+    if (!recipient) {
       this.fastify.log.warn(
         { kind: job.kind, customerId: job.customerId },
         '[NotificationService] sendNotification() skipped, the customer has no email address',
@@ -111,7 +135,8 @@ export class NotificationService {
     const message = buildNotificationEmail(job.kind, context);
 
     await mailer.sendMail({
-      to: email,
+      to: recipient,
+      cc: NotificationService.resolveCarbonCopies(job.kind, customer),
       subject: message.subject,
       text: message.text,
       html: message.html,
@@ -135,6 +160,7 @@ export class NotificationService {
     const nextAttemptAt = NotificationService.resolveNextAttemptAt(invoice);
     const invoiceNumber = _.get(invoice, 'number', null);
     const declineCode = _.get(paymentIntent, 'declineCode', null);
+    const dueAt = _.get(invoice, 'dueAt', null);
 
     return {
       customerName: customer.name,
@@ -143,8 +169,19 @@ export class NotificationService {
       currency: customer.currency,
       declineCode,
       nextAttemptAt,
+      dueAt: dueAt ? new Date(dueAt) : null,
       url: job.url,
     };
+  }
+
+  private static resolveCarbonCopies(kind: NotificationKind, customer: Customer): string[] {
+    const accountantEmail = _.get(customer.metadata, CUSTOMER_ACCOUNTANT_EMAIL_KEY);
+
+    if (_.includes(REMINDER_NOTIFICATION_KINDS, kind) && accountantEmail) {
+      return [accountantEmail];
+    }
+
+    return [];
   }
 
   private async resolveInvoice(invoiceId: string | null): Promise<Invoice | null> {
@@ -176,6 +213,10 @@ export class NotificationService {
 
     if (paymentIntent) {
       return paymentIntent.amount;
+    }
+
+    if (invoice && _.includes(REMINDER_NOTIFICATION_KINDS, kind)) {
+      return invoice.amountDue - invoice.amountPaid;
     }
 
     return _.get(invoice, 'amountDue', 0);

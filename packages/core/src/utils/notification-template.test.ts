@@ -8,12 +8,13 @@ import { buildNotificationEmail } from './notification-template';
 
 function makeContext(overrides: Partial<NotificationContext> = {}): NotificationContext {
   return {
-    customerName: 'Ha Linh',
-    invoiceNumber: 'IN-0001',
+    customerName: 'Nhà xe Hà Linh',
+    invoiceNumber: 'INV-000001',
     amount: 500_000,
     currency: CurrencyEnum.VND,
     declineCode: null,
     nextAttemptAt: null,
+    dueAt: null,
     url: null,
     ...overrides,
   };
@@ -23,15 +24,15 @@ describe('buildNotificationEmail', () => {
   it('names the invoice and the amount in a finalized notice', () => {
     const email = buildNotificationEmail(NotificationKindEnum.INVOICE_FINALIZED, makeContext());
 
-    expect(email.subject).toBe('Your invoice IN-0001 is ready');
-    expect(email.text).toContain('500000 VND');
+    expect(email.subject).toBe('Vexere đã phát hành hóa đơn INV-000001');
+    expect(email.text).toContain('500.000');
   });
 
   it('greets the customer by name and keeps the html and text in step', () => {
     const email = buildNotificationEmail(NotificationKindEnum.PAYMENT_SUCCEEDED, makeContext());
 
-    expect(email.text).toContain('Hello Ha Linh,');
-    expect(email.html).toContain('<p>Hello Ha Linh,</p>');
+    expect(email.text).toContain('Kính gửi Nhà xe Hà Linh,');
+    expect(email.html).toContain('<p>Kính gửi Nhà xe Hà Linh,</p>');
   });
 
   it('greets a nameless customer without a dangling name', () => {
@@ -40,7 +41,17 @@ describe('buildNotificationEmail', () => {
       makeContext({ customerName: '' }),
     );
 
-    expect(email.text).toContain('Hello,');
+    expect(email.text).toContain('Kính gửi quý khách,');
+  });
+
+  it('escapes markup in the customer name rather than rendering it', () => {
+    const email = buildNotificationEmail(
+      NotificationKindEnum.PAYMENT_SUCCEEDED,
+      makeContext({ customerName: '<b>Nhà xe</b>' }),
+    );
+
+    expect(email.html).toContain('&lt;b&gt;Nhà xe&lt;/b&gt;');
+    expect(email.html).not.toContain('<b>');
   });
 
   it('reports the decline code and the next attempt on a failure notice', () => {
@@ -50,7 +61,7 @@ describe('buildNotificationEmail', () => {
       makeContext({ declineCode: DeclineCodeEnum.INSUFFICIENT_FUNDS, nextAttemptAt }),
     );
 
-    expect(email.subject).toBe('Your payment for invoice IN-0001 was declined');
+    expect(email.subject).toBe('Thanh toán cho hóa đơn INV-000001 bị từ chối');
     expect(email.text).toContain('insufficient_funds');
     expect(email.text).toContain(nextAttemptAt.toISOString());
   });
@@ -61,7 +72,7 @@ describe('buildNotificationEmail', () => {
       makeContext({ declineCode: DeclineCodeEnum.STOLEN_CARD }),
     );
 
-    expect(email.text).toContain('We will not try this card again.');
+    expect(email.text).toContain('Vexere sẽ không thử lại với thẻ này.');
   });
 
   it('falls back to the account when there is no invoice behind the notice', () => {
@@ -70,6 +81,38 @@ describe('buildNotificationEmail', () => {
       makeContext({ invoiceNumber: null }),
     );
 
-    expect(email.subject).toBe('We could not collect your account');
+    expect(email.subject).toBe('Không thu được tài khoản của quý khách');
+  });
+
+  it('names the due date in Vietnam time and links the portal in a due-soon reminder', () => {
+    const email = buildNotificationEmail(
+      NotificationKindEnum.INVOICE_DUE_SOON,
+      makeContext({
+        dueAt: new Date('2026-09-21T18:00:00.000Z'),
+        url: 'https://portal.test/invoices/in_1',
+      }),
+    );
+
+    expect(email.subject).toBe('Nhắc thanh toán: hóa đơn INV-000001 đến hạn ngày 22/09/2026');
+    expect(email.text).toContain('https://portal.test/invoices/in_1');
+  });
+
+  it('asks the customer to pay an overdue invoice and to ignore the mail if already paid', () => {
+    const email = buildNotificationEmail(
+      NotificationKindEnum.INVOICE_OVERDUE,
+      makeContext({ dueAt: new Date('2026-09-10T00:00:00.000Z') }),
+    );
+
+    expect(email.subject).toBe('Hóa đơn INV-000001 đã quá hạn thanh toán');
+    expect(email.text).toContain('xin bỏ qua thư này');
+  });
+
+  it('marks the internal overdue notice as internal and names the operator', () => {
+    const email = buildNotificationEmail(
+      NotificationKindEnum.INVOICE_OVERDUE_INTERNAL,
+      makeContext({ dueAt: new Date('2026-09-10T00:00:00.000Z') }),
+    );
+
+    expect(email.subject).toBe('[Nội bộ] Nhà xe Hà Linh: hóa đơn INV-000001 quá hạn');
   });
 });
