@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -119,77 +120,76 @@ export default function MetersPage() {
         <StatItem label="Tổng hợp theo sum" value={size(filter(rows, { aggregation: 'sum' }))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={STATUS_OPTIONS}
-            selectedValue={statusFilter}
-            onSelect={handleOnFilterSelect}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách meter"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'displayName',
-              label: 'Meter',
-              isRowHeader: true,
-              renderCell: (meter) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{meter.displayName}</span>
-                    <span className="text-app-label font-mono text-[11px]">{meter.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={STATUS_OPTIONS}
+              selectedValue={statusFilter}
+              onSelect={handleOnFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách meter"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'displayName',
+            label: 'Meter',
+            isRowHeader: true,
+            renderCell: (meter) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{meter.displayName}</span>
+                  <span className="text-app-label font-mono text-[11px]">{meter.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'eventName',
-              label: 'Event',
-              renderCell: (meter) => {
-                return meter.eventName;
-              },
+          },
+          {
+            key: 'eventName',
+            label: 'Event',
+            renderCell: (meter) => {
+              return meter.eventName;
             },
-            {
-              key: 'aggregation',
-              label: 'Tổng hợp',
-              renderCell: (meter) => {
-                return meter.aggregation;
-              },
+          },
+          {
+            key: 'aggregation',
+            label: 'Tổng hợp',
+            renderCell: (meter) => {
+              return meter.aggregation;
             },
-            {
-              key: 'valueKey',
-              label: 'Khóa giá trị',
-              renderCell: (meter) => {
-                return meter.valueKey;
-              },
+          },
+          {
+            key: 'valueKey',
+            label: 'Khóa giá trị',
+            renderCell: (meter) => {
+              return meter.valueKey;
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (meter) => {
-                return <StatusChip status={meter.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (meter) => {
+              return <StatusChip status={meter.status} />;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (meter) => {
-                return formatDate(meter.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (meter) => {
+              return formatDate(meter.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -197,7 +197,9 @@ export default function MetersPage() {
         description="Meter định nghĩa event nào được đếm và đếm thế nào."
         onOpenChange={setIsCreateOpen}
       >
-        <MeterForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Thông tin meter">
+          <MeterForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
       </EntityDrawer>
 
       {meterId ? (

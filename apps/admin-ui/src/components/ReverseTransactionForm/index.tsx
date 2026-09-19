@@ -17,10 +17,7 @@ export default function ReverseTransactionForm({
   onSave,
 }: ReverseTransactionFormProps) {
   return (
-    <form
-      className="flex flex-wrap items-end gap-4 rounded-md border border-warning-soft bg-warning-soft p-4"
-      onSubmit={onSave}
-    >
+    <form className="flex flex-col gap-4" onSubmit={onSave}>
       <RenderTextField
         control={form.control}
         name="reason"

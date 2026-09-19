@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -134,73 +135,70 @@ export default function WebhookEndpointsPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={STATUS_OPTIONS}
-            selectedValue={statusFilter}
-            onSelect={handleOnStatusSelect}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách endpoint"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có endpoint nào."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'url',
-              label: 'Endpoint',
-              isRowHeader: true,
-              renderCell: (webhookEndpoint) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{webhookEndpoint.url}</span>
-                    <span className="text-app-label font-mono text-[11px]">
-                      {webhookEndpoint.id}
-                    </span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={STATUS_OPTIONS}
+              selectedValue={statusFilter}
+              onSelect={handleOnStatusSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách endpoint"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có endpoint nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'url',
+            label: 'Endpoint',
+            isRowHeader: true,
+            renderCell: (webhookEndpoint) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{webhookEndpoint.url}</span>
+                  <span className="text-app-label font-mono text-[11px]">{webhookEndpoint.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'description',
-              label: 'Mô tả',
-              renderCell: (webhookEndpoint) => {
-                return webhookEndpoint.description || '—';
-              },
+          },
+          {
+            key: 'description',
+            label: 'Mô tả',
+            renderCell: (webhookEndpoint) => {
+              return webhookEndpoint.description || '—';
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (webhookEndpoint) => {
-                return <StatusChip status={webhookEndpoint.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (webhookEndpoint) => {
+              return <StatusChip status={webhookEndpoint.status} />;
             },
-            {
-              key: 'enabledEvents',
-              label: 'Event đăng ký',
-              renderCell: (webhookEndpoint) => {
-                return size(webhookEndpoint.enabledEvents);
-              },
+          },
+          {
+            key: 'enabledEvents',
+            label: 'Event đăng ký',
+            renderCell: (webhookEndpoint) => {
+              return size(webhookEndpoint.enabledEvents);
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (webhookEndpoint) => {
-                return formatDate(webhookEndpoint.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (webhookEndpoint) => {
+              return formatDate(webhookEndpoint.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -208,7 +206,14 @@ export default function WebhookEndpointsPage() {
         description="Secret ký payload chỉ hiện một lần, ngay sau khi tạo."
         onOpenChange={setIsCreateOpen}
       >
-        <WebhookEndpointForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Thông tin endpoint">
+          <WebhookEndpointForm
+            mode="create"
+            form={form}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {webhookEndpointId ? (

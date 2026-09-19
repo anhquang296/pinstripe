@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import PageCard from '@components/PageCard';
@@ -104,56 +105,53 @@ export default function PortalConfigurationsPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)} />
-
-        <DataTable
-          label="Danh sách cấu hình portal"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'businessName',
-              label: 'Cấu hình',
-              isRowHeader: true,
-              renderCell: (configuration) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{configuration.businessName}</span>
-                    <span className="text-app-label font-mono text-[11px]">{configuration.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={<FilterBar itemCount={size(rows)} />}
+        label="Danh sách cấu hình portal"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'businessName',
+            label: 'Cấu hình',
+            isRowHeader: true,
+            renderCell: (configuration) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{configuration.businessName}</span>
+                  <span className="text-app-label font-mono text-[11px]">{configuration.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'isDefault',
-              label: 'Mặc định',
-              renderCell: (configuration) => {
-                return configuration.isDefault ? 'có' : '—';
-              },
+          },
+          {
+            key: 'isDefault',
+            label: 'Mặc định',
+            renderCell: (configuration) => {
+              return configuration.isDefault ? 'có' : '—';
             },
-            {
-              key: 'isActive',
-              label: 'Trạng thái',
-              renderCell: (configuration) => {
-                return <StatusChip status={configuration.isActive ? 'active' : 'inactive'} />;
-              },
+          },
+          {
+            key: 'isActive',
+            label: 'Trạng thái',
+            renderCell: (configuration) => {
+              return <StatusChip status={configuration.isActive ? 'active' : 'inactive'} />;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (configuration) => {
-                return formatDate(configuration.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (configuration) => {
+              return formatDate(configuration.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -161,12 +159,14 @@ export default function PortalConfigurationsPage() {
         description="Quyền của khách trong billing portal."
         onOpenChange={setIsCreateOpen}
       >
-        <PortalConfigurationForm
-          mode="create"
-          form={form}
-          isSaving={isSaving}
-          onSave={handleOnSave}
-        />
+        <DrawerSection title="Thông tin cấu hình">
+          <PortalConfigurationForm
+            mode="create"
+            form={form}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {configurationId ? (

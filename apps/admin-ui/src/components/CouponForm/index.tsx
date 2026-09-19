@@ -27,7 +27,7 @@ interface CouponFormProps {
 export default function CouponForm({ mode, form, isSaving, onSave }: CouponFormProps) {
   return (
     <form
-      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();

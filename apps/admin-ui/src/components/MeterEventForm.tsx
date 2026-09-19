@@ -21,7 +21,7 @@ export default function MeterEventForm({
 }: MeterEventFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -33,26 +33,14 @@ export default function MeterEventForm({
         label="Khách hàng"
         options={customerOptions}
       />
-      <RenderNumberField
-        control={form.control}
-        name="value"
-        label="Giá trị"
-        minValue={0}
-        className="w-32"
-      />
+      <RenderNumberField control={form.control} name="value" label="Giá trị" minValue={0} />
       <RenderTextField
         control={form.control}
         name="identifier"
         label="Mã chống trùng"
         placeholder="Để trống là sinh tự động"
       />
-      <RenderDateField
-        control={form.control}
-        name="timestamp"
-        label="Thời điểm"
-        hasTime
-        className="w-56"
-      />
+      <RenderDateField control={form.control} name="timestamp" label="Thời điểm" hasTime />
       <Button type="submit" isDisabled={isSaving}>
         Bắn một event
       </Button>

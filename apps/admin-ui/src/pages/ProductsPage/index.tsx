@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -112,70 +113,69 @@ export default function ProductsPage() {
         <StatItem label="Có đơn vị tính" value={size(filter(rows, 'unitLabel'))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={ACTIVE_OPTIONS}
-            selectedValue={activeFilter}
-            onSelect={handleOnFilterSelect}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách product"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'name',
-              label: 'Product',
-              isRowHeader: true,
-              renderCell: (product) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{product.name}</span>
-                    <span className="text-app-label font-mono text-[11px]">{product.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={ACTIVE_OPTIONS}
+              selectedValue={activeFilter}
+              onSelect={handleOnFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách product"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'name',
+            label: 'Product',
+            isRowHeader: true,
+            renderCell: (product) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{product.name}</span>
+                  <span className="text-app-label font-mono text-[11px]">{product.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'description',
-              label: 'Mô tả',
-              renderCell: (product) => {
-                return product.description || '—';
-              },
+          },
+          {
+            key: 'description',
+            label: 'Mô tả',
+            renderCell: (product) => {
+              return product.description || '—';
             },
-            {
-              key: 'unitLabel',
-              label: 'Đơn vị',
-              renderCell: (product) => {
-                return product.unitLabel || '—';
-              },
+          },
+          {
+            key: 'unitLabel',
+            label: 'Đơn vị',
+            renderCell: (product) => {
+              return product.unitLabel || '—';
             },
-            {
-              key: 'active',
-              label: 'Trạng thái',
-              renderCell: (product) => {
-                return <StatusChip status={product.active ? 'active' : 'inactive'} />;
-              },
+          },
+          {
+            key: 'active',
+            label: 'Trạng thái',
+            renderCell: (product) => {
+              return <StatusChip status={product.active ? 'active' : 'inactive'} />;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (product) => {
-                return formatDate(product.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (product) => {
+              return formatDate(product.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -183,7 +183,9 @@ export default function ProductsPage() {
         description="Product là thứ được bán; giá nằm ở price."
         onOpenChange={setIsCreateOpen}
       >
-        <ProductForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Thông tin product">
+          <ProductForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
       </EntityDrawer>
 
       {productId ? (

@@ -89,99 +89,98 @@ export default function WebhookDeliveriesPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchEndpointId}
-          searchPlaceholder="Lọc theo endpoint id"
-          onSearchChange={handleOnSearchChange}
-        >
-          <FilterSelect
-            label="Trạng thái"
-            options={STATUS_OPTIONS}
-            selectedValue={statusFilter}
-            onSelect={handleOnStatusSelect}
-          />
-        </FilterBar>
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchEndpointId}
+            searchPlaceholder="Lọc theo endpoint id"
+            onSearchChange={handleOnSearchChange}
+          >
+            <FilterSelect
+              label="Trạng thái"
+              options={STATUS_OPTIONS}
+              selectedValue={statusFilter}
+              onSelect={handleOnStatusSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách lần giao"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có lần giao nào."
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'eventType',
+            label: 'Event',
+            isRowHeader: true,
+            renderCell: (webhookDelivery) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{webhookDelivery.eventType}</span>
+                  <span className="text-app-label font-mono text-[11px]">
+                    {webhookDelivery.eventId}
+                  </span>
+                </div>
+              );
+            },
+          },
+          {
+            key: 'endpointId',
+            label: 'Endpoint',
+            renderCell: (webhookDelivery) => {
+              return <span className="font-mono text-[11px]">{webhookDelivery.endpointId}</span>;
+            },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (webhookDelivery) => {
+              return <StatusChip status={webhookDelivery.status} />;
+            },
+          },
+          {
+            key: 'attemptCount',
+            label: 'Số lần thử',
+            renderCell: (webhookDelivery) => {
+              return webhookDelivery.attemptCount;
+            },
+          },
+          {
+            key: 'responseStatus',
+            label: 'HTTP',
+            renderCell: (webhookDelivery) => {
+              const { responseStatus } = webhookDelivery;
 
-        <DataTable
-          label="Danh sách lần giao"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có lần giao nào."
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'eventType',
-              label: 'Event',
-              isRowHeader: true,
-              renderCell: (webhookDelivery) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{webhookDelivery.eventType}</span>
-                    <span className="text-app-label font-mono text-[11px]">
-                      {webhookDelivery.eventId}
-                    </span>
-                  </div>
-                );
-              },
+              return responseStatus === null ? '—' : responseStatus;
             },
-            {
-              key: 'endpointId',
-              label: 'Endpoint',
-              renderCell: (webhookDelivery) => {
-                return <span className="font-mono text-[11px]">{webhookDelivery.endpointId}</span>;
-              },
-            },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (webhookDelivery) => {
-                return <StatusChip status={webhookDelivery.status} />;
-              },
-            },
-            {
-              key: 'attemptCount',
-              label: 'Số lần thử',
-              renderCell: (webhookDelivery) => {
-                return webhookDelivery.attemptCount;
-              },
-            },
-            {
-              key: 'responseStatus',
-              label: 'HTTP',
-              renderCell: (webhookDelivery) => {
-                const { responseStatus } = webhookDelivery;
+          },
+          {
+            key: 'lastError',
+            label: 'Lỗi gần nhất',
+            renderCell: (webhookDelivery) => {
+              const { lastError } = webhookDelivery;
 
-                return responseStatus === null ? '—' : responseStatus;
-              },
-            },
-            {
-              key: 'lastError',
-              label: 'Lỗi gần nhất',
-              renderCell: (webhookDelivery) => {
-                const { lastError } = webhookDelivery;
+              if (lastError === null) {
+                return '—';
+              }
 
-                if (lastError === null) {
-                  return '—';
-                }
-
-                return <span className="text-[11px] text-danger">{lastError}</span>;
-              },
+              return <span className="text-[11px] text-danger">{lastError}</span>;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (webhookDelivery) => {
-                return formatDate(webhookDelivery.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (webhookDelivery) => {
+              return formatDate(webhookDelivery.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
     </PageCard>
   );
 }

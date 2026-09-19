@@ -12,7 +12,7 @@ interface UserPasswordFormProps {
 export default function UserPasswordForm({ form, isSaving, onSave }: UserPasswordFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();

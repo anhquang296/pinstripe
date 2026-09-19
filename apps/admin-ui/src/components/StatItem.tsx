@@ -1,3 +1,4 @@
+import { Card } from '@heroui/react';
 import type { ReactNode } from 'react';
 
 interface StatItemProps {
@@ -8,10 +9,14 @@ interface StatItemProps {
 
 export default function StatItem({ label, value, meta }: StatItemProps) {
   return (
-    <div className="border-app-border-soft flex flex-col gap-1 rounded-md border bg-surface p-4">
-      <span className="text-app-description text-[11px] font-semibold uppercase">{label}</span>
-      <span className="text-[20px] leading-7 font-bold">{value}</span>
-      {meta ? <span className="text-app-label text-[12px]">{meta}</span> : null}
-    </div>
+    <Card>
+      <Card.Header>
+        <Card.Description className="text-xs font-medium uppercase">{label}</Card.Description>
+      </Card.Header>
+      <Card.Content>
+        <span className="text-2xl font-semibold text-foreground">{value}</span>
+        {meta ? <span className="text-xs text-muted">{meta}</span> : null}
+      </Card.Content>
+    </Card>
   );
 }

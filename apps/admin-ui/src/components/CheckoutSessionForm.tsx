@@ -29,7 +29,7 @@ export default function CheckoutSessionForm({
 }: CheckoutSessionFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -60,13 +60,7 @@ export default function CheckoutSessionForm({
         label="Bảng giá"
         options={priceOptions}
       />
-      <RenderNumberField
-        control={form.control}
-        name="quantity"
-        label="Số lượng"
-        minValue={1}
-        className="w-28"
-      />
+      <RenderNumberField control={form.control} name="quantity" label="Số lượng" minValue={1} />
       <Button type="submit" isDisabled={isSaving}>
         Tạo phiên checkout
       </Button>

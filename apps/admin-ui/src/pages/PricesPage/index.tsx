@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -136,81 +137,80 @@ export default function PricesPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={ACTIVE_OPTIONS}
-            selectedValue={activeFilter}
-            onSelect={handleOnFilterSelect}
-          />
-        </FilterBar>
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={ACTIVE_OPTIONS}
+              selectedValue={activeFilter}
+              onSelect={handleOnFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách price"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'lookupKey',
+            label: 'Lookup key',
+            isRowHeader: true,
+            renderCell: (price) => {
+              const { lookupKey } = price;
 
-        <DataTable
-          label="Danh sách price"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'lookupKey',
-              label: 'Lookup key',
-              isRowHeader: true,
-              renderCell: (price) => {
-                const { lookupKey } = price;
-
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">
-                      {lookupKey === null ? price.nickname || '—' : lookupKey}
-                    </span>
-                    <span className="text-app-label font-mono text-[11px]">{price.id}</span>
-                  </div>
-                );
-              },
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">
+                    {lookupKey === null ? price.nickname || '—' : lookupKey}
+                  </span>
+                  <span className="text-app-label font-mono text-[11px]">{price.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'version',
-              label: 'Version',
-              renderCell: (price) => {
-                return `v${price.version}`;
-              },
+          },
+          {
+            key: 'version',
+            label: 'Version',
+            renderCell: (price) => {
+              return `v${price.version}`;
             },
-            {
-              key: 'amount',
-              label: 'Giá',
-              renderCell: (price) => {
-                return formatPriceAmount(price);
-              },
+          },
+          {
+            key: 'amount',
+            label: 'Giá',
+            renderCell: (price) => {
+              return formatPriceAmount(price);
             },
-            {
-              key: 'type',
-              label: 'Loại',
-              renderCell: (price) => {
-                return price.type;
-              },
+          },
+          {
+            key: 'type',
+            label: 'Loại',
+            renderCell: (price) => {
+              return price.type;
             },
-            {
-              key: 'active',
-              label: 'Trạng thái',
-              renderCell: (price) => {
-                return <StatusChip status={price.active ? 'active' : 'inactive'} />;
-              },
+          },
+          {
+            key: 'active',
+            label: 'Trạng thái',
+            renderCell: (price) => {
+              return <StatusChip status={price.active ? 'active' : 'inactive'} />;
             },
-            {
-              key: 'effectiveAt',
-              label: 'Hiệu lực từ',
-              renderCell: (price) => {
-                return formatDate(price.effectiveAt);
-              },
+          },
+          {
+            key: 'effectiveAt',
+            label: 'Hiệu lực từ',
+            renderCell: (price) => {
+              return formatDate(price.effectiveAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -218,13 +218,15 @@ export default function PricesPage() {
         description="Một version giá mới cho product đã chọn."
         onOpenChange={setIsCreateOpen}
       >
-        <PriceForm
-          form={form}
-          productOptions={productOptions}
-          meterOptions={meterOptions}
-          isSaving={isSaving}
-          onSave={handleOnSave}
-        />
+        <DrawerSection title="Thông tin price">
+          <PriceForm
+            form={form}
+            productOptions={productOptions}
+            meterOptions={meterOptions}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {priceId ? (

@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -139,99 +140,98 @@ export default function UsersPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchTerm}
-          searchPlaceholder="Tìm theo email hoặc tên"
-          onSearchChange={setSearchTerm}
-        >
-          <FilterSelect
-            label="Vai trò"
-            options={ROLE_FILTER_OPTIONS}
-            selectedValue={roleFilter}
-            onSelect={handleOnRoleFilterSelect}
-          />
-        </FilterBar>
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchTerm}
+            searchPlaceholder="Tìm theo email hoặc tên"
+            onSearchChange={setSearchTerm}
+          >
+            <FilterSelect
+              label="Vai trò"
+              options={ROLE_FILTER_OPTIONS}
+              selectedValue={roleFilter}
+              onSelect={handleOnRoleFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách người dùng"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có người dùng nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'name',
+            label: 'Người dùng',
+            isRowHeader: true,
+            renderCell: (user) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{user.name}</span>
+                  <span className="text-app-label font-mono text-[11px]">{user.email}</span>
+                </div>
+              );
+            },
+          },
+          {
+            key: 'role',
+            label: 'Vai trò',
+            renderCell: (user) => {
+              return (
+                <UserRoleChips
+                  role={user.role}
+                  isDisabled={!canManage || isUpdating}
+                  onRoleChange={(role) => {
+                    handleOnRoleChange(user, role);
+                  }}
+                />
+              );
+            },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (user) => {
+              return <StatusChip status={user.status} />;
+            },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (user) => {
+              return formatDate(user.createdAt);
+            },
+          },
+          {
+            key: 'actions',
+            label: 'Thao tác',
+            renderCell: (user) => {
+              if (!canManage) {
+                return '—';
+              }
 
-        <DataTable
-          label="Danh sách người dùng"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có người dùng nào."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'name',
-              label: 'Người dùng',
-              isRowHeader: true,
-              renderCell: (user) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{user.name}</span>
-                    <span className="text-app-label font-mono text-[11px]">{user.email}</span>
-                  </div>
-                );
-              },
+              return (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  isDisabled={isUpdating}
+                  onPress={() => {
+                    handleOnStatusToggle(user);
+                  }}
+                >
+                  {user.status === UserStatusEnum.ACTIVE ? 'Vô hiệu hoá' : 'Bật lại'}
+                </Button>
+              );
             },
-            {
-              key: 'role',
-              label: 'Vai trò',
-              renderCell: (user) => {
-                return (
-                  <UserRoleChips
-                    role={user.role}
-                    isDisabled={!canManage || isUpdating}
-                    onRoleChange={(role) => {
-                      handleOnRoleChange(user, role);
-                    }}
-                  />
-                );
-              },
-            },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (user) => {
-                return <StatusChip status={user.status} />;
-              },
-            },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (user) => {
-                return formatDate(user.createdAt);
-              },
-            },
-            {
-              key: 'actions',
-              label: 'Thao tác',
-              renderCell: (user) => {
-                if (!canManage) {
-                  return '—';
-                }
-
-                return (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    isDisabled={isUpdating}
-                    onPress={() => {
-                      handleOnStatusToggle(user);
-                    }}
-                  >
-                    {user.status === UserStatusEnum.ACTIVE ? 'Vô hiệu hoá' : 'Bật lại'}
-                  </Button>
-                );
-              },
-            },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -239,7 +239,9 @@ export default function UsersPage() {
         description="Mật khẩu ban đầu tối thiểu 12 ký tự; người dùng đổi lại sau khi đăng nhập."
         onOpenChange={setIsCreateOpen}
       >
-        <UserForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Thông tin người dùng">
+          <UserForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
       </EntityDrawer>
 
       {userId ? (

@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import LedgerTransactionForm from '@components/LedgerTransactionForm';
@@ -111,71 +112,70 @@ export default function LedgerTransactionsPage() {
         <StatItem label="Đã bị đảo" value={size(filter(rows, 'reversedByTransactionId'))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchCustomerId}
-          searchPlaceholder="Lọc theo customer id"
-          onSearchChange={handleOnSearchChange}
-        />
-
-        <DataTable
-          label="Danh sách bút toán"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có bút toán nào."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'description',
-              label: 'Diễn giải',
-              isRowHeader: true,
-              renderCell: (ledgerTransaction) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{ledgerTransaction.description}</span>
-                    <span className="text-app-label font-mono text-[11px]">
-                      {ledgerTransaction.id}
-                    </span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchCustomerId}
+            searchPlaceholder="Lọc theo customer id"
+            onSearchChange={handleOnSearchChange}
+          />
+        }
+        label="Danh sách bút toán"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có bút toán nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'description',
+            label: 'Diễn giải',
+            isRowHeader: true,
+            renderCell: (ledgerTransaction) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{ledgerTransaction.description}</span>
+                  <span className="text-app-label font-mono text-[11px]">
+                    {ledgerTransaction.id}
+                  </span>
+                </div>
+              );
             },
-            {
-              key: 'postings',
-              label: 'Số dòng',
-              renderCell: (ledgerTransaction) => {
-                return size(ledgerTransaction.postings);
-              },
+          },
+          {
+            key: 'postings',
+            label: 'Số dòng',
+            renderCell: (ledgerTransaction) => {
+              return size(ledgerTransaction.postings);
             },
-            {
-              key: 'externalId',
-              label: 'Mã đối chiếu',
-              renderCell: (ledgerTransaction) => {
-                return ledgerTransaction.externalId ?? '—';
-              },
+          },
+          {
+            key: 'externalId',
+            label: 'Mã đối chiếu',
+            renderCell: (ledgerTransaction) => {
+              return ledgerTransaction.externalId ?? '—';
             },
-            {
-              key: 'reversedByTransactionId',
-              label: 'Bị đảo bởi',
-              renderCell: (ledgerTransaction) => {
-                return ledgerTransaction.reversedByTransactionId ?? '—';
-              },
+          },
+          {
+            key: 'reversedByTransactionId',
+            label: 'Bị đảo bởi',
+            renderCell: (ledgerTransaction) => {
+              return ledgerTransaction.reversedByTransactionId ?? '—';
             },
-            {
-              key: 'effectiveAt',
-              label: 'Hiệu lực',
-              renderCell: (ledgerTransaction) => {
-                return formatDate(ledgerTransaction.effectiveAt);
-              },
+          },
+          {
+            key: 'effectiveAt',
+            label: 'Hiệu lực',
+            renderCell: (ledgerTransaction) => {
+              return formatDate(ledgerTransaction.effectiveAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -183,7 +183,9 @@ export default function LedgerTransactionsPage() {
         description="Tổng nợ phải bằng tổng có, nếu không sổ sẽ từ chối."
         onOpenChange={setIsCreateOpen}
       >
-        <LedgerTransactionForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Bút toán">
+          <LedgerTransactionForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
       </EntityDrawer>
 
       {transactionId ? (

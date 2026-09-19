@@ -16,9 +16,7 @@ export default function DetailList({ items }: DetailListProps) {
       {map(items, (item) => {
         return (
           <div key={item.label} className="flex flex-col gap-0.5">
-            <dt className="text-app-description text-[11px] font-semibold uppercase">
-              {item.label}
-            </dt>
+            <dt className="text-[11px] font-semibold text-muted uppercase">{item.label}</dt>
             <dd className="text-[13px]">{item.value}</dd>
           </div>
         );

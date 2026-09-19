@@ -15,7 +15,7 @@ interface RefundFormProps {
 export default function RefundForm({ form, chargeOptions, isSaving, onSave }: RefundFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -27,13 +27,7 @@ export default function RefundForm({ form, chargeOptions, isSaving, onSave }: Re
         label="Charge"
         options={chargeOptions}
       />
-      <RenderNumberField
-        control={form.control}
-        name="amount"
-        label="Số tiền hoàn"
-        minValue={1}
-        className="w-40"
-      />
+      <RenderNumberField control={form.control} name="amount" label="Số tiền hoàn" minValue={1} />
       <RenderTextField
         control={form.control}
         name="reason"

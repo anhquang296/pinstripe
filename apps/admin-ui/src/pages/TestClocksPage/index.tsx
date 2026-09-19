@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import PageCard from '@components/PageCard';
@@ -77,7 +78,7 @@ export default function TestClocksPage() {
         title="Test clocks"
         description="Test clock đang tắt ở môi trường này. Bật bằng TEST_CLOCKS_ENABLED=true trên UAT/staging."
       >
-        <p className="text-app-description text-[13px]">Không có gì để hiển thị.</p>
+        <p className="text-[13px] text-muted">Không có gì để hiển thị.</p>
       </PageCard>
     );
   }
@@ -111,57 +112,54 @@ export default function TestClocksPage() {
         <StatItem label="Mốc gần nhất" value={formatDate(get(rows, '0.frozenTime', ''))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)} />
-
-        <DataTable
-          label="Danh sách test clock"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có test clock nào."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'name',
-              label: 'Đồng hồ',
-              isRowHeader: true,
-              renderCell: (testClock) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{testClock.name}</span>
-                    <span className="text-app-label font-mono text-[11px]">{testClock.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={<FilterBar itemCount={size(rows)} />}
+        label="Danh sách test clock"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có test clock nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'name',
+            label: 'Đồng hồ',
+            isRowHeader: true,
+            renderCell: (testClock) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{testClock.name}</span>
+                  <span className="text-app-label font-mono text-[11px]">{testClock.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'frozenTime',
-              label: 'Đang đứng ở',
-              renderCell: (testClock) => {
-                return formatDate(testClock.frozenTime);
-              },
+          },
+          {
+            key: 'frozenTime',
+            label: 'Đang đứng ở',
+            renderCell: (testClock) => {
+              return formatDate(testClock.frozenTime);
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (testClock) => {
-                return <StatusChip status={testClock.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (testClock) => {
+              return <StatusChip status={testClock.status} />;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (testClock) => {
-                return formatDate(testClock.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (testClock) => {
+              return formatDate(testClock.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -169,7 +167,9 @@ export default function TestClocksPage() {
         description="Đồng hồ đứng ở mốc bạn chọn cho tới khi được tua tới mốc mới."
         onOpenChange={setIsCreateOpen}
       >
-        <TestClockForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Thông tin test clock">
+          <TestClockForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
       </EntityDrawer>
 
       {testClockId ? (

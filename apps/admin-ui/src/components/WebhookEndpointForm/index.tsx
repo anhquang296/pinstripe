@@ -30,13 +30,12 @@ export default function WebhookEndpointForm({
         onSave();
       }}
     >
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col gap-4">
         <RenderTextField
           control={form.control}
           name="url"
           label="URL nhận event"
           placeholder="http://localhost:4100/hooks"
-          className="w-96"
           isDisabled={isEdit}
         />
         <RenderTextField

@@ -1,8 +1,7 @@
 import { ROLE_OPTIONS } from '@constants/roles';
-import { Chip } from '@heroui/react';
-import { cn } from '@lib/cn';
+import { Chip, ToggleButton, ToggleButtonGroup } from '@heroui/react';
 import type { UserRole } from '@pinstripe/core/contracts';
-import { map } from 'lodash-es';
+import { find, map } from 'lodash-es';
 
 interface UserRoleChipsProps {
   role: string;
@@ -20,26 +19,29 @@ export default function UserRoleChips({ role, isDisabled, onRoleChange }: UserRo
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1">
+    <ToggleButtonGroup
+      size="sm"
+      aria-label="Vai trò"
+      selectionMode="single"
+      disallowEmptySelection
+      selectedKeys={[role]}
+      onSelectionChange={(keys) => {
+        const roleOption = find(ROLE_OPTIONS, (option) => {
+          return keys.has(option.value);
+        });
+
+        if (roleOption) {
+          onRoleChange(roleOption.value);
+        }
+      }}
+    >
       {map(ROLE_OPTIONS, (roleOption) => {
         return (
-          <button
-            key={roleOption.value}
-            type="button"
-            className={cn(
-              'rounded-xs px-2 py-0.5 text-[11px] font-medium',
-              roleOption.value === role
-                ? 'bg-accent-soft text-accent'
-                : 'text-app-label bg-background',
-            )}
-            onClick={() => {
-              onRoleChange(roleOption.value);
-            }}
-          >
+          <ToggleButton key={roleOption.value} id={roleOption.value}>
             {roleOption.value}
-          </button>
+          </ToggleButton>
         );
       })}
-    </div>
+    </ToggleButtonGroup>
   );
 }

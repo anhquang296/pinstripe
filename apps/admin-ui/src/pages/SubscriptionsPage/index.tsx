@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -154,72 +155,71 @@ export default function SubscriptionsPage() {
         <StatItem label="Hủy cuối kỳ" value={size(filter(rows, 'cancelAtPeriodEnd'))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={STATUS_OPTIONS}
-            selectedValue={statusFilter}
-            onSelect={handleOnFilterSelect}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách subscription"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'id',
-              label: 'Subscription',
-              isRowHeader: true,
-              renderCell: (subscription) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{subscription.id}</span>
-                    <span className="text-app-label font-mono text-[11px]">
-                      {subscription.customerId}
-                    </span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={STATUS_OPTIONS}
+              selectedValue={statusFilter}
+              onSelect={handleOnFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách subscription"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'id',
+            label: 'Subscription',
+            isRowHeader: true,
+            renderCell: (subscription) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{subscription.id}</span>
+                  <span className="text-app-label font-mono text-[11px]">
+                    {subscription.customerId}
+                  </span>
+                </div>
+              );
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (subscription) => {
-                return <StatusChip status={subscription.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (subscription) => {
+              return <StatusChip status={subscription.status} />;
             },
-            {
-              key: 'items',
-              label: 'Số dòng',
-              renderCell: (subscription) => {
-                return size(subscription.items);
-              },
+          },
+          {
+            key: 'items',
+            label: 'Số dòng',
+            renderCell: (subscription) => {
+              return size(subscription.items);
             },
-            {
-              key: 'currentPeriod',
-              label: 'Kỳ hiện tại',
-              renderCell: (subscription) => {
-                return `${formatDate(subscription.currentPeriodStart)} → ${formatDate(subscription.currentPeriodEnd)}`;
-              },
+          },
+          {
+            key: 'currentPeriod',
+            label: 'Kỳ hiện tại',
+            renderCell: (subscription) => {
+              return `${formatDate(subscription.currentPeriodStart)} → ${formatDate(subscription.currentPeriodEnd)}`;
             },
-            {
-              key: 'collectionMethod',
-              label: 'Thu tiền',
-              renderCell: (subscription) => {
-                return subscription.collectionMethod;
-              },
+          },
+          {
+            key: 'collectionMethod',
+            label: 'Thu tiền',
+            renderCell: (subscription) => {
+              return subscription.collectionMethod;
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -227,13 +227,15 @@ export default function SubscriptionsPage() {
         description="Một thuê bao mới cho khách hàng đã chọn."
         onOpenChange={setIsCreateOpen}
       >
-        <SubscriptionForm
-          form={form}
-          customerOptions={customerOptions}
-          priceOptions={priceOptions}
-          isSaving={isSaving}
-          onSave={handleOnSave}
-        />
+        <DrawerSection title="Thông tin thuê bao">
+          <SubscriptionForm
+            form={form}
+            customerOptions={customerOptions}
+            priceOptions={priceOptions}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {subscriptionId ? (

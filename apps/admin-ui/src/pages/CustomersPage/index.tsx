@@ -1,5 +1,6 @@
 import CustomerForm from '@components/CustomerForm';
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import PageCard from '@components/PageCard';
@@ -115,68 +116,67 @@ export default function CustomersPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchEmail}
-          searchPlaceholder="Tìm theo email"
-          onSearchChange={handleOnSearchChange}
-        />
-
-        <DataTable
-          label="Danh sách customer"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'name',
-              label: 'Khách hàng',
-              isRowHeader: true,
-              renderCell: (customer) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{customer.name || '—'}</span>
-                    <span className="text-app-label font-mono text-[11px]">{customer.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchEmail}
+            searchPlaceholder="Tìm theo email"
+            onSearchChange={handleOnSearchChange}
+          />
+        }
+        label="Danh sách customer"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'name',
+            label: 'Khách hàng',
+            isRowHeader: true,
+            renderCell: (customer) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{customer.name || '—'}</span>
+                  <span className="text-app-label font-mono text-[11px]">{customer.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'email',
-              label: 'Email',
-              renderCell: (customer) => {
-                return customer.email ?? '—';
-              },
+          },
+          {
+            key: 'email',
+            label: 'Email',
+            renderCell: (customer) => {
+              return customer.email ?? '—';
             },
-            {
-              key: 'balance',
-              label: 'Số dư',
-              renderCell: (customer) => {
-                return formatCurrency(customer.balance, customer.currency);
-              },
+          },
+          {
+            key: 'balance',
+            label: 'Số dư',
+            renderCell: (customer) => {
+              return formatCurrency(customer.balance, customer.currency);
             },
-            {
-              key: 'currency',
-              label: 'Tiền tệ',
-              renderCell: (customer) => {
-                return toUpper(customer.currency);
-              },
+          },
+          {
+            key: 'currency',
+            label: 'Tiền tệ',
+            renderCell: (customer) => {
+              return toUpper(customer.currency);
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (customer) => {
-                return formatDate(customer.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (customer) => {
+              return formatDate(customer.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -184,7 +184,9 @@ export default function CustomersPage() {
         description="Một khách hàng mới trên bề mặt billing."
         onOpenChange={setIsCreateOpen}
       >
-        <CustomerForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Thông tin khách hàng">
+          <CustomerForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
       </EntityDrawer>
 
       {customerId ? <CustomerDrawer customerId={customerId} onClose={handleOnCloseDetail} /> : null}

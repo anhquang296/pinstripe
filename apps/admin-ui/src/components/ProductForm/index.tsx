@@ -12,10 +12,7 @@ interface ProductFormProps {
 
 export default function ProductForm({ mode, form, isSaving, onSave }: ProductFormProps) {
   return (
-    <form
-      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
-      onSubmit={onSave}
-    >
+    <form className="flex flex-col gap-4" onSubmit={onSave}>
       <RenderTextField control={form.control} name="name" label="Tên" placeholder="Pinstripe Pro" />
       <RenderTextField
         control={form.control}

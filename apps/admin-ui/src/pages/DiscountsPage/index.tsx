@@ -156,69 +156,66 @@ export default function DiscountsPage() {
         <StatItem label="Giảm giá đang áp" value={size(get(discounts, 'data', []))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)} />
+      <DataTable
+        toolbar={<FilterBar itemCount={size(rows)} />}
+        label="Danh sách coupon"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'name',
+            label: 'Coupon',
+            isRowHeader: true,
+            renderCell: (coupon) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{coupon.name || coupon.id}</span>
+                  <span className="text-app-label font-mono text-[11px]">{coupon.id}</span>
+                </div>
+              );
+            },
+          },
+          {
+            key: 'off',
+            label: 'Mức giảm',
+            renderCell: (coupon) => {
+              const { percentOff } = coupon;
 
-        <DataTable
-          label="Danh sách coupon"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'name',
-              label: 'Coupon',
-              isRowHeader: true,
-              renderCell: (coupon) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{coupon.name || coupon.id}</span>
-                    <span className="text-app-label font-mono text-[11px]">{coupon.id}</span>
-                  </div>
-                );
-              },
-            },
-            {
-              key: 'off',
-              label: 'Mức giảm',
-              renderCell: (coupon) => {
-                const { percentOff } = coupon;
+              if (percentOff === null) {
+                return `${coupon.amountOff}`;
+              }
 
-                if (percentOff === null) {
-                  return `${coupon.amountOff}`;
-                }
-
-                return `${percentOff}%`;
-              },
+              return `${percentOff}%`;
             },
-            {
-              key: 'duration',
-              label: 'Thời hạn',
-              renderCell: (coupon) => {
-                return coupon.duration;
-              },
+          },
+          {
+            key: 'duration',
+            label: 'Thời hạn',
+            renderCell: (coupon) => {
+              return coupon.duration;
             },
-            {
-              key: 'timesRedeemed',
-              label: 'Đã dùng',
-              renderCell: (coupon) => {
-                return coupon.timesRedeemed;
-              },
+          },
+          {
+            key: 'timesRedeemed',
+            label: 'Đã dùng',
+            renderCell: (coupon) => {
+              return coupon.timesRedeemed;
             },
-            {
-              key: 'valid',
-              label: 'Hiệu lực',
-              renderCell: (coupon) => {
-                return <StatusChip status={coupon.valid ? 'active' : 'void'} />;
-              },
+          },
+          {
+            key: 'valid',
+            label: 'Hiệu lực',
+            renderCell: (coupon) => {
+              return <StatusChip status={coupon.valid ? 'active' : 'void'} />;
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       {canWrite ? (
         <DrawerSection title="Áp giảm giá cho khách hoặc thuê bao">
@@ -292,12 +289,14 @@ export default function DiscountsPage() {
         description="Coupon là mức giảm; promotion code là cách khách nhập nó."
         onOpenChange={setIsCreateOpen}
       >
-        <CouponForm
-          mode="create"
-          form={couponForm}
-          isSaving={isSaving}
-          onSave={handleOnSaveCoupon}
-        />
+        <DrawerSection title="Thông tin coupon">
+          <CouponForm
+            mode="create"
+            form={couponForm}
+            isSaving={isSaving}
+            onSave={handleOnSaveCoupon}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {couponId ? (

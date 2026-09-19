@@ -30,7 +30,7 @@ export default function SubscriptionUpdateForm({
 }: SubscriptionUpdateFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();

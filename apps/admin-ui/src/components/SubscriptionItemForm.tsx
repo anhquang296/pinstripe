@@ -23,7 +23,7 @@ export default function SubscriptionItemForm({
 }: SubscriptionItemFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -35,13 +35,7 @@ export default function SubscriptionItemForm({
         label="Bảng giá"
         options={priceOptions}
       />
-      <RenderNumberField
-        control={form.control}
-        name="quantity"
-        label="Số lượng"
-        minValue={1}
-        className="w-28"
-      />
+      <RenderNumberField control={form.control} name="quantity" label="Số lượng" minValue={1} />
       <Button type="submit" isDisabled={isSaving}>
         {mode === 'create' ? 'Thêm dòng' : 'Lưu dòng'}
       </Button>

@@ -87,63 +87,62 @@ export default function ReportsPage() {
         />
       </DrawerSection>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <div className="border-app-border-soft flex items-center gap-3 border-b px-3 py-2">
-          <span className="text-app-label text-[12px]">{size(exceptions)} mục lệch</span>
-        </div>
-
-        <DataTable
-          label="Các trường hợp lệch"
-          rows={exceptions}
-          isLoading={isPending}
-          emptyMessage="Không có trường hợp lệch nào trong kỳ."
-          columns={[
-            {
-              key: 'outcome',
-              label: 'Loại lệch',
-              isRowHeader: true,
-              renderCell: (exception) => {
-                return <StatusChip status={exception.outcome} />;
-              },
+      <DataTable
+        toolbar={
+          <div className="flex items-center gap-3 px-3 py-3">
+            <span className="text-app-label text-[12px]">{size(exceptions)} mục lệch</span>
+          </div>
+        }
+        label="Các trường hợp lệch"
+        rows={exceptions}
+        isLoading={isPending}
+        emptyMessage="Không có trường hợp lệch nào trong kỳ."
+        columns={[
+          {
+            key: 'outcome',
+            label: 'Loại lệch',
+            isRowHeader: true,
+            renderCell: (exception) => {
+              return <StatusChip status={exception.outcome} />;
             },
-            {
-              key: 'reference',
-              label: 'Tham chiếu',
-              renderCell: (exception) => {
-                return <span className="font-mono text-[11px]">{exception.reference}</span>;
-              },
+          },
+          {
+            key: 'reference',
+            label: 'Tham chiếu',
+            renderCell: (exception) => {
+              return <span className="font-mono text-[11px]">{exception.reference}</span>;
             },
-            {
-              key: 'source',
-              label: 'Nguồn',
-              renderCell: (exception) => {
-                return exception.source;
-              },
+          },
+          {
+            key: 'source',
+            label: 'Nguồn',
+            renderCell: (exception) => {
+              return exception.source;
             },
-            {
-              key: 'processorAmount',
-              label: 'Cổng',
-              renderCell: (exception) => {
-                return formatExceptionAmount(exception.processorAmount, currency);
-              },
+          },
+          {
+            key: 'processorAmount',
+            label: 'Cổng',
+            renderCell: (exception) => {
+              return formatExceptionAmount(exception.processorAmount, currency);
             },
-            {
-              key: 'ledgerAmount',
-              label: 'Sổ',
-              renderCell: (exception) => {
-                return formatExceptionAmount(exception.ledgerAmount, currency);
-              },
+          },
+          {
+            key: 'ledgerAmount',
+            label: 'Sổ',
+            renderCell: (exception) => {
+              return formatExceptionAmount(exception.ledgerAmount, currency);
             },
-            {
-              key: 'invoiceAmount',
-              label: 'Hoá đơn',
-              renderCell: (exception) => {
-                return formatExceptionAmount(exception.invoiceAmount, currency);
-              },
+          },
+          {
+            key: 'invoiceAmount',
+            label: 'Hoá đơn',
+            renderCell: (exception) => {
+              return formatExceptionAmount(exception.invoiceAmount, currency);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
     </PageCard>
   );
 }

@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -112,77 +113,76 @@ export default function TaxRatesPage() {
         <StatItem label="VAT" value={size(filter(rows, { taxType: TaxTypeEnum.VAT }))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={ACTIVE_OPTIONS}
-            selectedValue={activeFilter}
-            onSelect={handleOnFilterSelect}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách tax rate"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'displayName',
-              label: 'Tax rate',
-              isRowHeader: true,
-              renderCell: (taxRate) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{taxRate.displayName}</span>
-                    <span className="text-app-label font-mono text-[11px]">{taxRate.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={ACTIVE_OPTIONS}
+              selectedValue={activeFilter}
+              onSelect={handleOnFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách tax rate"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'displayName',
+            label: 'Tax rate',
+            isRowHeader: true,
+            renderCell: (taxRate) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{taxRate.displayName}</span>
+                  <span className="text-app-label font-mono text-[11px]">{taxRate.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'percentage',
-              label: 'Thuế suất',
-              renderCell: (taxRate) => {
-                return `${taxRate.percentage}%`;
-              },
+          },
+          {
+            key: 'percentage',
+            label: 'Thuế suất',
+            renderCell: (taxRate) => {
+              return `${taxRate.percentage}%`;
             },
-            {
-              key: 'taxType',
-              label: 'Loại',
-              renderCell: (taxRate) => {
-                return taxRate.taxType;
-              },
+          },
+          {
+            key: 'taxType',
+            label: 'Loại',
+            renderCell: (taxRate) => {
+              return taxRate.taxType;
             },
-            {
-              key: 'inclusive',
-              label: 'Gồm trong giá',
-              renderCell: (taxRate) => {
-                return taxRate.inclusive ? 'có' : 'không';
-              },
+          },
+          {
+            key: 'inclusive',
+            label: 'Gồm trong giá',
+            renderCell: (taxRate) => {
+              return taxRate.inclusive ? 'có' : 'không';
             },
-            {
-              key: 'active',
-              label: 'Trạng thái',
-              renderCell: (taxRate) => {
-                return <StatusChip status={taxRate.active ? 'active' : 'inactive'} />;
-              },
+          },
+          {
+            key: 'active',
+            label: 'Trạng thái',
+            renderCell: (taxRate) => {
+              return <StatusChip status={taxRate.active ? 'active' : 'inactive'} />;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (taxRate) => {
-                return formatDate(taxRate.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (taxRate) => {
+              return formatDate(taxRate.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -190,7 +190,9 @@ export default function TaxRatesPage() {
         description="Thuế suất và cách tính; gắn vào subscription hoặc hoá đơn khi cần."
         onOpenChange={setIsCreateOpen}
       >
-        <TaxRateForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        <DrawerSection title="Thông tin tax rate">
+          <TaxRateForm mode="create" form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
       </EntityDrawer>
 
       {taxRateId ? (
