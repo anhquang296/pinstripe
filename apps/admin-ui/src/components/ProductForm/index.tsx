@@ -4,12 +4,13 @@ import { Button } from '@heroui/react';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface ProductFormProps {
+  mode: 'create' | 'edit';
   form: UseFormReturn<ProductFormData>;
   isSaving?: boolean;
   onSave: () => void;
 }
 
-export default function ProductForm({ form, isSaving, onSave }: ProductFormProps) {
+export default function ProductForm({ mode, form, isSaving, onSave }: ProductFormProps) {
   return (
     <form
       className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
@@ -24,7 +25,7 @@ export default function ProductForm({ form, isSaving, onSave }: ProductFormProps
       />
       <RenderTextField control={form.control} name="unitLabel" label="Đơn vị" placeholder="seat" />
       <Button type="submit" isDisabled={isSaving}>
-        Tạo product
+        {mode === 'create' ? 'Tạo product' : 'Lưu thay đổi'}
       </Button>
     </form>
   );

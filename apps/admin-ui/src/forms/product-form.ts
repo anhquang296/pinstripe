@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { CreateProductPayload } from '@pinstripe/sdk';
+import type { CreateProductPayload, ProductResponse, UpdateProductPayload } from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const productFormSchema = z.object({
@@ -23,5 +23,21 @@ export function productFormDataToPayload(formData: ProductFormData): CreateProdu
     name: formData.name,
     description: formData.description || undefined,
     unitLabel: formData.unitLabel || undefined,
+  };
+}
+
+export function productToFormData(product: ProductResponse): ProductFormData {
+  return {
+    name: product.name,
+    description: product.description,
+    unitLabel: product.unitLabel,
+  };
+}
+
+export function productFormDataToUpdatePayload(formData: ProductFormData): UpdateProductPayload {
+  return {
+    name: formData.name,
+    description: formData.description,
+    unitLabel: formData.unitLabel,
   };
 }

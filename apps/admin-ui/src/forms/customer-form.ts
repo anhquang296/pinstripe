@@ -1,6 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toEnumMember } from '@lib/enum';
 import { CurrencyEnum, PartnerPlatformEnum } from '@pinstripe/core/contracts';
-import type { CreateCustomerPayload } from '@pinstripe/sdk';
+import type {
+  CreateCustomerPayload,
+  CustomerResponse,
+  UpdateCustomerPayload,
+} from '@pinstripe/sdk';
 import { z } from 'zod';
 
 const customerFormSchema = z
@@ -52,5 +57,40 @@ export function customerFormDataToPayload(formData: CustomerFormData): CreateCus
     email: formData.email,
     name: formData.name,
     currency: formData.currency,
+  };
+}
+
+export function customerToFormData(customer: CustomerResponse): CustomerFormData {
+  const { email, partnerPlatform, partnerAccountId } = customer;
+
+  return {
+    email: email ?? '',
+    name: customer.name,
+    currency: toEnumMember(CurrencyEnum, customer.currency, CurrencyEnum.VND),
+    partnerPlatform:
+      partnerPlatform === null
+        ? ''
+        : toEnumMember(PartnerPlatformEnum, partnerPlatform, PartnerPlatformEnum.VEXERE),
+    partnerAccountId: partnerAccountId ?? '',
+  };
+}
+
+export function customerFormDataToUpdatePayload(formData: CustomerFormData): UpdateCustomerPayload {
+  const { partnerPlatform } = formData;
+
+  if (partnerPlatform) {
+    return {
+      email: formData.email,
+      name: formData.name,
+      partnerPlatform,
+      partnerAccountId: formData.partnerAccountId,
+    };
+  }
+
+  return {
+    email: formData.email,
+    name: formData.name,
+    partnerPlatform: null,
+    partnerAccountId: null,
   };
 }

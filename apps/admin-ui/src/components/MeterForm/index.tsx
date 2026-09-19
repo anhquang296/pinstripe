@@ -13,12 +13,13 @@ const AGGREGATION_OPTIONS = [
 ];
 
 interface MeterFormProps {
+  mode: 'create' | 'edit';
   form: UseFormReturn<MeterFormData>;
   isSaving?: boolean;
   onSave: () => void;
 }
 
-export default function MeterForm({ form, isSaving, onSave }: MeterFormProps) {
+export default function MeterForm({ mode, form, isSaving, onSave }: MeterFormProps) {
   return (
     <form
       className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
@@ -35,21 +36,24 @@ export default function MeterForm({ form, isSaving, onSave }: MeterFormProps) {
         name="eventName"
         label="Tên event"
         placeholder="api_request"
+        isDisabled={mode === 'edit'}
       />
       <RenderSelectField
         control={form.control}
         name="aggregation"
         label="Tổng hợp"
         options={AGGREGATION_OPTIONS}
+        isDisabled={mode === 'edit'}
       />
       <RenderTextField
         control={form.control}
         name="valueKey"
         label="Khóa giá trị"
         placeholder="tokens"
+        isDisabled={mode === 'edit'}
       />
       <Button type="submit" isDisabled={isSaving}>
-        Tạo meter
+        {mode === 'create' ? 'Tạo meter' : 'Lưu thay đổi'}
       </Button>
     </form>
   );
