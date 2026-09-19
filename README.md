@@ -94,10 +94,16 @@ last-active-admin rule still holds.
 
 ## 7. Optional — customer portal env
 
-`apps/portal-ui` is a Next.js app and does not read the root `.env`. It is being rebuilt around the
-customer sign-in surface (`/portal/*`, magic link by email); until that lands it only shows a
-placeholder page and needs no env. It must never be given `PINSTRIPE_SECRET_API_KEY` — the portal
-only ever holds a key with the `portal` scope.
+`apps/portal-ui` is a Next.js app and does not read the root `.env`. Customers sign in with a one-time
+link sent to their billing email; the Next.js server holds the keys and the browser only gets an
+httpOnly cookie. Create `apps/portal-ui/.env.local`:
+
+```
+PINSTRIPE_API_URL=http://localhost:3000
+PINSTRIPE_PORTAL_API_KEY=<same value as PORTAL_API_KEY>
+```
+
+Never give it `PINSTRIPE_SECRET_API_KEY`. Sign-in links land in mailpit (http://localhost:58025).
 
 ## Local URLs
 

@@ -74,12 +74,28 @@ React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/common/for
 
 ## portal-ui
 
-Next.js 15 App Router, port 3100. Hiện chỉ là trang giữ chỗ: trang `/customers/<customerId>` đọc dữ
-liệu bằng secret key toàn quyền đã bị gỡ, `/customers/*` redirect về `/`, và rewrite `/api/*` sang API
-cũng đã bỏ (nó proxy luôn bề mặt admin qua origin của portal).
+Next.js 15 App Router, port 3100, HeroUI v3 như admin-ui. Quyết định đầy đủ ở
+[ADR 0026](../adr/0026-customer-portal-auth-and-bff.md).
 
-Portal sẽ đọc dữ liệu **chỉ** qua bề mặt `/portal/*` của API, nơi mọi route lấy `customerId` từ
-session chứ không từ tham số:
+```
+trình duyệt ── PinstripeClient({ baseUrl: '/bff' }) + hook @pinstripe/sdk/react/portal
+   │  cookie pinstripe_portal_session (httpOnly)
+   ▼
+app/bff/portal/[...path] ── allowlist · Origin check · cookie ↔ Bearer · portal key cho links/sessions
+   ▼
+API /portal/*
+```
+
+- `/login` gửi email → `POST /bff/portal/links`. `/login/verify?linkKey=…` chỉ redeem khi người dùng
+  bấm "Tiếp tục đăng nhập" → `POST /bff/portal/sessions`; BFF giữ `sessionKey` trong cookie và trả body
+  với `sessionKey: null`.
+- `middleware.ts` chuyển về `/login` khi thiếu cookie; `RequirePortalSession` bắt 401 của `/portal/me`
+  khi phiên hết hạn giữa chừng.
+- `/customers/*` (trang cũ đọc bằng secret key) redirect về `/login`. Không còn rewrite `/api/*`.
+- Env của portal: `PINSTRIPE_API_URL`, `PINSTRIPE_PORTAL_API_KEY` trong `apps/portal-ui/.env.local`,
+  chỉ đọc ở `src/libs/portal-bff.ts`.
+
+Phía API, mọi route `/portal/*` lấy `customerId` từ session chứ không từ tham số:
 
 - `POST /portal/links` (key scope `portal`) gửi magic link tới `customers.email`; link trỏ về
   `${PORTAL_BASE_URL}/login/verify?linkKey=…`, dùng một lần, hết hạn sau `PORTAL_LINK_TTL_MINUTES`.

@@ -23,7 +23,7 @@ pnpm dev
 | worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                           |
 | worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                        |
 | admin-ui            | 5173  | Vite, proxy `/api` và `/v1` sang api; xác thực bằng cookie session  |
-| portal-ui           | 3100  | Next.js; trang giữ chỗ, chưa gọi API — không bao giờ cấp secret key |
+| portal-ui           | 3100  | Next.js + BFF; cần `PINSTRIPE_API_URL` + `PINSTRIPE_PORTAL_API_KEY` |
 | postgres            | 55432 | user/pass/db: `pinstripe`                                           |
 | redis               | 56379 |                                                                     |
 | mailpit             | 58025 | UI xem email dev                                                    |

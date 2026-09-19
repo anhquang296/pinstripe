@@ -12,6 +12,7 @@ import { createLedgerQueries } from '@react/keys/ledger.keys';
 import { createMeterQueries } from '@react/keys/meter.keys';
 import { createPaymentQueries } from '@react/keys/payment.keys';
 import { createPaymentLinkQueries } from '@react/keys/payment-link.keys';
+import { createPortalQueries } from '@react/keys/portal.keys';
 import { createPriceQueries } from '@react/keys/price.keys';
 import { createProductQueries } from '@react/keys/product.keys';
 import { createReportingQueries } from '@react/keys/reporting.keys';
@@ -43,6 +44,7 @@ export function createPinstripeQueries(client: PinstripeClient) {
     createUserQueries(client),
     createAccountQueries(client),
     createApiKeyQueries(client),
+    createPortalQueries(client),
   );
 }
 

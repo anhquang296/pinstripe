@@ -21,6 +21,7 @@ export enum PinstripeQuerySubjectEnum {
   USER = 'user',
   ACCOUNT = 'account',
   API_KEY = 'api_key',
+  PORTAL = 'portal',
 }
 
 export type PinstripeQuerySubject = `${PinstripeQuerySubjectEnum}`;

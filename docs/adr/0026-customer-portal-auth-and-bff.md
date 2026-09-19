@@ -1,0 +1,78 @@
+# 0026 — Cổng nhà xe: đăng nhập bằng magic link qua BFF Next.js
+
+- **Trạng thái.** Accepted
+- **Thay thế một phần.** [0012 — Portal, reporting & reconciliation](0012-phase-9-portal-reporting.md) §7 và
+  §"Hạn chế đã biết" về portal.
+- **Xây trên.** [0024 — Đăng nhập dashboard và authorization theo session](0024-dashboard-auth-and-session-authorization.md)
+
+## Bối cảnh
+
+`apps/portal-ui` đọc dữ liệu bằng secret key toàn quyền rồi lọc theo `customerId` trên URL: ai biết
+một `customerId` là đọc được công nợ của nhà xe đó. `next.config.ts` còn rewrite toàn bộ `/api/*`
+sang API, nên origin của portal proxy luôn cả bề mặt admin.
+
+Trong khi đó API đã có sẵn bề mặt `/portal/*`: magic link gửi tới `customers.email`, `linkKey` dùng
+một lần, `sessionKey` lưu dạng sha256, và mọi route đọc `customerId` từ session chứ không từ tham số.
+Việc còn thiếu là một cách để trình duyệt dùng bề mặt đó mà không bao giờ cầm key.
+
+## Quyết định
+
+### 1. Trình duyệt không cầm key nào; Next.js là BFF
+
+`portal-ui` giữ Next.js vì cần một server. Route handler `app/bff/portal/[...path]` là proxy duy nhất
+tới API, logic nằm ở `src/libs/portal-bff.ts`:
+
+- **Allowlist đóng** `(method, path)`. Path ngoài danh sách trả 404 và không gọi API.
+- Hai route đăng nhập (`POST links`, `POST sessions`) mang `PINSTRIPE_PORTAL_API_KEY` — key scope
+  `portal`, publishable. Các route còn lại mang `Bearer <sessionKey>` đọc từ cookie.
+- `sessionKey` trả từ `POST /portal/sessions` được **gỡ khỏi body** và đặt vào cookie
+  `pinstripe_portal_session`: `httpOnly`, `SameSite=Lax`, `Secure` ở production, hết hạn đúng
+  `sessionExpiresAt`.
+- Mọi request không phải GET phải có `Origin` cùng host với request (`x-forwarded-host` hoặc `host`);
+  khác thì 403. Đó là CSRF check, vì cookie `Lax` vẫn đi kèm điều hướng cùng site.
+- API trả 401 cho một route dùng session, hoặc `DELETE sessions` thành công → BFF xoá cookie.
+
+Phía trình duyệt dùng `new PinstripeClient({ baseUrl: '/bff', maxRetries: 0 })` và hook của SDK — không
+có HTTP client viết tay. `maxRetries: 0` vì redeem một link dùng một lần không được phép tự thử lại.
+
+`middleware.ts` chuyển về `/login` khi thiếu cookie. Đó chỉ là trải nghiệm; API mới là chốt chặn, và
+phiên hết hạn giữa chừng được `RequirePortalSession` bắt qua 401 của `/portal/me`.
+
+### 2. Link dùng một lần, và mở link không tiêu thụ nó
+
+Cả magic link qua email lẫn `POST /v1/billing_portal/sessions` (kế toán tạo link cho khách) đều sinh
+một `portal_sessions` ở trạng thái `pending` và trả `${PORTAL_BASE_URL}/login/verify?linkKey=…`. Không
+còn URL nào chứa `sessionKey`.
+
+Trang `/login/verify` không redeem khi GET: người dùng phải bấm "Tiếp tục đăng nhập". Bộ quét link
+của mail server mở mọi URL trong email; nếu GET tiêu thụ link thì khách luôn nhận một link đã chết.
+
+### 3. Giới hạn tần suất đăng nhập
+
+`/portal/links` và `/portal/sessions` đi qua `portalRateLimitPlugin`: `PORTAL_RATE_LIMIT` lần mỗi
+`PORTAL_RATE_WINDOW_SECONDS`, bucket theo `(portal key, route, IP người dùng)` và thêm
+`(portal key, route, sha256(email))` cho `/portal/links`. IP đọc từ header
+`x-pinstripe-client-ip` (`PORTAL_CLIENT_IP_HEADER`), chỉ được tin vì request đã xác thực bằng portal
+key. BFF lấy IP từ phần tử đầu của `x-forwarded-for`, nên reverse proxy phía trước portal **phải ghi đè**
+header đó; nếu không, kẻ tấn công tự đặt IP để né bucket theo IP (bucket theo email vẫn giữ).
+
+### 4. Hook portal ở entry riêng
+
+`@pinstripe/sdk/react/portal` chứa hook của bề mặt khách hàng. Admin-ui và portal-ui mỗi bên có một
+test khẳng định mọi hook trong barrel của mình đều có màn dùng tới; tách entry giữ được cả hai test mà
+không cần danh sách ngoại lệ. Xem `sdk-convention.md`.
+
+### 5. UI giống admin-ui, danh tính thì không
+
+HeroUI v3 + Tailwind v4 + react-hook-form/zod + TanStack Query + sonner, theme mặc định của HeroUI.
+Không dùng better-auth: bảng `users` là nhân viên Vexere, và ADR 0024 cấm cookie session của dashboard
+mở surface `portal`.
+
+## Hệ quả
+
+- Danh tính portal hiện là **customer**, không phải người: ai giữ hộp thư `customers.email` là vào
+  được. Chưa có vai trò Chủ xe / Kế toán nhà xe, chưa có nhiều người dùng cho một nhà xe.
+- Session sống `PORTAL_SESSION_TTL_MINUTES` (mặc định 60), không gia hạn trượt.
+- Email magic link vẫn bằng tiếng Anh như mọi template khác; Việt hoá cả bộ template là việc riêng.
+- Portal phải deploy với `PINSTRIPE_API_URL` + `PINSTRIPE_PORTAL_API_KEY`, và **không bao giờ** với
+  secret key.
