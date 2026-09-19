@@ -15,7 +15,7 @@ interface InvoiceItemFormProps {
 export default function InvoiceItemForm({ mode, form, isSaving, onSave }: InvoiceItemFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -27,20 +27,8 @@ export default function InvoiceItemForm({ mode, form, isSaving, onSave }: Invoic
         label="Diễn giải"
         placeholder="Phí dịch vụ tháng 9"
       />
-      <RenderNumberField
-        control={form.control}
-        name="quantity"
-        label="Số lượng"
-        minValue={0}
-        className="w-28"
-      />
-      <RenderNumberField
-        control={form.control}
-        name="unitAmount"
-        label="Đơn giá"
-        minValue={0}
-        className="w-40"
-      />
+      <RenderNumberField control={form.control} name="quantity" label="Số lượng" minValue={0} />
+      <RenderNumberField control={form.control} name="unitAmount" label="Đơn giá" minValue={0} />
       <RenderCheckboxField control={form.control} name="discountable" label="Được giảm giá" />
       <Button type="submit" isDisabled={isSaving}>
         {mode === 'create' ? 'Thêm dòng' : 'Lưu dòng'}

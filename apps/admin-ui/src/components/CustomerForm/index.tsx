@@ -19,10 +19,7 @@ const partnerPlatformOptions = [
 
 export default function CustomerForm({ mode, form, isSaving, onSave }: CustomerFormProps) {
   return (
-    <form
-      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
-      onSubmit={onSave}
-    >
+    <form className="flex flex-col gap-4" onSubmit={onSave}>
       <RenderTextField
         control={form.control}
         name="email"

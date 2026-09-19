@@ -28,6 +28,12 @@ Token của mockup override **một lần** trong `:root` của `src/index.css` 
 `@theme inline` thành utility (`w-sidebar`, `h-topbar`, `text-app-description`). Component đọc chúng
 qua class, không viết hex, và không import file nào từ repo mockup.
 
+> **Cập nhật 2026-09-19:** bỏ override token của mockup. Mockup chỉ còn quyết định layout, tính năng
+> và vị trí component; màu, bo góc, viền và font là theme mặc định của HeroUI. `--app-*` chỉ còn kích
+> thước shell và `--app-label`; `border-separator` / `text-muted` dùng thẳng. Các khối dùng chung
+> (`PageCard`, `StatItem`, `DataTable`, `DrawerSection`, tab) dựng trên `Card` / `Tabs` của HeroUI thay
+> vì tự vẽ. Xem `.claude/rules/local/admin-ui-convention.md`.
+
 ### 2. Một màn có đúng một công thức
 
 `PageCard` → `StatGrid` + `StatItem` → `FilterBar` → `DataTable` → `EntityDrawer`. `StatusChip` là chỗ

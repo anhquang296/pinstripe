@@ -89,83 +89,82 @@ export default function LedgerAccountsPage() {
         <StatItem label="Tài khoản theo khách" value={size(filter(rows, 'customerId'))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchCustomerId}
-          searchPlaceholder="Lọc theo customer id"
-          onSearchChange={handleOnSearchChange}
-        >
-          <FilterSelect
-            label="Tài khoản"
-            options={CODE_OPTIONS}
-            selectedValue={codeFilter}
-            onSelect={handleOnCodeChange}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Số dư tài khoản"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có tài khoản nào."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'code',
-              label: 'Tài khoản',
-              isRowHeader: true,
-              renderCell: (ledgerAccount) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{ledgerAccount.code}</span>
-                    <span className="text-app-label font-mono text-[11px]">{ledgerAccount.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchCustomerId}
+            searchPlaceholder="Lọc theo customer id"
+            onSearchChange={handleOnSearchChange}
+          >
+            <FilterSelect
+              label="Tài khoản"
+              options={CODE_OPTIONS}
+              selectedValue={codeFilter}
+              onSelect={handleOnCodeChange}
+            />
+          </FilterBar>
+        }
+        label="Số dư tài khoản"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có tài khoản nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'code',
+            label: 'Tài khoản',
+            isRowHeader: true,
+            renderCell: (ledgerAccount) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{ledgerAccount.code}</span>
+                  <span className="text-app-label font-mono text-[11px]">{ledgerAccount.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'type',
-              label: 'Loại',
-              renderCell: (ledgerAccount) => {
-                return ledgerAccount.type;
-              },
+          },
+          {
+            key: 'type',
+            label: 'Loại',
+            renderCell: (ledgerAccount) => {
+              return ledgerAccount.type;
             },
-            {
-              key: 'customerId',
-              label: 'Khách hàng',
-              renderCell: (ledgerAccount) => {
-                return ledgerAccount.customerId ?? '—';
-              },
+          },
+          {
+            key: 'customerId',
+            label: 'Khách hàng',
+            renderCell: (ledgerAccount) => {
+              return ledgerAccount.customerId ?? '—';
             },
-            {
-              key: 'debits',
-              label: 'Nợ',
-              renderCell: (ledgerAccount) => {
-                return formatCurrency(ledgerAccount.debits, ledgerAccount.currency);
-              },
+          },
+          {
+            key: 'debits',
+            label: 'Nợ',
+            renderCell: (ledgerAccount) => {
+              return formatCurrency(ledgerAccount.debits, ledgerAccount.currency);
             },
-            {
-              key: 'credits',
-              label: 'Có',
-              renderCell: (ledgerAccount) => {
-                return formatCurrency(ledgerAccount.credits, ledgerAccount.currency);
-              },
+          },
+          {
+            key: 'credits',
+            label: 'Có',
+            renderCell: (ledgerAccount) => {
+              return formatCurrency(ledgerAccount.credits, ledgerAccount.currency);
             },
-            {
-              key: 'balance',
-              label: 'Số dư',
-              renderCell: (ledgerAccount) => {
-                return formatCurrency(ledgerAccount.balance, ledgerAccount.currency);
-              },
+          },
+          {
+            key: 'balance',
+            label: 'Số dư',
+            renderCell: (ledgerAccount) => {
+              return formatCurrency(ledgerAccount.balance, ledgerAccount.currency);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       {accountId ? (
         <LedgerAccountDrawer ledgerAccountId={accountId} onClose={handleOnCloseDetail} />

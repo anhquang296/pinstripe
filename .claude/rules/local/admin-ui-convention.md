@@ -1,6 +1,6 @@
 # Admin UI Convention
 
-`apps/admin-ui` là dashboard vận hành: HeroUI v3, đăng nhập thật bằng better-auth, và một ngôn ngữ thị giác lấy từ mockup `vxr-erp-platform`. Không ghi lại chỗ đó thì agent tiếp theo sẽ dựng lại một UI kit tự viết, tự tạo một HTTP client thứ hai để lấy session, hoặc chép màu ERP vào từng class Tailwind — và cả ba đều phá đúng thứ phase 29 vừa dựng.
+`apps/admin-ui` là dashboard vận hành: HeroUI v3, đăng nhập thật bằng better-auth, layout và tính năng lấy từ mockup `vxr-erp-platform`, còn giao diện là theme mặc định của HeroUI. Không ghi lại chỗ đó thì agent tiếp theo sẽ dựng lại một UI kit tự viết, tự tạo một HTTP client thứ hai để lấy session, hoặc chép lại màu ERP vào theme — và cả ba đều phá đúng thứ phase 29 vừa dựng.
 
 ## Scope
 
@@ -14,7 +14,34 @@ Does **not** apply to:
 
 ## UI kit là HeroUI, không có kit thứ hai
 
-Mọi control lấy từ `@heroui/react`. Không dựng lại `src/components/ui/*`, không bọc một `<button className="...">` tự viết khi `Button` đã có.
+Mọi control **và mọi surface** lấy từ `@heroui/react`. Không dựng lại `src/components/ui/*`, không bọc một `<button className="...">` tự viết khi `Button` đã có, và không vẽ khung bằng `div` + `border rounded bg-surface` khi `Card` đã có. Khối cần khung là `Card` (ô trong khối là `Card variant="secondary"`), tab là `Tabs variant="secondary"`, thông báo là `Alert`, nhóm lựa chọn là `ToggleButtonGroup`. Component dùng chung trong `src/components` chỉ ghép các mảnh đó theo layout của màn — không tự vẽ lại chúng.
+
+```tsx
+// CORRECT
+<Card>
+  <Card.Header><Card.Description>{label}</Card.Description></Card.Header>
+  <Card.Content>{value}</Card.Content>
+</Card>
+
+// WRONG — tự vẽ lại Card
+<div className="flex flex-col gap-1 rounded-md border bg-surface p-4">…</div>
+```
+
+Mọi form trong drawer — tạo lẫn sửa — nằm trong một `DrawerSection`, và form không có khung riêng. Field xếp dọc, mỗi field một dòng, rộng hết form: thẻ `<form>` là `flex flex-col gap-4`, và không truyền class độ rộng cố định (`w-28`, `w-56`…) cho `Render*Field`. `Button` của HeroUI đã `w-fit` nên giữ kích thước tự nhiên.
+
+```tsx
+// CORRECT
+<EntityDrawer title="Tạo customer" …>
+  <DrawerSection title="Thông tin khách hàng">
+    <CustomerForm … />
+  </DrawerSection>
+</EntityDrawer>
+
+// WRONG — form nằm thẳng trong drawer, field xếp ngang
+<EntityDrawer title="Tạo customer" …>
+  <form className="flex flex-wrap items-end gap-4">…</form>
+</EntityDrawer>
+```
 
 HeroUI v3 dựng trên react-aria: `Button` nhận `onPress` / `isDisabled` (không phải `onClick` / `disabled`), `TextField` / `Select` nhận `value` / `selectedKey` đã parse sẵn chứ không phải `ChangeEvent`.
 
@@ -42,21 +69,33 @@ HeroUI v3 dựng trên react-aria: `Button` nhận `onPress` / `isDisabled` (kh�
 <Table.Cell key={column.key} id={column.key}>{column.renderCell(row)}</Table.Cell>
 ```
 
-## Token của mockup sống trong `src/index.css`
+## Mockup quyết định layout, HeroUI quyết định giao diện
 
-Biến CSS của HeroUI (`--accent`, `--background`, `--surface`, `--border`, `--radius`, `--danger`…) được override một lần trong `:root` của `src/index.css`, lấy giá trị từ bảng token của mockup trong `docs/ROADMAP-V3.md`. Component đọc chúng qua class của HeroUI / Tailwind (`bg-surface`, `text-accent`, `border-app-border-soft`), **không** viết hex vào class và không import file nào từ repo mockup.
+Từ mockup chỉ lấy layout, tính năng và vị trí component: shell sidebar + top bar, công thức một màn, drawer bên phải. Màu, bo góc, viền, font và shadow là theme mặc định của HeroUI. `src/index.css` **không** override biến theme của HeroUI (`--accent`, `--background`, `--surface`, `--border`, `--radius`, `--field-*`, `--font-sans`…) — override một biến là kéo một field, một popover ra khỏi phần còn lại của kit, và dark mode của HeroUI mất theo.
 
-Token riêng của shell — bề rộng sidebar, chiều cao top bar, màu nhãn — khai trong cùng khối `:root` với prefix `--app-*`, rồi xuất qua `@theme inline` để thành utility (`w-sidebar`, `h-topbar`, `text-app-description`).
+```css
+/* CORRECT — kích thước shell; màu phụ, nếu HeroUI chưa có, dẫn xuất từ token của nó */
+--app-sidebar-width: 248px;
+--app-label: color-mix(in oklab, var(--foreground) 70%, transparent);
+
+/* WRONG — chép token của mockup đè lên theme */
+--accent: #006ad9;
+--field-radius: 0.375rem;
+```
+
+Token riêng của shell khai trong `:root` với prefix `--app-*` rồi xuất qua `@theme inline` để thành utility (`w-sidebar`, `h-topbar`, `text-app-label`). Kích thước là giá trị thật; màu thì chỉ dẫn xuất từ biến của HeroUI, không viết hex. Không đặt alias cho một màu HeroUI đã có tên — dùng thẳng `border-separator`, `text-muted`, `bg-surface`, `text-accent`. Không viết hex vào class và không import file nào từ repo mockup.
+
+Scrollbar style **một lần, toàn cục** trong `src/index.css` qua `--app-scrollbar-*` (thumb pill dẫn xuất từ `--foreground` — nhạt khi nghỉ, đậm khi hover — không track, không nút mũi tên). Không style scrollbar riêng trong component. `scrollbar-width` / `scrollbar-color` nằm trong `@supports not selector(::-webkit-scrollbar)` và phải ở yên đó: Chrome ≥121 thấy hai thuộc tính đó là bỏ toàn bộ `::-webkit-scrollbar`, và thumb pill mất.
 
 ## Công thức một màn
 
 Một màn đi theo đúng thứ tự này, và mỗi khối là một component dùng chung:
 
-1. `PageCard` — tiêu đề màu primary, phụ đề, slot action, tab tuỳ chọn.
-2. `StatGrid` + `StatItem` — bốn ô tổng quan, nhãn uppercase, số lớn.
-3. `FilterBar` — đếm "N mục", select, ô tìm.
-4. `DataTable` — bảng compact, click cả dòng để mở drawer, empty state, phân trang cursor từ `ListResponse.hasMore`.
-5. `EntityDrawer` — tạo và sửa **luôn** trong drawer phải; không có trang form riêng.
+1. `PageCard` — tab (nếu có) ở đầu trang, **phía trên** `Card` tiêu đề; `Card` chứa tiêu đề, phụ đề, slot action; nội dung màn nằm dưới nó. Tab không nằm trong `Card`.
+2. `StatGrid` + `StatItem` — bốn `Card` tổng quan, nhãn uppercase, số lớn.
+3. `FilterBar` — đếm "N mục", select, ô tìm; truyền vào `DataTable` qua prop `toolbar`.
+4. `DataTable` — `Table` variant mặc định (`primary`) **chính là** khung: nền xám bọc toolbar, thân bảng trắng và `Table.Footer`. Root mang `shadow-surface` — cùng shadow với `Card` — để bảng nổi khối giống `DrawerSection`. Không bọc nó trong `Card` hay `div` có viền, và không override CSS của `.table-*`. Phân trang cursor từ `ListResponse.hasMore` qua `Pagination` của HeroUI đặt trong `Table.Footer` (chỉ Summary + Previous/Next — cursor không có tổng số trang); click cả dòng để mở drawer. Page không bọc thêm khung quanh nó.
+5. `EntityDrawer` — tạo và sửa **luôn** trong drawer phải; không có trang form riêng. Drawer rộng một phần ba màn hình cộng 200px (`calc(max(33vw, 28rem) + 200px)`). Độ rộng đặt trên `Drawer.Dialog`, không bao giờ trên `Drawer.Content` — `Content` là lớp định vị phủ cả màn, đặt width lên nó là drawer lệch vào giữa.
 
 `StatusChip` là chỗ duy nhất ánh xạ trạng thái sang màu. Xoá và mọi hành động không đảo được hỏi qua `ConfirmDialog` — không bao giờ `window.confirm`.
 
@@ -68,7 +107,7 @@ Hai bề mặt của nhóm Admin không có nút xoá, vì không có route xoá
 
 ## Tab là route con, drawer là param
 
-Tab của một màn là **route con**, không phải state: `PageTabs` render `NavLink`, và mỗi tab có URL riêng (`/catalog/products`, `/subscriptions/usage`). Mỗi tab là một Page riêng giữ query và mutation của chính nó — đó là thứ giữ [`component-convention.md`](../agentkit/profiles/react/component-convention.md) đúng khi một màn có bốn tab.
+Tab của một màn là **route con**, không phải state: `PageTabs` render `Tabs` của HeroUI (variant mặc định, `w-fit`) với `selectedKey` suy ra từ `pathname` và `navigate(to)` khi đổi tab, và mỗi tab có URL riêng (`/catalog/products`, `/subscriptions/usage`). Mỗi tab là một Page riêng giữ query và mutation của chính nó — đó là thứ giữ [`component-convention.md`](../agentkit/profiles/react/component-convention.md) đúng khi một màn có bốn tab.
 
 Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/customers/:customerId`) để deep-link được; entity phụ trong drawer (tax ID, promotion code, discount) dùng state cục bộ. Một path tĩnh và một path động không bao giờ tranh nhau cùng một đoạn: `/subscriptions` redirect sang `/subscriptions/list`, và id nằm dưới tab của nó.
 
@@ -109,10 +148,14 @@ Tiền và ngày đi qua `src/lib/format.ts`: `formatCurrency(minorAmount, curre
 ## NEVER Do
 
 - Dựng lại một UI kit tự viết trong `src/components/ui/*`, hay bọc tay một control HeroUI đã có.
+- Vẽ khung bằng `div` + `border rounded bg-surface` thay vì `Card`, hay tự làm tab bằng `<button>` thay vì `Tabs`.
+- Đặt độ rộng hay nền lên `Drawer.Content` — chúng thuộc về `Drawer.Dialog`.
+- Đặt alias `--app-*` cho một màu HeroUI đã có tên.
 - Dùng `onClick` / `disabled` trên `Button` của HeroUI — là `onPress` / `isDisabled`.
 - Import `react-aria*`, `@react-aria/*` hay `@react-stately/*` trong `src`, hay thêm chúng lại vào `package.json` — chúng là peer của HeroUI, pnpm tự cài.
 - Dựng bảng bằng `Table` của HeroUI ngoài `DataTable`, hay đặt `id` trên `Table.Cell`.
-- Viết hex của mockup vào class Tailwind, hay import file từ repo `vxr-erp-platform`.
+- Override biến theme của HeroUI trong `src/index.css`, hay viết hex vào class Tailwind hoặc vào `--app-*`.
+- Import file từ repo `vxr-erp-platform`.
 - Import `better-auth*` ở bất kỳ file nào ngoài `src/lib/auth-client.ts`, hay dùng `adminClient()` / plugin `admin`.
 - Bỏ `customFetchImpl` bóc envelope lỗi ra khỏi auth client.
 - Chèn API key vào proxy của `vite.config.ts`, hay đưa key vào `PinstripeClient` của trình duyệt.

@@ -3,7 +3,6 @@ import DrawerSection from '@components/DrawerSection';
 import PageCard from '@components/PageCard';
 import StatGrid from '@components/StatGrid';
 import StatItem from '@components/StatItem';
-import StatusChip from '@components/StatusChip';
 import { Button } from '@heroui/react';
 import { useReportWindow } from '@hooks/useReportWindow';
 import { formatCurrency } from '@lib/format';
@@ -62,10 +61,7 @@ export default function OverviewPage() {
         />
       </StatGrid>
 
-      <DrawerSection
-        title="Đối soát nhanh"
-        actions={<StatusChip status={difference === 0 ? 'matched' : 'amount_mismatch'} />}
-      >
+      <DrawerSection title="Đối soát nhanh">
         <DetailList
           items={[
             {

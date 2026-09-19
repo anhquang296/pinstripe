@@ -48,7 +48,7 @@ export default function LedgerTransactionForm({
         onSave();
       }}
     >
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col gap-4">
         <RenderTextField
           control={form.control}
           name="description"
@@ -60,7 +60,6 @@ export default function LedgerTransactionForm({
           name="currency"
           label="Tiền tệ"
           options={CURRENCY_OPTIONS}
-          className="w-32"
         />
         <RenderTextField
           control={form.control}

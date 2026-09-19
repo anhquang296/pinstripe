@@ -34,10 +34,7 @@ export default function SubscriptionForm({
   onSave,
 }: SubscriptionFormProps) {
   return (
-    <form
-      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
-      onSubmit={onSave}
-    >
+    <form className="flex flex-col gap-4" onSubmit={onSave}>
       <RenderSelectField
         control={form.control}
         name="customerId"
@@ -61,7 +58,6 @@ export default function SubscriptionForm({
         name="trialPeriodDays"
         label="Trial (ngày)"
         minValue={0}
-        className="w-28"
       />
       <Button type="submit" isDisabled={isSaving}>
         Tạo subscription

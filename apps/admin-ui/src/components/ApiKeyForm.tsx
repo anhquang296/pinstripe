@@ -35,20 +35,18 @@ export default function ApiKeyForm({ form, isSaving, onSave }: ApiKeyFormProps) 
         onSave();
       }}
     >
-      <div className="flex flex-wrap items-end gap-4">
-        <RenderTextField
-          control={form.control}
-          name="name"
-          label="Tên khoá"
-          placeholder="Worker đối soát"
-        />
-        <RenderSelectField
-          control={form.control}
-          name="type"
-          label="Loại khoá"
-          options={TYPE_OPTIONS}
-        />
-      </div>
+      <RenderTextField
+        control={form.control}
+        name="name"
+        label="Tên khoá"
+        placeholder="Worker đối soát"
+      />
+      <RenderSelectField
+        control={form.control}
+        name="type"
+        label="Loại khoá"
+        options={TYPE_OPTIONS}
+      />
 
       <RenderCheckboxGroupField
         control={form.control}

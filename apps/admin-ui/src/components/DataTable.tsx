@@ -1,4 +1,5 @@
-import { Button, EmptyState, Spinner, Table } from '@heroui/react';
+import { HardDrive } from '@gravity-ui/icons';
+import { EmptyState, Pagination, Spinner, Table } from '@heroui/react';
 import { createColumnHelper, flexRender, tableFeatures, useTable } from '@tanstack/react-table';
 import { get, head, isEmpty, keyBy, map, size } from 'lodash-es';
 import type { ReactNode } from 'react';
@@ -15,6 +16,7 @@ interface DataTableProps<TRow extends { id: string }> {
   label: string;
   columns: DataTableColumn<TRow>[];
   rows: TRow[];
+  toolbar?: ReactNode;
   emptyMessage?: string;
   isLoading?: boolean;
   hasMore?: boolean;
@@ -30,6 +32,7 @@ export default function DataTable<TRow extends { id: string }>({
   label,
   columns,
   rows,
+  toolbar,
   emptyMessage = 'Chưa có dữ liệu.',
   isLoading,
   hasMore,
@@ -70,78 +73,91 @@ export default function DataTable<TRow extends { id: string }>({
   const headers = get(head(table.getHeaderGroups()), 'headers', []);
 
   return (
-    <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-      <Table>
-        <Table.ScrollContainer>
-          <Table.Content aria-label={label}>
-            <Table.Header>
-              {map(headers, (header) => {
-                return (
-                  <Table.Column
-                    key={header.id}
-                    id={header.id}
-                    isRowHeader={get(columnsByKey, [header.id, 'isRowHeader'], false)}
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </Table.Column>
-                );
-              })}
-            </Table.Header>
+    <Table>
+      {toolbar}
 
-            <Table.Body
-              renderEmptyState={() => {
-                return (
-                  <EmptyState>
-                    {isLoading ? <Spinner size="sm" /> : null}
-                    {isLoading ? 'Đang tải…' : emptyMessage}
-                  </EmptyState>
-                );
-              }}
-            >
-              {map(table.getRowModel().rows, (row) => {
-                return (
-                  <Table.Row
-                    key={row.id}
-                    id={row.id}
-                    onAction={
-                      onRowAction
-                        ? () => {
-                            onRowAction(row.original);
-                          }
-                        : undefined
-                    }
-                  >
-                    {map(row.getAllCells(), (cell) => {
-                      return (
-                        <Table.Cell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </Table.Cell>
-                      );
-                    })}
-                  </Table.Row>
-                );
-              })}
-            </Table.Body>
-          </Table.Content>
-        </Table.ScrollContainer>
-      </Table>
+      <Table.ScrollContainer>
+        <Table.Content aria-label={label}>
+          <Table.Header>
+            {map(headers, (header) => {
+              return (
+                <Table.Column
+                  key={header.id}
+                  id={header.id}
+                  isRowHeader={get(columnsByKey, [header.id, 'isRowHeader'], false)}
+                >
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </Table.Column>
+              );
+            })}
+          </Table.Header>
+
+          <Table.Body
+            renderEmptyState={() => {
+              return (
+                <EmptyState className="h-full w-full flex flex-col justify-center items-center">
+                  {isLoading ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    <div className="flex flex-col justify-center items-center gap-2 pt-4">
+                      <HardDrive className="size-5 text-muted" />
+                      <span className="text-sm text-muted">{emptyMessage}</span>
+                    </div>
+                  )}
+                </EmptyState>
+              );
+            }}
+          >
+            {map(table.getRowModel().rows, (row) => {
+              return (
+                <Table.Row
+                  key={row.id}
+                  id={row.id}
+                  onAction={
+                    onRowAction
+                      ? () => {
+                          onRowAction(row.original);
+                        }
+                      : undefined
+                  }
+                >
+                  {map(row.getAllCells(), (cell) => {
+                    return (
+                      <Table.Cell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </Table.Cell>
+                    );
+                  })}
+                </Table.Row>
+              );
+            })}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
 
       {hasPagination ? (
-        <div className="border-app-border-soft flex items-center justify-between border-t px-3 py-2">
-          <span className="text-app-label text-[12px]">
-            {isEmpty(rows) ? 'Không có mục nào' : `${size(rows)} mục trên trang này`}
-          </span>
-
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" isDisabled={!hasPrevious} onPress={onPrevious}>
-              Trước
-            </Button>
-            <Button size="sm" variant="ghost" isDisabled={!hasMore} onPress={onNext}>
-              Sau
-            </Button>
-          </div>
-        </div>
+        <Table.Footer>
+          <Pagination size="sm" className="w-full">
+            <Pagination.Summary>
+              {isEmpty(rows) ? 'Không có mục nào' : `${size(rows)} mục trên trang này`}
+            </Pagination.Summary>
+            <Pagination.Content>
+              <Pagination.Item>
+                <Pagination.Previous isDisabled={!hasPrevious} onPress={onPrevious}>
+                  <Pagination.PreviousIcon />
+                  <span>Trước</span>
+                </Pagination.Previous>
+              </Pagination.Item>
+              <Pagination.Item>
+                <Pagination.Next isDisabled={!hasMore} onPress={onNext}>
+                  <span>Sau</span>
+                  <Pagination.NextIcon />
+                </Pagination.Next>
+              </Pagination.Item>
+            </Pagination.Content>
+          </Pagination>
+        </Table.Footer>
       ) : null}
-    </div>
+    </Table>
   );
 }

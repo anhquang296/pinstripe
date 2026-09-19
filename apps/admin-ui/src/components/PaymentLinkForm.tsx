@@ -32,7 +32,7 @@ export default function PaymentLinkForm({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -63,7 +63,6 @@ export default function PaymentLinkForm({
         name="quantity"
         label="Số lượng"
         minValue={1}
-        className="w-28"
         isDisabled={isEdit}
       />
       {isEdit ? (

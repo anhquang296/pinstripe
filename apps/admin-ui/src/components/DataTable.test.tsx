@@ -94,4 +94,14 @@ describe('DataTable', () => {
 
     expect(onRowAction).toHaveBeenCalledWith(CUSTOMERS[1]);
   });
+
+  it('renders the toolbar inside the same container as the table', () => {
+    render(
+      <DataTable label="Khách hàng" columns={[]} rows={CUSTOMERS} toolbar={<span>2 mục</span>} />,
+    );
+
+    const container = screen.getByText('2 mục').parentElement;
+
+    expect(container?.contains(screen.getByRole('grid'))).toBe(true);
+  });
 });

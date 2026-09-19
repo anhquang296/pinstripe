@@ -1,7 +1,7 @@
 import RenderNumberField from '@components/fields/RenderNumberField';
 import RenderSelectField from '@components/fields/RenderSelectField';
 import type { MeterEventBatchFormData } from '@forms/meter-event-batch-form';
-import { Button } from '@heroui/react';
+import { Button, Card } from '@heroui/react';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface MeterEventBatchLineItemProps {
@@ -22,7 +22,7 @@ export default function MeterEventBatchLineItem({
   };
 
   return (
-    <div className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-background p-3">
+    <Card className="gap-4 p-3">
       <RenderSelectField
         control={form.control}
         name={`lines.${index}.customerId`}
@@ -34,11 +34,10 @@ export default function MeterEventBatchLineItem({
         name={`lines.${index}.value`}
         label="Giá trị"
         minValue={0}
-        className="w-32"
       />
       <Button type="button" variant="ghost" onPress={handleOnRemove}>
         Xoá dòng
       </Button>
-    </div>
+    </Card>
   );
 }

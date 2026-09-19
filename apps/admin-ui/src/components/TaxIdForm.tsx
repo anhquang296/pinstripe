@@ -21,7 +21,7 @@ interface TaxIdFormProps {
 export default function TaxIdForm({ form, isSaving, onSave }: TaxIdFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -39,13 +39,7 @@ export default function TaxIdForm({ form, isSaving, onSave }: TaxIdFormProps) {
         label="Mã số thuế"
         placeholder="0101243150"
       />
-      <RenderTextField
-        control={form.control}
-        name="country"
-        label="Quốc gia"
-        placeholder="VN"
-        className="w-24"
-      />
+      <RenderTextField control={form.control} name="country" label="Quốc gia" placeholder="VN" />
       <Button type="submit" isDisabled={isSaving}>
         Thêm mã số thuế
       </Button>

@@ -17,7 +17,7 @@ export default function FilterBar({
   children,
 }: FilterBarProps) {
   return (
-    <div className="border-app-border-soft flex flex-wrap items-center gap-3 border-b px-3 py-2">
+    <div className="flex flex-wrap items-center gap-3 px-3 py-3">
       <span className="text-app-label text-[12px]">{itemCount} mục</span>
 
       {children}

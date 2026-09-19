@@ -2,7 +2,7 @@ import type { InvoiceStatus } from '@pinstripe/core/contracts';
 import { InvoiceStatusEnum } from '@pinstripe/core/contracts';
 
 export const CATALOG_TABS = [
-  { to: '/catalog/products', label: 'Catalog' },
+  { to: '/catalog/products', label: 'Products' },
   { to: '/catalog/prices', label: 'Prices' },
 ];
 

@@ -115,100 +115,97 @@ export default function ApiKeysPage() {
         <StatItem label="Khoá secret" value={size(filter(rows, { type: ApiKeyTypeEnum.SECRET }))} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)} />
+      <DataTable
+        toolbar={<FilterBar itemCount={size(rows)} />}
+        label="Danh sách API key"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có API key nào."
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'name',
+            label: 'Tên khoá',
+            isRowHeader: true,
+            renderCell: (apiKey) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{apiKey.name}</span>
+                  <span className="text-app-label font-mono text-[11px]">{apiKey.id}</span>
+                </div>
+              );
+            },
+          },
+          {
+            key: 'type',
+            label: 'Loại',
+            renderCell: (apiKey) => {
+              return apiKey.type;
+            },
+          },
+          {
+            key: 'scopes',
+            label: 'Scope',
+            renderCell: (apiKey) => {
+              return <span className="font-mono text-[11px]">{join(apiKey.scopes, ', ')}</span>;
+            },
+          },
+          {
+            key: 'tokenPrefix',
+            label: 'Tiền tố',
+            renderCell: (apiKey) => {
+              return <span className="font-mono text-[11px]">{apiKey.tokenPrefix}…</span>;
+            },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (apiKey) => {
+              return <StatusChip status={apiKey.revokedAt === null ? 'active' : 'voided'} />;
+            },
+          },
+          {
+            key: 'lastUsedAt',
+            label: 'Dùng gần nhất',
+            renderCell: (apiKey) => {
+              const { lastUsedAt } = apiKey;
 
-        <DataTable
-          label="Danh sách API key"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có API key nào."
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'name',
-              label: 'Tên khoá',
-              isRowHeader: true,
-              renderCell: (apiKey) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{apiKey.name}</span>
-                    <span className="text-app-label font-mono text-[11px]">{apiKey.id}</span>
-                  </div>
-                );
-              },
+              return lastUsedAt === null ? '—' : formatDate(lastUsedAt);
             },
-            {
-              key: 'type',
-              label: 'Loại',
-              renderCell: (apiKey) => {
-                return apiKey.type;
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (apiKey) => {
+              return formatDate(apiKey.createdAt);
             },
-            {
-              key: 'scopes',
-              label: 'Scope',
-              renderCell: (apiKey) => {
-                return <span className="font-mono text-[11px]">{join(apiKey.scopes, ', ')}</span>;
-              },
-            },
-            {
-              key: 'tokenPrefix',
-              label: 'Tiền tố',
-              renderCell: (apiKey) => {
-                return <span className="font-mono text-[11px]">{apiKey.tokenPrefix}…</span>;
-              },
-            },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (apiKey) => {
-                return <StatusChip status={apiKey.revokedAt === null ? 'active' : 'voided'} />;
-              },
-            },
-            {
-              key: 'lastUsedAt',
-              label: 'Dùng gần nhất',
-              renderCell: (apiKey) => {
-                const { lastUsedAt } = apiKey;
+          },
+          {
+            key: 'actions',
+            label: 'Thao tác',
+            renderCell: (apiKey) => {
+              if (!canManage || apiKey.revokedAt !== null) {
+                return '—';
+              }
 
-                return lastUsedAt === null ? '—' : formatDate(lastUsedAt);
-              },
+              return (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onPress={() => {
+                    setRevokingApiKey(apiKey);
+                  }}
+                >
+                  Thu hồi
+                </Button>
+              );
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (apiKey) => {
-                return formatDate(apiKey.createdAt);
-              },
-            },
-            {
-              key: 'actions',
-              label: 'Thao tác',
-              renderCell: (apiKey) => {
-                if (!canManage || apiKey.revokedAt !== null) {
-                  return '—';
-                }
-
-                return (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onPress={() => {
-                      setRevokingApiKey(apiKey);
-                    }}
-                  >
-                    Thu hồi
-                  </Button>
-                );
-              },
-            },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}

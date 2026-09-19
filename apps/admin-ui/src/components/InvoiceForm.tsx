@@ -39,7 +39,7 @@ export default function InvoiceForm({
         onSave();
       }}
     >
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col gap-4">
         <RenderSelectField
           control={form.control}
           name="customerId"
@@ -57,11 +57,10 @@ export default function InvoiceForm({
           name="currency"
           label="Tiền tệ"
           options={CURRENCY_OPTIONS}
-          className="w-32"
         />
       </div>
 
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col gap-4">
         <RenderSelectField
           control={form.control}
           name="collectionMethod"
@@ -74,7 +73,6 @@ export default function InvoiceForm({
           label="Hạn thanh toán (ngày)"
           minValue={0}
           maxValue={365}
-          className="w-44"
         />
         <RenderCheckboxField control={form.control} name="autoAdvance" label="Tự động phát hành" />
       </div>

@@ -17,7 +17,7 @@ export default function BalanceTransactionForm({
 }: BalanceTransactionFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -27,7 +27,6 @@ export default function BalanceTransactionForm({
         control={form.control}
         name="amount"
         label="Số tiền (âm là ghi nợ khách)"
-        className="w-52"
       />
       <RenderTextField
         control={form.control}

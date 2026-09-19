@@ -152,6 +152,9 @@ Nguồn: `../vxr-erp-platform/src/web/styles/generated/tokens.css`, `design-syst
 `src/web/styles/app.css`, `src/web/components/AppShell.tsx`. Chép giá trị dưới đây vào biến CSS của
 HeroUI trong `apps/admin-ui/src/index.css`; đừng import file từ repo kia.
 
+> **Đã thay thế (2026-09-19):** bảng màu / radius / font dưới đây không còn áp vào `index.css` — admin-ui
+> dùng theme mặc định của HeroUI. Phần khung, mật độ và công thức một màn vẫn là chuẩn layout.
+
 | Token                      | Giá trị                                   |
 | -------------------------- | ----------------------------------------- |
 | primary / hover / active   | `#006AD9` / `#2588E6` / `#0050B3`         |

@@ -1,5 +1,6 @@
 import CheckoutSessionForm from '@components/CheckoutSessionForm';
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -149,79 +150,78 @@ export default function CheckoutSessionsPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={STATUS_OPTIONS}
-            selectedValue={statusFilter}
-            onSelect={handleOnFilterSelect}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách phiên checkout"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'id',
-              label: 'Phiên',
-              isRowHeader: true,
-              renderCell: (checkoutSession) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{checkoutSession.id}</span>
-                    <span className="text-app-label font-mono text-[11px]">
-                      {checkoutSession.customerId}
-                    </span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={STATUS_OPTIONS}
+              selectedValue={statusFilter}
+              onSelect={handleOnFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách phiên checkout"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'id',
+            label: 'Phiên',
+            isRowHeader: true,
+            renderCell: (checkoutSession) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{checkoutSession.id}</span>
+                  <span className="text-app-label font-mono text-[11px]">
+                    {checkoutSession.customerId}
+                  </span>
+                </div>
+              );
             },
-            {
-              key: 'mode',
-              label: 'Chế độ',
-              renderCell: (checkoutSession) => {
-                return checkoutSession.mode;
-              },
+          },
+          {
+            key: 'mode',
+            label: 'Chế độ',
+            renderCell: (checkoutSession) => {
+              return checkoutSession.mode;
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (checkoutSession) => {
-                return <StatusChip status={checkoutSession.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (checkoutSession) => {
+              return <StatusChip status={checkoutSession.status} />;
             },
-            {
-              key: 'paymentStatus',
-              label: 'Thanh toán',
-              renderCell: (checkoutSession) => {
-                return <StatusChip status={checkoutSession.paymentStatus} />;
-              },
+          },
+          {
+            key: 'paymentStatus',
+            label: 'Thanh toán',
+            renderCell: (checkoutSession) => {
+              return <StatusChip status={checkoutSession.paymentStatus} />;
             },
-            {
-              key: 'amountTotal',
-              label: 'Tổng',
-              renderCell: (checkoutSession) => {
-                return formatCurrency(checkoutSession.amountTotal, checkoutSession.currency);
-              },
+          },
+          {
+            key: 'amountTotal',
+            label: 'Tổng',
+            renderCell: (checkoutSession) => {
+              return formatCurrency(checkoutSession.amountTotal, checkoutSession.currency);
             },
-            {
-              key: 'expiresAt',
-              label: 'Hết hạn',
-              renderCell: (checkoutSession) => {
-                return formatDate(checkoutSession.expiresAt);
-              },
+          },
+          {
+            key: 'expiresAt',
+            label: 'Hết hạn',
+            renderCell: (checkoutSession) => {
+              return formatDate(checkoutSession.expiresAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -229,13 +229,15 @@ export default function CheckoutSessionsPage() {
         description="Phiên checkout gắn với một khách hàng và một bảng giá."
         onOpenChange={setIsCreateOpen}
       >
-        <CheckoutSessionForm
-          form={form}
-          customerOptions={customerOptions}
-          priceOptions={priceOptions}
-          isSaving={isSaving}
-          onSave={handleOnSave}
-        />
+        <DrawerSection title="Thông tin phiên checkout">
+          <CheckoutSessionForm
+            form={form}
+            customerOptions={customerOptions}
+            priceOptions={priceOptions}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {checkoutSessionId ? (

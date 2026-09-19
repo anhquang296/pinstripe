@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import InvoiceForm from '@components/InvoiceForm';
@@ -143,83 +144,82 @@ export default function InvoicesPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchCustomerId}
-          searchPlaceholder="Lọc theo customer id"
-          onSearchChange={handleOnSearchChange}
-        />
-
-        <DataTable
-          label="Danh sách hoá đơn"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có hoá đơn ở trạng thái này."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'number',
-              label: 'Số hoá đơn',
-              isRowHeader: true,
-              renderCell: (invoice) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{invoice.number || 'Chưa phát hành'}</span>
-                    <span className="text-app-label font-mono text-[11px]">{invoice.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchCustomerId}
+            searchPlaceholder="Lọc theo customer id"
+            onSearchChange={handleOnSearchChange}
+          />
+        }
+        label="Danh sách hoá đơn"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có hoá đơn ở trạng thái này."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'number',
+            label: 'Số hoá đơn',
+            isRowHeader: true,
+            renderCell: (invoice) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{invoice.number || 'Chưa phát hành'}</span>
+                  <span className="text-app-label font-mono text-[11px]">{invoice.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'customerId',
-              label: 'Khách hàng',
-              renderCell: (invoice) => {
-                return <span className="font-mono text-[11px]">{invoice.customerId}</span>;
-              },
+          },
+          {
+            key: 'customerId',
+            label: 'Khách hàng',
+            renderCell: (invoice) => {
+              return <span className="font-mono text-[11px]">{invoice.customerId}</span>;
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (invoice) => {
-                return <StatusChip status={invoice.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (invoice) => {
+              return <StatusChip status={invoice.status} />;
             },
-            {
-              key: 'total',
-              label: 'Tổng',
-              renderCell: (invoice) => {
-                return formatCurrency(invoice.total, invoice.currency);
-              },
+          },
+          {
+            key: 'total',
+            label: 'Tổng',
+            renderCell: (invoice) => {
+              return formatCurrency(invoice.total, invoice.currency);
             },
-            {
-              key: 'amountPaid',
-              label: 'Đã trả',
-              renderCell: (invoice) => {
-                return formatCurrency(invoice.amountPaid, invoice.currency);
-              },
+          },
+          {
+            key: 'amountPaid',
+            label: 'Đã trả',
+            renderCell: (invoice) => {
+              return formatCurrency(invoice.amountPaid, invoice.currency);
             },
-            {
-              key: 'amountRemaining',
-              label: 'Còn lại',
-              renderCell: (invoice) => {
-                return formatCurrency(invoice.amountRemaining, invoice.currency);
-              },
+          },
+          {
+            key: 'amountRemaining',
+            label: 'Còn lại',
+            renderCell: (invoice) => {
+              return formatCurrency(invoice.amountRemaining, invoice.currency);
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (invoice) => {
-                return formatDate(invoice.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (invoice) => {
+              return formatDate(invoice.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -227,13 +227,15 @@ export default function InvoicesPage() {
         description="Hoá đơn mới luôn bắt đầu ở trạng thái nháp."
         onOpenChange={setIsCreateOpen}
       >
-        <InvoiceForm
-          form={form}
-          customerOptions={customerOptions}
-          subscriptionOptions={subscriptionOptions}
-          isSaving={isSaving}
-          onSave={handleOnSave}
-        />
+        <DrawerSection title="Thông tin hoá đơn">
+          <InvoiceForm
+            form={form}
+            customerOptions={customerOptions}
+            subscriptionOptions={subscriptionOptions}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {invoiceId ? <InvoiceDrawer invoiceId={invoiceId} onClose={handleOnCloseDetail} /> : null}

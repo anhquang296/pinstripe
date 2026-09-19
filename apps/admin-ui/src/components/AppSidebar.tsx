@@ -17,8 +17,8 @@ export default function AppSidebar() {
   });
 
   return (
-    <aside className="border-app-border-soft fixed inset-y-0 left-0 z-20 flex w-sidebar flex-col border-r bg-surface">
-      <div className="border-app-border-soft flex h-11 items-center gap-2 border-b px-4">
+    <aside className="fixed inset-y-0 left-0 z-20 flex w-sidebar flex-col border-r border-separator bg-surface">
+      <div className="flex h-topbar items-center gap-2 border-b border-separator px-4">
         <span className="flex size-5 items-center justify-center rounded-sm bg-accent text-[10px] font-semibold text-accent-foreground">
           PS
         </span>
@@ -29,7 +29,7 @@ export default function AppSidebar() {
         {map(visibleGroups, (navigationGroup) => {
           return (
             <div key={navigationGroup.label} className="flex flex-col gap-1">
-              <span className="text-app-description px-4 text-[11px] font-semibold uppercase">
+              <span className="px-4 text-[11px] font-semibold text-muted uppercase">
                 {navigationGroup.label}
               </span>
 
@@ -57,7 +57,7 @@ export default function AppSidebar() {
                       <span className="text-[13px] leading-5 font-medium">
                         {navigationItem.title}
                       </span>
-                      <span className="text-app-description text-[12px] leading-4">
+                      <span className="text-[12px] leading-4 text-muted">
                         {navigationItem.description}
                       </span>
                     </span>

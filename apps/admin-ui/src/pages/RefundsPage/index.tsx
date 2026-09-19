@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -152,83 +153,82 @@ export default function RefundsPage() {
         <StatItem label="Tổng hoàn" value={formatCurrency(sumBy(rows, 'amount'), currency)} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchInvoiceId}
-          searchPlaceholder="Lọc theo invoice id"
-          onSearchChange={handleOnSearchChange}
-        >
-          <FilterSelect
-            label="Trạng thái"
-            options={STATUS_OPTIONS}
-            selectedValue={statusFilter}
-            onSelect={handleOnStatusChange}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách refund"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có refund nào."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'id',
-              label: 'Refund',
-              isRowHeader: true,
-              renderCell: (refund) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{refund.id}</span>
-                    <span className="text-app-label font-mono text-[11px]">{refund.chargeId}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchInvoiceId}
+            searchPlaceholder="Lọc theo invoice id"
+            onSearchChange={handleOnSearchChange}
+          >
+            <FilterSelect
+              label="Trạng thái"
+              options={STATUS_OPTIONS}
+              selectedValue={statusFilter}
+              onSelect={handleOnStatusChange}
+            />
+          </FilterBar>
+        }
+        label="Danh sách refund"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có refund nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'id',
+            label: 'Refund',
+            isRowHeader: true,
+            renderCell: (refund) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{refund.id}</span>
+                  <span className="text-app-label font-mono text-[11px]">{refund.chargeId}</span>
+                </div>
+              );
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (refund) => {
-                return <StatusChip status={refund.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (refund) => {
+              return <StatusChip status={refund.status} />;
             },
-            {
-              key: 'invoiceId',
-              label: 'Hoá đơn',
-              renderCell: (refund) => {
-                return refund.invoiceId ?? '—';
-              },
+          },
+          {
+            key: 'invoiceId',
+            label: 'Hoá đơn',
+            renderCell: (refund) => {
+              return refund.invoiceId ?? '—';
             },
-            {
-              key: 'amount',
-              label: 'Số tiền',
-              renderCell: (refund) => {
-                return formatCurrency(refund.amount, refund.currency);
-              },
+          },
+          {
+            key: 'amount',
+            label: 'Số tiền',
+            renderCell: (refund) => {
+              return formatCurrency(refund.amount, refund.currency);
             },
-            {
-              key: 'reason',
-              label: 'Lý do',
-              renderCell: (refund) => {
-                return refund.reason;
-              },
+          },
+          {
+            key: 'reason',
+            label: 'Lý do',
+            renderCell: (refund) => {
+              return refund.reason;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (refund) => {
-                return formatDate(refund.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (refund) => {
+              return formatDate(refund.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -236,12 +236,14 @@ export default function RefundsPage() {
         description="Hoàn tiền theo charge, số tiền không vượt quá phần đã thu."
         onOpenChange={setIsCreateOpen}
       >
-        <RefundForm
-          form={form}
-          chargeOptions={chargeOptions}
-          isSaving={isSaving}
-          onSave={handleOnSave}
-        />
+        <DrawerSection title="Thông tin refund">
+          <RefundForm
+            form={form}
+            chargeOptions={chargeOptions}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {refundId ? <RefundDrawer refundId={refundId} onClose={handleOnCloseDetail} /> : null}

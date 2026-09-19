@@ -1,4 +1,5 @@
 import DataTable from '@components/DataTable';
+import DrawerSection from '@components/DrawerSection';
 import EntityDrawer from '@components/EntityDrawer';
 import FilterBar from '@components/FilterBar';
 import FilterSelect from '@components/FilterSelect';
@@ -131,70 +132,69 @@ export default function PaymentLinksPage() {
         />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar itemCount={size(rows)}>
-          <FilterSelect
-            label="Trạng thái"
-            options={ACTIVE_OPTIONS}
-            selectedValue={activeFilter}
-            onSelect={handleOnFilterSelect}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách payment link"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'url',
-              label: 'Payment link',
-              isRowHeader: true,
-              renderCell: (paymentLink) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{paymentLink.url}</span>
-                    <span className="text-app-label font-mono text-[11px]">{paymentLink.id}</span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar itemCount={size(rows)}>
+            <FilterSelect
+              label="Trạng thái"
+              options={ACTIVE_OPTIONS}
+              selectedValue={activeFilter}
+              onSelect={handleOnFilterSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách payment link"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'url',
+            label: 'Payment link',
+            isRowHeader: true,
+            renderCell: (paymentLink) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{paymentLink.url}</span>
+                  <span className="text-app-label font-mono text-[11px]">{paymentLink.id}</span>
+                </div>
+              );
             },
-            {
-              key: 'mode',
-              label: 'Chế độ',
-              renderCell: (paymentLink) => {
-                return paymentLink.mode;
-              },
+          },
+          {
+            key: 'mode',
+            label: 'Chế độ',
+            renderCell: (paymentLink) => {
+              return paymentLink.mode;
             },
-            {
-              key: 'lineItems',
-              label: 'Số dòng',
-              renderCell: (paymentLink) => {
-                return size(paymentLink.lineItems);
-              },
+          },
+          {
+            key: 'lineItems',
+            label: 'Số dòng',
+            renderCell: (paymentLink) => {
+              return size(paymentLink.lineItems);
             },
-            {
-              key: 'isActive',
-              label: 'Trạng thái',
-              renderCell: (paymentLink) => {
-                return <StatusChip status={paymentLink.isActive ? 'active' : 'inactive'} />;
-              },
+          },
+          {
+            key: 'isActive',
+            label: 'Trạng thái',
+            renderCell: (paymentLink) => {
+              return <StatusChip status={paymentLink.isActive ? 'active' : 'inactive'} />;
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (paymentLink) => {
-                return formatDate(paymentLink.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (paymentLink) => {
+              return formatDate(paymentLink.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       <EntityDrawer
         isOpen={isCreateOpen}
@@ -202,13 +202,15 @@ export default function PaymentLinksPage() {
         description="Một URL bán hàng cho bảng giá đã chọn."
         onOpenChange={setIsCreateOpen}
       >
-        <PaymentLinkForm
-          mode="create"
-          form={form}
-          priceOptions={priceOptions}
-          isSaving={isSaving}
-          onSave={handleOnSave}
-        />
+        <DrawerSection title="Thông tin payment link">
+          <PaymentLinkForm
+            mode="create"
+            form={form}
+            priceOptions={priceOptions}
+            isSaving={isSaving}
+            onSave={handleOnSave}
+          />
+        </DrawerSection>
       </EntityDrawer>
 
       {paymentLinkId ? (

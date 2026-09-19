@@ -1,6 +1,6 @@
-import { cn } from '@lib/cn';
-import { map } from 'lodash-es';
-import { NavLink } from 'react-router-dom';
+import { Tabs } from '@heroui/react';
+import { find, get, head, map, startsWith, toString } from 'lodash-es';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface PageTabsItem {
   to: string;
@@ -12,24 +12,35 @@ interface PageTabsProps {
 }
 
 export default function PageTabs({ items }: PageTabsProps) {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const activeItem = find(items, (item) => {
+    return pathname === item.to || startsWith(pathname, `${item.to}/`);
+  });
+
+  const activeKey = get(activeItem, 'to', get(head(items), 'to'));
+
   return (
-    <nav className="flex items-center gap-5 px-4">
-      {map(items, (item) => {
-        return (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => {
-              return cn(
-                'border-b-[3px] pt-1 pb-2 text-[14px] font-medium',
-                isActive ? 'border-accent text-accent' : 'text-app-label border-transparent',
-              );
-            }}
-          >
-            {item.label}
-          </NavLink>
-        );
-      })}
-    </nav>
+    <Tabs
+      className="w-fit"
+      selectedKey={activeKey}
+      onSelectionChange={(key) => {
+        navigate(toString(key));
+      }}
+    >
+      <Tabs.ListContainer>
+        <Tabs.List aria-label="Các tab của màn">
+          {map(items, (item) => {
+            return (
+              <Tabs.Tab key={item.to} id={item.to} className="whitespace-nowrap">
+                {item.label}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            );
+          })}
+        </Tabs.List>
+      </Tabs.ListContainer>
+    </Tabs>
   );
 }

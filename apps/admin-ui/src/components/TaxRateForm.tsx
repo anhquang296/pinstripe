@@ -27,7 +27,7 @@ export default function TaxRateForm({ mode, form, isSaving, onSave }: TaxRateFor
 
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
@@ -51,7 +51,6 @@ export default function TaxRateForm({ mode, form, isSaving, onSave }: TaxRateFor
         label="Thuế suất (%)"
         minValue={0}
         maxValue={100}
-        className="w-32"
         isDisabled={isEdit}
       />
       <RenderSelectField
@@ -72,7 +71,6 @@ export default function TaxRateForm({ mode, form, isSaving, onSave }: TaxRateFor
         name="country"
         label="Quốc gia"
         placeholder="VN"
-        className="w-24"
         isDisabled={isEdit}
       />
       <RenderCheckboxField

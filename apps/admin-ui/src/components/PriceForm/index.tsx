@@ -57,10 +57,7 @@ export default function PriceForm({
   };
 
   return (
-    <form
-      className="border-app-border-soft flex flex-wrap items-end gap-4 rounded-md border bg-surface p-4"
-      onSubmit={onSave}
-    >
+    <form className="flex flex-col gap-4" onSubmit={onSave}>
       <RenderSelectField
         control={form.control}
         name="productId"
@@ -78,7 +75,6 @@ export default function PriceForm({
         name="currency"
         label="Tiền tệ"
         options={CURRENCY_OPTIONS}
-        className="min-w-28"
       />
       <RenderTextField
         control={form.control}
@@ -86,13 +82,7 @@ export default function PriceForm({
         label="Nickname"
         placeholder="Pro theo tháng"
       />
-      <RenderDateField
-        control={form.control}
-        name="effectiveAt"
-        label="Hiệu lực từ"
-        hasTime
-        className="w-56"
-      />
+      <RenderDateField control={form.control} name="effectiveAt" label="Hiệu lực từ" hasTime />
 
       <RenderSelectField
         control={form.control}
@@ -114,7 +104,6 @@ export default function PriceForm({
             name="intervalCount"
             label="Số chu kỳ"
             minValue={1}
-            className="w-28"
           />
           <RenderSelectField
             control={form.control}
@@ -149,13 +138,7 @@ export default function PriceForm({
           options={TIERS_MODE_OPTIONS}
         />
       ) : (
-        <RenderNumberField
-          control={form.control}
-          name="unitAmount"
-          label="Đơn giá"
-          minValue={0}
-          className="w-36"
-        />
+        <RenderNumberField control={form.control} name="unitAmount" label="Đơn giá" minValue={0} />
       )}
 
       {isTiered ? (
@@ -168,7 +151,7 @@ export default function PriceForm({
             <Button type="button" variant="ghost" onPress={handleOnAddTier}>
               Thêm bậc
             </Button>
-            <span className="text-app-description text-[12px]">
+            <span className="text-[12px] text-muted">
               Bậc cuối để trống ô “Đến mức” để bắt hết phần còn lại.
             </span>
           </div>

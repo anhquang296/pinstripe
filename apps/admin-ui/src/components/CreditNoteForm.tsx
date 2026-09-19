@@ -13,25 +13,18 @@ interface CreditNoteFormProps {
 export default function CreditNoteForm({ form, isSaving, onSave }: CreditNoteFormProps) {
   return (
     <form
-      className="flex flex-wrap items-end gap-4"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
       }}
     >
-      <RenderNumberField
-        control={form.control}
-        name="amount"
-        label="Số tiền ghi có"
-        minValue={1}
-        className="w-40"
-      />
+      <RenderNumberField control={form.control} name="amount" label="Số tiền ghi có" minValue={1} />
       <RenderNumberField
         control={form.control}
         name="refundAmount"
         label="Trong đó hoàn tiền"
         minValue={0}
-        className="w-40"
       />
       <RenderTextField
         control={form.control}

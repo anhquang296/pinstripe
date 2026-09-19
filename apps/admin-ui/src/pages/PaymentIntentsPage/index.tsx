@@ -93,85 +93,84 @@ export default function PaymentIntentsPage() {
         <StatItem label="Đã nhận" value={formatCurrency(sumBy(rows, 'amountReceived'), currency)} />
       </StatGrid>
 
-      <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
-        <FilterBar
-          itemCount={size(rows)}
-          searchValue={searchInvoiceId}
-          searchPlaceholder="Lọc theo invoice id"
-          onSearchChange={handleOnSearchChange}
-        >
-          <FilterSelect
-            label="Trạng thái"
-            options={STATUS_OPTIONS}
-            selectedValue={statusFilter}
-            onSelect={handleOnStatusChange}
-          />
-        </FilterBar>
-
-        <DataTable
-          label="Danh sách payment intent"
-          rows={rows}
-          isLoading={isPending}
-          hasMore={hasMore}
-          hasPrevious={hasPrevious}
-          emptyMessage="Chưa có payment intent nào."
-          onRowAction={handleOnRowAction}
-          onNext={handleOnNext}
-          onPrevious={revertPage}
-          columns={[
-            {
-              key: 'id',
-              label: 'Payment intent',
-              isRowHeader: true,
-              renderCell: (paymentIntent) => {
-                return (
-                  <div className="flex flex-col">
-                    <span className="font-medium">{paymentIntent.id}</span>
-                    <span className="text-app-label font-mono text-[11px]">
-                      {paymentIntent.customerId}
-                    </span>
-                  </div>
-                );
-              },
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={searchInvoiceId}
+            searchPlaceholder="Lọc theo invoice id"
+            onSearchChange={handleOnSearchChange}
+          >
+            <FilterSelect
+              label="Trạng thái"
+              options={STATUS_OPTIONS}
+              selectedValue={statusFilter}
+              onSelect={handleOnStatusChange}
+            />
+          </FilterBar>
+        }
+        label="Danh sách payment intent"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có payment intent nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'id',
+            label: 'Payment intent',
+            isRowHeader: true,
+            renderCell: (paymentIntent) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{paymentIntent.id}</span>
+                  <span className="text-app-label font-mono text-[11px]">
+                    {paymentIntent.customerId}
+                  </span>
+                </div>
+              );
             },
-            {
-              key: 'status',
-              label: 'Trạng thái',
-              renderCell: (paymentIntent) => {
-                return <StatusChip status={paymentIntent.status} />;
-              },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (paymentIntent) => {
+              return <StatusChip status={paymentIntent.status} />;
             },
-            {
-              key: 'invoiceId',
-              label: 'Hoá đơn',
-              renderCell: (paymentIntent) => {
-                return paymentIntent.invoiceId ?? '—';
-              },
+          },
+          {
+            key: 'invoiceId',
+            label: 'Hoá đơn',
+            renderCell: (paymentIntent) => {
+              return paymentIntent.invoiceId ?? '—';
             },
-            {
-              key: 'amount',
-              label: 'Số tiền',
-              renderCell: (paymentIntent) => {
-                return formatCurrency(paymentIntent.amount, paymentIntent.currency);
-              },
+          },
+          {
+            key: 'amount',
+            label: 'Số tiền',
+            renderCell: (paymentIntent) => {
+              return formatCurrency(paymentIntent.amount, paymentIntent.currency);
             },
-            {
-              key: 'charges',
-              label: 'Lần thử',
-              renderCell: (paymentIntent) => {
-                return size(paymentIntent.charges);
-              },
+          },
+          {
+            key: 'charges',
+            label: 'Lần thử',
+            renderCell: (paymentIntent) => {
+              return size(paymentIntent.charges);
             },
-            {
-              key: 'createdAt',
-              label: 'Tạo lúc',
-              renderCell: (paymentIntent) => {
-                return formatDate(paymentIntent.createdAt);
-              },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (paymentIntent) => {
+              return formatDate(paymentIntent.createdAt);
             },
-          ]}
-        />
-      </div>
+          },
+        ]}
+      />
 
       {paymentIntentId ? (
         <PaymentIntentDrawer paymentIntentId={paymentIntentId} onClose={handleOnCloseDetail} />
