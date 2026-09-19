@@ -4,6 +4,7 @@
     "outDir": "dist",
     "paths": {
       "@app": ["./src/app.ts"],
+      "@constants/*": ["./src/constants/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@routes/*": ["./src/routes/*"],
       "@utils/*": ["./src/utils/*"],

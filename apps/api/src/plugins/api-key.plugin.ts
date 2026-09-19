@@ -1,4 +1,4 @@
-import type { RequestAuth } from '@pinstripe/core/contracts';
+import type { RequestAuth, UserAuth } from '@pinstripe/core/contracts';
 import { ApiKeyScopeEnum, ApiKeyTypeEnum } from '@pinstripe/core/contracts';
 import type { BootstrapApiKey } from '@pinstripe/core/services';
 import fp from 'fastify-plugin';
@@ -6,6 +6,7 @@ import fp from 'fastify-plugin';
 declare module 'fastify' {
   interface FastifyRequest {
     auth?: RequestAuth;
+    actor?: UserAuth;
   }
 }
 

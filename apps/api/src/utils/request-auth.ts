@@ -12,6 +12,18 @@ export function readAuth(request: FastifyRequest): RequestAuth {
   throw new UnauthorizedError('This route was reached without an authenticated API key');
 }
 
+export function readRateLimitId(request: FastifyRequest): string {
+  const { actor } = request;
+
+  if (actor) {
+    return actor.userId;
+  }
+
+  const { apiKeyId } = readAuth(request);
+
+  return apiKeyId;
+}
+
 export function readPortalAuth(request: FastifyRequest): PortalAuth {
   const { portalAuth } = request;
 

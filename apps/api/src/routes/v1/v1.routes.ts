@@ -1,4 +1,5 @@
 import { verifyApiRequest } from '@hooks/verify-api-request';
+import { PermissionEnum } from '@pinstripe/core/contracts';
 import { expandPlugin } from '@plugins/expand.plugin';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { rateLimitPlugin } from '@plugins/rate-limit.plugin';
@@ -36,6 +37,7 @@ import { webhookEndpointsRoutes } from '@routes/v1/webhook-endpoints/webhook-end
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import { tagRouteByPrefix } from '@utils/openapi-tag';
+import { buildRouteConfig } from '@utils/route-permission';
 import type { FastifyInstance } from 'fastify';
 
 export async function v1Routes(fastify: FastifyInstance): Promise<void> {
@@ -84,7 +86,10 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
 
   fastify.get(
     '/ping',
-    { schema: { response: { 200: Type.Object({ now: Type.String() }) } } },
+    {
+      config: buildRouteConfig(PermissionEnum.BILLING_READ),
+      schema: { response: { 200: Type.Object({ now: Type.String() }) } },
+    },
     async (_request, reply) => {
       return ApiResponse.success(reply, { now: fastify.clock.now().toISOString() });
     },
