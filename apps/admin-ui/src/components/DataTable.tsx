@@ -1,6 +1,8 @@
 import { Button, EmptyState, Spinner, Table } from '@heroui/react';
-import { isEmpty, map, size } from 'lodash-es';
+import { createColumnHelper, flexRender, tableFeatures, useTable } from '@tanstack/react-table';
+import { get, head, isEmpty, keyBy, map, size } from 'lodash-es';
 import type { ReactNode } from 'react';
+import { useMemo } from 'react';
 
 interface DataTableColumn<TRow> {
   key: string;
@@ -22,6 +24,8 @@ interface DataTableProps<TRow extends { id: string }> {
   onPrevious?: () => void;
 }
 
+const features = tableFeatures({});
+
 export default function DataTable<TRow extends { id: string }>({
   label,
   columns,
@@ -36,16 +40,49 @@ export default function DataTable<TRow extends { id: string }>({
 }: DataTableProps<TRow>) {
   const hasPagination = Boolean(onNext) || Boolean(onPrevious);
 
+  const columnsByKey = useMemo(() => {
+    return keyBy(columns, 'key');
+  }, [columns]);
+
+  const columnDefs = useMemo(() => {
+    const columnHelper = createColumnHelper<typeof features, TRow>();
+
+    return map(columns, (column) => {
+      return columnHelper.display({
+        id: column.key,
+        header: column.label,
+        cell: (info) => {
+          return column.renderCell(info.row.original);
+        },
+      });
+    });
+  }, [columns]);
+
+  const table = useTable({
+    features,
+    columns: columnDefs,
+    data: rows,
+    getRowId: (row) => {
+      return row.id;
+    },
+  });
+
+  const headers = get(head(table.getHeaderGroups()), 'headers', []);
+
   return (
     <div className="border-app-border-soft flex flex-col rounded-md border bg-surface">
       <Table>
         <Table.ScrollContainer>
           <Table.Content aria-label={label}>
             <Table.Header>
-              {map(columns, (column) => {
+              {map(headers, (header) => {
                 return (
-                  <Table.Column key={column.key} id={column.key} isRowHeader={column.isRowHeader}>
-                    {column.label}
+                  <Table.Column
+                    key={header.id}
+                    id={header.id}
+                    isRowHeader={get(columnsByKey, [header.id, 'isRowHeader'], false)}
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
                   </Table.Column>
                 );
               })}
@@ -61,7 +98,7 @@ export default function DataTable<TRow extends { id: string }>({
                 );
               }}
             >
-              {map(rows, (row) => {
+              {map(table.getRowModel().rows, (row) => {
                 return (
                   <Table.Row
                     key={row.id}
@@ -69,15 +106,15 @@ export default function DataTable<TRow extends { id: string }>({
                     onAction={
                       onRowAction
                         ? () => {
-                            onRowAction(row);
+                            onRowAction(row.original);
                           }
                         : undefined
                     }
                   >
-                    {map(columns, (column) => {
+                    {map(row.getAllCells(), (cell) => {
                       return (
-                        <Table.Cell key={column.key} id={column.key}>
-                          {column.renderCell(row)}
+                        <Table.Cell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </Table.Cell>
                       );
                     })}

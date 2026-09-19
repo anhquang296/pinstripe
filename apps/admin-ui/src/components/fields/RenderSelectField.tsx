@@ -1,7 +1,7 @@
 import { FieldError, Label, ListBox, Select } from '@heroui/react';
 import { cn } from '@lib/cn';
 import { get, map, toString } from 'lodash-es';
-import type { Key } from 'react-aria-components';
+import type { Key } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 

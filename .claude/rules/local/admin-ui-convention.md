@@ -26,6 +26,22 @@ HeroUI v3 dựng trên react-aria: `Button` nhận `onPress` / `isDisabled` (kh�
 <Button onClick={handleOnVoid} disabled={isBusy}>Hủy</Button>
 ```
 
+`react-aria`, `react-aria-components`, `@react-aria/*` là peer của `@heroui/react`, và **không** nằm trong `package.json` của admin-ui: `auto-install-peers=true` trong `.npmrc` cài chúng cho HeroUI. `src` không import chúng — `eslint.config.js` chặn bằng `no-restricted-imports`. Một type như `Key` lấy từ `react`. Đừng thêm lại chúng vào `dependencies`, và đừng tắt `auto-install-peers`.
+
+### Bảng đi qua `DataTable`, dựng trên TanStack Table
+
+`src/components/DataTable.tsx` là chỗ duy nhất dùng `Table` của HeroUI. TanStack Table v9 (`useTable`, `tableFeatures`, `createColumnHelper().display`) giữ column def, row model và row id; `Table.*` của HeroUI chỉ render — đúng mẫu TanStack trong tài liệu HeroUI. Không bật sort / pagination của TanStack: phân trang là cursor, qua `useCursorPagination`.
+
+`Table.Cell` **không bao giờ** nhận `id`, chỉ `key={cell.id}`. react-aria dùng `id` làm key trong một `keyMap` chung cho cả bảng, nên cell mang id trùng column ghi đè column và bảng throw `Cell count must match column count. Found N cells and 0 columns.` — chính lỗi làm trắng `/admin/roles` và mọi drawer mở trên list.
+
+```tsx
+// CORRECT
+<Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
+
+// WRONG — id trùng column.key, cell đè column trong keyMap
+<Table.Cell key={column.key} id={column.key}>{column.renderCell(row)}</Table.Cell>
+```
+
 ## Token của mockup sống trong `src/index.css`
 
 Biến CSS của HeroUI (`--accent`, `--background`, `--surface`, `--border`, `--radius`, `--danger`…) được override một lần trong `:root` của `src/index.css`, lấy giá trị từ bảng token của mockup trong `docs/ROADMAP-V3.md`. Component đọc chúng qua class của HeroUI / Tailwind (`bg-surface`, `text-accent`, `border-app-border-soft`), **không** viết hex vào class và không import file nào từ repo mockup.
@@ -94,6 +110,8 @@ Tiền và ngày đi qua `src/lib/format.ts`: `formatCurrency(minorAmount, curre
 
 - Dựng lại một UI kit tự viết trong `src/components/ui/*`, hay bọc tay một control HeroUI đã có.
 - Dùng `onClick` / `disabled` trên `Button` của HeroUI — là `onPress` / `isDisabled`.
+- Import `react-aria*`, `@react-aria/*` hay `@react-stately/*` trong `src`, hay thêm chúng lại vào `package.json` — chúng là peer của HeroUI, pnpm tự cài.
+- Dựng bảng bằng `Table` của HeroUI ngoài `DataTable`, hay đặt `id` trên `Table.Cell`.
 - Viết hex của mockup vào class Tailwind, hay import file từ repo `vxr-erp-platform`.
 - Import `better-auth*` ở bất kỳ file nào ngoài `src/lib/auth-client.ts`, hay dùng `adminClient()` / plugin `admin`.
 - Bỏ `customFetchImpl` bóc envelope lỗi ra khỏi auth client.
