@@ -105,7 +105,7 @@ ai gọi. `usePinstripeClient` / `usePinstripeContext` / `usePinstripeQueries` /
 `usePinstripeMutationCallbacks` không nằm trong tập đó vì chúng là plumbing của provider, không phải
 hook dữ liệu — hình dạng tên quyết định điều đó, không phải một danh sách.
 
-Toast: một package không import được `sonner`. Mutation hook trong SDK tự invalidate rồi gọi `onMutationError` / `onMutationSuccess` từ provider; app nối `toast` vào đó **một lần** (`apps/admin-ui/src/lib/pinstripe.tsx`). Yêu cầu "đúng một toast entry point" của rule được thoả về mặt cấu trúc, và chuỗi text ở lại trong app — SDK không sở hữu chữ tiếng Việt nào.
+Toast: một package không import được `sonner`. Mutation hook trong SDK tự invalidate rồi gọi `onMutationError` / `onMutationSuccess` từ provider; app nối `toast` vào đó **một lần** (`apps/admin-ui/src/providers/AdminPinstripeProvider.tsx`). Yêu cầu "đúng một toast entry point" của rule được thoả về mặt cấu trúc, và chuỗi text ở lại trong app — SDK không sở hữu chữ tiếng Việt nào.
 
 `MutationProps<TData>.successMessage` thay `shouldBeSuccessToast`: call site truyền chữ, SDK không biết chữ. Nó nhận `string`, hoặc `(data: TData) => string` khi chữ cần nội dung của kết quả (`Đã phát hành ${invoice.number}.`). Không truyền gì thì không toast — mặc định im lặng, không phải mặc định bật.
 

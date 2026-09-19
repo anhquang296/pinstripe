@@ -12,9 +12,33 @@ Does **not** apply to:
 - `packages/sdk/**` — hook, key và toast của SDK do [`sdk-convention.md`](./sdk-convention.md) quản.
 - Đường đăng nhập phía server (`/api/v1/auth/*`, authorization) — [`auth-convention.md`](./auth-convention.md).
 
+## Cấu trúc thư mục
+
+`src` chia theo tầm dùng lại, không theo loại file. Đặt một file theo câu hỏi "ai khác cần nó?":
+
+```
+src/
+├── main.tsx              import globals.css, render <ProviderRegistry />
+├── styles/globals.css
+├── providers/            ProviderRegistry, QueryProvider, AdminPinstripeProvider, RoutesProvider, AdminAuthProvider
+├── libs/                 hạ tầng không phải UI: auth-client, permissions, toast, cn
+├── common/               không biết entity nào
+│   ├── components/       DataTable, PageCard, StatGrid, EntityDrawer, DrawerSection…; FormField/Render*Field
+│   ├── constants/  forms/  hooks/  utils/
+└── features/dashboard/
+    ├── components/       form của từng entity (CustomerForm…), AppSidebar, AppTopbar, RequireSession
+    ├── constants/        navigation, tabs
+    ├── routes/           paths.ts (dashboardPaths), def.tsx (dashboardRouteDefs: RouteObject[]), index.ts
+    └── views/{layouts,pages}/
+```
+
+- Route khai trong `features/dashboard/routes/def.tsx`, path lấy từ `dashboardPaths`; `RoutesProvider` dựng `createBrowserRouter` từ đó. Không có `App.tsx`, không `<Routes>` JSX.
+- `common/` không import từ `features/`. Một component chỉ có nghĩa với một entity (`CustomerForm`, `UserRoleChips`) nằm trong `features/dashboard/`, không nằm trong `common/`.
+- Alias là `@common/*`, `@features/*`, `@providers/*`, `@libs/*` — không có `@components`, `@pages`, `@lib`.
+
 ## UI kit là HeroUI, không có kit thứ hai
 
-Mọi control **và mọi surface** lấy từ `@heroui/react`. Không dựng lại `src/components/ui/*`, không bọc một `<button className="...">` tự viết khi `Button` đã có, và không vẽ khung bằng `div` + `border rounded bg-surface` khi `Card` đã có. Khối cần khung là `Card` (ô trong khối là `Card variant="secondary"`), tab là `Tabs variant="secondary"`, thông báo là `Alert`, nhóm lựa chọn là `ToggleButtonGroup`. Component dùng chung trong `src/components` chỉ ghép các mảnh đó theo layout của màn — không tự vẽ lại chúng.
+Mọi control **và mọi surface** lấy từ `@heroui/react`. Không dựng lại `src/common/components/ui/*`, không bọc một `<button className="...">` tự viết khi `Button` đã có, và không vẽ khung bằng `div` + `border rounded bg-surface` khi `Card` đã có. Khối cần khung là `Card` (ô trong khối là `Card variant="secondary"`), tab là `Tabs variant="secondary"`, thông báo là `Alert`, nhóm lựa chọn là `ToggleButtonGroup`. Component dùng chung trong `src/common/components` chỉ ghép các mảnh đó theo layout của màn — không tự vẽ lại chúng.
 
 ```tsx
 // CORRECT
@@ -57,7 +81,7 @@ HeroUI v3 dựng trên react-aria: `Button` nhận `onPress` / `isDisabled` (kh�
 
 ### Bảng đi qua `DataTable`, dựng trên TanStack Table
 
-`src/components/DataTable.tsx` là chỗ duy nhất dùng `Table` của HeroUI. TanStack Table v9 (`useTable`, `tableFeatures`, `createColumnHelper().display`) giữ column def, row model và row id; `Table.*` của HeroUI chỉ render — đúng mẫu TanStack trong tài liệu HeroUI. Không bật sort / pagination của TanStack: phân trang là cursor, qua `useCursorPagination`.
+`src/common/components/DataTable.tsx` là chỗ duy nhất dùng `Table` của HeroUI. TanStack Table v9 (`useTable`, `tableFeatures`, `createColumnHelper().display`) giữ column def, row model và row id; `Table.*` của HeroUI chỉ render — đúng mẫu TanStack trong tài liệu HeroUI. Không bật sort / pagination của TanStack: phân trang là cursor, qua `useCursorPagination`.
 
 `Table.Cell` **không bao giờ** nhận `id`, chỉ `key={cell.id}`. react-aria dùng `id` làm key trong một `keyMap` chung cho cả bảng, nên cell mang id trùng column ghi đè column và bảng throw `Cell count must match column count. Found N cells and 0 columns.` — chính lỗi làm trắng `/admin/roles` và mọi drawer mở trên list.
 
@@ -71,7 +95,7 @@ HeroUI v3 dựng trên react-aria: `Button` nhận `onPress` / `isDisabled` (kh�
 
 ## Mockup quyết định layout, HeroUI quyết định giao diện
 
-Từ mockup chỉ lấy layout, tính năng và vị trí component: shell sidebar + top bar, công thức một màn, drawer bên phải. Màu, bo góc, viền, font và shadow là theme mặc định của HeroUI. `src/index.css` **không** override biến theme của HeroUI (`--accent`, `--background`, `--surface`, `--border`, `--radius`, `--field-*`, `--font-sans`…) — override một biến là kéo một field, một popover ra khỏi phần còn lại của kit, và dark mode của HeroUI mất theo.
+Từ mockup chỉ lấy layout, tính năng và vị trí component: shell sidebar + top bar, công thức một màn, drawer bên phải. Màu, bo góc, viền, font và shadow là theme mặc định của HeroUI. `src/styles/globals.css` **không** override biến theme của HeroUI (`--accent`, `--background`, `--surface`, `--border`, `--radius`, `--field-*`, `--font-sans`…) — override một biến là kéo một field, một popover ra khỏi phần còn lại của kit, và dark mode của HeroUI mất theo.
 
 ```css
 /* CORRECT — kích thước shell; màu phụ, nếu HeroUI chưa có, dẫn xuất từ token của nó */
@@ -85,7 +109,7 @@ Từ mockup chỉ lấy layout, tính năng và vị trí component: shell sideb
 
 Token riêng của shell khai trong `:root` với prefix `--app-*` rồi xuất qua `@theme inline` để thành utility (`w-sidebar`, `h-topbar`, `text-app-label`). Kích thước là giá trị thật; màu thì chỉ dẫn xuất từ biến của HeroUI, không viết hex. Không đặt alias cho một màu HeroUI đã có tên — dùng thẳng `border-separator`, `text-muted`, `bg-surface`, `text-accent`. Không viết hex vào class và không import file nào từ repo mockup.
 
-Scrollbar style **một lần, toàn cục** trong `src/index.css` qua `--app-scrollbar-*` (thumb pill dẫn xuất từ `--foreground` — nhạt khi nghỉ, đậm khi hover — không track, không nút mũi tên). Không style scrollbar riêng trong component. `scrollbar-width` / `scrollbar-color` nằm trong `@supports not selector(::-webkit-scrollbar)` và phải ở yên đó: Chrome ≥121 thấy hai thuộc tính đó là bỏ toàn bộ `::-webkit-scrollbar`, và thumb pill mất.
+Scrollbar style **một lần, toàn cục** trong `src/styles/globals.css` qua `--app-scrollbar-*` (thumb pill dẫn xuất từ `--foreground` — nhạt khi nghỉ, đậm khi hover — không track, không nút mũi tên). Không style scrollbar riêng trong component. `scrollbar-width` / `scrollbar-color` nằm trong `@supports not selector(::-webkit-scrollbar)` và phải ở yên đó: Chrome ≥121 thấy hai thuộc tính đó là bỏ toàn bộ `::-webkit-scrollbar`, và thumb pill mất.
 
 ## Công thức một màn
 
@@ -113,50 +137,50 @@ Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/
 
 Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/api-keys`, `/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/test-clocks/:testClockId`, `/admin/users/:userId`).
 
-Phân trang cursor đi qua `src/hooks/useCursorPagination.ts`: `startingAfter` cho query, `advancePage(lastId)` / `revertPage()` cho `DataTable`, `resetPage()` mỗi khi filter đổi. Đừng tự giữ mảng cursor trong page.
+Phân trang cursor đi qua `src/common/hooks/useCursorPagination.ts`: `startingAfter` cho query, `advancePage(lastId)` / `revertPage()` cho `DataTable`, `resetPage()` mỗi khi filter đổi. Đừng tự giữ mảng cursor trong page.
 
 ## Field đi qua `Controller`
 
-Form dùng react-hook-form theo [`form-convention.md`](../agentkit/profiles/react/form-convention.md); field render qua `src/components/fields/Render{Text,Select,Number,Date,Checkbox,CheckboxGroup}Field`, mỗi cái bọc `Controller` quanh một control HeroUI. Không `form.register` trên control của HeroUI — nó không nhận `ref` + `onChange` kiểu DOM.
+Form dùng react-hook-form theo [`form-convention.md`](../agentkit/profiles/react/form-convention.md); field render qua `src/common/components/FormField/Render{Text,Select,Number,Date,Checkbox,CheckboxGroup}Field`, mỗi cái bọc `Controller` quanh một control HeroUI. Không `form.register` trên control của HeroUI — nó không nhận `ref` + `onChange` kiểu DOM.
 
 `RenderCheckboxGroupField` là field của một **mảng giá trị đóng** — `enabledEvents` của webhook endpoint, `scopes` của API key. Một tập nhiều lựa chọn không đi qua `Select`: HeroUI v3 `Select` là single-select, và ghép nhiều `RenderCheckboxField` boolean thì form data không còn là mảng mà payload cần.
 
 `RenderSelectField` quy đổi giá trị rỗng sang một key nội bộ, vì collection của react-aria không nhận `id=""`. Một select ngoài form thì bỏ hẳn option rỗng và dùng `placeholder` của `Select`.
 
-## `better-auth` chỉ ở `src/lib/auth-client.ts`
+## `better-auth` chỉ ở `src/libs/auth-client.ts`
 
 Đúng một file được import `better-auth*`, và `eslint.config.js` chặn phần còn lại bằng `no-restricted-imports`. File đó dựng `createAuthClient` với `basePath: '/api/v1/auth'` và một `customFetchImpl` bóc envelope lỗi của repo (`{ error: { code, message } }`) thành `{ code, message }` — không có nó thì better-auth-ui đọc `error.code` ra `undefined` và mọi lỗi đăng nhập rơi về một thông báo chung chung.
 
 `@better-auth-ui/heroui` và `@better-auth-ui/react` **không** bị chặn: chúng là UI, không phải HTTP client thứ hai. Không dùng `adminClient()` hay plugin `admin` — quản trị user đi qua SDK `admin.users`.
 
-`AuthProvider` được bọc trong `src/lib/auth.tsx` để lấy `navigate` của react-router; thứ tự provider là `QueryClientProvider` → `AdminPinstripeProvider` → `BrowserRouter` → `AdminAuthProvider`. Sign-up không tồn tại ở server, nên link "Sign up" của `SignIn` bị giấu bằng CSS trên `.auth-view` — đừng gỡ khối đó ra khỏi `index.css`.
+`AuthProvider` được bọc trong `src/providers/AdminAuthProvider.tsx` để lấy `navigate` của react-router; thứ tự provider là `QueryProvider` → `AdminPinstripeProvider` → `RoutesProvider` (router) → `AdminAuthProvider`. `AdminAuthProvider` cần `useNavigate`, nên nó là element của root route trong `RoutesProvider`, bọc `<Outlet />` — không đặt nó trong `ProviderRegistry`. Sign-up không tồn tại ở server, nên link "Sign up" của `SignIn` bị giấu bằng CSS trên `.auth-view` — đừng gỡ khối đó ra khỏi `index.css`.
 
 ## Dữ liệu đi qua hook của SDK
 
-`PinstripeClient` trong `src/lib/pinstripe.tsx` được dựng **không có key**: trình duyệt đi bằng cookie same-origin. `vite.config.ts` chỉ proxy `/api` và `/v1` với `changeOrigin`, không chèn `PINSTRIPE_*_API_KEY` vào header — một bản build ra khỏi `vite dev` phải xác thực được bằng đúng thứ nó có.
+`PinstripeClient` trong `src/providers/AdminPinstripeProvider.tsx` được dựng **không có key**: trình duyệt đi bằng cookie same-origin. `vite.config.ts` chỉ proxy `/api` và `/v1` với `changeOrigin`, không chèn `PINSTRIPE_*_API_KEY` vào header — một bản build ra khỏi `vite dev` phải xác thực được bằng đúng thứ nó có.
 
 Component không gọi thẳng resource: mọi read/write qua hook của `@pinstripe/sdk/react`.
 
 ## Quyền ẩn menu, server chặn thật
 
-`src/lib/permissions.ts` cho `usePermissions()` và `useCan(permission)`, cả hai đọc `useAccountQuery`. Sidebar ẩn mục người dùng không có quyền đọc. Đó là ergonomics, **không** phải bảo mật — server vẫn là nơi chặn, theo [`auth-convention.md`](./auth-convention.md).
+`src/libs/permissions.ts` cho `usePermissions()` và `useCan(permission)`, cả hai đọc `useAccountQuery`. Sidebar ẩn mục người dùng không có quyền đọc. Đó là ergonomics, **không** phải bảo mật — server vẫn là nơi chặn, theo [`auth-convention.md`](./auth-convention.md).
 
 ## Định dạng
 
-Tiền và ngày đi qua `src/lib/format.ts`: `formatCurrency(minorAmount, currency)` chia theo số chữ số thập phân của chính đồng tiền đó, `formatDate(isoDate)` trả `dd/MM/yyyy` theo giờ Việt Nam. Không `toLocaleString` rải rác trong component mới.
+Tiền và ngày đi qua `src/common/utils/format.ts`: `formatCurrency(minorAmount, currency)` chia theo số chữ số thập phân của chính đồng tiền đó, `formatDate(isoDate)` trả `dd/MM/yyyy` theo giờ Việt Nam. Không `toLocaleString` rải rác trong component mới.
 
 ## NEVER Do
 
-- Dựng lại một UI kit tự viết trong `src/components/ui/*`, hay bọc tay một control HeroUI đã có.
+- Dựng lại một UI kit tự viết trong `src/common/components/ui/*`, hay bọc tay một control HeroUI đã có.
 - Vẽ khung bằng `div` + `border rounded bg-surface` thay vì `Card`, hay tự làm tab bằng `<button>` thay vì `Tabs`.
 - Đặt độ rộng hay nền lên `Drawer.Content` — chúng thuộc về `Drawer.Dialog`.
 - Đặt alias `--app-*` cho một màu HeroUI đã có tên.
 - Dùng `onClick` / `disabled` trên `Button` của HeroUI — là `onPress` / `isDisabled`.
 - Import `react-aria*`, `@react-aria/*` hay `@react-stately/*` trong `src`, hay thêm chúng lại vào `package.json` — chúng là peer của HeroUI, pnpm tự cài.
 - Dựng bảng bằng `Table` của HeroUI ngoài `DataTable`, hay đặt `id` trên `Table.Cell`.
-- Override biến theme của HeroUI trong `src/index.css`, hay viết hex vào class Tailwind hoặc vào `--app-*`.
+- Override biến theme của HeroUI trong `src/styles/globals.css`, hay viết hex vào class Tailwind hoặc vào `--app-*`.
 - Import file từ repo `vxr-erp-platform`.
-- Import `better-auth*` ở bất kỳ file nào ngoài `src/lib/auth-client.ts`, hay dùng `adminClient()` / plugin `admin`.
+- Import `better-auth*` ở bất kỳ file nào ngoài `src/libs/auth-client.ts`, hay dùng `adminClient()` / plugin `admin`.
 - Bỏ `customFetchImpl` bóc envelope lỗi ra khỏi auth client.
 - Chèn API key vào proxy của `vite.config.ts`, hay đưa key vào `PinstripeClient` của trình duyệt.
 - Gọi thẳng resource của SDK từ component — đi qua hook.
@@ -169,3 +193,5 @@ Tiền và ngày đi qua `src/lib/format.ts`: `formatCurrency(minorAmount, curre
 - Đưa một secret chỉ trả một lần vào query cache, hay thêm hook đọc lại nó.
 - Thêm nút xoá user, hay cho `/admin/roles` sửa được `ROLE_PERMISSIONS`.
 - Dựng `PageTabs` cho một màn chỉ có một bề mặt.
+- Đặt component đặc thù một entity vào `common/`, hay cho `common/` import từ `features/`.
+- Dựng lại `App.tsx` / `<Routes>` JSX, hay viết path route thành chuỗi trong `def.tsx` thay vì lấy từ `dashboardPaths`.

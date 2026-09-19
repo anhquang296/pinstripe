@@ -95,7 +95,7 @@ Không resolve được permission → `ForbiddenError`. **Fail closed**: một 
 ## Frontend và SDK
 
 - SDK không import `better-auth`. SDK bọc các path trong allowlist thành resource `auth.*` giống mọi resource khác.
-- `better-auth/react` được phép ở **đúng một file của admin-ui**: `apps/admin-ui/src/lib/auth-client.ts`, và chỉ để dựng `createAuthClient` cho `@better-auth-ui/heroui`. Client đó **phải** override `basePath: '/api/v1/auth'`. Mọi domain call khác đi qua `@pinstripe/sdk` — một file thứ hai import `better-auth/react` là HTTP client thứ hai, trái với `sdk-convention.md`.
+- `better-auth/react` được phép ở **đúng một file của admin-ui**: `apps/admin-ui/src/libs/auth-client.ts`, và chỉ để dựng `createAuthClient` cho `@better-auth-ui/heroui`. Client đó **phải** override `basePath: '/api/v1/auth'`. Mọi domain call khác đi qua `@pinstripe/sdk` — một file thứ hai import `better-auth/react` là HTTP client thứ hai, trái với `sdk-convention.md`.
 - **Không** dùng `adminClient()` hay plugin `admin` của better-auth-ui. Chúng gọi `/admin/*`, đi vòng qua luật admin active cuối cùng và qua audit; quản trị user đi qua `UserService` + SDK.
 - Browser và API phải cùng origin (reverse proxy, hoặc Vite proxy khi dev). Cookie là `SameSite=Lax` (mặc định của better-auth), không đổi sang `Strict`, vì callback Google là một GET cross-site.
 
