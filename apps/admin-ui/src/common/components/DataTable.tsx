@@ -103,7 +103,7 @@ export default function DataTable<TRow extends { id: string }>({
                   {isLoading ? (
                     <Spinner size="sm" />
                   ) : (
-                    <div className="flex flex-col justify-center items-center gap-2 pt-4">
+                    <div className="flex flex-col justify-center items-center gap-2 pt-4 pb-2">
                       <HardDrive className="size-5 text-muted" />
                       <span className="text-sm text-muted">{emptyMessage}</span>
                     </div>
