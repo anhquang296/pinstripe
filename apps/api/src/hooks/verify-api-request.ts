@@ -5,9 +5,9 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 
 export async function verifyApiRequest(
   request: FastifyRequest,
-  _reply: FastifyReply,
+  reply: FastifyReply,
 ): Promise<void> {
-  await authenticateRequest(request, ApiKeyScopeEnum.V1);
+  await authenticateRequest(request, reply, ApiKeyScopeEnum.V1);
 
   authorizeRequest(request);
 }

@@ -4,7 +4,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 
 export async function verifyPortalKeyRequest(
   request: FastifyRequest,
-  _reply: FastifyReply,
+  reply: FastifyReply,
 ): Promise<void> {
-  await authenticateRequest(request, ApiKeyScopeEnum.PORTAL);
+  await authenticateRequest(request, reply, ApiKeyScopeEnum.PORTAL);
 }

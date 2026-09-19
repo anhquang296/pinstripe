@@ -24,6 +24,7 @@ const AUTH_PATH = '/api/v1/auth';
 const SESSION_COOKIE_PREFIX = 'pinstripe';
 const PASSWORD = 'correct horse battery staple';
 const MS_PER_HOUR = 3_600_000;
+const MS_PER_MINUTE = 60_000;
 
 let fastify: FastifyInstance;
 
@@ -185,6 +186,23 @@ describe('get session', () => {
     const response = await callAuth({ method: 'GET', url: '/get-session', headers: { cookie } });
 
     expect(response.json()).toBeNull();
+  });
+
+  it('sends the refreshed session cookie once the session is due for a refresh', async () => {
+    const user = await makeUser();
+    const cookie = await signIn(user.email);
+    const { ADMIN_SESSION_IDLE_TTL_MINUTES } = fastify.config;
+    const expiresAt = new Date(Date.now() + (ADMIN_SESSION_IDLE_TTL_MINUTES - 10) * MS_PER_MINUTE);
+
+    await fastify.database.master
+      .update(adminSessions)
+      .set({ expiresAt })
+      .where(eq(adminSessions.userId, user.id));
+
+    const response = await callAuth({ method: 'GET', url: '/get-session', headers: { cookie } });
+
+    expect(response.json().user.id).toBe(user.id);
+    expect(readSessionCookie(response.cookies)).toContain(SESSION_COOKIE_PREFIX);
   });
 });
 

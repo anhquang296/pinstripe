@@ -144,9 +144,7 @@ function stripSessionToken(text: string): string {
   return text;
 }
 
-function copyAuthCookies(reply: FastifyReply, response: Response): void {
-  const cookies = response.headers.getSetCookie();
-
+function setAuthCookies(reply: FastifyReply, cookies: string[]): void {
   if (_.isEmpty(cookies)) {
     return;
   }
@@ -154,13 +152,21 @@ function copyAuthCookies(reply: FastifyReply, response: Response): void {
   reply.header('set-cookie', cookies);
 }
 
+function copyAuthCookies(reply: FastifyReply, response: Response): void {
+  setAuthCookies(reply, response.headers.getSetCookie());
+}
+
 async function replyWithSession(
   fastify: FastifyInstance,
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<FastifyReply> {
-  const authSession = await fastify.betterAuth.findActiveSession(buildForwardHeaders(request));
+  const { authSession, cookies } = await fastify.betterAuth.findActiveSession(
+    buildForwardHeaders(request),
+  );
   const body = authSession ? _.omit(authSession, SESSION_TOKEN_PATHS) : null;
+
+  setAuthCookies(reply, cookies);
 
   return reply.code(200).type(JSON_CONTENT_TYPE).send(JSON.stringify(body));
 }

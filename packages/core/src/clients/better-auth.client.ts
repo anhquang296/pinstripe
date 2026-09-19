@@ -103,14 +103,19 @@ export class BetterAuthClient {
   }
 
   async getSession(headers: Headers) {
-    return this._auth.api.getSession({ headers, query: { disableCookieCache: true } });
+    return this._auth.api.getSession({
+      headers,
+      query: { disableCookieCache: true },
+      returnHeaders: true,
+    });
   }
 
   async findActiveSession(headers: Headers) {
-    const authSession = await this.getSession(headers);
+    const { headers: responseHeaders, response: authSession } = await this.getSession(headers);
+    const cookies = responseHeaders.getSetCookie();
 
     if (!authSession) {
-      return null;
+      return { authSession: null, cookies };
     }
 
     const { session } = authSession;
@@ -118,7 +123,7 @@ export class BetterAuthClient {
       session.createdAt.getTime() + this._sessionAbsoluteTtlSeconds * MS_PER_SECOND;
 
     if (absoluteExpiresAt > Date.now()) {
-      return authSession;
+      return { authSession, cookies };
     }
 
     await this.revokeSession(session.token);
@@ -128,7 +133,7 @@ export class BetterAuthClient {
       '[BetterAuthClient] findActiveSession() session revoked, absolute ttl reached',
     );
 
-    return null;
+    return { authSession: null, cookies: [] };
   }
 
   async revokeSession(token: string): Promise<void> {

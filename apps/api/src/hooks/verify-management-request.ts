@@ -4,7 +4,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 
 export async function verifyManagementRequest(
   request: FastifyRequest,
-  _reply: FastifyReply,
+  reply: FastifyReply,
 ): Promise<void> {
-  await authenticateRequest(request, ApiKeyScopeEnum.MANAGEMENT);
+  await authenticateRequest(request, reply, ApiKeyScopeEnum.MANAGEMENT);
 }

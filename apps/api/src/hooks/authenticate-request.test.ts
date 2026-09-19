@@ -6,7 +6,7 @@ import {
   UserRoleEnum,
 } from '@pinstripe/core/contracts';
 import { ForbiddenError, UnauthorizedError } from '@pinstripe/core/errors';
-import type { FastifyRequest } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { expect, it, vi } from 'vitest';
 
 import { authenticateRequest } from './authenticate-request';
@@ -15,6 +15,7 @@ interface SetupOverrides {
   method?: string;
   headers?: Record<string, string>;
   authSession?: unknown;
+  cookies?: string[];
   scopes?: readonly ApiKeyScope[];
 }
 
@@ -35,10 +36,11 @@ function setup(overrides: SetupOverrides = {}) {
     method = 'GET',
     headers = {},
     authSession = makeAuthSession(),
+    cookies = [],
     scopes = [ApiKeyScopeEnum.V1],
   } = overrides;
 
-  const findActiveSession = vi.fn().mockResolvedValue(authSession);
+  const findActiveSession = vi.fn().mockResolvedValue({ authSession, cookies });
   const authenticateApiKey = vi
     .fn()
     .mockResolvedValue({ apiKeyId: 'key_1', type: ApiKeyTypeEnum.SECRET, scopes });
@@ -52,15 +54,18 @@ function setup(overrides: SetupOverrides = {}) {
     },
   } as unknown as FastifyRequest;
 
-  return { request, findActiveSession, authenticateApiKey };
+  const header = vi.fn();
+  const reply = { header } as unknown as FastifyReply;
+
+  return { request, reply, header, findActiveSession, authenticateApiKey };
 }
 
 it('authenticates an api key when the request carries a bearer token', async () => {
-  const { request, findActiveSession } = setup({
+  const { request, reply, findActiveSession } = setup({
     headers: { authorization: 'Bearer sk_live_1' },
   });
 
-  await authenticateRequest(request, ApiKeyScopeEnum.V1);
+  await authenticateRequest(request, reply, ApiKeyScopeEnum.V1);
 
   expect(request.auth?.apiKeyId).toBe('key_1');
   expect(request.actor).toBeUndefined();
@@ -68,80 +73,105 @@ it('authenticates an api key when the request carries a bearer token', async () 
 });
 
 it('throws ForbiddenError when the api key misses the surface scope', async () => {
-  const { request } = setup({
+  const { request, reply } = setup({
     headers: { authorization: 'Bearer sk_live_1' },
     scopes: [ApiKeyScopeEnum.SYSTEM],
   });
 
-  await expect(authenticateRequest(request, ApiKeyScopeEnum.V1)).rejects.toThrow(ForbiddenError);
+  await expect(authenticateRequest(request, reply, ApiKeyScopeEnum.V1)).rejects.toThrow(
+    ForbiddenError,
+  );
 });
 
 it('throws UnauthorizedError when the request carries neither a bearer token nor a session', async () => {
-  const { request } = setup();
+  const { request, reply } = setup();
 
-  await expect(authenticateRequest(request, ApiKeyScopeEnum.V1)).rejects.toThrow(UnauthorizedError);
+  await expect(authenticateRequest(request, reply, ApiKeyScopeEnum.V1)).rejects.toThrow(
+    UnauthorizedError,
+  );
 });
 
 it('builds an actor from the session cookie of a GET request', async () => {
-  const { request } = setup({ headers: { cookie: SESSION_COOKIE } });
+  const { request, reply, header } = setup({ headers: { cookie: SESSION_COOKIE } });
 
-  await authenticateRequest(request, ApiKeyScopeEnum.V1);
+  await authenticateRequest(request, reply, ApiKeyScopeEnum.V1);
 
   expect(request.actor?.userId).toBe('usr_1');
   expect(request.actor?.role).toBe(UserRoleEnum.MEMBER);
   expect(request.actor?.permissions).toEqual([PermissionEnum.BILLING_READ]);
   expect(request.auth).toBeUndefined();
+  expect(header).not.toHaveBeenCalled();
+});
+
+it('sets the refreshed session cookie on the reply when the session is refreshed', async () => {
+  const refreshedCookie = 'pinstripe.session_token=token.signature; Max-Age=3600; Path=/';
+  const { request, reply, header } = setup({
+    headers: { cookie: SESSION_COOKIE },
+    cookies: [refreshedCookie],
+  });
+
+  await authenticateRequest(request, reply, ApiKeyScopeEnum.V1);
+
+  expect(header).toHaveBeenCalledWith('set-cookie', [refreshedCookie]);
 });
 
 it('accepts a POST by session when the Origin is the dashboard', async () => {
-  const { request } = setup({
+  const { request, reply } = setup({
     method: 'POST',
     headers: { cookie: SESSION_COOKIE, origin: DASHBOARD_ORIGIN },
     authSession: makeAuthSession({ role: UserRoleEnum.MODERATOR }),
   });
 
-  await authenticateRequest(request, ApiKeyScopeEnum.V1);
+  await authenticateRequest(request, reply, ApiKeyScopeEnum.V1);
 
   expect(request.actor?.role).toBe(UserRoleEnum.MODERATOR);
 });
 
 it('throws ForbiddenError for a POST by session whose Origin is not the dashboard', async () => {
-  const { request } = setup({
+  const { request, reply } = setup({
     method: 'POST',
     headers: { cookie: SESSION_COOKIE, origin: 'https://attacker.test' },
   });
 
-  await expect(authenticateRequest(request, ApiKeyScopeEnum.V1)).rejects.toThrow(ForbiddenError);
+  await expect(authenticateRequest(request, reply, ApiKeyScopeEnum.V1)).rejects.toThrow(
+    ForbiddenError,
+  );
 });
 
 it('throws UnauthorizedError when the session is gone or past the absolute ttl', async () => {
-  const { request } = setup({ headers: { cookie: SESSION_COOKIE }, authSession: null });
+  const { request, reply } = setup({ headers: { cookie: SESSION_COOKIE }, authSession: null });
 
-  await expect(authenticateRequest(request, ApiKeyScopeEnum.V1)).rejects.toThrow(UnauthorizedError);
+  await expect(authenticateRequest(request, reply, ApiKeyScopeEnum.V1)).rejects.toThrow(
+    UnauthorizedError,
+  );
 });
 
 it('throws UnauthorizedError when the session belongs to a banned user', async () => {
-  const { request } = setup({
+  const { request, reply } = setup({
     headers: { cookie: SESSION_COOKIE },
     authSession: makeAuthSession({ banned: true }),
   });
 
-  await expect(authenticateRequest(request, ApiKeyScopeEnum.V1)).rejects.toThrow(UnauthorizedError);
+  await expect(authenticateRequest(request, reply, ApiKeyScopeEnum.V1)).rejects.toThrow(
+    UnauthorizedError,
+  );
 });
 
 it('throws UnauthorizedError when the session carries a role the repository does not know', async () => {
-  const { request } = setup({
+  const { request, reply } = setup({
     headers: { cookie: SESSION_COOKIE },
     authSession: makeAuthSession({ role: 'superuser' }),
   });
 
-  await expect(authenticateRequest(request, ApiKeyScopeEnum.V1)).rejects.toThrow(UnauthorizedError);
+  await expect(authenticateRequest(request, reply, ApiKeyScopeEnum.V1)).rejects.toThrow(
+    UnauthorizedError,
+  );
 });
 
 it('refuses a session cookie on a surface only machine callers may use', async () => {
-  const { request, findActiveSession } = setup({ headers: { cookie: SESSION_COOKIE } });
+  const { request, reply, findActiveSession } = setup({ headers: { cookie: SESSION_COOKIE } });
 
-  await expect(authenticateRequest(request, ApiKeyScopeEnum.MANAGEMENT)).rejects.toThrow(
+  await expect(authenticateRequest(request, reply, ApiKeyScopeEnum.MANAGEMENT)).rejects.toThrow(
     UnauthorizedError,
   );
   expect(findActiveSession).not.toHaveBeenCalled();

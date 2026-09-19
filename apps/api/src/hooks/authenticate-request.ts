@@ -2,7 +2,7 @@ import type { ApiKeyScope, UserAuth, UserRole } from '@pinstripe/core/contracts'
 import { ApiKeyScopeEnum, ROLE_PERMISSIONS, UserRoleEnum } from '@pinstripe/core/contracts';
 import { ForbiddenError, UnauthorizedError } from '@pinstripe/core/errors';
 import { ApiKeyService } from '@pinstripe/core/services';
-import type { FastifyRequest } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 
 const BEARER_PREFIX = 'Bearer ';
@@ -61,10 +61,15 @@ function assertTrustedOrigin(request: FastifyRequest): void {
   throw new ForbiddenError('This request came from an origin the dashboard does not trust');
 }
 
-async function readSessionActor(request: FastifyRequest): Promise<UserAuth> {
-  const authSession = await request.server.betterAuth.findActiveSession(
+async function readSessionActor(request: FastifyRequest, reply: FastifyReply): Promise<UserAuth> {
+  const { authSession, cookies } = await request.server.betterAuth.findActiveSession(
     buildSessionHeaders(request),
   );
+
+  if (!_.isEmpty(cookies)) {
+    reply.header('set-cookie', cookies);
+  }
+
   const user = _.get(authSession, 'user');
   const session = _.get(authSession, 'session');
   const userRole = _.get(authSession, 'user.role', '');
@@ -95,14 +100,15 @@ async function authenticateApiKey(request: FastifyRequest, scope: ApiKeyScope): 
   throw new ForbiddenError(`This API key is not permitted to call the ${scope} surface`);
 }
 
-async function authenticateSession(request: FastifyRequest): Promise<void> {
+async function authenticateSession(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   assertTrustedOrigin(request);
 
-  request.actor = await readSessionActor(request);
+  request.actor = await readSessionActor(request, reply);
 }
 
 export async function authenticateRequest(
   request: FastifyRequest,
+  reply: FastifyReply,
   scope: ApiKeyScope,
 ): Promise<void> {
   if (findBearerToken(request)) {
@@ -110,7 +116,7 @@ export async function authenticateRequest(
   }
 
   if (hasSessionCookie(request, scope)) {
-    return authenticateSession(request);
+    return authenticateSession(request, reply);
   }
 
   throw new UnauthorizedError('Missing bearer token in Authorization header');
