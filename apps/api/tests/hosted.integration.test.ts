@@ -154,6 +154,6 @@ describe('hosted invoice page', () => {
     expect(page.body).toContain('Tải bản PDF');
     expect(pdf.statusCode).toBe(200);
     expect(pdf.headers['content-type']).toContain('application/pdf');
-    expect(pdf.rawPayload.subarray(0, 8).toString('latin1')).toBe('%PDF-1.4');
+    expect(pdf.rawPayload.subarray(0, 5).toString('latin1')).toBe('%PDF-');
   });
 });

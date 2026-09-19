@@ -19,6 +19,7 @@
     "@pinstripe/core": "workspace:*",
     "@pinstripe/sdk": "workspace:*",
     "@tanstack/react-query": "^5.62.7",
+    "@tanstack/react-table": "^9.2.4",
     "clsx": "^2.1.1",
     "lodash-es": "^4.18.1",
     "next": "^15.1.3",

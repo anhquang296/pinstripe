@@ -130,9 +130,57 @@ it('reads account data with the session cookie, never with the portal key', asyn
   expect(fetchMock).toHaveBeenCalledWith(
     'http://api.test/portal/me',
     expect.objectContaining({
-      headers: { accept: 'application/json', authorization: 'Bearer raw-session-key' },
+      headers: { authorization: 'Bearer raw-session-key' },
     }),
   );
+});
+
+it('forwards one invoice of the customer by its id', async () => {
+  const { fetchMock } = setup(Response.json({ id: 'in_01abc' }));
+
+  const response = await handlePortalBffRequest(
+    buildRequest('GET', 'invoices/in_01abc', { sessionKey: 'raw-session-key' }),
+    ['invoices', 'in_01abc'],
+  );
+
+  expect(response.status).toBe(200);
+  expect(fetchMock).toHaveBeenCalledWith(
+    'http://api.test/portal/invoices/in_01abc',
+    expect.anything(),
+  );
+});
+
+it('refuses an invoice path that is not an id', async () => {
+  const { fetchMock } = setup();
+
+  const response = await handlePortalBffRequest(
+    buildRequest('GET', 'invoices/in_01abc/payments', { sessionKey: 'raw-session-key' }),
+    ['invoices', 'in_01abc', 'payments'],
+  );
+
+  expect(response.status).toBe(404);
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it('passes an invoice pdf through byte for byte with its download name', async () => {
+  const pdfBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0xe2, 0x00, 0xff]);
+  setup(
+    new Response(pdfBytes, {
+      headers: {
+        'content-type': 'application/pdf',
+        'content-disposition': 'attachment; filename="in_01abc.pdf"',
+      },
+    }),
+  );
+
+  const response = await handlePortalBffRequest(
+    buildRequest('GET', 'invoices/in_01abc/pdf', { sessionKey: 'raw-session-key' }),
+    ['invoices', 'in_01abc', 'pdf'],
+  );
+
+  expect(new Uint8Array(await response.arrayBuffer())).toEqual(pdfBytes);
+  expect(response.headers.get('content-type')).toBe('application/pdf');
+  expect(response.headers.get('content-disposition')).toBe('attachment; filename="in_01abc.pdf"');
 });
 
 it('drops the session cookie when the API no longer accepts the session', async () => {

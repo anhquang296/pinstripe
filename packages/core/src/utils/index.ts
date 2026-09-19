@@ -4,6 +4,7 @@ export * from '@utils/currency';
 export * from '@utils/decline-code';
 export * from '@utils/gid-factory';
 export * from '@utils/hosted-url';
+export * from '@utils/invoice-totals';
 export * from '@utils/money';
 export * from '@utils/notification-template';
 export * from '@utils/pdf-document';

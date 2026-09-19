@@ -4,7 +4,7 @@ import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
   FindPortalSubscriptionsQuery,
   ListResponse,
-  SubscriptionResponse,
+  PortalSubscriptionResponse,
 } from '@type/contracts.types';
 
 const PORTAL_SUBSCRIPTIONS_PATH = '/portal/subscriptions';
@@ -19,7 +19,7 @@ export class PortalSubscriptionsResource {
   find(
     query: FindPortalSubscriptionsQuery = {},
     options?: RequestOptions,
-  ): Promise<ListResponse<SubscriptionResponse>> {
+  ): Promise<ListResponse<PortalSubscriptionResponse>> {
     return this._transport.request({
       path: PORTAL_SUBSCRIPTIONS_PATH,
       method: HttpMethodEnum.GET,

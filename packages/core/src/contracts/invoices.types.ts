@@ -71,6 +71,7 @@ export const invoiceSchema = Type.Object({
   collectionMethod: Type.Unsafe<CollectionMethod>(Type.Enum(CollectionMethodEnum)),
   autoAdvance: Type.Boolean(),
   daysUntilDue: Type.Union([Type.Integer(), Type.Null()]),
+  dueAt: Type.Union([Type.String(), Type.Null()]),
   attempted: Type.Boolean(),
   periodStart: Type.String(),
   periodEnd: Type.String(),

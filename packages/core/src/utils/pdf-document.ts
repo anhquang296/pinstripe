@@ -1,63 +1,80 @@
-import _ from 'lodash';
+import { createRequire } from 'node:module';
 
-const PAGE_WIDTH = 595;
-const PAGE_HEIGHT = 842;
-const MARGIN_X = 56;
-const TOP_Y = 780;
-const LINE_HEIGHT = 18;
-const DEFAULT_FONT_SIZE = 11;
+import _ from 'lodash';
+import PDFDocument from 'pdfkit';
+
+const PAGE_MARGIN = 56;
+const DEFAULT_FONT_SIZE = 10;
 const TITLE_FONT_SIZE = 18;
-const PDF_HEADER = '%PDF-1.4\n';
+const ROW_GAP = 4;
+const AMOUNT_COLUMN_WIDTH = 140;
+
+const REGULAR_FONT = 'noto-sans-regular';
+const BOLD_FONT = 'noto-sans-bold';
 
 export interface PdfLine {
   text: string;
+  amount?: string;
   isTitle?: boolean;
+  isBold?: boolean;
 }
 
-function escapePdfText(text: string): string {
-  return text.replace(/[\\()]/g, '\\$&').replace(/[^\x20-\x7e]/g, '?');
+function resolveFontPaths(): Record<string, string> {
+  const require = createRequire(import.meta.url);
+
+  return {
+    [REGULAR_FONT]:
+      require.resolve('@expo-google-fonts/noto-sans/400Regular/NotoSans_400Regular.ttf'),
+    [BOLD_FONT]: require.resolve('@expo-google-fonts/noto-sans/700Bold/NotoSans_700Bold.ttf'),
+  };
 }
 
-function buildContentStream(lines: readonly PdfLine[]): string {
-  return _(lines)
-    .map((line, index) => {
-      const { isTitle = false } = line;
-      const size = isTitle ? TITLE_FONT_SIZE : DEFAULT_FONT_SIZE;
-      const y = TOP_Y - index * LINE_HEIGHT;
+function writeLine(document: PDFKit.PDFDocument, line: PdfLine): void {
+  const { text, amount, isTitle = false, isBold = false } = line;
+  const font = isTitle || isBold ? BOLD_FONT : REGULAR_FONT;
+  const fontSize = isTitle ? TITLE_FONT_SIZE : DEFAULT_FONT_SIZE;
+  const contentWidth = document.page.width - PAGE_MARGIN * 2;
+  const textWidth = amount ? contentWidth - AMOUNT_COLUMN_WIDTH : contentWidth;
+  const top = document.y;
 
-      return `BT /F1 ${size} Tf ${MARGIN_X} ${y} Td (${escapePdfText(line.text)}) Tj ET`;
-    })
-    .join('\n');
-}
+  document.font(font).fontSize(fontSize);
+  document.text(text || ' ', PAGE_MARGIN, top, { width: textWidth });
 
-export function buildPdfDocument(lines: readonly PdfLine[]): Buffer {
-  const content = buildContentStream(lines);
-  const bodies = [
-    '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
-    '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
-    `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n`,
-    `4 0 obj\n<< /Length ${Buffer.byteLength(content, 'latin1')} >>\nstream\n${content}\nendstream\nendobj\n`,
-    '5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
-  ];
+  const bottom = document.y;
 
-  const offsets: number[] = [];
-
-  let document = PDF_HEADER;
-
-  for (const body of bodies) {
-    offsets.push(Buffer.byteLength(document, 'latin1'));
-    document += body;
+  if (amount) {
+    document.text(amount, PAGE_MARGIN + textWidth, top, {
+      width: AMOUNT_COLUMN_WIDTH,
+      align: 'right',
+    });
   }
 
-  const xrefOffset = Buffer.byteLength(document, 'latin1');
-  const entries = _(offsets)
-    .map((offset) => {
-      return `${_.padStart(String(offset), 10, '0')} 00000 n \n`;
-    })
-    .join('');
+  document.y = Math.max(bottom, document.y) + ROW_GAP;
+}
 
-  document += `xref\n0 ${bodies.length + 1}\n0000000000 65535 f \n${entries}`;
-  document += `trailer\n<< /Size ${bodies.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+export async function renderPdfDocument(lines: readonly PdfLine[]): Promise<Buffer> {
+  const document = new PDFDocument({ size: 'A4', margin: PAGE_MARGIN });
+  const chunks: Buffer[] = [];
 
-  return Buffer.from(document, 'latin1');
+  _.forEach(resolveFontPaths(), (fontPath, fontName) => {
+    document.registerFont(fontName, fontPath);
+  });
+
+  const finished = new Promise<Buffer>((resolve, reject) => {
+    document.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+    document.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+    document.on('error', reject);
+  });
+
+  _.forEach(lines, (line) => {
+    writeLine(document, line);
+  });
+
+  document.end();
+
+  return finished;
 }

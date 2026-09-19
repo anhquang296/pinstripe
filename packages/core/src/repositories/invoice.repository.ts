@@ -19,7 +19,7 @@ import {
 } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
-import { and, asc, desc, eq, inArray, lt, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, lt, lte, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface InvoiceFilters {
@@ -31,6 +31,8 @@ export interface InvoiceFilters {
   periodStart?: string;
   periodEndBeforeAt?: string;
   nextAttemptBeforeAt?: string;
+  dueBeforeAt?: string;
+  dueAfterAt?: string;
   autoAdvance?: boolean;
   createdBeforeAt?: string;
   shardCount?: number;
@@ -200,6 +202,8 @@ export class InvoiceRepository {
       filters.nextAttemptBeforeAt
         ? lte(invoices.nextAttemptAt, filters.nextAttemptBeforeAt)
         : undefined,
+      filters.dueBeforeAt ? lt(invoices.dueAt, filters.dueBeforeAt) : undefined,
+      filters.dueAfterAt ? gt(invoices.dueAt, filters.dueAfterAt) : undefined,
       filters.autoAdvance === undefined ? undefined : eq(invoices.autoAdvance, filters.autoAdvance),
       filters.createdBeforeAt ? lt(invoices.createdAt, filters.createdBeforeAt) : undefined,
       filters.shardCount && filters.shardIndex !== undefined

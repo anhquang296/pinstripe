@@ -3,6 +3,10 @@ import { MILLISECONDS_PER_DAY, MILLISECONDS_PER_HOUR } from '@constants/time';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import type {
+  FindPortalSubscriptionsQuery,
+  PortalSubscriptionResponse,
+} from '@contracts/portal.types';
 import type { RecurringInterval } from '@contracts/prices.types';
 import type {
   CancelSubscriptionPayload,
@@ -194,6 +198,60 @@ export class SubscriptionService {
     });
 
     return SubscriptionService.buildSubscription(subscription, subscriptionItems);
+  }
+
+  async findCustomerSubscriptions(
+    customerId: string,
+    query: FindPortalSubscriptionsQuery,
+  ): Promise<ListResponse<PortalSubscriptionResponse>> {
+    const subscriptions = await this.findSubscriptions({ ...query, customerId });
+    const priceIds = _(subscriptions.data).flatMap('items').map('priceId').uniq().value();
+    const prices = await this.fastify.priceRepository.findPrices(
+      { ids: priceIds },
+      priceIds.length,
+    );
+    const productIds = _(prices).map('productId').uniq().value();
+    const products = await this.fastify.productRepository.findProducts(
+      { ids: productIds },
+      productIds.length,
+    );
+    const pricesById = _.keyBy(prices, 'id');
+    const productsById = _.keyBy(products, 'id');
+
+    return {
+      ...subscriptions,
+      data: _.map(subscriptions.data, (subscription) => {
+        return {
+          ..._.pick(subscription, [
+            'id',
+            'status',
+            'currency',
+            'collectionMethod',
+            'currentPeriodStart',
+            'currentPeriodEnd',
+            'trialEnd',
+            'cancelAtPeriodEnd',
+            'cancelAt',
+            'createdAt',
+          ]),
+          items: _.map(subscription.items, (subscriptionItem) => {
+            const price = _.get(pricesById, subscriptionItem.priceId);
+            const product = _.get(productsById, _.get(price, 'productId', ''));
+
+            return {
+              id: subscriptionItem.id,
+              quantity: subscriptionItem.quantity,
+              productName: _.get(product, 'name', ''),
+              priceNickname: _.get(price, 'nickname', ''),
+              unitAmount: _.get(price, 'unitAmount', null),
+              interval: _.get(price, 'recurringInterval', null),
+              intervalCount: _.get(price, 'recurringIntervalCount', null),
+              usageType: _.get(price, 'usageType', null),
+            };
+          }),
+        };
+      }),
+    };
   }
 
   async findSubscriptions(

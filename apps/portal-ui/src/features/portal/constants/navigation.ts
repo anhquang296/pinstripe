@@ -3,4 +3,9 @@ export interface NavigationItem {
   title: string;
 }
 
-export const NAVIGATION_ITEMS: readonly NavigationItem[] = [{ to: '/', title: 'Tổng quan' }];
+export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
+  { to: '/', title: 'Tổng quan' },
+  { to: '/invoices', title: 'Hóa đơn' },
+  { to: '/subscriptions', title: 'Gói dịch vụ' },
+  { to: '/account', title: 'Tài khoản' },
+];

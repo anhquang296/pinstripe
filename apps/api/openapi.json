@@ -7908,6 +7908,7 @@
                     "collectionMethod",
                     "autoAdvance",
                     "daysUntilDue",
+                    "dueAt",
                     "attempted",
                     "periodStart",
                     "periodEnd",
@@ -8086,6 +8087,16 @@
                       "anyOf": [
                         {
                           "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "dueAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
                         },
                         {
                           "type": "null"
@@ -8590,6 +8601,7 @@
                           "collectionMethod",
                           "autoAdvance",
                           "daysUntilDue",
+                          "dueAt",
                           "attempted",
                           "periodStart",
                           "periodEnd",
@@ -8768,6 +8780,16 @@
                             "anyOf": [
                               {
                                 "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "dueAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
                               },
                               {
                                 "type": "null"
@@ -9190,6 +9212,7 @@
                     "collectionMethod",
                     "autoAdvance",
                     "daysUntilDue",
+                    "dueAt",
                     "attempted",
                     "periodStart",
                     "periodEnd",
@@ -9368,6 +9391,16 @@
                       "anyOf": [
                         {
                           "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "dueAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
                         },
                         {
                           "type": "null"
@@ -9787,6 +9820,7 @@
                     "collectionMethod",
                     "autoAdvance",
                     "daysUntilDue",
+                    "dueAt",
                     "attempted",
                     "periodStart",
                     "periodEnd",
@@ -9965,6 +9999,16 @@
                       "anyOf": [
                         {
                           "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "dueAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
                         },
                         {
                           "type": "null"
@@ -10407,6 +10451,7 @@
                     "collectionMethod",
                     "autoAdvance",
                     "daysUntilDue",
+                    "dueAt",
                     "attempted",
                     "periodStart",
                     "periodEnd",
@@ -10585,6 +10630,16 @@
                       "anyOf": [
                         {
                           "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "dueAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
                         },
                         {
                           "type": "null"
@@ -11023,6 +11078,7 @@
                     "collectionMethod",
                     "autoAdvance",
                     "daysUntilDue",
+                    "dueAt",
                     "attempted",
                     "periodStart",
                     "periodEnd",
@@ -11201,6 +11257,16 @@
                       "anyOf": [
                         {
                           "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "dueAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
                         },
                         {
                           "type": "null"

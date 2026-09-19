@@ -1,12 +1,50 @@
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
+import type { InvoiceStatus } from '@contracts/invoices.types';
+import { InvoiceStatusEnum } from '@contracts/invoices.types';
 import type { Customer, Invoice, InvoiceLineItem } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
+import type { Currency } from '@utils/currency';
 import { HostedResourceEnum } from '@utils/hosted-url';
 import { Money } from '@utils/money';
 import type { PdfLine } from '@utils/pdf-document';
-import { buildPdfDocument } from '@utils/pdf-document';
+import { renderPdfDocument } from '@utils/pdf-document';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
+
+const DOCUMENT_LOCALE = 'vi-VN';
+const DOCUMENT_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
+const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  [InvoiceStatusEnum.DRAFT]: 'Bản nháp',
+  [InvoiceStatusEnum.OPEN]: 'Chưa thanh toán',
+  [InvoiceStatusEnum.PAID]: 'Đã thanh toán',
+  [InvoiceStatusEnum.VOID]: 'Đã hủy',
+  [InvoiceStatusEnum.UNCOLLECTIBLE]: 'Không thu được',
+};
+
+function formatDocumentMoney(minorAmount: number, currency: Currency): string {
+  return new Intl.NumberFormat(DOCUMENT_LOCALE, {
+    style: 'currency',
+    currency: _.toUpper(currency),
+  }).format(Money.of(minorAmount, currency).toMajorUnit());
+}
+
+function formatDocumentDate(isoDate: string): string {
+  return new Intl.DateTimeFormat(DOCUMENT_LOCALE, {
+    timeZone: DOCUMENT_TIME_ZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(isoDate));
+}
+
+function buildOptionalLabel(value: string | null): string {
+  if (value) {
+    return value;
+  }
+
+  return '—';
+}
 
 function buildInvoiceLabel(invoice: Invoice): string {
   const { number } = invoice;
@@ -88,6 +126,18 @@ export class InvoiceDocumentService {
 
   async getInvoicePdf(id: string, token: string): Promise<Buffer> {
     const invoice = await this.getVerifiedInvoice(id, token);
+
+    return this.readInvoicePdf(invoice);
+  }
+
+  async getCustomerInvoicePdf(customerId: string, id: string): Promise<Buffer> {
+    const visibleInvoice = await this.fastify.invoiceService.getCustomerInvoice(customerId, id);
+    const invoice = await this.fastify.invoiceRepository.getInvoice(visibleInvoice.id);
+
+    return this.readInvoicePdf(invoice);
+  }
+
+  async readInvoicePdf(invoice: Invoice): Promise<Buffer> {
     const storageKey = InvoiceDocumentService.buildStorageKey(invoice);
 
     try {
@@ -95,7 +145,7 @@ export class InvoiceDocumentService {
     } catch (error) {
       this.fastify.log.warn(
         { error, invoiceId: invoice.id },
-        '[InvoiceDocumentService] getInvoicePdf() rendering a replacement copy',
+        '[InvoiceDocumentService] readInvoicePdf() rendering a replacement copy',
       );
 
       const document = await this.renderInvoicePdf(invoice);
@@ -125,7 +175,7 @@ export class InvoiceDocumentService {
     const customer = await this.fastify.customerRepository.getCustomer(invoice.customerId);
     const lineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([invoice.id]);
 
-    return buildPdfDocument(InvoiceDocumentService.buildPdfLines(invoice, customer, lineItems));
+    return renderPdfDocument(InvoiceDocumentService.buildPdfLines(invoice, customer, lineItems));
   }
 
   private static buildStorageKey(invoice: Invoice): string {
@@ -138,29 +188,35 @@ export class InvoiceDocumentService {
     lineItems: readonly InvoiceLineItem[],
   ): PdfLine[] {
     const amount = (value: number) => {
-      return Money.of(value, invoice.currency).toString();
+      return formatDocumentMoney(value, invoice.currency);
     };
+    const periodLabel = `${formatDocumentDate(invoice.periodStart)} – ${formatDocumentDate(invoice.periodEnd)}`;
+    const dueLabel = buildOptionalLabel(invoice.dueAt && formatDocumentDate(invoice.dueAt));
 
     return [
-      { text: `Invoice ${buildInvoiceLabel(invoice)}`, isTitle: true },
+      { text: `Hóa đơn ${buildInvoiceLabel(invoice)}`, isTitle: true },
       { text: '' },
-      { text: `Billed to: ${buildCustomerLabel(customer)}` },
-      { text: `Status: ${invoice.status}` },
-      {
-        text: `Period: ${invoice.periodStart} to ${invoice.periodEnd}`,
-      },
+      { text: `Nhà xe: ${buildCustomerLabel(customer)}` },
+      { text: `Mã số thuế: ${buildOptionalLabel(customer.taxId)}` },
+      { text: `Email thanh toán: ${buildOptionalLabel(customer.email)}` },
       { text: '' },
+      { text: `Trạng thái: ${INVOICE_STATUS_LABELS[invoice.status]}` },
+      { text: `Kỳ dịch vụ: ${periodLabel}` },
+      { text: `Hạn thanh toán: ${dueLabel}` },
+      { text: '' },
+      { text: 'Dịch vụ', amount: 'Thành tiền', isBold: true },
       ..._.map(lineItems, (lineItem): PdfLine => {
         return {
-          text: `${lineItem.description} x ${lineItem.quantity} = ${amount(lineItem.amount)}`,
+          text: `${lineItem.description} × ${lineItem.quantity}`,
+          amount: amount(lineItem.amount),
         };
       }),
       { text: '' },
-      { text: `Subtotal: ${amount(invoice.subtotal)}` },
-      { text: `Discounts: ${amount(invoice.totalDiscountAmount)}` },
-      { text: `Tax: ${amount(invoice.totalTaxAmount)}` },
-      { text: `Total: ${amount(invoice.total)}` },
-      { text: `Amount due: ${amount(invoice.amountDue)}` },
+      { text: 'Tạm tính', amount: amount(invoice.subtotal) },
+      { text: 'Giảm giá', amount: amount(invoice.totalDiscountAmount) },
+      { text: 'Thuế', amount: amount(invoice.totalTaxAmount) },
+      { text: 'Tổng cộng', amount: amount(invoice.total), isBold: true },
+      { text: 'Số tiền phải trả', amount: amount(invoice.amountDue), isBold: true },
     ];
   }
 }

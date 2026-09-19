@@ -92,6 +92,11 @@ API /portal/*
 - `middleware.ts` chuyển về `/login` khi thiếu cookie; `RequirePortalSession` bắt 401 của `/portal/me`
   khi phiên hết hạn giữa chừng.
 - `/customers/*` (trang cũ đọc bằng secret key) redirect về `/login`. Không còn rewrite `/api/*`.
+- Màn: `/` Tổng quan (`usePortalInvoiceTotalsQuery`, 5 hóa đơn gần nhất, gói đang dùng), `/invoices`
+  (tab `?view=all|upcoming|overdue|paid`, phân trang cursor), `/invoices/[invoiceId]` (chi tiết + tải PDF
+  qua `/bff/portal/invoices/:id/pdf`), `/subscriptions`, `/account`.
+- Component bảng/thẻ (`DataTable`, `StatItem`, `DetailList`…) là bản riêng trong
+  `apps/portal-ui/src/common`, không import từ admin-ui. Số ngày trễ đếm theo ngày lịch giờ Việt Nam.
 - Env của portal: `PINSTRIPE_API_URL`, `PINSTRIPE_PORTAL_API_KEY` trong `apps/portal-ui/.env.local`,
   chỉ đọc ở `src/libs/portal-bff.ts`.
 
@@ -99,8 +104,10 @@ Phía API, mọi route `/portal/*` lấy `customerId` từ session chứ không 
 
 - `POST /portal/links` (key scope `portal`) gửi magic link tới `customers.email`; link trỏ về
   `${PORTAL_BASE_URL}/login/verify?linkKey=…`, dùng một lần, hết hạn sau `PORTAL_LINK_TTL_MINUTES`.
-- `POST /portal/sessions` đổi `linkKey` lấy `sessionKey`; `GET /portal/me|invoices|subscriptions|payment_methods`
-  đọc bằng `Authorization: Bearer <sessionKey>`. `/portal/invoices` không bao giờ trả hóa đơn `draft`.
+- `POST /portal/sessions` đổi `linkKey` lấy `sessionKey`; các route đọc dùng
+  `Authorization: Bearer <sessionKey>`: `GET /portal/me`, `/invoices` (lọc `status`, `isOverdue`),
+  `/invoices/:invoiceId`, `/invoices/:invoiceId/pdf`, `/invoice_totals`, `/subscriptions`,
+  `/payment_methods`. Hóa đơn `draft` và hóa đơn của khách khác luôn là 404.
 - Hai route đăng nhập bị giới hạn tần suất (`PORTAL_RATE_LIMIT` lần / `PORTAL_RATE_WINDOW_SECONDS`)
   theo IP người dùng cuối và theo email. IP đọc từ header `x-pinstripe-client-ip`
   (`PORTAL_CLIENT_IP_HEADER`), chỉ được tin vì request đó đã xác thực bằng portal key.

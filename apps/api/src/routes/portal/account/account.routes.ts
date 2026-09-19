@@ -1,15 +1,12 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
-  findPortalInvoicesSchema,
   findPortalPaymentMethodsSchema,
   findPortalSubscriptionsSchema,
-  invoiceSchema,
-  InvoiceStatusEnum,
   ListResponseSchema,
   paymentMethodSchema,
   portalIdentitySchema,
   portalSessionSchema,
-  subscriptionSchema,
+  portalSubscriptionSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
 import { readPortalAuth } from '@utils/request-auth';
@@ -27,34 +24,12 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
         customerId: customer.id,
         email: customer.email,
         name: customer.name,
+        phone: customer.phone,
+        taxId: customer.taxId,
+        address: customer.address,
         currency: customer.currency,
         sessionExpiresAt: portalSession.sessionExpiresAt,
       });
-    },
-  );
-
-  fastify.get(
-    '/invoices',
-    {
-      schema: {
-        querystring: findPortalInvoicesSchema,
-        response: { 200: ListResponseSchema(invoiceSchema) },
-      },
-    },
-    async (request, reply) => {
-      const CUSTOMER_VISIBLE_INVOICE_STATUSES = [
-        InvoiceStatusEnum.OPEN,
-        InvoiceStatusEnum.PAID,
-        InvoiceStatusEnum.UNCOLLECTIBLE,
-        InvoiceStatusEnum.VOID,
-      ];
-      const { customerId } = readPortalAuth(request);
-      const invoices = await fastify.invoiceService.findInvoices(
-        { ...request.query, customerId },
-        CUSTOMER_VISIBLE_INVOICE_STATUSES,
-      );
-
-      return ApiResponse.success(reply, invoices);
     },
   );
 
@@ -63,15 +38,15 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     {
       schema: {
         querystring: findPortalSubscriptionsSchema,
-        response: { 200: ListResponseSchema(subscriptionSchema) },
+        response: { 200: ListResponseSchema(portalSubscriptionSchema) },
       },
     },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
-      const subscriptions = await fastify.subscriptionService.findSubscriptions({
-        ...request.query,
+      const subscriptions = await fastify.subscriptionService.findCustomerSubscriptions(
         customerId,
-      });
+        request.query,
+      );
 
       return ApiResponse.success(reply, subscriptions);
     },

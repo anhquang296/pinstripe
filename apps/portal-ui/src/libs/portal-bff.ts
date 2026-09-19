@@ -3,7 +3,7 @@ import { PORTAL_CLIENT_IP_HEADER } from '@pinstripe/core/contracts';
 import { ErrorTypeEnum } from '@pinstripe/core/errors';
 import type { ErrorType, HttpMethod, PortalSessionResponse } from '@pinstripe/sdk';
 import { HttpMethodEnum } from '@pinstripe/sdk';
-import { find, first, join, matches, split, trim } from 'lodash-es';
+import { find, first, forEach, join, split, trim } from 'lodash-es';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -14,8 +14,12 @@ enum PortalCredentialEnum {
 
 interface PortalRoute {
   method: HttpMethod;
-  path: string;
+  pattern: RegExp;
   credential: PortalCredentialEnum;
+}
+
+interface ResolvedPortalRoute extends PortalRoute {
+  path: string;
 }
 
 interface PortalBffConfig {
@@ -23,14 +27,43 @@ interface PortalBffConfig {
   portalApiKey: string | null;
 }
 
+const SESSIONS_PATH = 'sessions';
+const FORWARDED_RESPONSE_HEADERS = ['content-type', 'content-disposition'];
+
 const PORTAL_ROUTES: readonly PortalRoute[] = [
-  { method: HttpMethodEnum.POST, path: 'links', credential: PortalCredentialEnum.PORTAL_KEY },
-  { method: HttpMethodEnum.POST, path: 'sessions', credential: PortalCredentialEnum.PORTAL_KEY },
-  { method: HttpMethodEnum.DELETE, path: 'sessions', credential: PortalCredentialEnum.SESSION },
-  { method: HttpMethodEnum.GET, path: 'me', credential: PortalCredentialEnum.SESSION },
-  { method: HttpMethodEnum.GET, path: 'invoices', credential: PortalCredentialEnum.SESSION },
-  { method: HttpMethodEnum.GET, path: 'subscriptions', credential: PortalCredentialEnum.SESSION },
-  { method: HttpMethodEnum.GET, path: 'payment_methods', credential: PortalCredentialEnum.SESSION },
+  { method: HttpMethodEnum.POST, pattern: /^links$/, credential: PortalCredentialEnum.PORTAL_KEY },
+  {
+    method: HttpMethodEnum.POST,
+    pattern: /^sessions$/,
+    credential: PortalCredentialEnum.PORTAL_KEY,
+  },
+  {
+    method: HttpMethodEnum.DELETE,
+    pattern: /^sessions$/,
+    credential: PortalCredentialEnum.SESSION,
+  },
+  { method: HttpMethodEnum.GET, pattern: /^me$/, credential: PortalCredentialEnum.SESSION },
+  { method: HttpMethodEnum.GET, pattern: /^invoices$/, credential: PortalCredentialEnum.SESSION },
+  {
+    method: HttpMethodEnum.GET,
+    pattern: /^invoices\/[A-Za-z0-9_]+(\/pdf)?$/,
+    credential: PortalCredentialEnum.SESSION,
+  },
+  {
+    method: HttpMethodEnum.GET,
+    pattern: /^invoice_totals$/,
+    credential: PortalCredentialEnum.SESSION,
+  },
+  {
+    method: HttpMethodEnum.GET,
+    pattern: /^subscriptions$/,
+    credential: PortalCredentialEnum.SESSION,
+  },
+  {
+    method: HttpMethodEnum.GET,
+    pattern: /^payment_methods$/,
+    credential: PortalCredentialEnum.SESSION,
+  },
 ];
 
 function readPortalBffConfig(): PortalBffConfig {
@@ -46,11 +79,20 @@ function buildErrorResponse(status: number, type: ErrorType, message: string): N
   );
 }
 
-function resolvePortalRoute(method: string, segments: readonly string[]): PortalRoute | null {
+function resolvePortalRoute(
+  method: string,
+  segments: readonly string[],
+): ResolvedPortalRoute | null {
   const path = join(segments, '/');
-  const portalRoute = find(PORTAL_ROUTES, matches({ method, path }));
+  const portalRoute = find(PORTAL_ROUTES, (candidateRoute) => {
+    return candidateRoute.method === method && candidateRoute.pattern.test(path);
+  });
 
-  return portalRoute ?? null;
+  if (portalRoute) {
+    return { ...portalRoute, path };
+  }
+
+  return null;
 }
 
 function isSameOriginRequest(request: NextRequest): boolean {
@@ -116,21 +158,34 @@ async function buildSessionResponse(apiResponse: Response): Promise<NextResponse
   return response;
 }
 
+function buildForwardedHeaders(apiResponse: Response): Headers {
+  const headers = new Headers();
+
+  forEach(FORWARDED_RESPONSE_HEADERS, (headerName) => {
+    const headerValue = apiResponse.headers.get(headerName);
+
+    if (headerValue) {
+      headers.set(headerName, headerValue);
+    }
+  });
+
+  return headers;
+}
+
 async function buildPortalResponse(
-  portalRoute: PortalRoute,
+  portalRoute: ResolvedPortalRoute,
   apiResponse: Response,
 ): Promise<NextResponse> {
-  const isSessionRoute = portalRoute.path === 'sessions';
+  const isSessionRoute = portalRoute.path === SESSIONS_PATH;
 
   if (isSessionRoute && portalRoute.method === HttpMethodEnum.POST && apiResponse.ok) {
     return buildSessionResponse(apiResponse);
   }
 
-  const body = await apiResponse.text();
-  const contentType = apiResponse.headers.get('content-type') || 'application/json';
+  const body = await apiResponse.arrayBuffer();
   const response = new NextResponse(body, {
     status: apiResponse.status,
-    headers: { 'content-type': contentType },
+    headers: buildForwardedHeaders(apiResponse),
   });
   const isSessionEnded =
     apiResponse.status === 401 ||
@@ -145,14 +200,13 @@ async function buildPortalResponse(
 
 async function forwardPortalRequest(
   request: NextRequest,
-  portalRoute: PortalRoute,
+  portalRoute: ResolvedPortalRoute,
 ): Promise<NextResponse> {
   const { apiUrl, portalApiKey } = readPortalBffConfig();
 
   if (portalApiKey) {
     const url = `${apiUrl}/portal/${portalRoute.path}${request.nextUrl.search}`;
     const headers: Record<string, string> = {
-      accept: 'application/json',
       ...buildCredentialHeaders(request, portalRoute, portalApiKey),
     };
     const init: RequestInit = { method: portalRoute.method, headers, cache: 'no-store' };

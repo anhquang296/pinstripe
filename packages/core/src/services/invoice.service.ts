@@ -22,6 +22,7 @@ import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@contracts/ledger.t
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import { RefundStatusEnum } from '@contracts/payments.types';
+import type { FindPortalInvoicesQuery, PortalInvoiceTotalsResponse } from '@contracts/portal.types';
 import type { TaxBehavior } from '@contracts/prices.types';
 import { TaxBehaviorEnum } from '@contracts/prices.types';
 import type { RatedInvoiceResponse } from '@contracts/rating.types';
@@ -44,10 +45,12 @@ import type {
 import { BadRequestError, ConflictError, NotFoundError } from '@errors/app.error';
 import { isUniqueViolation } from '@errors/database.error';
 import type { RowCursor } from '@repositories/cursor';
+import type { InvoiceFilters } from '@repositories/invoice.repository';
 import type { RatingPeriod } from '@services/rating.service';
 import { advancePeriod } from '@utils/billing-period';
 import { assertCollectionMethodUsable } from '@utils/collection-method';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
+import { buildInvoiceTotals } from '@utils/invoice-totals';
 import type { LineItemType } from '@utils/rating';
 import { LineItemTypeEnum } from '@utils/rating';
 import type { SubscriptionInterval } from '@utils/subscription-price';
@@ -57,6 +60,12 @@ import _ from 'lodash';
 
 const INVOICE_NUMBER_PREFIX = 'INV';
 const NUMBER_PAD_LENGTH = 6;
+const CUSTOMER_VISIBLE_INVOICE_STATUSES: readonly InvoiceStatus[] = [
+  InvoiceStatusEnum.OPEN,
+  InvoiceStatusEnum.PAID,
+  InvoiceStatusEnum.UNCOLLECTIBLE,
+  InvoiceStatusEnum.VOID,
+];
 
 export interface EnsuredInvoice {
   invoice: Invoice;
@@ -1074,19 +1083,81 @@ export class InvoiceService {
     return this.buildInvoice(invoice);
   }
 
+  async findCustomerInvoices(
+    customerId: string,
+    query: FindPortalInvoicesQuery,
+  ): Promise<ListResponse<InvoiceResponse>> {
+    const { isOverdue, ...pageQuery } = query;
+
+    if (isOverdue === undefined) {
+      return this.findInvoices(
+        { ...pageQuery, customerId },
+        { statuses: CUSTOMER_VISIBLE_INVOICE_STATUSES },
+      );
+    }
+
+    const now = await this.fastify.clockService.resolveCustomerNow(customerId);
+    const dueFilters: InvoiceFilters = isOverdue
+      ? { dueBeforeAt: now.toISOString() }
+      : { dueAfterAt: now.toISOString() };
+
+    return this.findInvoices(
+      { ...pageQuery, customerId },
+      { ...dueFilters, statuses: [InvoiceStatusEnum.OPEN] },
+    );
+  }
+
+  async getCustomerInvoice(customerId: string, id: string): Promise<InvoiceResponse> {
+    const invoice = await this.fastify.invoiceRepository.findInvoice(id);
+    const isVisible =
+      invoice !== null &&
+      invoice.customerId === customerId &&
+      _.includes(CUSTOMER_VISIBLE_INVOICE_STATUSES, invoice.status);
+
+    if (invoice && isVisible) {
+      return this.buildInvoice(invoice);
+    }
+
+    throw new NotFoundError(`No such invoice: ${id}`);
+  }
+
+  async aggregateCustomerInvoiceTotals(customerId: string): Promise<PortalInvoiceTotalsResponse> {
+    const OPEN_INVOICE_LIMIT = 1000;
+    const DUE_SOON_DAYS = 7;
+
+    const now = await this.fastify.clockService.resolveCustomerNow(customerId);
+    const openInvoices = await this.fastify.invoiceRepository.findInvoices(
+      { customerId, status: InvoiceStatusEnum.OPEN },
+      OPEN_INVOICE_LIMIT,
+    );
+    const creditedByInvoiceId = await this.resolveCreditedAmounts(_.map(openInvoices, 'id'));
+    const balances = _.map(openInvoices, (invoice) => {
+      const amountCredited = _.get(creditedByInvoiceId, invoice.id, 0);
+
+      return {
+        currency: invoice.currency,
+        amountRemaining: InvoiceService.resolveAmountRemaining(invoice, amountCredited),
+        dueAt: invoice.dueAt,
+      };
+    });
+    const dueSoonBeforeAt = new Date(now.getTime() + DUE_SOON_DAYS * MILLISECONDS_PER_DAY);
+
+    return { totals: buildInvoiceTotals(balances, now, dueSoonBeforeAt) };
+  }
+
   async findInvoices(
     query: FindInvoicesQuery,
-    statuses?: readonly InvoiceStatus[],
+    filters: Pick<InvoiceFilters, 'statuses' | 'dueBeforeAt' | 'dueAfterAt'> = {},
   ): Promise<ListResponse<InvoiceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const beforeAt = await this.resolveCursor(query.startingAfter);
     const afterAt = await this.resolveCursor(query.endingBefore);
     const rows = await this.fastify.invoiceRepository.findInvoices(
       {
+        ...filters,
         customerId: query.customerId,
         subscriptionId: query.subscriptionId,
         status: query.status,
-        statuses,
         beforeAt,
         afterAt,
       },
@@ -1417,6 +1488,10 @@ export class InvoiceService {
     return _.mapValues(_.keyBy(rows, 'invoiceId'), 'refundedAmount');
   }
 
+  private static resolveAmountRemaining(invoice: Invoice, amountCredited: number): number {
+    return invoice.amountDue - invoice.amountPaid - amountCredited;
+  }
+
   private static formatNumber(prefix: string, value: number): string {
     return `${prefix}-${_.padStart(String(value), NUMBER_PAD_LENGTH, '0')}`;
   }
@@ -1444,7 +1519,7 @@ export class InvoiceService {
       },
       amountCredited,
       amountRefunded,
-      amountRemaining: invoice.amountDue - invoice.amountPaid - amountCredited,
+      amountRemaining: InvoiceService.resolveAmountRemaining(invoice, amountCredited),
       lineItems: _.map(lineItems, (lineItem) => {
         return {
           ...lineItem,

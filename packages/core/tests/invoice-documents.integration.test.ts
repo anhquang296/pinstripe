@@ -9,7 +9,7 @@ import { buildTestContext } from './context';
 import { makeOpenInvoice } from './factories';
 
 const EVENT_SCAN_LIMIT = 200;
-const PDF_MAGIC = '%PDF-1.4';
+const PDF_MAGIC = '%PDF-';
 
 let fastify: FastifyInstance;
 

@@ -2,6 +2,7 @@ import type { RequestOptions } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type { FindPortalInvoicesQuery, InvoiceResponse, ListResponse } from '@type/contracts.types';
+import { buildPath } from '@utils/build-path';
 
 const PORTAL_INVOICES_PATH = '/portal/invoices';
 
@@ -20,6 +21,14 @@ export class PortalInvoicesResource {
       path: PORTAL_INVOICES_PATH,
       method: HttpMethodEnum.GET,
       query,
+      options,
+    });
+  }
+
+  get(invoiceId: string, options?: RequestOptions): Promise<InvoiceResponse> {
+    return this._transport.request({
+      path: buildPath(PORTAL_INVOICES_PATH, invoiceId),
+      method: HttpMethodEnum.GET,
       options,
     });
   }

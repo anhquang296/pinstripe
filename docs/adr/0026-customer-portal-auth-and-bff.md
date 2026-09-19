@@ -68,6 +68,25 @@ HeroUI v3 + Tailwind v4 + react-hook-form/zod + TanStack Query + sonner, theme m
 Không dùng better-auth: bảng `users` là nhân viên Vexere, và ADR 0024 cấm cookie session của dashboard
 mở surface `portal`.
 
+### 6. Bề mặt đọc của khách: chỉ thứ khách được thấy, tính ở server
+
+- `GET /portal/invoices` không bao giờ trả `draft`; lọc `status` và `isOverdue`. "Quá hạn" là
+  `status = open` và `dueAt` < giờ hiện tại của customer (`clockService.resolveCustomerNow`, nên test
+  clock cũng đúng). `dueAt` giờ có trong `invoiceSchema` — cột đã tồn tại, chỉ chưa lên dây.
+- `GET /portal/invoices/:invoiceId` và `/pdf` trả **404** cho hóa đơn của khách khác hoặc `draft`,
+  không phải 403, để không xác nhận hóa đơn đó tồn tại.
+- `GET /portal/invoice_totals` cộng công nợ theo **từng currency** (còn phải trả, quá hạn, đến hạn trong
+  7 ngày, hạn gần nhất) bằng hàm thuần `buildInvoiceTotals`, không cộng lẫn tiền tệ (ADR 0012 §3).
+- `GET /portal/subscriptions` trả `portalSubscriptionSchema` — shape gọn cho khách, kèm tên sản phẩm và
+  đơn giá của từng item — thay vì `subscriptionSchema` đầy đủ của merchant.
+
+### 7. PDF hóa đơn bằng pdfkit + Noto Sans
+
+Bộ sinh PDF tự viết chỉ có Helvetica và thay mọi ký tự ngoài ASCII bằng `?`. `renderPdfDocument`
+dùng pdfkit với Noto Sans (OFL, gói `@expo-google-fonts/noto-sans`) nhúng vào file, nội dung hóa đơn
+bằng tiếng Việt. PDF vẫn được sinh một lần lúc phát hành và lưu lại; file cũ trong storage không tự
+sinh lại.
+
 ## Hệ quả
 
 - Danh tính portal hiện là **customer**, không phải người: ai giữ hộp thư `customers.email` là vào

@@ -2,6 +2,7 @@ import { verifyPortalKeyRequest } from '@hooks/verify-portal-key-request';
 import { verifyPortalSessionRequest } from '@hooks/verify-portal-session-request';
 import { portalRateLimitPlugin } from '@plugins/portal-rate-limit.plugin';
 import { portalAccountRoutes } from '@routes/portal/account/account.routes';
+import { portalInvoicesRoutes } from '@routes/portal/invoices/invoices.routes';
 import { portalSessionsRoutes } from '@routes/portal/sessions/sessions.routes';
 import type { FastifyInstance } from 'fastify';
 
@@ -17,5 +18,6 @@ export async function portalRoutes(fastify: FastifyInstance): Promise<void> {
     scope.addHook('preHandler', verifyPortalSessionRequest);
 
     await scope.register(portalAccountRoutes);
+    await scope.register(portalInvoicesRoutes);
   });
 }
