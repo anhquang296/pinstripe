@@ -1,4 +1,5 @@
 export { PINSTRIPE_API_VERSION } from '@constants/api-version';
+export { PORTAL_CLIENT_IP_HEADER } from '@constants/portal';
 export * from '@contracts/api-keys.types';
 export * from '@contracts/audit-logs.types';
 export * from '@contracts/balance.types';

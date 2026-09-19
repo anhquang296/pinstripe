@@ -35,6 +35,8 @@ export interface WorkflowSchedules {
   webhookEndpointRateWindowSeconds: number;
   apiRateLimit: number;
   apiRateWindowSeconds: number;
+  portalRateLimit: number;
+  portalRateWindowSeconds: number;
 }
 
 export const configPlugin = fp(async (fastify) => {
@@ -74,5 +76,7 @@ export const configPlugin = fp(async (fastify) => {
     webhookEndpointRateWindowSeconds: config.WEBHOOK_ENDPOINT_RATE_WINDOW_SECONDS,
     apiRateLimit: config.API_RATE_LIMIT,
     apiRateWindowSeconds: config.API_RATE_WINDOW_SECONDS,
+    portalRateLimit: config.PORTAL_RATE_LIMIT,
+    portalRateWindowSeconds: config.PORTAL_RATE_WINDOW_SECONDS,
   });
 });

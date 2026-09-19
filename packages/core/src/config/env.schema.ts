@@ -111,6 +111,8 @@ export const envSchema = Type.Object({
   WEBHOOK_ENDPOINT_RATE_WINDOW_SECONDS: Default(Type.Integer({ minimum: 1 }), 60),
   API_RATE_LIMIT: Default(Type.Integer({ minimum: 1 }), 1000),
   API_RATE_WINDOW_SECONDS: Default(Type.Integer({ minimum: 1 }), 60),
+  PORTAL_RATE_LIMIT: Default(Type.Integer({ minimum: 1 }), 10),
+  PORTAL_RATE_WINDOW_SECONDS: Default(Type.Integer({ minimum: 1 }), 900),
 });
 
 export type Env = Static<typeof envSchema>;

@@ -4,6 +4,7 @@ import {
   findPortalPaymentMethodsSchema,
   findPortalSubscriptionsSchema,
   invoiceSchema,
+  InvoiceStatusEnum,
   ListResponseSchema,
   paymentMethodSchema,
   portalIdentitySchema,
@@ -41,8 +42,17 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       },
     },
     async (request, reply) => {
+      const CUSTOMER_VISIBLE_INVOICE_STATUSES = [
+        InvoiceStatusEnum.OPEN,
+        InvoiceStatusEnum.PAID,
+        InvoiceStatusEnum.UNCOLLECTIBLE,
+        InvoiceStatusEnum.VOID,
+      ];
       const { customerId } = readPortalAuth(request);
-      const invoices = await fastify.invoiceService.findInvoices({ ...request.query, customerId });
+      const invoices = await fastify.invoiceService.findInvoices(
+        { ...request.query, customerId },
+        CUSTOMER_VISIBLE_INVOICE_STATUSES,
+      );
 
       return ApiResponse.success(reply, invoices);
     },

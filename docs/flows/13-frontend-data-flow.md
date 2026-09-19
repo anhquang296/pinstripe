@@ -1,6 +1,6 @@
 # Flow 13 — Luồng dữ liệu ở frontend
 
-Hai app đọc cùng một API nhưng theo hai kiểu hoàn toàn khác: admin-ui là SPA có cache phía client, portal-ui render trên server không cache.
+Hai app đọc cùng một API nhưng qua hai bề mặt khác nhau: admin-ui là SPA đi bằng cookie session vào `/v1` và `/api/v1/admin`, portal-ui chỉ được đi vào `/portal/*` bằng session của khách hàng.
 
 ## admin-ui
 
@@ -74,17 +74,22 @@ React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/common/for
 
 ## portal-ui
 
-Next.js 15 App Router, port 3100. Không có provider client nào, không TanStack Query, không cache.
+Next.js 15 App Router, port 3100. Hiện chỉ là trang giữ chỗ: trang `/customers/<customerId>` đọc dữ
+liệu bằng secret key toàn quyền đã bị gỡ, `/customers/*` redirect về `/`, và rewrite `/api/*` sang API
+cũng đã bỏ (nó proxy luôn bề mặt admin qua origin của portal).
 
-[lib/pinstripe.ts](../../apps/portal-ui/src/lib/pinstripe.ts) dựng đúng một `PinstripeClient` bằng `createPinstripeClient` từ `@pinstripe/sdk/node`. Không có HTTP client viết tay — xem [sdk-convention](../../.claude/rules/local/sdk-convention.md).
+Portal sẽ đọc dữ liệu **chỉ** qua bề mặt `/portal/*` của API, nơi mọi route lấy `customerId` từ
+session chứ không từ tham số:
 
-- Client chạy **trên server**; `createPinstripeClient` đọc `PINSTRIPE_API_URL` và `PINSTRIPE_SECRET_API_KEY` từ `process.env`. API key không bao giờ tới trình duyệt.
-- Lỗi là `PinstripeError` của SDK, giữ `statusCode` / `type` / `requestId` đọc từ vỏ lỗi của API.
-- Trang gọi ba method: `customers.get`, `subscriptions.find`, `invoices.find`, mỗi danh sách `limit=20`, không phân trang.
-
-### Lỗ hổng cần biết
-
-`app/customers/[customerId]/page.tsx` **không kiểm tra người xem là ai**. Bất kỳ ai biết một `customerId` đều đọc được hoá đơn và subscription của khách đó. Đây là mục chặn production số một trong [ROADMAP.md](../ROADMAP.md) — đừng đưa portal-ui ra mạng công cộng trước khi có xác thực.
+- `POST /portal/links` (key scope `portal`) gửi magic link tới `customers.email`; link trỏ về
+  `${PORTAL_BASE_URL}/login/verify?linkKey=…`, dùng một lần, hết hạn sau `PORTAL_LINK_TTL_MINUTES`.
+- `POST /portal/sessions` đổi `linkKey` lấy `sessionKey`; `GET /portal/me|invoices|subscriptions|payment_methods`
+  đọc bằng `Authorization: Bearer <sessionKey>`. `/portal/invoices` không bao giờ trả hóa đơn `draft`.
+- Hai route đăng nhập bị giới hạn tần suất (`PORTAL_RATE_LIMIT` lần / `PORTAL_RATE_WINDOW_SECONDS`)
+  theo IP người dùng cuối và theo email. IP đọc từ header `x-pinstripe-client-ip`
+  (`PORTAL_CLIENT_IP_HEADER`), chỉ được tin vì request đó đã xác thực bằng portal key.
+- `POST /v1/billing_portal/sessions` trả cùng loại link dùng một lần — không bao giờ đặt `sessionKey`
+  vào URL.
 
 ## Contract dùng chung
 

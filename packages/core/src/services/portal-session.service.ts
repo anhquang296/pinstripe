@@ -26,11 +26,15 @@ export interface PortalLinkResult {
   linkExpiresAt: Date;
 }
 
-export interface MintedPortalSession {
+export interface CustomerPortalLink {
   portalSessionId: string;
-  sessionKey: string;
-  sessionExpiresAt: string;
+  linkExpiresAt: string;
   url: string;
+}
+
+interface PendingPortalSession {
+  portalSession: PortalSession;
+  linkKey: string;
 }
 
 export class PortalSessionService {
@@ -44,43 +48,29 @@ export class PortalSessionService {
     const linkExpiresAt = this.resolveLinkExpiry(now);
     const customer = await this.findCustomer(payload.email);
 
-    if (!customer) {
+    if (customer) {
+      const { portalSession, linkKey } = await this.createPendingPortalSession(
+        customer.id,
+        now,
+        linkExpiresAt,
+      );
+      const url = this.buildMagicLinkUrl(linkKey);
+
+      await this.fastify.notificationService.dispatchPortalMagicLink(portalSession, url);
+
       this.fastify.log.info(
-        '[PortalSessionService] createPortalLink() no customer matched the address',
+        { portalSessionId: portalSession.id, customerId: customer.id },
+        '[PortalSessionService] createPortalLink() success',
       );
 
-      return { linkKey: null, linkExpiresAt };
+      return { linkKey, linkExpiresAt };
     }
-
-    const linkKey = PortalSessionService.buildKey();
-    const createdAt = now.toISOString();
-    const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
-      id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
-      customerId: customer.id,
-      status: PortalSessionStatusEnum.PENDING,
-      linkTokenHash: PortalSessionService.hashKey(linkKey),
-      sessionTokenHash: null,
-      linkExpiresAt: linkExpiresAt.toISOString(),
-      sessionExpiresAt: null,
-      redeemedAt: null,
-      createdAt,
-      updatedAt: createdAt,
-    });
-
-    if (!portalSession) {
-      throw new NotFoundError('Portal session could not be created');
-    }
-
-    const url = this.buildMagicLinkUrl(linkKey);
-
-    await this.fastify.notificationService.dispatchPortalMagicLink(portalSession, url);
 
     this.fastify.log.info(
-      { portalSessionId: portalSession.id, customerId: customer.id },
-      '[PortalSessionService] createPortalLink() success',
+      '[PortalSessionService] createPortalLink() no customer matched the address',
     );
 
-    return { linkKey, linkExpiresAt };
+    return { linkKey: null, linkExpiresAt };
   }
 
   async redeemPortalLink(payload: RedeemPortalLinkPayload): Promise<PortalSessionResponse> {
@@ -120,35 +110,21 @@ export class PortalSessionService {
     throw new NotFoundError(`No such portal session: ${portalSession.id}`);
   }
 
-  async createCustomerPortalSession(customerId: string): Promise<MintedPortalSession> {
+  async createCustomerPortalLink(customerId: string): Promise<CustomerPortalLink> {
     const customer = await this.fastify.customerRepository.getCustomer(customerId);
     const now = this.fastify.clock.now();
-    const sessionKey = PortalSessionService.buildKey();
-    const sessionExpiresAt = this.resolveSessionExpiry(now).toISOString();
-    const redeemedAt = now.toISOString();
-    const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
-      id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
-      customerId: customer.id,
-      status: PortalSessionStatusEnum.ACTIVE,
-      linkTokenHash: PortalSessionService.hashKey(PortalSessionService.buildKey()),
-      sessionTokenHash: PortalSessionService.hashKey(sessionKey),
-      linkExpiresAt: this.resolveLinkExpiry(now).toISOString(),
-      sessionExpiresAt,
-      redeemedAt,
-      createdAt: redeemedAt,
-      updatedAt: redeemedAt,
-    });
+    const linkExpiresAt = this.resolveLinkExpiry(now);
+    const { portalSession, linkKey } = await this.createPendingPortalSession(
+      customer.id,
+      now,
+      linkExpiresAt,
+    );
 
-    if (portalSession) {
-      return {
-        portalSessionId: portalSession.id,
-        sessionKey,
-        sessionExpiresAt,
-        url: this.buildSessionUrl(sessionKey),
-      };
-    }
-
-    throw new NotFoundError('Portal session could not be created');
+    return {
+      portalSessionId: portalSession.id,
+      linkExpiresAt: portalSession.linkExpiresAt,
+      url: this.buildMagicLinkUrl(linkKey),
+    };
   }
 
   async authenticatePortalSession(sessionKey: string): Promise<PortalAuth> {
@@ -202,13 +178,34 @@ export class PortalSessionService {
   buildMagicLinkUrl(linkKey: string): string {
     const { portalBaseUrl } = this.portalSessionConfig;
 
-    return `${portalBaseUrl}/login?linkKey=${encodeURIComponent(linkKey)}`;
+    return `${portalBaseUrl}/login/verify?linkKey=${encodeURIComponent(linkKey)}`;
   }
 
-  buildSessionUrl(sessionKey: string): string {
-    const { portalBaseUrl } = this.portalSessionConfig;
+  private async createPendingPortalSession(
+    customerId: string,
+    now: Date,
+    linkExpiresAt: Date,
+  ): Promise<PendingPortalSession> {
+    const linkKey = PortalSessionService.buildKey();
+    const createdAt = now.toISOString();
+    const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
+      id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
+      customerId,
+      status: PortalSessionStatusEnum.PENDING,
+      linkTokenHash: PortalSessionService.hashKey(linkKey),
+      sessionTokenHash: null,
+      linkExpiresAt: linkExpiresAt.toISOString(),
+      sessionExpiresAt: null,
+      redeemedAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    });
 
-    return `${portalBaseUrl}/login?sessionKey=${encodeURIComponent(sessionKey)}`;
+    if (portalSession) {
+      return { portalSession, linkKey };
+    }
+
+    throw new NotFoundError('Portal session could not be created');
   }
 
   private resolveLinkExpiry(now: Date): Date {

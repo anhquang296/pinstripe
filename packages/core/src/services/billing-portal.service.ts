@@ -142,7 +142,7 @@ export class BillingPortalService {
   ): Promise<BillingPortalSessionResponse> {
     const customer = await this.fastify.customerService.getCustomer(payload.customerId);
     const configuration = await this.resolveConfiguration(payload.configurationId);
-    const portalSession = await this.fastify.portalSessionService.createCustomerPortalSession(
+    const portalLink = await this.fastify.portalSessionService.createCustomerPortalLink(
       customer.id,
     );
     const createdAt = this.fastify.clock.now().toISOString();
@@ -152,10 +152,10 @@ export class BillingPortalService {
       id,
       customerId: customer.id,
       configurationId: configuration.id,
-      portalSessionId: portalSession.portalSessionId,
-      url: portalSession.url,
+      portalSessionId: portalLink.portalSessionId,
+      url: portalLink.url,
       returnUrl,
-      expiresAt: portalSession.sessionExpiresAt,
+      expiresAt: portalLink.linkExpiresAt,
       createdAt,
     });
 

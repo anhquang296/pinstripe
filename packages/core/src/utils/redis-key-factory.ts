@@ -4,6 +4,7 @@ export enum RedisNamespaceEnum {
   ENTITLEMENT = 'entitlement',
   BILLING_RUN_LOCK = 'billing-run-lock',
   API_RATE_LIMIT = 'api-rate-limit',
+  PORTAL_RATE_LIMIT = 'portal-rate-limit',
   WEBHOOK_RATE_LIMIT = 'webhook-rate-limit',
 }
 export type RedisNamespace = `${RedisNamespaceEnum}`;
