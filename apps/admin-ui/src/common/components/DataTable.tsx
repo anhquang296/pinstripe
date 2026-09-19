@@ -9,6 +9,7 @@ interface DataTableColumn<TRow> {
   key: string;
   label: string;
   isRowHeader?: boolean;
+  align?: 'end';
   renderCell: (row: TRow) => ReactNode;
 }
 
@@ -72,10 +73,12 @@ export default function DataTable<TRow extends { id: string }>({
 
   const headers = get(head(table.getHeaderGroups()), 'headers', []);
 
-  return (
-    <Table>
-      {toolbar}
+  const isEndAligned = (columnKey: string) => {
+    return get(columnsByKey, [columnKey, 'align']) === 'end';
+  };
 
+  const dataTable = (
+    <Table>
       <Table.ScrollContainer>
         <Table.Content aria-label={label}>
           <Table.Header>
@@ -84,6 +87,7 @@ export default function DataTable<TRow extends { id: string }>({
                 <Table.Column
                   key={header.id}
                   id={header.id}
+                  className={isEndAligned(header.id) ? 'text-end' : undefined}
                   isRowHeader={get(columnsByKey, [header.id, 'isRowHeader'], false)}
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
@@ -122,11 +126,17 @@ export default function DataTable<TRow extends { id: string }>({
                   }
                 >
                   {map(row.getAllCells(), (cell) => {
-                    return (
-                      <Table.Cell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </Table.Cell>
-                    );
+                    const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
+
+                    if (isEndAligned(cell.column.id)) {
+                      return (
+                        <Table.Cell key={cell.id} className="text-end">
+                          <div className="flex justify-end gap-1">{cellContent}</div>
+                        </Table.Cell>
+                      );
+                    }
+
+                    return <Table.Cell key={cell.id}>{cellContent}</Table.Cell>;
                   })}
                 </Table.Row>
               );
@@ -160,4 +170,15 @@ export default function DataTable<TRow extends { id: string }>({
       ) : null}
     </Table>
   );
+
+  if (toolbar) {
+    return (
+      <div className="flex flex-col gap-3">
+        {toolbar}
+        {dataTable}
+      </div>
+    );
+  }
+
+  return dataTable;
 }

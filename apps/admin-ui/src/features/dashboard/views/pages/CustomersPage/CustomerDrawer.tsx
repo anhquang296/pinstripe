@@ -4,6 +4,7 @@ import DetailList from '@common/components/DetailList';
 import DrawerSection from '@common/components/DrawerSection';
 import DrawerTabs from '@common/components/DrawerTabs';
 import EntityDrawer from '@common/components/EntityDrawer';
+import RowActionButton from '@common/components/RowActionButton';
 import StatusChip from '@common/components/StatusChip';
 import { PAGE_LIMIT } from '@common/constants/pagination';
 import type { BalanceTransactionFormData } from '@common/forms/balance-transaction-form';
@@ -29,6 +30,7 @@ import { formatCurrency, formatDate } from '@common/utils/format';
 import BalanceTransactionForm from '@features/dashboard/components/BalanceTransactionForm';
 import CustomerForm from '@features/dashboard/components/CustomerForm';
 import TaxIdForm from '@features/dashboard/components/TaxIdForm';
+import { TrashBin } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import { CurrencyEnum, PermissionEnum } from '@pinstripe/core/contracts';
@@ -353,21 +355,21 @@ export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerPr
               {
                 key: 'actions',
                 label: 'Thao tác',
+                align: 'end',
                 renderCell: (row) => {
                   if (!canWriteCatalog) {
                     return null;
                   }
 
                   return (
-                    <Button
-                      size="sm"
-                      variant="ghost"
+                    <RowActionButton
+                      label="Xoá"
+                      icon={<TrashBin />}
+                      isDanger
                       onPress={() => {
                         deleteTaxId(row.id);
                       }}
-                    >
-                      Xoá
-                    </Button>
+                    />
                   );
                 },
               },

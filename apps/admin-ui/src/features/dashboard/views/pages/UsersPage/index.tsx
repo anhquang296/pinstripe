@@ -4,6 +4,7 @@ import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
 import PageCard from '@common/components/PageCard';
+import RowActionButton from '@common/components/RowActionButton';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
@@ -18,6 +19,7 @@ import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import { toEnumMember } from '@common/utils/enum';
 import { formatDate } from '@common/utils/format';
 import UserForm from '@features/dashboard/components/UserForm';
+import { ArrowRotateLeft, Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { UserResponse, UserRole } from '@pinstripe/core/contracts';
@@ -215,22 +217,24 @@ export default function UsersPage() {
           {
             key: 'actions',
             label: 'Thao tác',
+            align: 'end',
             renderCell: (user) => {
               if (!canManage) {
                 return '—';
               }
 
+              const isActive = user.status === UserStatusEnum.ACTIVE;
+
               return (
-                <Button
-                  size="sm"
-                  variant="ghost"
+                <RowActionButton
+                  label={isActive ? 'Vô hiệu hoá' : 'Bật lại'}
+                  icon={isActive ? <Ban /> : <ArrowRotateLeft />}
+                  isDanger={isActive}
                   isDisabled={isUpdating}
                   onPress={() => {
                     handleOnStatusToggle(user);
                   }}
-                >
-                  {user.status === UserStatusEnum.ACTIVE ? 'Vô hiệu hoá' : 'Bật lại'}
-                </Button>
+                />
               );
             },
           },

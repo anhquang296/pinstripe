@@ -23,7 +23,7 @@ src/
 ├── providers/            ProviderRegistry, QueryProvider, AdminPinstripeProvider, RoutesProvider, AdminAuthProvider
 ├── libs/                 hạ tầng không phải UI: auth-client, permissions, toast, cn
 ├── common/               không biết entity nào
-│   ├── components/       DataTable, PageCard, StatGrid, EntityDrawer, DrawerSection…; FormField/Render*Field
+│   ├── components/       DataTable, RowActionButton, PageCard, StatGrid, EntityDrawer, DrawerSection…; FormField/Render*Field
 │   ├── constants/  forms/  hooks/  utils/
 └── features/dashboard/
     ├── components/       form của từng entity (CustomerForm…), AppSidebar, AppTopbar, RequireSession
@@ -117,11 +117,25 @@ Một màn đi theo đúng thứ tự này, và mỗi khối là một component
 
 1. `PageCard` — tab (nếu có) ở đầu trang, **phía trên** `Card` tiêu đề; `Card` chứa tiêu đề, phụ đề, slot action; nội dung màn nằm dưới nó. Tab không nằm trong `Card`.
 2. `StatGrid` + `StatItem` — bốn `Card` tổng quan, nhãn uppercase, số lớn.
-3. `FilterBar` — đếm "N mục", select, ô tìm; truyền vào `DataTable` qua prop `toolbar`.
-4. `DataTable` — `Table` variant mặc định (`primary`) **chính là** khung: nền xám bọc toolbar, thân bảng trắng và `Table.Footer`. Root mang `shadow-surface` — cùng shadow với `Card` — để bảng nổi khối giống `DrawerSection`. Không bọc nó trong `Card` hay `div` có viền, và không override CSS của `.table-*`. Phân trang cursor từ `ListResponse.hasMore` qua `Pagination` của HeroUI đặt trong `Table.Footer` (chỉ Summary + Previous/Next — cursor không có tổng số trang); click cả dòng để mở drawer. Page không bọc thêm khung quanh nó.
+3. `FilterBar` — ô tìm, select, đếm "N mục"; truyền vào `DataTable` qua prop `toolbar`. `DataTable` đặt nó **phía trên** khung bảng, trên nền trang — không bao giờ bên trong `Table`. Ô tìm và mọi `FilterSelect` mang `Label` hiển thị phía trên control; ô tìm giãn hết chỗ còn lại.
+4. `DataTable` — `Table` variant mặc định (`primary`) **chính là** khung: nền xám bọc header, thân bảng trắng và `Table.Footer`. Root mang `shadow-surface` — cùng shadow với `Card` — để bảng nổi khối giống `DrawerSection`. Không bọc nó trong `Card` hay `div` có viền, và không override CSS của `.table-*`. Phân trang cursor từ `ListResponse.hasMore` qua `Pagination` của HeroUI đặt trong `Table.Footer` (chỉ Summary + Previous/Next — cursor không có tổng số trang); click cả dòng để mở drawer. Page không bọc thêm khung quanh nó.
 5. `EntityDrawer` — tạo và sửa **luôn** trong drawer phải; không có trang form riêng. Drawer rộng một phần ba màn hình cộng 200px (`calc(max(33vw, 28rem) + 200px)`). Độ rộng đặt trên `Drawer.Dialog`, không bao giờ trên `Drawer.Content` — `Content` là lớp định vị phủ cả màn, đặt width lên nó là drawer lệch vào giữa.
 
 `StatusChip` là chỗ duy nhất ánh xạ trạng thái sang màu. Xoá và mọi hành động không đảo được hỏi qua `ConfirmDialog` — không bao giờ `window.confirm`.
+
+Cột thao tác của một bảng khai `align: 'end'` và mỗi hành động là một `RowActionButton`: nút icon (`@gravity-ui/icons`) với tooltip và `aria-label` là chữ của hành động; xoá, thu hồi, vô hiệu hoá mang `isDanger`. Không đặt `Button` chữ trong ô.
+
+```tsx
+// CORRECT
+{ key: 'actions', label: 'Thao tác', align: 'end', renderCell: (row) => {
+  return <RowActionButton label="Xoá" icon={<TrashBin />} isDanger onPress={…} />;
+} }
+
+// WRONG — nút chữ, cột căn trái
+{ key: 'actions', label: 'Thao tác', renderCell: (row) => {
+  return <Button size="sm" variant="ghost" onPress={…}>Xoá</Button>;
+} }
+```
 
 Bên trong drawer: `DrawerSection` cho mỗi khối, `DetailList` cho lưới nhãn/giá trị, `DrawerTabs` khi một drawer có nhiều phần. Select đứng ngoài form đi qua `FilterSelect`.
 
@@ -178,6 +192,8 @@ Tiền và ngày đi qua `src/common/utils/format.ts`: `formatCurrency(minorAmou
 - Dùng `onClick` / `disabled` trên `Button` của HeroUI — là `onPress` / `isDisabled`.
 - Import `react-aria*`, `@react-aria/*` hay `@react-stately/*` trong `src`, hay thêm chúng lại vào `package.json` — chúng là peer của HeroUI, pnpm tự cài.
 - Dựng bảng bằng `Table` của HeroUI ngoài `DataTable`, hay đặt `id` trên `Table.Cell`.
+- Render toolbar bên trong `Table`, hay dùng `FilterSelect` / ô tìm không có `Label` hiển thị.
+- Đặt nút chữ trong cột thao tác thay vì `RowActionButton`, hay để cột thao tác không có `align: 'end'`.
 - Override biến theme của HeroUI trong `src/styles/globals.css`, hay viết hex vào class Tailwind hoặc vào `--app-*`.
 - Import file từ repo `vxr-erp-platform`.
 - Import `better-auth*` ở bất kỳ file nào ngoài `src/libs/auth-client.ts`, hay dùng `adminClient()` / plugin `admin`.

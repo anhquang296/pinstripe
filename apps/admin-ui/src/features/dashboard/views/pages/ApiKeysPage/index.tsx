@@ -4,6 +4,7 @@ import DrawerSection from '@common/components/DrawerSection';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
+import RowActionButton from '@common/components/RowActionButton';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
@@ -17,6 +18,7 @@ import {
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import { formatDate } from '@common/utils/format';
 import ApiKeyForm from '@features/dashboard/components/ApiKeyForm';
+import { Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { ApiKeyResponse } from '@pinstripe/core/contracts';
@@ -186,21 +188,21 @@ export default function ApiKeysPage() {
           {
             key: 'actions',
             label: 'Thao tác',
+            align: 'end',
             renderCell: (apiKey) => {
               if (!canManage || apiKey.revokedAt !== null) {
                 return '—';
               }
 
               return (
-                <Button
-                  size="sm"
-                  variant="ghost"
+                <RowActionButton
+                  label="Thu hồi"
+                  icon={<Ban />}
+                  isDanger
                   onPress={() => {
                     setRevokingApiKey(apiKey);
                   }}
-                >
-                  Thu hồi
-                </Button>
+                />
               );
             },
           },

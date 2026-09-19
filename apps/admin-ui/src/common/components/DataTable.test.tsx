@@ -95,13 +95,38 @@ describe('DataTable', () => {
     expect(onRowAction).toHaveBeenCalledWith(CUSTOMERS[1]);
   });
 
-  it('renders the toolbar inside the same container as the table', () => {
+  it('renders the toolbar above the table, outside its frame', () => {
     render(
       <DataTable label="Khách hàng" columns={[]} rows={CUSTOMERS} toolbar={<span>2 mục</span>} />,
     );
 
-    const container = screen.getByText('2 mục').parentElement;
+    const toolbar = screen.getByText('2 mục');
+    const tableRoot = screen.getByRole('grid').closest('[data-slot="table"]');
 
-    expect(container?.contains(screen.getByRole('grid'))).toBe(true);
+    expect(tableRoot?.contains(toolbar)).toBe(false);
+    expect(toolbar.parentElement?.contains(tableRoot)).toBe(true);
+  });
+
+  it('aligns an end column to the right', () => {
+    render(
+      <DataTable
+        label="Khách hàng"
+        rows={CUSTOMERS}
+        columns={[
+          {
+            key: 'actions',
+            label: 'Thao tác',
+            align: 'end',
+            renderCell: (customer) => {
+              return customer.currency;
+            },
+          },
+        ]}
+      />,
+    );
+
+    const cell = screen.getByText('vnd').closest('[data-slot="table-cell"]');
+
+    expect(cell?.classList.contains('text-end')).toBe(true);
   });
 });

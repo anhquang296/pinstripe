@@ -1,4 +1,4 @@
-import { ListBox, Select } from '@heroui/react';
+import { Label, ListBox, Select } from '@heroui/react';
 import { map, toString } from 'lodash-es';
 
 interface FilterSelectOption {
@@ -22,13 +22,13 @@ export default function FilterSelect({
   return (
     <Select
       className="w-56"
-      aria-label={label}
       placeholder={label}
       selectedKey={selectedValue === '' ? null : selectedValue}
       onSelectionChange={(key) => {
         onSelect(toString(key));
       }}
     >
+      <Label>{label}</Label>
       <Select.Trigger>
         <Select.Value />
         <Select.Indicator />

@@ -1,4 +1,4 @@
-import { SearchField } from '@heroui/react';
+import { Label, SearchField } from '@heroui/react';
 import type { ReactNode } from 'react';
 
 interface FilterBarProps {
@@ -17,18 +17,10 @@ export default function FilterBar({
   children,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3 px-3 py-3">
-      <span className="text-app-label text-[12px]">{itemCount} mục</span>
-
-      {children}
-
+    <div className="flex flex-wrap items-end gap-3">
       {onSearchChange ? (
-        <SearchField
-          className="ml-auto w-64"
-          value={searchValue}
-          aria-label="Tìm kiếm"
-          onChange={onSearchChange}
-        >
+        <SearchField className="min-w-64 flex-1" value={searchValue} onChange={onSearchChange}>
+          <Label>Tìm kiếm</Label>
           <SearchField.Group>
             <SearchField.SearchIcon />
             <SearchField.Input placeholder={searchPlaceholder} />
@@ -36,6 +28,10 @@ export default function FilterBar({
           </SearchField.Group>
         </SearchField>
       ) : null}
+
+      {children}
+
+      <span className="ml-auto pb-2 text-app-label text-[12px]">{itemCount} mục</span>
     </div>
   );
 }

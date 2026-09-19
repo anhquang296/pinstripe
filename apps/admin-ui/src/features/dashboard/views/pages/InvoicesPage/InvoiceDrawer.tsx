@@ -4,6 +4,7 @@ import DetailList from '@common/components/DetailList';
 import DrawerSection from '@common/components/DrawerSection';
 import DrawerTabs from '@common/components/DrawerTabs';
 import EntityDrawer from '@common/components/EntityDrawer';
+import RowActionButton from '@common/components/RowActionButton';
 import StatusChip from '@common/components/StatusChip';
 import { COLLECTION_METHOD_LABELS } from '@common/constants/collection-method';
 import { PAGE_LIMIT } from '@common/constants/pagination';
@@ -24,6 +25,7 @@ import {
 import { formatCurrency, formatDate } from '@common/utils/format';
 import CreditNoteForm from '@features/dashboard/components/CreditNoteForm';
 import InvoiceItemForm from '@features/dashboard/components/InvoiceItemForm';
+import { TrashBin } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import { toast } from '@libs/toast';
@@ -394,21 +396,21 @@ export default function InvoiceDrawer({ invoiceId, onClose }: InvoiceDrawerProps
                 {
                   key: 'actions',
                   label: 'Thao tác',
+                  align: 'end',
                   renderCell: (row) => {
                     if (!canWrite) {
                       return null;
                     }
 
                     return (
-                      <Button
-                        size="sm"
-                        variant="ghost"
+                      <RowActionButton
+                        label="Xoá"
+                        icon={<TrashBin />}
+                        isDanger
                         onPress={() => {
                           deleteInvoiceItem(row.id);
                         }}
-                      >
-                        Xoá
-                      </Button>
+                      />
                     );
                   },
                 },

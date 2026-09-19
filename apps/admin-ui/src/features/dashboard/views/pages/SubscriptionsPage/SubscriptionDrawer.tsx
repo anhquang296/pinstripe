@@ -4,6 +4,7 @@ import DetailList from '@common/components/DetailList';
 import DrawerSection from '@common/components/DrawerSection';
 import DrawerTabs from '@common/components/DrawerTabs';
 import EntityDrawer from '@common/components/EntityDrawer';
+import RowActionButton from '@common/components/RowActionButton';
 import StatusChip from '@common/components/StatusChip';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@common/constants/pagination';
 import type { SubscriptionItemFormData } from '@common/forms/subscription-item-form';
@@ -25,6 +26,7 @@ import { formatCurrency, formatDate } from '@common/utils/format';
 import { formatPriceAmount } from '@common/utils/price';
 import SubscriptionItemForm from '@features/dashboard/components/SubscriptionItemForm';
 import SubscriptionUpdateForm from '@features/dashboard/components/SubscriptionUpdateForm';
+import { Pencil, TrashBin } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import { PermissionEnum } from '@pinstripe/core/contracts';
@@ -247,32 +249,30 @@ export default function SubscriptionDrawer({ subscriptionId, onClose }: Subscrip
                 {
                   key: 'actions',
                   label: 'Thao tác',
+                  align: 'end',
                   renderCell: (item) => {
                     if (!canWrite) {
                       return null;
                     }
 
                     return (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
+                      <>
+                        <RowActionButton
+                          label="Sửa"
+                          icon={<Pencil />}
                           onPress={() => {
                             setEditingItemId(item.id);
                           }}
-                        >
-                          Sửa
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
+                        />
+                        <RowActionButton
+                          label="Gỡ"
+                          icon={<TrashBin />}
+                          isDanger
                           onPress={() => {
                             deleteSubscriptionItem({ id: item.id });
                           }}
-                        >
-                          Gỡ
-                        </Button>
-                      </div>
+                        />
+                      </>
                     );
                   },
                 },

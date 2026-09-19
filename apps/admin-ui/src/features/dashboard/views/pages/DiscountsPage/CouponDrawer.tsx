@@ -3,6 +3,7 @@ import DataTable from '@common/components/DataTable';
 import DetailList from '@common/components/DetailList';
 import DrawerSection from '@common/components/DrawerSection';
 import EntityDrawer from '@common/components/EntityDrawer';
+import RowActionButton from '@common/components/RowActionButton';
 import StatusChip from '@common/components/StatusChip';
 import { PAGE_LIMIT } from '@common/constants/pagination';
 import type { CouponFormData } from '@common/forms/coupon-form';
@@ -21,6 +22,7 @@ import {
 import { formatDate } from '@common/utils/format';
 import CouponForm from '@features/dashboard/components/CouponForm';
 import PromotionCodeForm from '@features/dashboard/components/PromotionCodeForm';
+import { Power } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import { PermissionEnum } from '@pinstripe/core/contracts';
@@ -176,21 +178,20 @@ export default function CouponDrawer({ couponId, onClose }: CouponDrawerProps) {
               {
                 key: 'actions',
                 label: 'Thao tác',
+                align: 'end',
                 renderCell: (row) => {
                   if (!canWrite) {
                     return null;
                   }
 
                   return (
-                    <Button
-                      size="sm"
-                      variant="ghost"
+                    <RowActionButton
+                      label={row.active ? 'Tắt' : 'Bật'}
+                      icon={<Power />}
                       onPress={() => {
                         updatePromotionCode({ id: row.id, payload: { active: !row.active } });
                       }}
-                    >
-                      {row.active ? 'Tắt' : 'Bật'}
-                    </Button>
+                    />
                   );
                 },
               },
