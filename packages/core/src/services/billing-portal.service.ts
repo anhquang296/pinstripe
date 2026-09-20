@@ -77,7 +77,9 @@ export class BillingPortalService {
   ): Promise<BillingPortalConfigurationResponse> {
     const configuration =
       await this.fastify.billingPortalConfigurationRepository.getBillingPortalConfiguration(id);
+
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const {
       isActive = configuration.isActive,
       isDefault = configuration.isDefault,
@@ -122,8 +124,10 @@ export class BillingPortalService {
     query: FindBillingPortalConfigurationsQuery,
   ): Promise<ListResponse<BillingPortalConfigurationResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows =
       await this.fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations(
         { beforeAt, afterAt },
@@ -142,12 +146,16 @@ export class BillingPortalService {
   ): Promise<BillingPortalSessionResponse> {
     const customer = await this.fastify.customerService.getCustomer(payload.customerId);
     const configuration = await this.resolveConfiguration(payload.configurationId);
+
     const portalLink = await this.fastify.portalSessionService.createCustomerPortalLink(
       customer.id,
     );
+
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.BILLING_PORTAL_SESSION);
+
     const { returnUrl = configuration.defaultReturnUrl } = payload;
+
     const session = await this.fastify.billingPortalSessionRepository.createBillingPortalSession({
       id,
       customerId: customer.id,

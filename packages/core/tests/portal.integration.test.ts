@@ -20,6 +20,7 @@ afterAll(async () => {
 
 async function makeCustomer(): Promise<{ id: string; email: string }> {
   const email = `${generateGid(ObjectPrefixEnum.CUSTOMER)}@portal.test`;
+
   const customer = await fastify.customerService.createCustomer({
     email,
     currency: CurrencyEnum.VND,
@@ -32,6 +33,7 @@ async function makeCustomer(): Promise<{ id: string; email: string }> {
 async function makeActiveSession(): Promise<{ customerId: string; sessionKey: string }> {
   const customer = await makeCustomer();
   const link = await fastify.portalSessionService.createPortalLink({ email: customer.email });
+
   const { linkKey } = link;
 
   if (!linkKey) {
@@ -39,6 +41,7 @@ async function makeActiveSession(): Promise<{ customerId: string; sessionKey: st
   }
 
   const portalSession = await fastify.portalSessionService.redeemPortalLink({ linkKey });
+
   const { sessionKey } = portalSession;
 
   if (!sessionKey) {
@@ -121,6 +124,7 @@ describe('PortalSessionService.authenticatePortalSession', () => {
 
   it('refuses a session key that was revoked', async () => {
     const { sessionKey } = await makeActiveSession();
+
     const auth = await fastify.portalSessionService.authenticatePortalSession(sessionKey);
 
     await fastify.portalSessionService.revokePortalSession(auth.portalSessionId);
@@ -146,10 +150,12 @@ describe('PortalSessionService.authenticatePortalSession', () => {
 describe('BillingPortalService', () => {
   it('creates a default configuration on demand and keeps exactly one default', async () => {
     const first = await fastify.billingPortalService.getActiveConfiguration();
+
     const second = await fastify.billingPortalService.createConfiguration({
       businessName: 'Cửa hàng mới',
       isDefault: true,
     });
+
     const defaults =
       await fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations({
         isDefault: true,
@@ -166,6 +172,7 @@ describe('BillingPortalService', () => {
       businessName: 'Mặc định cũ',
       isDefault: true,
     });
+
     const candidate = await fastify.billingPortalService.createConfiguration({
       businessName: 'Ứng viên',
     });
@@ -173,7 +180,9 @@ describe('BillingPortalService', () => {
     const promoted = await fastify.billingPortalService.updateConfiguration(candidate.id, {
       isDefault: true,
     });
+
     const demoted = await fastify.billingPortalService.getConfiguration(previousDefault.id);
+
     const defaults =
       await fastify.billingPortalConfigurationRepository.findBillingPortalConfigurations({
         isDefault: true,
@@ -189,9 +198,11 @@ describe('BillingPortalService', () => {
     const customer = await makeCustomer();
 
     const session = await fastify.billingPortalService.createSession({ customerId: customer.id });
+
     const portalSession = await fastify.portalSessionService.getPortalSession(
       session.portalSessionId,
     );
+
     const linkKey = new URL(session.url).searchParams.get('linkKey');
 
     expect(session.url).not.toContain('sessionKey');

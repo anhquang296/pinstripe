@@ -127,6 +127,7 @@ export function loadEnv(source: NodeJS.ProcessEnv): Env {
   const withoutEmpty = _.omitBy(source, (value) => {
     return value === undefined || value === '';
   });
+
   const candidate = Value.Default(envSchema, Value.Convert(envSchema, withoutEmpty));
   const errors = [...Value.Errors(envSchema, candidate)];
 

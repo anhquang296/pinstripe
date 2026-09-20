@@ -38,12 +38,14 @@ export class ReconciliationService {
     const windowEnd = new Date(query.windowEnd).toISOString();
     const charges = await this.findSettledCharges(windowStart, windowEnd);
     const settlementByChargeId = await this.resolveInvoiceSettlements(_.map(charges, 'id'));
+
     const processorMovements = await this.resolveProcessorMovements(
       charges,
       windowStart,
       windowEnd,
       settlementByChargeId,
     );
+
     const ledgerAmountByExternalId = await this.resolveLedgerMovements(windowStart, windowEnd);
     const exceptions: ReconciliationException[] = [];
 
@@ -115,6 +117,7 @@ export class ReconciliationService {
         invoiceAmount,
       };
     });
+
     const returns = _.map(refunds, (refund): ProcessorMovement => {
       return {
         reference: `refund:${refund.id}`,
@@ -151,10 +154,12 @@ export class ReconciliationService {
       }
 
       const paymentIntentIds = _.uniq(_.map(page, 'paymentIntentId'));
+
       const paymentIntents = await this.fastify.paymentIntentRepository.findPaymentIntents(
         { ids: paymentIntentIds },
         paymentIntentIds.length,
       );
+
       const invoiceIdByPaymentIntentId = _(paymentIntents)
         .keyBy('id')
         .mapValues('invoiceId')

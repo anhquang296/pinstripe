@@ -27,6 +27,7 @@ export class BillingRunService {
 
   async runBillingShard(job: BillingRunShardJob): Promise<BillingRunResult> {
     const runAt = new Date(job.runAt);
+
     const due = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         statuses: BILLABLE_SUBSCRIPTION_STATUSES,
@@ -52,13 +53,16 @@ export class BillingRunService {
       { testClockIdIsNull: true, shardCount: job.shardCount, shardIndex: job.shardIndex },
       runAt,
     );
+
     const finalizeBeforeAt = new Date(runAt.getTime() - this.config.finalizeDelayMs);
+
     const finalized = await this.fastify.invoiceService.advanceDraftInvoices(
       finalizeBeforeAt,
       job.shardCount,
       job.shardIndex,
       this.config.batchSize,
     );
+
     const dunningRun = await this.fastify.dunningService.runDunningShard(job);
 
     const billingRun: BillingRunResult = {

@@ -72,6 +72,7 @@ function readSessionCookie(cookies: InjectedCookie[]): string {
 
 async function signIn(role: UserRole): Promise<{ userId: string; cookie: string }> {
   const email = `${generateGid(ObjectPrefixEnum.USER)}@session-authorization.test`;
+
   const user = await fastify.userService.createUser({
     email,
     name: 'Dashboard Operator',
@@ -102,6 +103,7 @@ it('still lets an api key call both surfaces', async () => {
     url: '/v1/customers',
     headers: buildAuthHeaders(apiKey.token),
   });
+
   const adminResponse = await fastify.inject({
     method: 'GET',
     url: '/api/v1/admin/ledger/accounts',

@@ -218,6 +218,7 @@ function buildNotificationBody(
   const declineLine = context.declineCode
     ? `Ngân hàng trả về mã: ${context.declineCode}.`
     : 'Ngân hàng không cho biết lý do.';
+
   const retryLine = context.nextAttemptAt
     ? `Vexere sẽ thử lại vào ${context.nextAttemptAt.toISOString()}.`
     : 'Vexere sẽ không thử lại với thẻ này.';
@@ -237,6 +238,7 @@ export function buildNotificationEmail(
   context: NotificationContext,
 ): NotificationEmail {
   const { subject, lines } = buildNotificationBody(kind, context);
+
   const greeting = buildGreeting(kind, context.customerName);
   const paragraphs = [greeting, ...lines, 'Trân trọng,\nVexere'];
 

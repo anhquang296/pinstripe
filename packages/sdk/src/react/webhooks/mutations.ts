@@ -12,7 +12,9 @@ export function useCreateWebhookEndpointMutation({
   successMessage,
 }: MutationProps<WebhookEndpointResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -31,7 +33,9 @@ export function useUpdateWebhookEndpointMutation({
   successMessage,
 }: MutationProps<WebhookEndpointResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

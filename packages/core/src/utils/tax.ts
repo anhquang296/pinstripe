@@ -77,6 +77,7 @@ function buildInclusiveAmounts(
     combinedPercentage / (PERCENT_BASE + combinedPercentage),
     TAX_ROUNDING_POLICY,
   );
+
   const shares = combinedTax.allocate(percentages);
 
   const amounts = _.map(inclusiveSnapshots, (snapshot, index): LineTaxAmount => {

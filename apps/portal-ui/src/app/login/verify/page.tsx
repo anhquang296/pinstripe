@@ -13,7 +13,9 @@ interface VerifyLinkPageProps {
 
 export default function VerifyLinkPage({ searchParams }: VerifyLinkPageProps) {
   const { linkKey } = use(searchParams);
+
   const router = useRouter();
+
   const { mutate: createPortalSession, isPending, isError } = useCreatePortalSessionMutation();
 
   const handleOnContinue = () => {

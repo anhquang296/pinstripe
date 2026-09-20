@@ -14,7 +14,9 @@ export function useCreateBillingPortalConfigurationMutation({
   successMessage,
 }: MutationProps<BillingPortalConfigurationResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -33,7 +35,9 @@ export function useUpdateBillingPortalConfigurationMutation({
   successMessage,
 }: MutationProps<BillingPortalConfigurationResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -61,7 +65,9 @@ export function useCreateBillingPortalSessionMutation({
   successMessage,
 }: MutationProps<BillingPortalSessionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

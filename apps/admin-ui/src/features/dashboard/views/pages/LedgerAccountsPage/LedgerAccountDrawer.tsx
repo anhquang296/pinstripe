@@ -19,6 +19,7 @@ export default function LedgerAccountDrawer({
   onClose,
 }: LedgerAccountDrawerProps) {
   const { data: ledgerAccount } = useLedgerAccountQuery(ledgerAccountId);
+
   const { data: ledgerTransactions } = useLedgerTransactionsQuery({
     accountId: ledgerAccountId,
     limit: PAGE_LIMIT,

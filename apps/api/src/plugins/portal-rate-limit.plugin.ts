@@ -20,6 +20,7 @@ function readClientIp(request: FastifyRequest): string {
 
 function buildBucketIds(request: FastifyRequest): string[] {
   const { apiKeyId } = readAuth(request);
+
   const routeScope = `${apiKeyId}:${request.routeOptions.url}`;
   const clientIp = readClientIp(request);
   const email = _.get(request.body, 'email');
@@ -36,6 +37,7 @@ function buildBucketIds(request: FastifyRequest): string[] {
 export const portalRateLimitPlugin = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request, reply) => {
     const { portalRateLimit, portalRateWindowSeconds } = fastify.workflowSchedules;
+
     const bucketIds = buildBucketIds(request);
 
     const rateLimits = await Promise.all(
@@ -48,6 +50,7 @@ export const portalRateLimitPlugin = fp(async (fastify) => {
         });
       }),
     );
+
     const tightestRateLimit = _.minBy(rateLimits, 'remaining');
 
     if (tightestRateLimit) {

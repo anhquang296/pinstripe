@@ -41,6 +41,7 @@ async function flushRedis(): Promise<void> {
     port: Number(readRequiredEnv('REDIS_PORT')),
     password: process.env.REDIS_PASSWORD,
   });
+
   const prefix = readRequiredEnv('REDIS_KEY_PREFIX');
   const stream = redis.scanStream({ match: `${prefix}:*`, count: REDIS_SCAN_BATCH_SIZE });
 

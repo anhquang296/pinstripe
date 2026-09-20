@@ -34,13 +34,16 @@ async function makeCheckoutSession(): Promise<CheckoutSessionResponse> {
     email: `hosted-${Date.now()}@pinstripe.test`,
     currency: CurrencyEnum.VND,
   });
+
   const product = await fastify.productService.createProduct({ name: 'Hosted plan' });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
     unitAmount: UNIT_AMOUNT,
     recurring: { interval: RecurringIntervalEnum.MONTH },
   });
+
   const response = await fastify.inject({
     method: 'POST',
     url: '/v1/checkout/sessions',
@@ -59,6 +62,7 @@ async function makeCheckoutSession(): Promise<CheckoutSessionResponse> {
 describe('hosted checkout page', () => {
   it('renders the session for a request carrying the signed token', async () => {
     const checkoutSession = await makeCheckoutSession();
+
     const token = fastify.hostedUrlFactory.buildToken(
       HostedResourceEnum.CHECKOUT_SESSION,
       checkoutSession.id,
@@ -88,6 +92,7 @@ describe('hosted checkout page', () => {
   it('refuses a token that signs a different session', async () => {
     const checkoutSession = await makeCheckoutSession();
     const other = await makeCheckoutSession();
+
     const token = fastify.hostedUrlFactory.buildToken(
       HostedResourceEnum.CHECKOUT_SESSION,
       other.id,
@@ -103,6 +108,7 @@ describe('hosted checkout page', () => {
 
   it('completes the session from the posted form and redirects to the success url', async () => {
     const checkoutSession = await makeCheckoutSession();
+
     const token = fastify.hostedUrlFactory.buildToken(
       HostedResourceEnum.CHECKOUT_SESSION,
       checkoutSession.id,
@@ -114,6 +120,7 @@ describe('hosted checkout page', () => {
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       payload: 'token=tok_visa_ok',
     });
+
     const completed = await fastify.checkoutService.getCheckoutSession(checkoutSession.id);
 
     expect(response.statusCode).toBe(303);
@@ -125,6 +132,7 @@ describe('hosted checkout page', () => {
 describe('hosted invoice page', () => {
   it('renders the invoice and serves its pdf under the same token', async () => {
     const checkoutSession = await makeCheckoutSession();
+
     const checkoutToken = fastify.hostedUrlFactory.buildToken(
       HostedResourceEnum.CHECKOUT_SESSION,
       checkoutSession.id,
@@ -145,6 +153,7 @@ describe('hosted invoice page', () => {
       method: 'GET',
       url: `/hosted/invoice/${invoiceId}?token=${invoiceToken}`,
     });
+
     const pdf = await fastify.inject({
       method: 'GET',
       url: `/hosted/invoice/${invoiceId}/pdf?token=${invoiceToken}`,

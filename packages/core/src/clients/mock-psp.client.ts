@@ -635,8 +635,10 @@ export class MockPspClient {
     if (behaviour.failureCode) {
       const { declineCode: behaviourDeclineCode, failureMessage: behaviourFailureMessage } =
         behaviour;
+
       const declineCode =
         behaviourDeclineCode === null ? DeclineCodeEnum.GENERIC_DECLINE : behaviourDeclineCode;
+
       const failureMessage =
         behaviourFailureMessage === null
           ? 'The payment could not be completed'
@@ -686,8 +688,10 @@ export class MockPspClient {
     if (behaviour.failureCode) {
       const { declineCode: behaviourDeclineCode, failureMessage: behaviourFailureMessage } =
         behaviour;
+
       const declineCode =
         behaviourDeclineCode === null ? DeclineCodeEnum.GENERIC_DECLINE : behaviourDeclineCode;
+
       const failureMessage =
         behaviourFailureMessage === null ? 'The card could not be saved' : behaviourFailureMessage;
 

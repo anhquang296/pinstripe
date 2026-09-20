@@ -61,6 +61,7 @@ export class CouponRepository {
 
   async createCoupon(payload: NewCoupon, executor?: DatabaseTransaction): Promise<Coupon | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [coupon] = await db.insert(coupons).values(payload).returning();
 
     return coupon ?? null;
@@ -72,6 +73,7 @@ export class CouponRepository {
     executor?: DatabaseTransaction,
   ): Promise<Coupon | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [coupon] = await db
       .update(coupons)
       .set(payload)
@@ -83,6 +85,7 @@ export class CouponRepository {
 
   async redeemCoupon(id: string, executor?: DatabaseTransaction): Promise<Coupon | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [coupon] = await db
       .update(coupons)
       .set({ timesRedeemed: sql`${coupons.timesRedeemed} + 1` })

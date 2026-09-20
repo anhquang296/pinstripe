@@ -29,8 +29,11 @@ const STATUS_OPTIONS = map(values(PaymentIntentStatusEnum), (status) => {
 
 export default function PaymentIntentsPage() {
   const { paymentIntentId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(paymentIntentSearchParams);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {

@@ -13,7 +13,9 @@ import type {
 
 export function useCreateTaxRateMutation({ successMessage }: MutationProps<TaxRateResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -30,7 +32,9 @@ export function useCreateTaxRateMutation({ successMessage }: MutationProps<TaxRa
 
 export function useUpdateTaxRateMutation({ successMessage }: MutationProps<TaxRateResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -48,7 +52,9 @@ export function useUpdateTaxRateMutation({ successMessage }: MutationProps<TaxRa
 
 export function useCreateTaxIdMutation({ successMessage }: MutationProps<TaxIdResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -67,7 +73,9 @@ export function useDeleteTaxIdMutation({
   successMessage,
 }: MutationProps<DeletedTaxIdResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

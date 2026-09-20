@@ -71,6 +71,7 @@ export class PaymentLinkRepository {
     executor?: DatabaseTransaction,
   ): Promise<PaymentLink | null> {
     const db = executor ?? this._db.master;
+
     const [paymentLink] = await db.insert(paymentLinks).values(payload).returning();
 
     return paymentLink ?? null;
@@ -82,6 +83,7 @@ export class PaymentLinkRepository {
     executor?: DatabaseTransaction,
   ): Promise<PaymentLink | null> {
     const db = executor ?? this._db.master;
+
     const [paymentLink] = await db
       .update(paymentLinks)
       .set(payload)

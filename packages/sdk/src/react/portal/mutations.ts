@@ -17,6 +17,7 @@ export function useCreatePortalLinkMutation({
   successMessage,
 }: MutationProps<PortalLinkResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -32,6 +33,7 @@ export function useCreatePortalRequestMutation({
   successMessage,
 }: MutationProps<PortalRequestResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -47,7 +49,9 @@ export function useCreatePortalSessionMutation({
   successMessage,
 }: MutationProps<PortalSessionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -66,7 +70,9 @@ export function useUpdatePortalSessionMutation({
   successMessage,
 }: MutationProps<PortalSessionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -85,7 +91,9 @@ export function useDeletePortalSessionMutation({
   successMessage,
 }: MutationProps<PortalSessionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

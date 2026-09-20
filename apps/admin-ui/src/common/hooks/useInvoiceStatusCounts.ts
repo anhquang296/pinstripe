@@ -23,18 +23,22 @@ export function useInvoiceStatusCounts(): InvoiceStatusCountsResult {
     limit: OPTION_LIMIT,
     status: InvoiceStatusEnum.DRAFT,
   });
+
   const { data: openInvoices } = useInvoicesQuery({
     limit: OPTION_LIMIT,
     status: InvoiceStatusEnum.OPEN,
   });
+
   const { data: paidInvoices } = useInvoicesQuery({
     limit: OPTION_LIMIT,
     status: InvoiceStatusEnum.PAID,
   });
+
   const { data: voidInvoices } = useInvoicesQuery({
     limit: OPTION_LIMIT,
     status: InvoiceStatusEnum.VOID,
   });
+
   const { data: uncollectibleInvoices } = useInvoicesQuery({
     limit: OPTION_LIMIT,
     status: InvoiceStatusEnum.UNCOLLECTIBLE,

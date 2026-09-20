@@ -18,6 +18,7 @@ function collectResourceMethods(owner: object, prefix: string): string[] {
     }
 
     const path = prefix ? `${prefix}.${name}` : name;
+
     const ownMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(value)).filter((member) => {
       return member !== 'constructor';
     });

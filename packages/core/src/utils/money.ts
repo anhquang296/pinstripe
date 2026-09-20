@@ -112,7 +112,9 @@ export class Money {
     const shares = _.map(weights, (weight) => {
       return Math.floor((this.amount * weight) / totalWeight);
     });
+
     const distributed = _.sum(shares);
+
     const remainders = _.orderBy(
       _.map(weights, (weight, index) => {
         const share = _.get(shares, index, 0);

@@ -41,6 +41,7 @@ describe('CreditNoteService.createCreditNote after the invoice was paid', () => 
       LedgerAccountCodeEnum.CASH,
       CurrencyEnum.VND,
     );
+
     const creditNote = await fastify.creditNoteService.createCreditNote({
       invoiceId,
       lines: [
@@ -55,9 +56,11 @@ describe('CreditNoteService.createCreditNote after the invoice was paid', () => 
     await fastify.paymentService.drainProviderEvents();
 
     const { refundId: creditNoteRefundId } = creditNote;
+
     const refundId = creditNoteRefundId === null ? '' : creditNoteRefundId;
 
     const refund = await fastify.refundService.getRefund(refundId);
+
     const cashAfter = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.CASH,
       CurrencyEnum.VND,
@@ -119,6 +122,7 @@ describe('CreditNoteService.voidCreditNote', () => {
       lines: [{ amount: 10_000 }],
       reason: 'Ghi nhầm',
     });
+
     const voided = await fastify.creditNoteService.voidCreditNote(creditNote.id, {});
 
     expect(voided.status).toBe(CreditNoteStatusEnum.VOID);

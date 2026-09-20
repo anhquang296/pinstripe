@@ -13,7 +13,9 @@ export function useCreatePortalMembershipMutation({
   successMessage,
 }: MutationProps<PortalMembershipResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -34,7 +36,9 @@ export function useUpdatePortalMembershipMutation({
   successMessage,
 }: MutationProps<PortalMembershipResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -55,7 +59,9 @@ export function useDeletePortalMembershipMutation({
   successMessage,
 }: MutationProps<DeletedPortalMembershipResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

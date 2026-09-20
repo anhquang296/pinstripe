@@ -38,15 +38,20 @@ import ApiKeySecretPanel from './ApiKeySecretPanel';
 
 export default function ApiKeysPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const [createdToken, setCreatedToken] = useState('');
+
   const [revokingApiKey, setRevokingApiKey] = useState<ApiKeyResponse | null>(null);
+
   const [search, setSearch] = useQueryStates(cursorSearchParams);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canManage = useCan(PermissionEnum.API_KEY_MANAGE);
 
   const { data: apiKeys, isPending } = useApiKeysQuery(
@@ -57,6 +62,7 @@ export default function ApiKeysPage() {
   const { mutateAsync: createApiKey, isPending: isSaving } = useCreateApiKeyMutation({
     successMessage: 'Đã tạo API key.',
   });
+
   const { mutateAsync: deleteApiKey, isPending: isRevoking } = useDeleteApiKeyMutation({
     successMessage: 'Đã thu hồi API key.',
   });

@@ -38,6 +38,7 @@ export default function PaymentIntentDrawer({
   const canRefund = useCan(PermissionEnum.REFUND_WRITE);
 
   const { data: paymentIntent } = usePaymentIntentQuery(paymentIntentId);
+
   const { mutateAsync: cancelPaymentIntent, isPending: isCanceling } =
     useCancelPaymentIntentMutation({ successMessage: 'Đã huỷ payment intent.' });
 

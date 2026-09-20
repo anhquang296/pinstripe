@@ -24,6 +24,7 @@ async function resetRedis(env: Env): Promise<number> {
     port: env.REDIS_PORT,
     password: env.REDIS_PASSWORD,
   });
+
   const stream = redis.scanStream({ match: `${env.REDIS_KEY_PREFIX}:*`, count: SCAN_BATCH_SIZE });
 
   let deletedCount = 0;

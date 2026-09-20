@@ -57,6 +57,7 @@ describe('buildNotificationEmail', () => {
 
   it('reports the decline code and the next attempt on a failure notice', () => {
     const nextAttemptAt = new Date('2026-03-01T00:00:00.000Z');
+
     const email = buildNotificationEmail(
       NotificationKindEnum.PAYMENT_FAILED,
       makeContext({ declineCode: DeclineCodeEnum.INSUFFICIENT_FUNDS, nextAttemptAt }),

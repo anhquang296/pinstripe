@@ -14,8 +14,10 @@ export class WebhookDeliveryProcessor {
 
   async handle(job: Job<WebhookDeliveryJob>): Promise<void> {
     const { deliveryId } = job.data;
+
     const attempt = await this.fastify.webhookService.resolveDeliveryAttempt(deliveryId);
     const attemptCount = job.attemptsMade + 1;
+
     const outcome = await this.handleEndpointPost(
       attempt.endpointUrl,
       attempt.body,

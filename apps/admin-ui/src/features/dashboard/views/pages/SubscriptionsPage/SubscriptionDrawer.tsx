@@ -64,24 +64,33 @@ interface SubscriptionDrawerProps {
 
 export default function SubscriptionDrawer({ subscriptionId, onClose }: SubscriptionDrawerProps) {
   const [activeTab, setActiveTab] = useState(DETAIL_TAB);
+
   const [editingItemId, setEditingItemId] = useState('');
+
   const [isCancelOpen, setIsCancelOpen] = useState(false);
+
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: subscription } = useSubscriptionQuery(subscriptionId);
+
   const { data: subscriptionItems } = useSubscriptionItemsQuery({
     subscriptionId,
     limit: PAGE_LIMIT,
   });
+
   const { data: subscriptionItem } = useSubscriptionItemQuery(editingItemId, {
     enabled: Boolean(editingItemId),
   });
+
   const { data: prices } = usePricesQuery({ limit: OPTION_LIMIT, active: true });
+
   const customerId = get(subscription, 'customerId', '');
+
   const { data: entitlements } = useEntitlementsQuery(
     { customerId, limit: PAGE_LIMIT },
     { enabled: activeTab === ENTITLEMENT_TAB && Boolean(customerId) },
   );
+
   const { data: upcomingInvoice } = useUpcomingInvoiceQuery(subscriptionId, {
     enabled: activeTab === UPCOMING_TAB,
   });
@@ -89,13 +98,17 @@ export default function SubscriptionDrawer({ subscriptionId, onClose }: Subscrip
   const { mutateAsync: updateSubscription, isPending: isSaving } = useUpdateSubscriptionMutation({
     successMessage: 'Đã cập nhật subscription.',
   });
+
   const { mutateAsync: cancelSubscription, isPending: isCanceling } = useCancelSubscriptionMutation(
     { successMessage: 'Đã hủy subscription.' },
   );
+
   const { mutateAsync: createSubscriptionItem, isPending: isCreatingItem } =
     useCreateSubscriptionItemMutation({ successMessage: 'Đã thêm dòng thuê bao.' });
+
   const { mutateAsync: updateSubscriptionItem, isPending: isUpdatingItem } =
     useUpdateSubscriptionItemMutation({ successMessage: 'Đã cập nhật dòng thuê bao.' });
+
   const { mutate: deleteSubscriptionItem } = useDeleteSubscriptionItemMutation({
     successMessage: 'Đã gỡ dòng thuê bao.',
   });
@@ -104,6 +117,7 @@ export default function SubscriptionDrawer({ subscriptionId, onClose }: Subscrip
     resolver: subscriptionUpdateFormResolver,
     defaultValues: subscriptionUpdateFormDefaultValues,
   });
+
   const itemForm = useForm<SubscriptionItemFormData>({
     resolver: subscriptionItemFormResolver,
     defaultValues: subscriptionItemFormDefaultValues,
@@ -125,6 +139,7 @@ export default function SubscriptionDrawer({ subscriptionId, onClose }: Subscrip
     { value: '', label: '— chọn bảng giá —' },
     ...map(get(prices, 'data', []), (price) => {
       const { lookupKey } = price;
+
       const priceName = lookupKey === null ? price.id : lookupKey;
 
       return { value: price.id, label: `${priceName} · ${formatPriceAmount(price)}` };

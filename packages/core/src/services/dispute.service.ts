@@ -41,8 +41,10 @@ export class DisputeService {
 
   async findDisputes(query: FindDisputesQuery): Promise<ListResponse<DisputeResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.disputeRepository.findDisputes(
       {
         chargeId: query.chargeId,
@@ -70,6 +72,7 @@ export class DisputeService {
     DisputeService.assertTransition(dispute.status, DisputeStatusEnum.UNDER_REVIEW);
 
     const evidenceSubmittedAt = this.fastify.clock.now().toISOString();
+
     const reviewedDispute = await this.fastify.database.master.transaction(async (tx) => {
       const updatedDispute = await this.fastify.disputeRepository.updateDispute(
         dispute.id,
@@ -165,12 +168,14 @@ export class DisputeService {
 
   async handleDisputeClosed(pspReference: string, outcome: DisputeOutcome): Promise<void> {
     const dispute = await this.getProcessorDispute(pspReference);
+
     const status =
       outcome === DisputeOutcomeEnum.WON ? DisputeStatusEnum.WON : DisputeStatusEnum.LOST;
 
     DisputeService.assertTransition(dispute.status, status);
 
     const closedAt = this.fastify.clock.now().toISOString();
+
     const closedDispute = await this.fastify.database.master.transaction(async (tx) => {
       const updatedDispute = await this.fastify.disputeRepository.updateDispute(
         dispute.id,

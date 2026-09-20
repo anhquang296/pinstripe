@@ -30,6 +30,7 @@ function setup() {
   const dispatchSpy = vi
     .spyOn(fastify.notificationService, 'dispatchInvoiceReminder')
     .mockResolvedValue(undefined);
+
   const invoiceReminderService = new InvoiceReminderService(fastify, {
     billingOpsEmail: BILLING_OPS_EMAIL,
     portalBaseUrl: 'https://portal.test',
@@ -47,11 +48,13 @@ async function makeOpenInvoice(
     currency: CurrencyEnum.VND,
     name: 'Nhà xe nhắc nợ',
   });
+
   const draftInvoice = await fastify.invoiceService.createInvoice({
     customerId: customer.id,
     collectionMethod,
     daysUntilDue,
   });
+
   const openInvoice = await fastify.invoiceService.finalizeInvoice(draftInvoice.id);
 
   return openInvoice.id;
@@ -77,6 +80,7 @@ function readDispatchedKinds(
 
 it('reminds a bank-transfer invoice due in two days exactly once', async () => {
   const { dispatchSpy, invoiceReminderService } = setup();
+
   const invoiceId = await makeOpenInvoice(CollectionMethodEnum.SEND_INVOICE, 2);
 
   await invoiceReminderService.dispatchInvoiceReminders();
@@ -89,6 +93,7 @@ it('reminds a bank-transfer invoice due in two days exactly once', async () => {
 
 it('does not remind an invoice due later than three days from now', async () => {
   const { dispatchSpy, invoiceReminderService } = setup();
+
   const invoiceId = await makeOpenInvoice(CollectionMethodEnum.SEND_INVOICE, 10);
 
   await invoiceReminderService.dispatchInvoiceReminders();
@@ -98,6 +103,7 @@ it('does not remind an invoice due later than three days from now', async () => 
 
 it('leaves an automatically charged invoice to dunning', async () => {
   const { dispatchSpy, invoiceReminderService } = setup();
+
   const invoiceId = await makeOpenInvoice(CollectionMethodEnum.CHARGE_AUTOMATICALLY, 2);
 
   await invoiceReminderService.dispatchInvoiceReminders();
@@ -107,6 +113,7 @@ it('leaves an automatically charged invoice to dunning', async () => {
 
 it('tells the customer one day after the due date and the billing team after five', async () => {
   const { dispatchSpy, invoiceReminderService } = setup();
+
   const invoiceId = await makeOpenInvoice(CollectionMethodEnum.SEND_INVOICE, 7);
 
   await moveDueDate(invoiceId, -2);
@@ -127,6 +134,7 @@ it('tells the customer one day after the due date and the billing team after fiv
 
 it('records which reminders an invoice has received', async () => {
   const { invoiceReminderService } = setup();
+
   const invoiceId = await makeOpenInvoice(CollectionMethodEnum.SEND_INVOICE, 2);
 
   await invoiceReminderService.dispatchInvoiceReminders();
@@ -143,10 +151,12 @@ it('never reminds the billing team when no billing inbox is configured', async (
   const dispatchSpy = vi
     .spyOn(fastify.notificationService, 'dispatchInvoiceReminder')
     .mockResolvedValue(undefined);
+
   const invoiceReminderService = new InvoiceReminderService(fastify, {
     billingOpsEmail: null,
     portalBaseUrl: 'https://portal.test',
   });
+
   const invoiceId = await makeOpenInvoice(CollectionMethodEnum.SEND_INVOICE, 7);
 
   await moveDueDate(invoiceId, -6);

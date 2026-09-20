@@ -40,12 +40,16 @@ export class DiscountService {
 
   async createDiscount(payload: CreateDiscountPayload): Promise<DiscountResponse> {
     const target = await this.resolveTarget(payload);
+
     const { coupon, promotionCodeId } = await this.redeemCoupon(payload, target);
 
     const now = this.fastify.clock.now().toISOString();
+
     const { startAt: targetStartAt } = target;
+
     const startAt = targetStartAt === null ? now : targetStartAt;
     const id = generateGid(ObjectPrefixEnum.DISCOUNT);
+
     const { metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -160,6 +164,7 @@ export class DiscountService {
   private async resolveSubscriptionItemTarget(subscriptionItemId: string): Promise<DiscountTarget> {
     const subscriptionItem =
       await this.fastify.subscriptionRepository.getSubscriptionItem(subscriptionItemId);
+
     const subscription = await this.fastify.subscriptionService.getSubscription(
       subscriptionItem.subscriptionId,
     );
@@ -330,6 +335,7 @@ export class DiscountService {
 
     const promotionCode =
       await this.fastify.promotionCodeRepository.findPromotionCode(promotionCodeId);
+
     const minimumAmount = _.get(promotionCode, 'minimumAmount', null);
 
     return minimumAmount === null || subtotal >= minimumAmount;
@@ -348,9 +354,11 @@ export class DiscountService {
       lines,
       productIdByPriceId,
     );
+
     const remainders = _.map(eligibleIndexes, (index) => {
       return DiscountService.readRemainder(lines[index]);
     });
+
     const base = _.sum(remainders);
 
     if (base <= 0) {
@@ -408,6 +416,7 @@ export class DiscountService {
         }
 
         const { priceId } = line;
+
         const productId = priceId === null ? '' : _.get(productIdByPriceId, priceId, '');
 
         return _.includes(productIds, productId);
@@ -498,6 +507,7 @@ export class DiscountService {
   async updateDiscount(id: string, payload: UpdateDiscountPayload): Promise<DiscountResponse> {
     const existingDiscount = await this.fastify.discountRepository.getDiscount(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const { metadata = existingDiscount.metadata } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -531,6 +541,7 @@ export class DiscountService {
 
   async findDiscounts(query: FindDiscountsQuery): Promise<ListResponse<DiscountResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
 

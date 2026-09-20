@@ -39,6 +39,7 @@ export class PinstripeTransport {
 
   async request<T>(config: RequestConfig): Promise<T> {
     const { path, method, query, payload, options = {} } = config;
+
     const { expand, idempotencyKey: explicitKey, signal, maxRetries = this._maxRetries } = options;
 
     const idempotencyKey = this._resolveIdempotencyKey(method, explicitKey);
@@ -84,6 +85,7 @@ export class PinstripeTransport {
     }
 
     const controller = new AbortController();
+
     const timeout = setTimeout(() => {
       controller.abort();
     }, this._timeoutMs);

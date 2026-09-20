@@ -83,6 +83,7 @@ export class DiscountRepository {
     executor?: DatabaseTransaction,
   ): Promise<Discount | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [discount] = await db.insert(discounts).values(payload).returning();
 
     return discount ?? null;
@@ -94,6 +95,7 @@ export class DiscountRepository {
     executor?: DatabaseTransaction,
   ): Promise<Discount | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [discount] = await db
       .update(discounts)
       .set(payload)

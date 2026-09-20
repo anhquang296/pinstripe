@@ -15,6 +15,7 @@ export async function verifyPspCallbackRequest(
 
   const header = _.get(request.headers, WEBHOOK_SIGNATURE_HEADER);
   const signature = _.isString(header) ? header : '';
+
   const { rawBody } = request;
 
   if (!signature || !rawBody) {

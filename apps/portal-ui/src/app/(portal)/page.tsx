@@ -19,6 +19,7 @@ import { filter, find, get, includes, isEmpty, map } from 'lodash-es';
 import { useRouter } from 'next/navigation';
 
 const RECENT_INVOICE_LIMIT = 5;
+
 const CURRENT_SUBSCRIPTION_STATUSES: string[] = [
   SubscriptionStatusEnum.ACTIVE,
   SubscriptionStatusEnum.TRIALING,
@@ -29,11 +30,15 @@ const CURRENT_SUBSCRIPTION_STATUSES: string[] = [
 
 export default function OverviewPage() {
   const router = useRouter();
+
   const { data: account } = usePortalAccountQuery();
+
   const { data: invoiceTotals } = usePortalInvoiceTotalsQuery();
+
   const { data: recentInvoices, isPending: isInvoicesPending } = usePortalInvoicesQuery({
     limit: RECENT_INVOICE_LIMIT,
   });
+
   const { data: subscriptions } = usePortalSubscriptionsQuery({ limit: 20 });
 
   const currency = get(account, 'currency', 'vnd');
@@ -46,9 +51,11 @@ export default function OverviewPage() {
   const dueSoonCount = get(currencyTotals, 'dueSoonCount', 0);
   const nextDueAt = get(currencyTotals, 'nextDueAt', null);
   const nextDueLabel = nextDueAt ? formatDate(nextDueAt) : '—';
+
   const nextDueMeta = nextDueAt
     ? 'Hóa đơn chưa thanh toán kế tiếp'
     : 'Không có hóa đơn sắp đến hạn';
+
   const currentSubscriptions = filter(get(subscriptions, 'data', []), (subscription) => {
     return includes(CURRENT_SUBSCRIPTION_STATUSES, subscription.status);
   });

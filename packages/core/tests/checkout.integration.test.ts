@@ -94,12 +94,14 @@ describe('CheckoutService.createCheckoutSession', () => {
 describe('CheckoutService.completeCheckoutSession', () => {
   it('holds nothing until it completes, then issues the subscription', async () => {
     const fixture = await makeFixture();
+
     const checkoutSession = await fastify.checkoutService.createCheckoutSession({
       mode: CheckoutSessionModeEnum.SUBSCRIPTION,
       customerId: fixture.customerId,
       successUrl: SUCCESS_URL,
       lineItems: [{ priceId: fixture.priceId }],
     });
+
     const before = await fastify.subscriptionService.findSubscriptions({
       customerId: fixture.customerId,
       limit: 100,
@@ -110,6 +112,7 @@ describe('CheckoutService.completeCheckoutSession', () => {
       { paymentMethodId: fixture.paymentMethodId },
       readToken(checkoutSession.id),
     );
+
     const after = await fastify.subscriptionService.findSubscriptions({
       customerId: fixture.customerId,
       limit: 100,
@@ -125,6 +128,7 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('saves a card and nothing else in setup mode', async () => {
     const fixture = await makeFixture();
+
     const checkoutSession = await fastify.checkoutService.createCheckoutSession({
       mode: CheckoutSessionModeEnum.SETUP,
       customerId: fixture.customerId,
@@ -144,6 +148,7 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('bills an invoice and confirms a payment intent in payment mode', async () => {
     const fixture = await makeFixture();
+
     const checkoutSession = await fastify.checkoutService.createCheckoutSession({
       mode: CheckoutSessionModeEnum.PAYMENT,
       customerId: fixture.customerId,
@@ -163,6 +168,7 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('refuses a token that does not sign this session', async () => {
     const fixture = await makeFixture();
+
     const checkoutSession = await fastify.checkoutService.createCheckoutSession({
       mode: CheckoutSessionModeEnum.SETUP,
       customerId: fixture.customerId,
@@ -180,11 +186,13 @@ describe('CheckoutService.completeCheckoutSession', () => {
 
   it('refuses a session that has already completed', async () => {
     const fixture = await makeFixture();
+
     const checkoutSession = await fastify.checkoutService.createCheckoutSession({
       mode: CheckoutSessionModeEnum.SETUP,
       customerId: fixture.customerId,
       successUrl: SUCCESS_URL,
     });
+
     const token = readToken(checkoutSession.id);
 
     await fastify.checkoutService.completeCheckoutSession(
@@ -206,6 +214,7 @@ describe('CheckoutService.completeCheckoutSession', () => {
 describe('CheckoutService.expireCheckoutSessions', () => {
   it('closes a session past its deadline and publishes the expiry', async () => {
     const fixture = await makeFixture();
+
     const checkoutSession = await fastify.checkoutService.createCheckoutSession({
       mode: CheckoutSessionModeEnum.SETUP,
       customerId: fixture.customerId,
@@ -226,6 +235,7 @@ describe('CheckoutService.expireCheckoutSessions', () => {
 
   it('refuses to complete a session whose deadline has passed', async () => {
     const fixture = await makeFixture();
+
     const checkoutSession = await fastify.checkoutService.createCheckoutSession({
       mode: CheckoutSessionModeEnum.SETUP,
       customerId: fixture.customerId,

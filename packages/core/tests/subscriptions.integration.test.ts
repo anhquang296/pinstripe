@@ -39,14 +39,17 @@ async function buildScenario(): Promise<{
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
+
   const customer = await fastify.customerService.createCustomer({
     email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
     testClockId: clock.id,
   });
+
   const product = await fastify.productService.createProduct({
     name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -74,6 +77,7 @@ describe('SubscriptionService.createSubscription', () => {
 
   it('grants the customer entitlement to the product while trialing', async () => {
     const { customer, price } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
@@ -81,6 +85,7 @@ describe('SubscriptionService.createSubscription', () => {
     });
 
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
+
     const entitlements = await fastify.entitlementService.findEntitlements({
       customerId: customer.id,
     });
@@ -91,7 +96,9 @@ describe('SubscriptionService.createSubscription', () => {
 
   it('refuses a one time price', async () => {
     const { customer } = await buildScenario();
+
     const product = await fastify.productService.createProduct({ name: 'One off setup' });
+
     const oneTime = await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,
@@ -110,6 +117,7 @@ describe('SubscriptionService.createSubscription', () => {
 describe('TestClockService.advanceTestClock', () => {
   it('moves a trialing subscription to active when the trial ends', async () => {
     const { customer, price, clockId } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
@@ -128,6 +136,7 @@ describe('TestClockService.advanceTestClock', () => {
 
   it('rolls every period that the clock jumped over, not just one', async () => {
     const { customer, price, clockId } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
@@ -156,6 +165,7 @@ describe('TestClockService.advanceTestClock', () => {
 describe('SubscriptionService.cancelSubscription', () => {
   it('keeps the subscription billing and entitled until the period ends', async () => {
     const { customer, price, clockId } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
@@ -164,7 +174,9 @@ describe('SubscriptionService.cancelSubscription', () => {
     const canceling = await fastify.subscriptionService.cancelSubscription(subscription.id, {
       cancelAtPeriodEnd: true,
     });
+
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
+
     const entitlements = await fastify.entitlementService.findEntitlements({
       customerId: customer.id,
     });
@@ -178,7 +190,9 @@ describe('SubscriptionService.cancelSubscription', () => {
       frozenTime: '2026-02-02T00:00:00.000Z',
     });
     const ended = await fastify.subscriptionService.getSubscription(subscription.id);
+
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
+
     const afterEnd = await fastify.entitlementService.findEntitlements({
       customerId: customer.id,
     });
@@ -190,14 +204,17 @@ describe('SubscriptionService.cancelSubscription', () => {
 
   it('revokes entitlement immediately when cancelled outright', async () => {
     const { customer, price } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
     });
+
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
 
     await fastify.subscriptionService.cancelSubscription(subscription.id, {});
     await fastify.entitlementService.handleSubscriptionChanged(subscription.id);
+
     const entitlements = await fastify.entitlementService.findEntitlements({
       customerId: customer.id,
     });
@@ -207,10 +224,12 @@ describe('SubscriptionService.cancelSubscription', () => {
 
   it('refuses to cancel a subscription that is already canceled', async () => {
     const { customer, price } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
     });
+
     await fastify.subscriptionService.cancelSubscription(subscription.id, {});
 
     const act = fastify.subscriptionService.cancelSubscription(subscription.id, {});
@@ -222,6 +241,7 @@ describe('SubscriptionService.cancelSubscription', () => {
 describe('SubscriptionService.updateSubscription proration', () => {
   it('rejects a proration behavior when the payload changes no items', async () => {
     const { customer, price } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
@@ -239,6 +259,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
 
   it('records the swap instant as the billing boundary on both the closed and the replacement window', async () => {
     const { customer, price, clockId } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
@@ -247,6 +268,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
     const [itemBefore] = subscription.items;
 
     await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_AT });
+
     const updated = await fastify.subscriptionService.updateSubscription(subscription.id, {
       items: [{ priceId: price.id, quantity: 4 }],
     });
@@ -254,9 +276,11 @@ describe('SubscriptionService.updateSubscription proration', () => {
     const changes = await fastify.subscriptionRepository.findSubscriptionItemChanges({
       subscriptionIds: [subscription.id],
     });
+
     const closedChange = _.find(changes, (change) => {
       return change.billedThrough !== null;
     });
+
     const openChange = _.find(changes, (change) => {
       return change.billedThrough === null;
     });
@@ -269,6 +293,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
 
   it('records the period start as the billing boundary when no proration is wanted', async () => {
     const { customer, price, clockId } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
@@ -283,6 +308,7 @@ describe('SubscriptionService.updateSubscription proration', () => {
     const changes = await fastify.subscriptionRepository.findSubscriptionItemChanges({
       subscriptionIds: [subscription.id],
     });
+
     const openChange = _.find(changes, (change) => {
       return change.billedThrough === null;
     });
@@ -292,11 +318,13 @@ describe('SubscriptionService.updateSubscription proration', () => {
 
   it('leaves no invoice behind when an always_invoice update is rejected', async () => {
     const { customer, price, clockId } = await buildScenario();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId: customer.id,
       items: [{ priceId: price.id }],
       billingMode: BillingModeEnum.ARREARS,
     });
+
     const archivedPrice = await fastify.priceService.updatePrice(price.id, { active: false });
 
     await fastify.testClockService.advanceTestClock(clockId, { frozenTime: SWAP_AT });

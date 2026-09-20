@@ -15,6 +15,7 @@ interface SetupOverrides {
 
 function setup(overrides: SetupOverrides = {}) {
   const { role = UserRoleEnum.MEMBER, operationId, permission, hasActor = true } = overrides;
+
   const actor = {
     userId: 'usr_1',
     sessionId: 'ases_1',

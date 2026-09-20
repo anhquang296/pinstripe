@@ -34,6 +34,7 @@ export class RatingService {
 
   async rateUpcomingInvoice(subscriptionId: string): Promise<RatedInvoiceResponse> {
     const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
+
     const { periodStart, periodEnd } = RatingService.readCurrentPeriod(subscription);
 
     if (subscription.billingMode === BillingModeEnum.ARREARS) {
@@ -41,6 +42,7 @@ export class RatingService {
     }
 
     const { interval, intervalCount } = await this.resolveSubscriptionInterval(subscriptionId);
+
     const nextPeriodStart = periodEnd;
 
     return this.rateInvoicePeriod(
@@ -99,16 +101,20 @@ export class RatingService {
     period: RatingPeriod,
   ): Promise<RatedInvoiceResponse> {
     const { interval, intervalCount } = await this.resolveSubscriptionInterval(subscription.id);
+
     const trailingPeriod: RatingPeriod = {
       periodStart: regressPeriod(period.periodStart, interval, intervalCount),
       periodEnd: period.periodStart,
     };
+
     const trailingChanges = await this.findPeriodChanges(subscription.id, trailingPeriod);
+
     const trailingLines = await this.buildTrailingLines(
       subscription,
       trailingChanges,
       trailingPeriod,
     );
+
     const upfrontChanges = await this.findPeriodChanges(subscription.id, period);
     const upfrontLines = await this.buildUpfrontLines(upfrontChanges, period);
 
@@ -199,6 +205,7 @@ export class RatingService {
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscriptionId],
     });
+
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: _.uniq(_.map(subscriptionItems, 'priceId')) },
       MAX_ITEMS_PER_SUBSCRIPTION,

@@ -6,7 +6,9 @@ import type { CreatePricePayload, PriceResponse, UpdatePricePayload } from '@typ
 
 export function useCreatePriceMutation({ successMessage }: MutationProps<PriceResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -23,7 +25,9 @@ export function useCreatePriceMutation({ successMessage }: MutationProps<PriceRe
 
 export function useUpdatePriceMutation({ successMessage }: MutationProps<PriceResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

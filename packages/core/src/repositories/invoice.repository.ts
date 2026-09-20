@@ -117,6 +117,7 @@ export class InvoiceRepository {
     executor?: DatabaseTransaction,
   ): Promise<Invoice | null> {
     const db = executor ?? this._db.master;
+
     const [invoice] = await db.insert(invoices).values(payload).returning();
 
     return invoice ?? null;
@@ -208,6 +209,7 @@ export class InvoiceRepository {
     executor?: DatabaseTransaction,
   ): Promise<InvoicePayment | null> {
     const db = executor ?? this._db.master;
+
     const [invoicePayment] = await db.insert(invoicePayments).values(payload).returning();
 
     return invoicePayment ?? null;
@@ -219,6 +221,7 @@ export class InvoiceRepository {
     executor?: DatabaseTransaction,
   ): Promise<Invoice | null> {
     const db = executor ?? this._db.master;
+
     const [invoice] = await db.update(invoices).set(payload).where(eq(invoices.id, id)).returning();
 
     return invoice ?? null;

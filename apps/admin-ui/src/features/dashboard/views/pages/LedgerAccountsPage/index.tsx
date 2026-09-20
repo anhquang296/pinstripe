@@ -28,8 +28,11 @@ const CODE_OPTIONS = map(values(LedgerAccountCodeEnum), (accountCode) => {
 
 export default function LedgerAccountsPage() {
   const { accountId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(ledgerAccountSearchParams);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {

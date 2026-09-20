@@ -22,6 +22,7 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const CSV_CONTENT_TYPE = 'text/csv; charset=utf-8';
 
       const { customerId } = readPortalAuth(request);
+
       const csv = await fastify.invoiceService.exportCustomerInvoices(customerId, request.query);
       const exportedOn = fastify.clock.now().toISOString().slice(0, 10);
 
@@ -37,6 +38,7 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     { schema: { params: portalInvoiceParamsSchema, response: { 200: portalBankTransferSchema } } },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
+
       const bankTransfer = await fastify.bankTransferService.getCustomerBankTransfer(
         customerId,
         request.params.invoiceId,
@@ -56,6 +58,7 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
+
       const payments = await fastify.invoiceService.findCustomerInvoicePayments(
         customerId,
         request.query,
@@ -75,6 +78,7 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
+
       const invoices = await fastify.invoiceService.findCustomerInvoices(customerId, request.query);
 
       return ApiResponse.success(reply, invoices);
@@ -86,6 +90,7 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     { schema: { params: portalInvoiceParamsSchema, response: { 200: invoiceSchema } } },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
+
       const invoice = await fastify.invoiceService.getCustomerInvoice(
         customerId,
         request.params.invoiceId,
@@ -102,7 +107,9 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
       const PDF_CONTENT_TYPE = 'application/pdf';
 
       const { customerId } = readPortalAuth(request);
+
       const { invoiceId } = request.params;
+
       const document = await fastify.invoiceDocumentService.getCustomerInvoicePdf(
         customerId,
         invoiceId,
@@ -160,6 +167,7 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     { schema: { response: { 200: portalInvoiceTotalsSchema } } },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
+
       const invoiceTotals = await fastify.invoiceService.aggregateCustomerInvoiceTotals(customerId);
 
       return ApiResponse.success(reply, invoiceTotals);

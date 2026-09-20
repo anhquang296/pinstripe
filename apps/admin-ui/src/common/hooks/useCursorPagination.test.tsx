@@ -7,6 +7,7 @@ import { useCursorPagination } from './useCursorPagination';
 function setup(initialAfter: string | null = null) {
   return renderHook(() => {
     const [after, setAfter] = useState<string | null>(initialAfter);
+
     const pagination = useCursorPagination({ after, onPageChange: setAfter });
 
     return { ...pagination, after, setAfter };

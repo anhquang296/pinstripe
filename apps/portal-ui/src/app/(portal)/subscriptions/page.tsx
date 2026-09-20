@@ -19,14 +19,18 @@ import { useForm } from 'react-hook-form';
 
 export default function SubscriptionsPage() {
   const { data: subscriptions, isPending } = usePortalSubscriptionsQuery({ limit: 50 });
+
   const form = useForm<PortalRequestFormData>({
     resolver: portalRequestFormResolver,
     defaultValues: portalRequestFormDefaultValues,
   });
+
   const { mutate: createPortalRequest, isPending: isSubmitting } = useCreatePortalRequestMutation({
     successMessage: 'Đã gửi yêu cầu. Kế toán Vexere sẽ liên hệ với nhà xe.',
   });
+
   const subscriptionRows = get(subscriptions, 'data', []);
+
   const handleOnSubmit = form.handleSubmit((data) => {
     createPortalRequest(
       { kind: PortalRequestKindEnum.PLAN_CHANGE, message: data.message },

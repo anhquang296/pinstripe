@@ -36,29 +36,35 @@ export class ReportingService {
     query: AggregateRevenueSummaryQuery,
   ): Promise<RevenueSummaryResponse> {
     const { currency = CurrencyEnum.VND } = query;
+
     const now = this.fastify.clock.now();
     const asOf = now.toISOString();
+
     const { windowStart, windowEnd } = ReportingService.resolveWindow(query, now);
 
     const commitments = await this.fastify.reportingRepository.findRecurringCommitments(currency);
     const mrr = await this.aggregateDiscountedMrr(commitments, currency, asOf);
 
     const counts = await this.fastify.reportingRepository.countSubscriptions(currency);
+
     const canceledInWindow = await this.fastify.reportingRepository.countCanceledSubscriptions(
       currency,
       windowStart,
       windowEnd,
     );
+
     const invoiceTotals = await this.fastify.reportingRepository.aggregateInvoiceTotals(
       currency,
       windowStart,
       windowEnd,
     );
+
     const refundedInWindow = await this.fastify.reportingRepository.aggregateRefundTotal(
       currency,
       windowStart,
       windowEnd,
     );
+
     const collectedInWindow = await this.fastify.reportingRepository.aggregateCashMovement(
       currency,
       windowStart,
@@ -157,9 +163,11 @@ export class ReportingService {
     }
 
     const eligibleIndexes = ReportingService.resolveEligibleIndexes(discount, coupon, lines);
+
     const weights = _.map(eligibleIndexes, (index) => {
       return _.get(lines, [index, 'amount'], 0);
     });
+
     const base = _.sum(weights);
 
     if (base <= 0) {

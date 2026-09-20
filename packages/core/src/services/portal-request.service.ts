@@ -33,6 +33,7 @@ export class PortalRequestService {
     await this.assertRequestAllowed(customerId);
 
     const { billingOpsEmail } = this.portalRequestConfig;
+
     const submittedAt = this.fastify.clock.now().toISOString();
 
     if (billingOpsEmail) {
@@ -71,6 +72,7 @@ export class PortalRequestService {
       RedisNamespaceEnum.PORTAL_RATE_LIMIT,
       `request:${customerId}`,
     );
+
     const { isAllowed, resetSeconds } = await consumeRateLimit(this.fastify.redis, key, {
       limit: REQUEST_LIMIT,
       windowSeconds: REQUEST_WINDOW_SECONDS,

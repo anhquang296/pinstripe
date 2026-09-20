@@ -43,6 +43,7 @@ async function makeSessionHeaders(email: string): Promise<Record<string, string>
   await makeCustomer(email);
 
   const link = await fastify.portalSessionService.createPortalLink({ email });
+
   const portalSession = await fastify.portalSessionService.redeemPortalLink({
     linkKey: String(link.linkKey),
   });
@@ -58,6 +59,7 @@ describe('portal link surface', () => {
       headers: portalKeyHeaders,
       payload: { email: 'known@portal.test' },
     });
+
     const unknown = await fastify.inject({
       method: 'POST',
       url: '/portal/links',
@@ -89,7 +91,9 @@ describe('portal sign-in rate limit', () => {
     const portalKey = await mintApiKey(fastify, [ApiKeyScopeEnum.PORTAL], {
       type: ApiKeyTypeEnum.PUBLISHABLE,
     });
+
     const headers = buildAuthHeaders(portalKey.token);
+
     const { portalRateLimit } = fastify.workflowSchedules;
 
     const statusCodes: number[] = [];
@@ -113,8 +117,11 @@ describe('portal sign-in rate limit', () => {
     const portalKey = await mintApiKey(fastify, [ApiKeyScopeEnum.PORTAL], {
       type: ApiKeyTypeEnum.PUBLISHABLE,
     });
+
     const headers = buildAuthHeaders(portalKey.token);
+
     const { portalRateLimit } = fastify.workflowSchedules;
+
     const clientHeaders = { ...headers, [PORTAL_CLIENT_IP_HEADER]: '10.0.1.1' };
 
     const statusCodes: number[] = [];
@@ -171,16 +178,19 @@ describe('portal account surface', () => {
     const headers = await makeSessionHeaders('drafts@portal.test');
     const me = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
     const customerId = String(me.json().customerId);
+
     const draftInvoice = await fastify.invoiceService.createInvoice({
       customerId,
       collectionMethod: CollectionMethodEnum.SEND_INVOICE,
       daysUntilDue: 7,
     });
+
     const issuedDraft = await fastify.invoiceService.createInvoice({
       customerId,
       collectionMethod: CollectionMethodEnum.SEND_INVOICE,
       daysUntilDue: 7,
     });
+
     const openInvoice = await fastify.invoiceService.finalizeInvoice(issuedDraft.id);
 
     const response = await fastify.inject({ method: 'GET', url: '/portal/invoices', headers });
@@ -230,11 +240,13 @@ describe('portal account surface', () => {
   it('compares an invoice with no predecessor against a zero previous total', async () => {
     const headers = await makeSessionHeaders('comparison@portal.test');
     const me = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+
     const draft = await fastify.invoiceService.createInvoice({
       customerId: String(me.json().customerId),
       collectionMethod: CollectionMethodEnum.SEND_INVOICE,
       daysUntilDue: 7,
     });
+
     const invoice = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     const response = await fastify.inject({
@@ -251,11 +263,13 @@ describe('portal account surface', () => {
   it('answers an empty reminder history for an invoice nobody has been reminded about', async () => {
     const headers = await makeSessionHeaders('reminders@portal.test');
     const me = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+
     const draft = await fastify.invoiceService.createInvoice({
       customerId: String(me.json().customerId),
       collectionMethod: CollectionMethodEnum.SEND_INVOICE,
       daysUntilDue: 7,
     });
+
     const invoice = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     const response = await fastify.inject({
@@ -270,16 +284,19 @@ describe('portal account surface', () => {
 
   it('refuses a comparison for an invoice of another customer', async () => {
     const otherHeaders = await makeSessionHeaders('other-comparison@portal.test');
+
     const otherMe = await fastify.inject({
       method: 'GET',
       url: '/portal/me',
       headers: otherHeaders,
     });
+
     const draft = await fastify.invoiceService.createInvoice({
       customerId: String(otherMe.json().customerId),
       collectionMethod: CollectionMethodEnum.SEND_INVOICE,
       daysUntilDue: 7,
     });
+
     const invoice = await fastify.invoiceService.finalizeInvoice(draft.id);
     const headers = await makeSessionHeaders('intruder-comparison@portal.test');
 
@@ -331,13 +348,16 @@ describe('merchant billing portal session', () => {
       headers: buildAuthHeaders(secretKey.token),
       payload: { customerId },
     });
+
     const portalUrl = new URL(created.json().url);
+
     const redeemed = await fastify.inject({
       method: 'POST',
       url: '/portal/sessions',
       headers: portalKeyHeaders,
       payload: { linkKey: String(portalUrl.searchParams.get('linkKey')) },
     });
+
     const me = await fastify.inject({
       method: 'GET',
       url: '/portal/me',

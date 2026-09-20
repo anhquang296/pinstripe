@@ -33,12 +33,15 @@ export class EventService {
 
   async findEvents(query: FindEventsQuery): Promise<ListResponse<EventResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.eventRepository.findEvents(
       { type: query.type, beforeAt, afterAt },
       limit + 1,
     );
+
     const hasMore = rows.length > limit;
 
     return {

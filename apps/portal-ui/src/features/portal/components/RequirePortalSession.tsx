@@ -14,7 +14,9 @@ interface RequirePortalSessionProps {
 
 export default function RequirePortalSession({ children }: RequirePortalSessionProps) {
   const router = useRouter();
+
   const { data: account, error, isPending } = usePortalAccountQuery();
+
   const isSignedOut = get(error, 'statusCode') === 401;
 
   useEffect(() => {

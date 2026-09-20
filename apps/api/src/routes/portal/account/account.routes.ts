@@ -23,10 +23,13 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     { schema: { response: { 200: portalIdentitySchema } } },
     async (request, reply) => {
       const { customerId, portalSessionId, portalUserId, role } = readPortalAuth(request);
+
       const customer = await fastify.customerService.getCustomer(customerId);
       const portalSession = await fastify.portalSessionService.getPortalSession(portalSessionId);
+
       const { userEmail, memberships } =
         await fastify.portalUserService.findPortalUserAccess(portalUserId);
+
       const {
         [CUSTOMER_ACCOUNTANT_NAME_KEY]: accountantName = null,
         [CUSTOMER_ACCOUNTANT_EMAIL_KEY]: accountantEmail = null,
@@ -74,6 +77,7 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
+
       const subscriptions = await fastify.subscriptionService.findCustomerSubscriptions(
         customerId,
         request.query,
@@ -120,6 +124,7 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     },
     async (request, reply) => {
       const { customerId } = readPortalAuth(request);
+
       const paymentMethods = await fastify.paymentMethodService.findPaymentMethods({
         ...request.query,
         customerId,
@@ -134,6 +139,7 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
     { schema: { response: { 200: portalSessionSchema } } },
     async (request, reply) => {
       const { portalSessionId } = readPortalAuth(request);
+
       const portalSession = await fastify.portalSessionService.revokePortalSession(portalSessionId);
 
       return ApiResponse.success(reply, portalSession);

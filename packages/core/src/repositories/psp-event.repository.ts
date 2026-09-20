@@ -26,6 +26,7 @@ export class PspEventRepository {
     executor?: DatabaseTransaction,
   ): Promise<PspEvent | null> {
     const db = executor ?? this._db.master;
+
     const [pspEvent] = await db
       .insert(pspEvents)
       .values(payload)

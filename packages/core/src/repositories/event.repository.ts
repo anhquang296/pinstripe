@@ -57,6 +57,7 @@ export class EventRepository {
 
   async createEvent(payload: NewEvent, executor?: DatabaseTransaction): Promise<Event | null> {
     const db = executor ?? this._db.master;
+
     const [event] = await db.insert(events).values(payload).onConflictDoNothing().returning();
 
     return event ?? null;

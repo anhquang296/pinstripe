@@ -65,6 +65,7 @@ it('rejects the loser when two payments both claim the whole balance', async () 
     fastify.invoiceService.payInvoice(invoiceId, { amount: UNIT_AMOUNT }),
     fastify.invoiceService.payInvoice(invoiceId, { amount: UNIT_AMOUNT }),
   ]);
+
   const rejected = _.filter(outcomes, { status: 'rejected' });
 
   expect(rejected).toHaveLength(1);

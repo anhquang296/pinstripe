@@ -22,13 +22,16 @@ export class PaymentMethodService {
     const customer = payload.customerId
       ? await this.fastify.customerRepository.getCustomer(payload.customerId)
       : null;
+
     const tokenized = await this.fastify.psp.tokenize({
       token: payload.token,
       type: payload.type,
     });
+
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_METHOD);
     const customerId = _.get(customer, 'id', null);
+
     const { billingDetails = {}, metadata = {} } = payload;
 
     const createdPaymentMethod = await this.fastify.paymentMethodRepository.createPaymentMethod({
@@ -102,6 +105,7 @@ export class PaymentMethodService {
     }
 
     const detachedAt = this.fastify.clock.now().toISOString();
+
     const { customerId } = paymentMethod;
 
     const detachedPaymentMethod = await this.fastify.database.master.transaction(async (tx) => {
@@ -128,6 +132,7 @@ export class PaymentMethodService {
     payload: UpdatePaymentMethodPayload,
   ): Promise<PaymentMethodResponse> {
     const paymentMethod = await this.fastify.paymentMethodRepository.getPaymentMethod(id);
+
     const { card } = paymentMethod;
 
     if (payload.card && !card) {
@@ -165,8 +170,10 @@ export class PaymentMethodService {
     query: FindPaymentMethodsQuery,
   ): Promise<ListResponse<PaymentMethodResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.paymentMethodRepository.findPaymentMethods(
       {
         customerId: query.customerId,

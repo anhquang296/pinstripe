@@ -77,8 +77,11 @@ interface CustomerDrawerProps {
 
 export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerProps) {
   const [activeTab, setActiveTab] = useState(DETAIL_TAB);
+
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
   const [selectedTaxIdId, setSelectedTaxIdId] = useState('');
+
   const [portalSessionId, setPortalSessionId] = useState('');
 
   const canWrite = useCan(PermissionEnum.CUSTOMER_WRITE);
@@ -87,24 +90,30 @@ export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerPr
   const canWriteSubscription = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: customer } = useCustomerQuery(customerId);
+
   const { data: balanceTransactions } = useCustomerBalanceTransactionsQuery(
     customerId,
     { limit: PAGE_LIMIT },
     { enabled: activeTab === BALANCE_TAB },
   );
+
   const { data: taxIds } = useTaxIdsQuery(
     { customerId, limit: PAGE_LIMIT },
     { enabled: activeTab === TAX_ID_TAB },
   );
+
   const { data: taxId } = useTaxIdQuery(selectedTaxIdId, { enabled: Boolean(selectedTaxIdId) });
+
   const { data: subscriptions } = useSubscriptionsQuery(
     { customerId, limit: PAGE_LIMIT },
     { enabled: activeTab === SUBSCRIPTION_TAB },
   );
+
   const { data: invoices } = useInvoicesQuery(
     { customerId, limit: PAGE_LIMIT },
     { enabled: activeTab === INVOICE_TAB },
   );
+
   const { data: portalSession } = useBillingPortalSessionQuery(portalSessionId, {
     enabled: Boolean(portalSessionId),
   });
@@ -112,25 +121,32 @@ export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerPr
   const { mutateAsync: updateCustomer, isPending: isSaving } = useUpdateCustomerMutation({
     successMessage: 'Đã cập nhật customer.',
   });
+
   const { mutateAsync: deleteCustomer, isPending: isDeleting } = useDeleteCustomerMutation({
     successMessage: 'Đã xoá customer.',
   });
+
   const { mutateAsync: createBalanceTransaction, isPending: isCrediting } =
     useCreateCustomerBalanceTransactionMutation({ successMessage: 'Đã ghi bút toán số dư.' });
+
   const { mutateAsync: createTaxId, isPending: isAddingTaxId } = useCreateTaxIdMutation({
     successMessage: 'Đã thêm mã số thuế.',
   });
+
   const { mutate: deleteTaxId } = useDeleteTaxIdMutation({ successMessage: 'Đã xoá mã số thuế.' });
+
   const { mutateAsync: createBillingPortalSession } = useCreateBillingPortalSessionMutation();
 
   const customerForm = useForm<CustomerFormData>({
     resolver: customerFormResolver,
     defaultValues: customerFormDefaultValues,
   });
+
   const balanceForm = useForm<BalanceTransactionFormData>({
     resolver: balanceTransactionFormResolver,
     defaultValues: balanceTransactionFormDefaultValues,
   });
+
   const taxIdForm = useForm<TaxIdFormData>({
     resolver: taxIdFormResolver,
     defaultValues: taxIdFormDefaultValues,

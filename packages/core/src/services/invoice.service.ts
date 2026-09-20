@@ -72,6 +72,7 @@ import _ from 'lodash';
 
 const INVOICE_NUMBER_PREFIX = 'INV';
 const NUMBER_PAD_LENGTH = 6;
+
 const CUSTOMER_VISIBLE_INVOICE_STATUSES: readonly InvoiceStatus[] = [
   InvoiceStatusEnum.OPEN,
   InvoiceStatusEnum.PAID,
@@ -140,6 +141,7 @@ export class InvoiceService {
     if (subscriptionId) {
       const subscription =
         await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
+
       const { invoice } = await this.ensureDraftInvoice(
         subscription,
         metadata,
@@ -292,6 +294,7 @@ export class InvoiceService {
     const finalizedInvoice = await this.fastify.database.master.transaction(async (tx) => {
       return this.writeFinalizedInvoice(invoice, lines, now, tx);
     });
+
     const sentInvoice = await this.issueInvoiceDocument(finalizedInvoice);
 
     return this.buildInvoice(sentInvoice);
@@ -316,6 +319,7 @@ export class InvoiceService {
       {},
       InvoiceService.readCurrentPeriod(subscription),
     );
+
     const { pauseCollectionBehavior } = subscription;
 
     if (!ensured.isCreated) {
@@ -401,6 +405,7 @@ export class InvoiceService {
       periodStart: endedAt,
       periodEnd: advancePeriod(endedAt, interval.interval, interval.intervalCount),
     };
+
     const rated = await this.fastify.ratingService.rateInvoicePeriod(
       subscription.id,
       period.periodStart,
@@ -476,6 +481,7 @@ export class InvoiceService {
     }
 
     const now = await this.fastify.clockService.resolveInvoiceNow(invoice);
+
     const held = await this.fastify.invoiceRepository.updateInvoice(invoice.id, {
       autoAdvance: false,
       updatedAt: now.toISOString(),
@@ -505,6 +511,7 @@ export class InvoiceService {
     const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
     const periodStart = new Date(invoice.periodStart);
     const periodEnd = new Date(invoice.periodEnd);
+
     const rated = await this.fastify.ratingService.rateInvoicePeriod(
       subscriptionId,
       periodStart,
@@ -519,9 +526,11 @@ export class InvoiceService {
     lineItems: RatedInvoiceResponse['lineItems'],
   ): Promise<InvoiceDraftLine[]> {
     const taxBehaviorByPriceId = await this.resolveTaxBehaviors(_.map(lineItems, 'priceId'));
+
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
     });
+
     const taxRateIdsBySubscriptionItemId = _.mapValues(
       _.keyBy(subscriptionItems, 'id'),
       'taxRates',
@@ -578,6 +587,7 @@ export class InvoiceService {
 
     return _.map(invoiceItems, (invoiceItem): InvoiceDraftLine => {
       const { priceId } = invoiceItem;
+
       const taxBehavior =
         priceId === null
           ? TaxBehaviorEnum.UNSPECIFIED
@@ -611,12 +621,15 @@ export class InvoiceService {
     startingBalance: number,
   ): InvoiceTotals {
     const subtotal = _.sumBy(lines, 'amount');
+
     const totalDiscountAmount = _.sumBy(lines, (line) => {
       return _.sumBy(line.discountAmounts, 'amount');
     });
+
     const totalTaxAmount = _.sumBy(lines, (line) => {
       return _.sumBy(line.taxAmounts, 'amount');
     });
+
     const inclusiveTaxAmount = _.sumBy(lines, (line) => {
       return _.sumBy(_.filter(line.taxAmounts, 'isInclusive'), 'amount');
     });
@@ -649,6 +662,7 @@ export class InvoiceService {
 
     const id = generateGid(ObjectPrefixEnum.INVOICE);
     const createdAt = now.toISOString();
+
     const invoice = await this.fastify.invoiceRepository.createInvoice(
       {
         id,
@@ -698,12 +712,15 @@ export class InvoiceService {
       invoice.customerId,
       tx,
     );
+
     const discountedLines = await this.fastify.discountService.applyDiscounts(invoice, lines, tx);
+
     const { lines: taxedLines, automaticTaxStatus } = await this.fastify.taxService.applyTaxes(
       invoice,
       customer,
       discountedLines,
     );
+
     const totals = InvoiceService.assembleInvoiceTotals(taxedLines, customer.balance);
     const finalizedAt = now.toISOString();
     const dueAt = this.resolveDueAt(invoice, now).toISOString();
@@ -731,6 +748,7 @@ export class InvoiceService {
         createdAt: finalizedAt,
       };
     });
+
     const taxAmounts = InvoiceService.buildLineItemTaxAmounts(
       invoice,
       taxedLines,
@@ -984,6 +1002,7 @@ export class InvoiceService {
     const creditedByInvoiceId = await this.resolveCreditedAmounts([invoice.id]);
     const amountCredited = _.get(creditedByInvoiceId, invoice.id, 0);
     const owed = invoice.amountDue - invoice.amountPaid - amountCredited;
+
     const { amount = owed } = payload;
 
     if (amount > owed) {
@@ -1109,6 +1128,7 @@ export class InvoiceService {
     }
 
     const now = await this.fastify.clockService.resolveCustomerNow(customerId);
+
     const dueFilters: InvoiceFilters = isOverdue
       ? { dueBeforeAt: now.toISOString() }
       : { dueAfterAt: now.toISOString() };
@@ -1121,6 +1141,7 @@ export class InvoiceService {
 
   async getCustomerInvoice(customerId: string, id: string): Promise<InvoiceResponse> {
     const invoice = await this.fastify.invoiceRepository.findInvoice(id);
+
     const isVisible =
       invoice !== null &&
       invoice.customerId === customerId &&
@@ -1140,15 +1161,19 @@ export class InvoiceService {
     const INVOICE_SCAN_LIMIT = 1000;
 
     const { limit = DEFAULT_PAGE_LIMIT, invoiceId } = query;
+
     const invoices = await this.fastify.invoiceRepository.findInvoices(
       { customerId, statuses: CUSTOMER_VISIBLE_INVOICE_STATUSES },
       INVOICE_SCAN_LIMIT,
     );
+
     const scopedInvoices = invoiceId ? _.filter(invoices, { id: invoiceId }) : invoices;
     const invoicesById = _.keyBy(scopedInvoices, 'id');
+
     const invoicePayments = await this.fastify.invoiceRepository.findInvoicePayments(
       _.map(scopedInvoices, 'id'),
     );
+
     const orderedPayments = _.orderBy(invoicePayments, ['paidAt', 'id'], ['desc', 'desc']);
 
     return {
@@ -1197,6 +1222,7 @@ export class InvoiceService {
         limit: EXPORT_PAGE_SIZE,
         after,
       });
+
       const lastInvoice = _.last(page.data);
 
       exportedInvoices.push(...page.data);
@@ -1225,6 +1251,7 @@ export class InvoiceService {
       },
       PREVIOUS_INVOICE_LOOKUP_LIMIT,
     );
+
     const [previousInvoice] = _.reject(earlierInvoices, { id: invoice.id });
 
     if (previousInvoice) {
@@ -1261,6 +1288,7 @@ export class InvoiceService {
     invoiceId: string,
   ): Promise<PortalInvoiceRemindersResponse> {
     const invoice = await this.getCustomerInvoice(customerId, invoiceId);
+
     const invoiceReminders = await this.fastify.invoiceRepository.findInvoiceReminders([
       invoice.id,
     ]);
@@ -1281,11 +1309,14 @@ export class InvoiceService {
     const DUE_SOON_DAYS = 7;
 
     const now = await this.fastify.clockService.resolveCustomerNow(customerId);
+
     const openInvoices = await this.fastify.invoiceRepository.findInvoices(
       { customerId, status: InvoiceStatusEnum.OPEN },
       OPEN_INVOICE_LIMIT,
     );
+
     const creditedByInvoiceId = await this.resolveCreditedAmounts(_.map(openInvoices, 'id'));
+
     const balances = _.map(openInvoices, (invoice) => {
       const amountCredited = _.get(creditedByInvoiceId, invoice.id, 0);
 
@@ -1295,6 +1326,7 @@ export class InvoiceService {
         dueAt: invoice.dueAt,
       };
     });
+
     const dueSoonBeforeAt = new Date(now.getTime() + DUE_SOON_DAYS * MILLISECONDS_PER_DAY);
 
     return { totals: buildInvoiceTotals(balances, now, dueSoonBeforeAt) };
@@ -1305,8 +1337,10 @@ export class InvoiceService {
     filters: Pick<InvoiceFilters, 'statuses' | 'dueBeforeAt' | 'dueAfterAt'> = {},
   ): Promise<ListResponse<InvoiceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.invoiceRepository.findInvoices(
       {
         ...filters,
@@ -1318,6 +1352,7 @@ export class InvoiceService {
       },
       limit + 1,
     );
+
     const page = _.take(rows, limit);
     const invoiceIds = _.map(page, 'id');
     const lineItemsByInvoiceId = await this.resolveLineItems(invoiceIds);
@@ -1530,6 +1565,7 @@ export class InvoiceService {
       invoice.customerId,
       tx,
     );
+
     const endingBalance = customer.balance - movement;
 
     await this.fastify.customerRepository.updateCustomer(
@@ -1653,12 +1689,14 @@ export class InvoiceService {
         return _.sumBy(lineItems, 'amount');
       })
       .value();
+
     const previousAmountsByDescription = _(previousLineItems)
       .groupBy('description')
       .mapValues((lineItems) => {
         return _.sumBy(lineItems, 'amount');
       })
       .value();
+
     const descriptions = _([
       ..._.keys(currentAmountsByDescription),
       ..._.keys(previousAmountsByDescription),
@@ -1690,7 +1728,9 @@ export class InvoiceService {
     const PARTNER_SETTLEMENT_PREFIX = 'collection_attempt:';
 
     const { paymentIntentId, settlementReference } = invoicePayment;
+
     const { collectionMethod } = invoice;
+
     const isPartnerSettlement = _.startsWith(
       _.toString(settlementReference),
       PARTNER_SETTLEMENT_PREFIX,

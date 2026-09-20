@@ -44,6 +44,7 @@ async function postCallback(
   options: { signedAt?: Date; secret?: string } = {},
 ) {
   const { signedAt = new Date(), secret = readCallbackSecret() } = options;
+
   const payload = JSON.stringify(body);
 
   return fastify.inject({
@@ -59,19 +60,23 @@ async function postCallback(
 
 async function makeProcessingPaymentIntent() {
   const headers = { ...buildAuthHeaders(secretToken), 'content-type': 'application/json' };
+
   const customerResponse = await fastify.inject({
     method: 'POST',
     url: '/v1/customers',
     headers,
     payload: { email: `psp-${Date.now()}-${Math.random()}@example.test`, currency: 'vnd' },
   });
+
   const customerId = customerResponse.json().id;
+
   const paymentMethodResponse = await fastify.inject({
     method: 'POST',
     url: '/v1/payment_methods',
     headers,
     payload: { type: PaymentMethodTypeEnum.CARD, token: APPROVED_TOKEN, customerId },
   });
+
   const paymentMethodId = paymentMethodResponse.json().id;
 
   await fastify.inject({
@@ -87,7 +92,9 @@ async function makeProcessingPaymentIntent() {
     headers,
     payload: { customerId, amount: STANDALONE_AMOUNT },
   });
+
   const paymentIntentId = paymentIntentResponse.json().id;
+
   const confirmed = await fastify.inject({
     method: 'POST',
     url: `/v1/payment_intents/${paymentIntentId}/confirm`,
@@ -139,6 +146,7 @@ describe('POST /api/v1/system/psp/:provider/callbacks signature', () => {
     const staleAt = new Date(
       Date.now() - (fastify.config.PSP_CALLBACK_TOLERANCE_SECONDS + 60) * 1000,
     );
+
     const response = await postCallback(
       { id: 'evt_stale', type: PspEventTypeEnum.PAYMENT_SUCCEEDED, reference: 'ref' },
       { signedAt: staleAt },
@@ -149,6 +157,7 @@ describe('POST /api/v1/system/psp/:provider/callbacks signature', () => {
 
   it('needs no API key because the signature is the credential', async () => {
     const { pspReference } = await makeProcessingPaymentIntent();
+
     const response = await postCallback({
       id: `evt_no_api_key_${pspReference}`,
       type: PspEventTypeEnum.PAYMENT_SUCCEEDED,
@@ -180,6 +189,7 @@ describe('POST /api/v1/system/psp/:provider/callbacks state machine', () => {
 
   it('reports a redelivered callback as a duplicate and charges only once', async () => {
     const { paymentIntentId, pspReference } = await makeProcessingPaymentIntent();
+
     const body = {
       id: `evt_replay_${pspReference}`,
       type: PspEventTypeEnum.PAYMENT_SUCCEEDED,

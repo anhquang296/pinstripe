@@ -49,11 +49,13 @@ export class MeterEventService {
   ): Promise<CreateMeterEventBatchResponse> {
     const receivedAt = this.fastify.clock.now();
     const eventNames = _.uniq(_.map(payload.events, 'eventName'));
+
     const meters = await Promise.all(
       _.map(eventNames, (eventName) => {
         return this.fastify.meterService.resolveMeter(eventName);
       }),
     );
+
     const metersByEventName = _.keyBy(meters, 'eventName');
 
     const events = _.map(payload.events, (event) => {
@@ -65,6 +67,7 @@ export class MeterEventService {
 
       throw new NotFoundError(`No active meter listens for event ${event.eventName}`);
     });
+
     const unknownEvents = await this.rejectKnownEvents(events);
     const insertedIds = await this.fastify.meterEventRepository.createMeterEvents(unknownEvents);
     const insertedIdSet = new Set(insertedIds);
@@ -95,6 +98,7 @@ export class MeterEventService {
 
     const receivedBefore = MeterEventService.normalizeTimestamp(query.receivedBefore);
     const receivedAfter = MeterEventService.normalizeTimestamp(query.receivedAfter);
+
     const totals = await this.fastify.meterEventRepository.aggregateMeterEventTotals(
       meter.aggregation,
       {
@@ -161,6 +165,7 @@ export class MeterEventService {
     const keys = _.map(events, (event) => {
       return this.buildDedupKey(event.meterId, event.identifier);
     });
+
     const knownValues = await this.fastify.redis.mget(keys);
 
     return _.filter(events, (_event, index) => {

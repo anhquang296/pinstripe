@@ -22,6 +22,7 @@ afterAll(async () => {
 
 async function makeCustomer(name: string): Promise<{ id: string; email: string }> {
   const email = `${_.uniqueId('operator-')}-${Date.now()}@portal.test`;
+
   const customer = await fastify.customerService.createCustomer({
     email,
     currency: CurrencyEnum.VND,
@@ -33,6 +34,7 @@ async function makeCustomer(name: string): Promise<{ id: string; email: string }
 
 async function signIn(email: string): Promise<Record<string, string>> {
   const link = await fastify.portalSessionService.createPortalLink({ email });
+
   const portalSession = await fastify.portalSessionService.redeemPortalLink({
     linkKey: String(link.linkKey),
   });
@@ -50,18 +52,22 @@ it('lets Vexere invite, re-role and remove a person on a customer portal', async
     headers: secretKeyHeaders,
     payload: { customerId: customer.id, email, name: 'Kế toán', role: PortalRoleEnum.ACCOUNTANT },
   });
+
   const portalMembershipId = String(created.json().id);
+
   const updated = await fastify.inject({
     method: 'POST',
     url: `/v1/portal_memberships/${portalMembershipId}`,
     headers: secretKeyHeaders,
     payload: { role: PortalRoleEnum.OWNER },
   });
+
   const listed = await fastify.inject({
     method: 'GET',
     url: `/v1/portal_memberships?customerId=${customer.id}`,
     headers: secretKeyHeaders,
   });
+
   const deleted = await fastify.inject({
     method: 'DELETE',
     url: `/v1/portal_memberships/${portalMembershipId}`,
@@ -77,6 +83,7 @@ it('lets Vexere invite, re-role and remove a person on a customer portal', async
 
 it('answers 409 when the person already has access to that customer', async () => {
   const customer = await makeCustomer('Nhà xe Trùng');
+
   const payload = {
     customerId: customer.id,
     email: `${_.uniqueId('twice-')}-${Date.now()}@portal.test`,
@@ -116,13 +123,16 @@ it('shows a person every operator they can open and switches between them', asyn
 
   const headers = await signIn(email);
   const before = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+
   const switched = await fastify.inject({
     method: 'POST',
     url: '/portal/sessions/current',
     headers,
     payload: { customerId: secondCustomer.id },
   });
+
   const after = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+
   const refused = await fastify.inject({
     method: 'POST',
     url: '/portal/sessions/current',
@@ -151,7 +161,9 @@ it('refuses to remove the billing email of a customer from its own portal', asyn
     url: `/v1/portal_memberships?customerId=${customer.id}`,
     headers: secretKeyHeaders,
   });
+
   const ownerMembershipId = String(_.get(listed.json(), 'data.0.id'));
+
   const deleted = await fastify.inject({
     method: 'DELETE',
     url: `/v1/portal_memberships/${ownerMembershipId}`,

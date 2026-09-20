@@ -14,6 +14,7 @@ interface PageTabsProps {
 
 export default function PageTabs({ items }: PageTabsProps) {
   const { pathname } = useLocation();
+
   const navigate = useNavigate();
 
   const activeItem = find(items, (item) => {

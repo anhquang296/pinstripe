@@ -34,12 +34,14 @@ export class PromotionCodeService {
 
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PROMOTION_CODE);
+
     const {
       code: requestedCode = PromotionCodeService.buildCode(),
       active = true,
       firstTimeTransaction = false,
       metadata = {},
     } = payload;
+
     const code = _.toUpper(requestedCode);
 
     try {
@@ -164,8 +166,10 @@ export class PromotionCodeService {
     payload: UpdatePromotionCodePayload,
   ): Promise<PromotionCodeResponse> {
     const existingPromotionCode = await this.fastify.promotionCodeRepository.getPromotionCode(id);
+
     const { active = existingPromotionCode.active, metadata = existingPromotionCode.metadata } =
       payload;
+
     const promotionCode = await this.fastify.promotionCodeRepository.updatePromotionCode(id, {
       active,
       metadata,
@@ -183,6 +187,7 @@ export class PromotionCodeService {
     query: FindPromotionCodesQuery,
   ): Promise<ListResponse<PromotionCodeResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
     const code = query.code ? _.toUpper(query.code) : undefined;

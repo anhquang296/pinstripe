@@ -21,6 +21,7 @@ export class TaxRateService {
   async createTaxRate(payload: CreateTaxRatePayload): Promise<TaxRateResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.TAX_RATE);
+
     const { description = '', jurisdiction = '', active = true, metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -60,6 +61,7 @@ export class TaxRateService {
   async updateTaxRate(id: string, payload: UpdateTaxRatePayload): Promise<TaxRateResponse> {
     const existingTaxRate = await this.fastify.taxRateRepository.getTaxRate(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const {
       displayName = existingTaxRate.displayName,
       description = existingTaxRate.description,
@@ -94,6 +96,7 @@ export class TaxRateService {
 
   async findTaxRates(query: FindTaxRatesQuery): Promise<ListResponse<TaxRateResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
 

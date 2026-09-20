@@ -69,6 +69,7 @@ export class ProductRepository {
     executor?: DatabaseTransaction,
   ): Promise<Product | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [product] = await db.insert(products).values(payload).returning();
 
     return product ?? null;
@@ -80,6 +81,7 @@ export class ProductRepository {
     executor?: DatabaseTransaction,
   ): Promise<Product | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [product] = await db
       .update(products)
       .set(payload)

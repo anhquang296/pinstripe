@@ -69,6 +69,7 @@ export class MockVexereClient implements PartnerCollectionProvider {
     }
 
     const { partnerAccountId, amount, idempotencyKey } = payload;
+
     const balance = this.resolveAccountBalance(source, partnerAccountId);
     const appliedAmount = _.clamp(amount, 0, balance);
     const reference = appliedAmount > 0 ? `${this._referencePrefix}_${idempotencyKey}` : null;

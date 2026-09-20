@@ -88,6 +88,7 @@ describe('DataTable', () => {
 
   it('calls onRowAction with the clicked row', () => {
     const onRowAction = vi.fn();
+
     setup({ onRowAction });
 
     fireEvent.click(screen.getByText('John Smith'));

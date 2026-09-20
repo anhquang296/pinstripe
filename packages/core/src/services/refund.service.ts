@@ -145,6 +145,7 @@ export class RefundService {
 
   async getRefund(id: string): Promise<RefundResponse> {
     const refund = await this.fastify.refundRepository.getRefund(id);
+
     const [built] = await this.buildRefunds([refund]);
 
     if (built) {
@@ -156,9 +157,11 @@ export class RefundService {
 
   async findRefunds(query: FindRefundsQuery): Promise<ListResponse<RefundResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
     const statuses = query.status ? [query.status] : undefined;
+
     const rows = await this.fastify.refundRepository.findRefunds(
       {
         invoiceId: query.invoiceId,
@@ -180,6 +183,7 @@ export class RefundService {
 
   async resolveStatus(refundId: string): Promise<RefundStatus> {
     const transitions = await this.fastify.refundRepository.findRefundTransitions([refundId]);
+
     const [latest] = transitions;
 
     if (latest) {
@@ -193,6 +197,7 @@ export class RefundService {
     const transitions = await this.fastify.refundRepository.findRefundTransitions(
       _.map(refunds, 'id'),
     );
+
     const latestByRefundId = _.keyBy(
       _.orderBy(transitions, ['occurredAt', 'id'], ['asc', 'asc']),
       'refundId',

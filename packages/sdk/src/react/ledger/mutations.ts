@@ -10,6 +10,7 @@ import type {
 
 function useLedgerInvalidation() {
   const queryClient = useQueryClient();
+
   const { queries } = usePinstripeContext();
 
   return (transactionId?: string) => {
@@ -29,7 +30,9 @@ export function useCreateLedgerTransactionMutation({
   successMessage,
 }: MutationProps<LedgerTransactionResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useLedgerInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -48,7 +51,9 @@ export function useReverseLedgerTransactionMutation({
   successMessage,
 }: MutationProps<LedgerTransactionResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useLedgerInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

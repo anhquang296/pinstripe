@@ -48,22 +48,29 @@ const ACTIVE_OPTIONS = [
 
 export default function PricesPage() {
   const { priceId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(priceSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: prices, isPending } = usePricesQuery(
     { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
+
   const { data: products } = useProductsQuery({ limit: OPTION_LIMIT, active: true });
+
   const { data: meters } = useMetersQuery({ limit: OPTION_LIMIT, status: MeterStatusEnum.ACTIVE });
 
   const { mutateAsync: createPrice, isPending: isSaving } = useCreatePriceMutation({
@@ -84,6 +91,7 @@ export default function PricesPage() {
       return { value: product.id, label: `${product.name} (${product.id})` };
     }),
   ];
+
   const meterOptions = [
     { value: '', label: '— chọn meter —' },
     ...map(get(meters, 'data', []), (meter) => {

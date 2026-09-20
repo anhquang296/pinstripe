@@ -63,6 +63,7 @@ export class TaxIdRepository {
 
   async createTaxId(payload: NewTaxId, executor?: DatabaseTransaction): Promise<TaxId | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [taxId] = await db.insert(taxIds).values(payload).returning();
 
     return taxId ?? null;
@@ -74,6 +75,7 @@ export class TaxIdRepository {
     executor?: DatabaseTransaction,
   ): Promise<TaxId | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [taxId] = await db
       .update(taxIds)
       .set(payload)

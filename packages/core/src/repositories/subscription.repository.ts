@@ -227,6 +227,7 @@ export class SubscriptionRepository {
     executor?: DatabaseTransaction,
   ): Promise<Subscription | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [subscription] = await db.insert(subscriptions).values(payload).returning();
 
     await db.insert(subscriptionItems).values([...items]);
@@ -241,6 +242,7 @@ export class SubscriptionRepository {
     executor?: DatabaseTransaction,
   ): Promise<Subscription | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [subscription] = await db
       .update(subscriptions)
       .set(payload)
@@ -282,6 +284,7 @@ export class SubscriptionRepository {
     executor?: DatabaseTransaction,
   ): Promise<SubscriptionItem | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [subscriptionItem] = await db
       .update(subscriptionItems)
       .set(payload)

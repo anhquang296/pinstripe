@@ -112,6 +112,7 @@ export class BetterAuthClient {
 
   async findActiveSession(headers: Headers) {
     const { headers: responseHeaders, response: authSession } = await this.getSession(headers);
+
     const cookies = responseHeaders.getSetCookie();
 
     if (!authSession) {
@@ -119,6 +120,7 @@ export class BetterAuthClient {
     }
 
     const { session } = authSession;
+
     const absoluteExpiresAt =
       session.createdAt.getTime() + this._sessionAbsoluteTtlSeconds * MS_PER_SECOND;
 
@@ -203,6 +205,7 @@ export class BetterAuthClient {
     const accessControl = createAccessControl(defaultStatements);
     const adminRole = accessControl.newRole({ ...adminAc.statements });
     const staffRole = accessControl.newRole({ user: [], session: [] });
+
     const roles: Record<UserRole, Role> = {
       [UserRoleEnum.ADMIN]: adminRole,
       [UserRoleEnum.MODERATOR]: staffRole,

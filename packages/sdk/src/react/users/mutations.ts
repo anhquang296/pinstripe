@@ -11,7 +11,9 @@ export interface UpdateUserVariables {
 
 export function useCreateUserMutation({ successMessage }: MutationProps<UserResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -28,7 +30,9 @@ export function useCreateUserMutation({ successMessage }: MutationProps<UserResp
 
 export function useUpdateUserMutation({ successMessage }: MutationProps<UserResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

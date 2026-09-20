@@ -17,11 +17,14 @@ export const hostedCheckoutRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     { schema: { params: checkoutSessionParamsSchema, querystring: hostedTokenSchema } },
     async (request, reply) => {
       const { checkoutSessionId } = request.params;
+
       const { token } = request.query;
+
       const checkoutSession = await fastify.checkoutService.getHostedCheckoutSession(
         checkoutSessionId,
         token,
       );
+
       const completeUrl = fastify.hostedUrlFactory.buildCheckoutCompleteUrl(checkoutSessionId);
 
       return reply.type(HTML_CONTENT_TYPE).send(buildCheckoutPage(checkoutSession, completeUrl));

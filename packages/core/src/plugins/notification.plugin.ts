@@ -4,6 +4,7 @@ import fp from 'fastify-plugin';
 
 export const notificationPlugin = fp(async (fastify) => {
   const { SMTP_HOST, SMTP_PORT, SMTP_FROM_NAME, SMTP_FROM_EMAIL } = fastify.config;
+
   const smtpConfig: SmtpConfig = {
     smtpTransportOptions: { host: SMTP_HOST, port: SMTP_PORT, secure: false },
     fromName: SMTP_FROM_NAME,

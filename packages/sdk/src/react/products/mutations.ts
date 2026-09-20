@@ -10,7 +10,9 @@ import type {
 
 export function useCreateProductMutation({ successMessage }: MutationProps<ProductResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -27,7 +29,9 @@ export function useCreateProductMutation({ successMessage }: MutationProps<Produ
 
 export function useUpdateProductMutation({ successMessage }: MutationProps<ProductResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

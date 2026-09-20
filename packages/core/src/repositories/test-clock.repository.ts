@@ -61,6 +61,7 @@ export class TestClockRepository {
     executor?: DatabaseTransaction,
   ): Promise<TestClock | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [clock] = await db.insert(testClocks).values(payload).returning();
 
     return clock ?? null;
@@ -72,6 +73,7 @@ export class TestClockRepository {
     executor?: DatabaseTransaction,
   ): Promise<TestClock | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [clock] = await db
       .update(testClocks)
       .set(payload)

@@ -19,6 +19,7 @@ function buildCurrencyTotals(
   const overdueBalances = _.filter(balances, (balance) => {
     return balance.dueAt !== null && new Date(balance.dueAt) < now;
   });
+
   const upcomingDueAts = _(balances)
     .map('dueAt')
     .compact()
@@ -32,6 +33,7 @@ function buildCurrencyTotals(
       return dueAt.getTime();
     })
     .value();
+
   const dueSoonBalances = _.filter(balances, (balance) => {
     if (balance.dueAt === null) {
       return false;
@@ -41,6 +43,7 @@ function buildCurrencyTotals(
 
     return dueAt >= now && dueAt < dueSoonBeforeAt;
   });
+
   const nextDueDate = _.first(upcomingDueAts);
   const nextDueAt = nextDueDate ? nextDueDate.toISOString() : null;
 

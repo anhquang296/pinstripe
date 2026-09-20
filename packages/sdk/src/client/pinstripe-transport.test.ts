@@ -12,6 +12,7 @@ function jsonResponse(body: unknown, status = 200, headers: Record<string, strin
 
 function setup(fetchImpl: FetchImpl, overrides: { apiKey?: string; maxRetries?: number } = {}) {
   const { apiKey, maxRetries = 0 } = overrides;
+
   const client = new PinstripeClient({
     baseUrl: '',
     fetch: fetchImpl,
@@ -24,6 +25,7 @@ function setup(fetchImpl: FetchImpl, overrides: { apiKey?: string; maxRetries?: 
 
 function readCall(fetchImpl: ReturnType<typeof vi.fn>, index = 0) {
   const [url, init] = fetchImpl.mock.calls[index] as [string, RequestInit];
+
   const headers = init.headers as Record<string, string>;
 
   return { url, init, headers };
@@ -31,6 +33,7 @@ function readCall(fetchImpl: ReturnType<typeof vi.fn>, index = 0) {
 
 it('builds a relative url when baseUrl is empty', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.find();
@@ -40,6 +43,7 @@ it('builds a relative url when baseUrl is empty', async () => {
 
 it('encodes a path parameter', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: 'cus_1' }));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.get('cus/1 2');
@@ -49,6 +53,7 @@ it('encodes a path parameter', async () => {
 
 it('keeps falsy query values and drops undefined ones', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.find({ limit: 0, email: '', after: undefined } as never);
@@ -58,6 +63,7 @@ it('keeps falsy query values and drops undefined ones', async () => {
 
 it('sends the authorization header when an apiKey is configured', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
+
   const { client } = setup(fetchImpl, { apiKey: 'sk_test_1' });
 
   await client.customers.find();
@@ -67,6 +73,7 @@ it('sends the authorization header when an apiKey is configured', async () => {
 
 it('omits the authorization header when no apiKey is configured', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.find();
@@ -76,6 +83,7 @@ it('omits the authorization header when no apiKey is configured', async () => {
 
 it('generates an idempotency key for a mutating request', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: 'cus_1' }, 201));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.create({ currency: 'usd' } as never);
@@ -85,6 +93,7 @@ it('generates an idempotency key for a mutating request', async () => {
 
 it('omits content-type on a request that carries no body', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: 'cus_1', deleted: true }));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.delete('cus_1');
@@ -97,6 +106,7 @@ it('omits content-type on a request that carries no body', async () => {
 
 it('sends content-type on a request that carries a body', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: 'cus_1' }, 201));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.create({ currency: 'usd' } as never);
@@ -106,6 +116,7 @@ it('sends content-type on a request that carries a body', async () => {
 
 it('does not send an idempotency key on a read', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.find();
@@ -115,6 +126,7 @@ it('does not send an idempotency key on a read', async () => {
 
 it('uses the explicit idempotency key over a generated one', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ id: 'cus_1' }, 201));
+
   const { client } = setup(fetchImpl);
 
   await client.customers.create({ currency: 'usd' } as never, { idempotencyKey: 'key_1' });
@@ -127,6 +139,7 @@ it('reuses the same idempotency key across retries', async () => {
     .fn()
     .mockResolvedValueOnce(jsonResponse({ error: { type: 'api_error' } }, 503))
     .mockResolvedValueOnce(jsonResponse({ id: 'cus_1' }, 201));
+
   const { client } = setup(fetchImpl, { maxRetries: 1 });
 
   await client.customers.create({ currency: 'usd' } as never);
@@ -151,6 +164,7 @@ it('throws PinstripeError carrying every envelope field', async () => {
       400,
     ),
   );
+
   const { client } = setup(fetchImpl);
 
   const error = await client.customers.find().catch((caught: unknown) => {
@@ -170,6 +184,7 @@ it('throws PinstripeError carrying every envelope field', async () => {
 
 it('throws PinstripeConnectionError when the body carries no envelope', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(new Response('<html>502</html>', { status: 502 }));
+
   const { client } = setup(fetchImpl);
 
   await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeConnectionError);
@@ -177,6 +192,7 @@ it('throws PinstripeConnectionError when the body carries no envelope', async ()
 
 it('throws PinstripeConnectionError when fetch rejects and retries are exhausted', async () => {
   const fetchImpl = vi.fn().mockRejectedValue(new TypeError('network down'));
+
   const { client } = setup(fetchImpl);
 
   await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeConnectionError);
@@ -184,6 +200,7 @@ it('throws PinstripeConnectionError when fetch rejects and retries are exhausted
 
 it('returns null for a 204 without parsing a body', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+
   const { client } = setup(fetchImpl);
 
   await expect(client.customers.find()).resolves.toBeNull();
@@ -195,6 +212,7 @@ describe('retry policy', () => {
       .fn()
       .mockResolvedValueOnce(jsonResponse({ error: { type: 'api_error' } }, statusCode))
       .mockResolvedValueOnce(jsonResponse({ hasMore: false, data: [] }));
+
     const { client } = setup(fetchImpl, { maxRetries: 1 });
 
     await client.customers.find();
@@ -211,6 +229,7 @@ describe('retry policy', () => {
           statusCode,
         ),
       );
+
     const { client } = setup(fetchImpl, { maxRetries: 2 });
 
     await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeError);
@@ -223,6 +242,7 @@ describe('retry policy', () => {
       .mockResolvedValue(
         jsonResponse({ error: { type: 'api_error', message: 'boom', requestId: 'req_1' } }, 503),
       );
+
     const { client } = setup(fetchImpl, { maxRetries: 0 });
 
     await expect(client.customers.find()).rejects.toBeInstanceOf(PinstripeError);
@@ -236,6 +256,7 @@ describe('retry policy', () => {
         jsonResponse({ error: { type: 'api_error' } }, 429, { 'retry-after': '0' }),
       )
       .mockResolvedValueOnce(jsonResponse({ hasMore: false, data: [] }));
+
     const { client } = setup(fetchImpl, { maxRetries: 1 });
 
     await client.customers.find();

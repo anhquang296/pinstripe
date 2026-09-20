@@ -110,6 +110,7 @@ export class LedgerTransactionRepository {
     executor?: DatabaseTransaction,
   ): Promise<LedgerTransaction | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [created] = await db.insert(ledgerTransactions).values(transaction).returning();
 
     await db.insert(ledgerPostings).values([...postings]);

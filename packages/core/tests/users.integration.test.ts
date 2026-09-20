@@ -45,6 +45,7 @@ function callAuth(path: string, body: Record<string, unknown>): Promise<Response
 
 async function signIn(email: string, password = PASSWORD): Promise<Headers> {
   const response = await callAuth('/sign-in/email', { email, password });
+
   const [sessionCookie] = response.headers.getSetCookie();
 
   if (!sessionCookie) {
@@ -109,6 +110,7 @@ describe('better-auth email sign-in', () => {
       email: user.email,
       password: 'wrong password entirely',
     });
+
     const unknownEmail = await callAuth('/sign-in/email', {
       email: 'nobody@users.test',
       password: PASSWORD,
@@ -131,6 +133,7 @@ describe('better-auth email sign-in', () => {
 
   it('refuses a disabled user with the right password', async () => {
     const user = await makeUser();
+
     await fastify.userService.updateUser(user.id, { status: UserStatusEnum.DISABLED });
 
     const response = await callAuth('/sign-in/email', { email: user.email, password: PASSWORD });
@@ -141,6 +144,7 @@ describe('better-auth email sign-in', () => {
 
   it('lets a user invited without a password sign in once an admin sets one', async () => {
     const user = await makeUser(UserRoleEnum.MEMBER, undefined);
+
     await fastify.userService.updateUser(user.id, { password: PASSWORD });
 
     const headers = await signIn(user.email);
@@ -154,6 +158,7 @@ describe('UserService.updateUser', () => {
   it('revokes live sessions when the role changes, so the old permissions die with them', async () => {
     const user = await makeUser(UserRoleEnum.MODERATOR);
     const headers = await signIn(user.email);
+
     await fastify.userService.updateUser(user.id, { role: UserRoleEnum.MEMBER });
 
     const session = await fastify.betterAuth.getSession(headers);
@@ -164,6 +169,7 @@ describe('UserService.updateUser', () => {
   it('keeps live sessions when only the name changes', async () => {
     const user = await makeUser();
     const headers = await signIn(user.email);
+
     await fastify.userService.updateUser(user.id, { name: 'Renamed' });
 
     const session = await fastify.betterAuth.getSession(headers);
@@ -173,6 +179,7 @@ describe('UserService.updateUser', () => {
 
   it('throws ConflictError when demoting the last active admin', async () => {
     const user = await makeUser(UserRoleEnum.ADMIN);
+
     const activeAdmins = await fastify.userRepository.findUsers(
       { role: UserRoleEnum.ADMIN, banned: false },
       100,

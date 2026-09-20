@@ -47,21 +47,27 @@ const ACTIVE_OPTIONS = [
 
 export default function PaymentLinksPage() {
   const { paymentLinkId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(paymentLinkSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: paymentLinks, isPending } = usePaymentLinksQuery(
     { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
+
   const { data: prices } = usePricesQuery({ limit: OPTION_LIMIT, active: true });
 
   const { mutateAsync: createPaymentLink, isPending: isSaving } = useCreatePaymentLinkMutation({
@@ -80,6 +86,7 @@ export default function PaymentLinksPage() {
     { value: '', label: '— chọn bảng giá —' },
     ...map(get(prices, 'data', []), (price) => {
       const { lookupKey } = price;
+
       const priceName = lookupKey === null ? price.id : lookupKey;
 
       return { value: price.id, label: `${priceName} · ${formatPriceAmount(price)}` };

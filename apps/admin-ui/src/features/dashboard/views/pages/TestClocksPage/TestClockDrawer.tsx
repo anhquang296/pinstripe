@@ -26,6 +26,7 @@ export default function TestClockDrawer({ testClockId, onClose }: TestClockDrawe
   const canWrite = useCan(PermissionEnum.TEST_CLOCK_WRITE);
 
   const { data: testClock } = useTestClockQuery(testClockId);
+
   const { mutateAsync: advanceTestClock, isPending: isSaving } = useAdvanceTestClockMutation({
     successMessage: 'Đã tua đồng hồ.',
   });

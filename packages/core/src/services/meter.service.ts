@@ -59,6 +59,7 @@ export class MeterService {
 
   async findMeters(query: FindMetersQuery): Promise<ListResponse<MeterResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const meterRows = await this.fastify.meterRepository.findMeters(
       {
         status: query.status,
@@ -67,6 +68,7 @@ export class MeterService {
       },
       limit + 1,
     );
+
     const hasMore = meterRows.length > limit;
 
     return {
@@ -79,6 +81,7 @@ export class MeterService {
   private async writeMeter(payload: CreateMeterPayload, now: string): Promise<Meter> {
     const DEFAULT_VALUE_KEY = 'value';
     const id = generateGid(ObjectPrefixEnum.METER);
+
     const { valueKey = DEFAULT_VALUE_KEY, metadata = {} } = payload;
 
     try {

@@ -50,29 +50,39 @@ import DiscountDrawer from './DiscountDrawer';
 
 export default function DiscountsPage() {
   const { couponId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const [selectedDiscountId, setSelectedDiscountId] = useState('');
+
   const [search, setSearch] = useQueryStates(cursorSearchParams);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: coupons, isPending } = useCouponsQuery(
     { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
+
   const { data: discounts } = useDiscountsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });
+
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
+
   const { data: subscriptions } = useSubscriptionsQuery({ limit: OPTION_LIMIT });
 
   const { mutateAsync: createCoupon, isPending: isSaving } = useCreateCouponMutation({
     successMessage: 'Đã tạo coupon.',
   });
+
   const { mutateAsync: createDiscount, isPending: isApplying } = useCreateDiscountMutation({
     successMessage: 'Đã áp giảm giá.',
   });
@@ -81,6 +91,7 @@ export default function DiscountsPage() {
     resolver: couponFormResolver,
     defaultValues: couponFormDefaultValues,
   });
+
   const discountForm = useForm<DiscountFormData>({
     resolver: discountFormResolver,
     defaultValues: discountFormDefaultValues,
@@ -93,17 +104,20 @@ export default function DiscountsPage() {
     { value: '', label: '— chọn coupon —' },
     ...map(rows, (coupon) => {
       const { percentOff } = coupon;
+
       const off = percentOff === null ? `${coupon.amountOff}` : `${percentOff}%`;
 
       return { value: coupon.id, label: `${coupon.name || coupon.id} (${off})` };
     }),
   ];
+
   const customerOptions = [
     { value: '', label: '— không gắn khách hàng —' },
     ...map(get(customers, 'data', []), (customer) => {
       return { value: customer.id, label: customer.name || customer.id };
     }),
   ];
+
   const subscriptionOptions = [
     { value: '', label: '— không gắn subscription —' },
     ...map(get(subscriptions, 'data', []), (subscription) => {

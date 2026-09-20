@@ -25,6 +25,7 @@ describe('renderPdfDocument', () => {
       { text: 'Hóa đơn', isTitle: true },
       { text: 'Tổng cộng', amount: '500.000 ₫', isBold: true },
     ]);
+
     const text = document.toString('latin1');
 
     expect(text).toContain('NotoSans-Bold');

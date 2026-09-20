@@ -12,6 +12,7 @@ import Fastify from 'fastify';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const { LOG_LEVEL = 'info' } = process.env;
+
   const fastify = Fastify({
     logger: { level: LOG_LEVEL },
     genReqId: () => {

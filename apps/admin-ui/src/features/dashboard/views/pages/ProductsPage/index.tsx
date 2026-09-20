@@ -42,15 +42,20 @@ const ACTIVE_OPTIONS = [
 
 export default function ProductsPage() {
   const { productId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(productSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: products, isPending } = useProductsQuery(

@@ -47,6 +47,7 @@ function buildPartnerAccountId(): string {
 
 async function makePartnerInvoice(collectionMethod: CollectionMethod) {
   const partnerAccountId = buildPartnerAccountId();
+
   const fixture = await makeOpenInvoice(fastify, {
     unitAmount: BASE_AMOUNT,
     frozenTime: CLOCK_START,
@@ -121,16 +122,20 @@ describe('DunningService.runDunningShard partner collection', () => {
     const { invoiceId, subscriptionId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.OFFSET_TICKET,
     );
+
     const dueAt = await readDueAt(invoiceId);
+
     fundAccount(MockVexereSourceEnum.TICKET_SALES, partnerAccountId, BASE_AMOUNT * 2);
     const clearingBefore = await readAccountBalance(LedgerAccountCodeEnum.TICKET_OFFSET_CLEARING);
 
     await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
 
     const invoice = await readInvoiceRow(invoiceId);
+
     const [collectionAttempt] = await fastify.collectionAttemptRepository.findCollectionAttempts({
       invoiceId,
     });
+
     const subscription = await fastify.subscriptionRepository.getSubscription(subscriptionId);
 
     expect(invoice.status).toBe(InvoiceStatusEnum.PAID);
@@ -151,9 +156,11 @@ describe('DunningService.runDunningShard partner collection', () => {
     const { invoiceId, subscriptionId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.DEBIT_WALLET,
     );
+
     const dueAt = await readDueAt(invoiceId);
     const runAt = new Date(dueAt.getTime() + MILLISECONDS_PER_DAY);
     const walletAmount = BASE_AMOUNT / 5;
+
     fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, walletAmount);
     const clearingBefore = await readAccountBalance(LedgerAccountCodeEnum.PARTNER_WALLET_CLEARING);
 
@@ -180,7 +187,9 @@ describe('DunningService.runDunningShard partner collection', () => {
     const { invoiceId, subscriptionId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.DEBIT_WALLET,
     );
+
     const dueAt = await readDueAt(invoiceId);
+
     fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, BASE_AMOUNT / 2);
     await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
     fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, BASE_AMOUNT);
@@ -189,9 +198,11 @@ describe('DunningService.runDunningShard partner collection', () => {
     await runShard(nextAttemptAt);
 
     const invoice = await readInvoiceRow(invoiceId);
+
     const collectionAttempts = await fastify.collectionAttemptRepository.findCollectionAttempts({
       invoiceId,
     });
+
     const subscription = await fastify.subscriptionRepository.getSubscription(subscriptionId);
 
     expect(invoice.status).toBe(InvoiceStatusEnum.PAID);
@@ -204,6 +215,7 @@ describe('DunningService.runDunningShard partner collection', () => {
     const { invoiceId, subscriptionId } = await makePartnerInvoice(
       CollectionMethodEnum.OFFSET_TICKET,
     );
+
     const dueAt = await readDueAt(invoiceId);
     const retryCount = fastify.workflowSchedules.dunningRetryDelayDays.length;
 
@@ -213,15 +225,18 @@ describe('DunningService.runDunningShard partner collection', () => {
       await runShard(runAt);
 
       const { nextAttemptAt } = await readInvoiceRow(invoiceId);
+
       const retryAt = nextAttemptAt ? new Date(nextAttemptAt) : runAt;
 
       runAt = new Date(retryAt.getTime() + MILLISECONDS_PER_DAY);
     }
 
     const invoice = await readInvoiceRow(invoiceId);
+
     const collectionAttempts = await fastify.collectionAttemptRepository.findCollectionAttempts({
       invoiceId,
     });
+
     const subscription = await fastify.subscriptionRepository.getSubscription(subscriptionId);
 
     expect(invoice.status).toBe(InvoiceStatusEnum.UNCOLLECTIBLE);
@@ -234,9 +249,11 @@ describe('DunningService.runDunningShard partner collection', () => {
     const { invoiceId, partnerAccountId } = await makePartnerInvoice(
       CollectionMethodEnum.DEBIT_WALLET,
     );
+
     const dueAt = await readDueAt(invoiceId);
     const createdAt = dueAt.toISOString();
     const collectionAttemptId = generateGid(ObjectPrefixEnum.COLLECTION_ATTEMPT);
+
     fundAccount(MockVexereSourceEnum.WALLET, partnerAccountId, BASE_AMOUNT);
     await fastify.collectionAttemptRepository.createCollectionAttempt({
       id: collectionAttemptId,
@@ -259,6 +276,7 @@ describe('DunningService.runDunningShard partner collection', () => {
     await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
 
     const invoice = await readInvoiceRow(invoiceId);
+
     const collectionAttempts = await fastify.collectionAttemptRepository.findCollectionAttempts({
       invoiceId,
     });
@@ -306,6 +324,7 @@ describe('CustomerService partner account mapping', () => {
 
   it('throws ConflictError when the partner account is already mapped to another customer', async () => {
     const partnerAccountId = buildPartnerAccountId();
+
     await fastify.customerService.createCustomer({
       currency: CurrencyEnum.VND,
       partnerPlatform: PartnerPlatformEnum.VEXERE,

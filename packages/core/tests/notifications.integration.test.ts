@@ -45,6 +45,7 @@ async function findDeliveredSubject(email: string): Promise<string | null> {
   }
 
   const search = (await response.json()) as MailpitSearch;
+
   const [message] = search.messages;
 
   return _.get(message, 'Subject', null);
@@ -53,6 +54,7 @@ async function findDeliveredSubject(email: string): Promise<string | null> {
 describe('NotificationService.sendNotification', () => {
   it('delivers a payment receipt to the customer mailbox', async () => {
     const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+
     const customer = await fastify.customerService.getCustomer(customerId);
     const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId });
 
@@ -67,6 +69,7 @@ describe('NotificationService.sendNotification', () => {
     );
 
     const { email } = customer;
+
     const subject = await findDeliveredSubject(String(email));
 
     expect(outcome).toBe(NotificationOutcomeEnum.SENT);
@@ -78,6 +81,7 @@ describe('NotificationService.sendNotification', () => {
       frozenTime: CLOCK_START,
       token: PspTokenEnum.CARD_INSUFFICIENT_FUNDS,
     });
+
     const customer = await fastify.customerService.getCustomer(customerId);
     const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId });
 
@@ -92,6 +96,7 @@ describe('NotificationService.sendNotification', () => {
     );
 
     const { email } = customer;
+
     const subject = await findDeliveredSubject(String(email));
 
     expect(outcome).toBe(NotificationOutcomeEnum.SENT);
@@ -126,6 +131,7 @@ describe('NotificationService.sendNotification', () => {
 describe('NotificationService.dispatchNotification', () => {
   it('queues one job per invoice so a repeated dispatch does not send twice', async () => {
     const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+
     const invoice = await fastify.invoiceRepository.findInvoice(invoiceId);
 
     if (!invoice) {
@@ -137,6 +143,7 @@ describe('NotificationService.dispatchNotification', () => {
 
     const queue = fastify.queues.resolve('NotificationQueue');
     const queued = await queue.getJobs(['waiting', 'delayed', 'active', 'completed']);
+
     const matching = _.filter(queued, {
       data: { invoiceId, kind: NotificationKindEnum.INVOICE_FINALIZED },
     });
@@ -150,6 +157,7 @@ describe('NotificationService.dispatchNotification', () => {
 
     const queue = fastify.queues.resolve('NotificationQueue');
     const queued = await queue.getJobs(['waiting', 'delayed', 'active', 'completed']);
+
     const matching = _.filter(queued, {
       data: { invoiceId, kind: NotificationKindEnum.INVOICE_SENT },
     });
@@ -161,6 +169,7 @@ describe('NotificationService.dispatchNotification', () => {
 describe('NotificationService.sendNotification for invoice_sent', () => {
   it('mails the customer the hosted invoice link', async () => {
     const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+
     const customer = await fastify.customerService.getCustomer(customerId);
     const invoice = await fastify.invoiceService.getInvoice(invoiceId);
 
@@ -172,6 +181,7 @@ describe('NotificationService.sendNotification for invoice_sent', () => {
     );
 
     const { email } = customer;
+
     const subject = await findDeliveredSubject(String(email));
 
     expect(invoice.hostedInvoiceUrl).not.toBeNull();
@@ -185,6 +195,7 @@ describe('NotificationService.sendNotification for invoice reminders', () => {
     const response = await fetch(
       `${MAILPIT_API_URL}/search?query=${encodeURIComponent(`to:${email}`)}`,
     );
+
     const search = (await response.json()) as MailpitSearch;
 
     return _.head(search.messages) ?? null;
@@ -192,7 +203,9 @@ describe('NotificationService.sendNotification for invoice reminders', () => {
 
   it('copies the accountant in charge on a reminder to the operator', async () => {
     const accountantEmail = `${generateGid(ObjectPrefixEnum.CUSTOMER)}@vexere.test`;
+
     const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
+
     const customer = await fastify.customerService.updateCustomer(customerId, {
       metadata: { accountantEmail },
     });
@@ -209,6 +222,7 @@ describe('NotificationService.sendNotification for invoice reminders', () => {
 
   it('sends the internal overdue notice to the billing inbox instead of the operator', async () => {
     const billingInbox = `${generateGid(ObjectPrefixEnum.CUSTOMER)}@ops.vexere.test`;
+
     const { customerId, invoiceId } = await makeOpenInvoice(fastify, { frozenTime: CLOCK_START });
 
     await fastify.notificationService.sendNotification(

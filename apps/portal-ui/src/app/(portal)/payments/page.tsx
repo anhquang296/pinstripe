@@ -11,6 +11,7 @@ const PAYMENT_HISTORY_LIMIT = 100;
 
 export default function PaymentsPage() {
   const router = useRouter();
+
   const { data: payments, isPending } = usePortalPaymentsQuery({ limit: PAYMENT_HISTORY_LIMIT });
 
   const handleOnPaymentSelect = (payment: PortalPaymentResponse) => {

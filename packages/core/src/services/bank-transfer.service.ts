@@ -23,7 +23,9 @@ export class BankTransferService {
     invoiceId: string,
   ): Promise<PortalBankTransferResponse> {
     const invoice = await this.fastify.invoiceService.getCustomerInvoice(customerId, invoiceId);
+
     const { bankTransferConfig } = this;
+
     const isPayable =
       invoice.status === InvoiceStatusEnum.OPEN &&
       invoice.amountRemaining > 0 &&
@@ -31,6 +33,7 @@ export class BankTransferService {
 
     if (bankTransferConfig && isPayable) {
       const { number } = invoice;
+
       const transferContent = buildTransferContent(number || invoice.id);
 
       return {

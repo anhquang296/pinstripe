@@ -64,6 +64,7 @@ describe('PayoutService.createPayout', () => {
 
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
     const payout = await fastify.payoutService.createPayout({ currency: CurrencyEnum.VND });
+
     const swept = await fastify.balanceTransactionRepository.findBalanceTransactions({
       payoutId: payout.id,
     });
@@ -108,6 +109,7 @@ describe('PayoutService.settleDuePayouts', () => {
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
     const clearingBefore = await readAccountBalance(LedgerAccountCodeEnum.PAYOUTS_CLEARING);
     const payout = await makeDuePayout();
+
     const { pspReference } = await fastify.payoutService.getPayout(payout.id);
 
     const payoutReference = pspReference ?? '';
@@ -117,6 +119,7 @@ describe('PayoutService.settleDuePayouts', () => {
     await fastify.paymentService.drainProviderEvents();
 
     const failed = await fastify.payoutService.getPayout(payout.id);
+
     const released = await fastify.balanceTransactionRepository.findBalanceTransactions({
       payoutId: payout.id,
     });

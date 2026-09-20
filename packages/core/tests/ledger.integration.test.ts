@@ -73,6 +73,7 @@ describe('LedgerService.postTransaction', () => {
 
   it('rejects a second transaction posted under the same external id', async () => {
     const externalId = `invoice:${generateGid(ObjectPrefixEnum.INVOICE)}:finalize`;
+
     const entries = [
       {
         accountCode: LedgerAccountCodeEnum.CASH,
@@ -85,6 +86,7 @@ describe('LedgerService.postTransaction', () => {
         amount: 500,
       },
     ];
+
     await fastify.ledgerService.postTransaction({
       description: 'First write',
       currency: CurrencyEnum.VND,
@@ -104,6 +106,7 @@ describe('LedgerService.postTransaction', () => {
 
   it('keeps every posting summing to zero across a thousand random transactions', async () => {
     const customerId = buildCustomerId();
+
     const pending = Array.from({ length: RANDOM_TRANSACTION_COUNT }, () => {
       return Math.floor(Math.random() * MAX_RANDOM_AMOUNT) + 1;
     });
@@ -117,6 +120,7 @@ describe('LedgerService.postTransaction', () => {
     }
 
     const imbalanced = await fastify.ledgerService.findImbalancedTransactions(10);
+
     const [receivable] = await fastify.ledgerAccountRepository.findLedgerAccounts(
       { customerId: customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
       1,
@@ -159,16 +163,19 @@ describe('LedgerService.reverseTransaction', () => {
   it('returns the account balance to where it was before the original transaction', async () => {
     const customerId = buildCustomerId();
     const transactionId = await postRevenueTransaction(customerId, 250_000);
+
     const [before] = await fastify.ledgerAccountRepository.findLedgerAccounts(
       { customerId: customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
       1,
     );
 
     await fastify.ledgerService.reverseTransaction(transactionId, { reason: 'Issued in error' });
+
     const [after] = await fastify.ledgerAccountRepository.findLedgerAccounts(
       { customerId: customerId, code: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE },
       1,
     );
+
     const original = await fastify.ledgerService.getTransaction(transactionId);
 
     expect(_.get(before, 'balance')).toBe(250_000);
@@ -179,6 +186,7 @@ describe('LedgerService.reverseTransaction', () => {
   it('refuses to reverse the same transaction twice', async () => {
     const customerId = buildCustomerId();
     const transactionId = await postRevenueTransaction(customerId, 90_000);
+
     await fastify.ledgerService.reverseTransaction(transactionId, { reason: 'First reversal' });
 
     const act = fastify.ledgerService.reverseTransaction(transactionId, { reason: 'Second' });
@@ -196,6 +204,7 @@ describe('LedgerService.ensureAccount', () => {
       CurrencyEnum.VND,
       customerId,
     );
+
     const second = await fastify.ledgerService.ensureAccount(
       LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
       CurrencyEnum.VND,

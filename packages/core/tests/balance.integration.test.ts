@@ -31,6 +31,7 @@ async function readAccountBalance(code: LedgerAccountCodeEnum): Promise<number> 
 describe('BalanceService.recordChargeSettlement', () => {
   it('splits a settled charge into gross, fee and net', async () => {
     const { invoiceId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
+
     const { chargeId } = await settleInvoice(fastify, invoiceId);
 
     const [balanceTransaction] = await fastify.balanceTransactionRepository.findBalanceTransactions(
@@ -38,6 +39,7 @@ describe('BalanceService.recordChargeSettlement', () => {
         sourceId: chargeId,
       },
     );
+
     const fee = fastify.psp.calculateProcessingFee(BASE_AMOUNT);
 
     expect(_.get(balanceTransaction, 'type')).toBe(BalanceTransactionTypeEnum.CHARGE);
@@ -52,6 +54,7 @@ describe('BalanceService.recordChargeSettlement', () => {
   it('books the fee as an expense and the rest as a receivable from the processor', async () => {
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
     const feesBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_FEES);
+
     const { invoiceId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
 
     await settleInvoice(fastify, invoiceId);
@@ -81,6 +84,7 @@ describe('BalanceService.getBalance', () => {
 
   it('reports the disputed amount as reserved rather than spendable', async () => {
     const { invoiceId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
+
     const { chargeReference } = await settleInvoice(fastify, invoiceId);
 
     fastify.psp.openDispute({
@@ -101,6 +105,7 @@ describe('BalanceService.getBalance', () => {
 describe('a day of activity balances end to end', () => {
   it('keeps the balance transactions equal to cash plus the processor receivable', async () => {
     const { invoiceId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
+
     const { chargeId } = await settleInvoice(fastify, invoiceId);
 
     await fastify.refundService.createRefund({
@@ -126,6 +131,7 @@ describe('a day of activity balances end to end', () => {
       {},
       SCAN_LIMIT,
     );
+
     const cash = await readAccountBalance(LedgerAccountCodeEnum.CASH);
     const receivable = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
 

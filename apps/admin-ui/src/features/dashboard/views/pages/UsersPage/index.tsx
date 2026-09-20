@@ -45,15 +45,20 @@ const ROLE_FILTER_OPTIONS = [
 
 export default function UsersPage() {
   const { userId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [{ q, ...serverSearch }, setSearch] = useQueryStates(userSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: serverSearch.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canManage = useCan(PermissionEnum.USER_MANAGE);
 
   const { data: users, isPending } = useUsersQuery(
@@ -64,6 +69,7 @@ export default function UsersPage() {
   const { mutateAsync: createUser, isPending: isSaving } = useCreateUserMutation({
     successMessage: 'Đã tạo người dùng.',
   });
+
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUserMutation({
     successMessage: 'Đã cập nhật người dùng.',
   });
@@ -76,6 +82,7 @@ export default function UsersPage() {
   const allRows = get(users, 'data', []);
   const hasMore = get(users, 'hasMore', false);
   const keyword = toLower(toString(q));
+
   const rows = isEmpty(keyword)
     ? allRows
     : filter(allRows, (user) => {

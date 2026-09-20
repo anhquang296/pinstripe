@@ -42,15 +42,20 @@ const STATUS_OPTIONS = [
 
 export default function WebhookEndpointsPage() {
   const { webhookEndpointId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(webhookEndpointSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.INTEGRATION_WRITE);
 
   const { data: webhookEndpoints, isPending } = useWebhookEndpointsQuery(

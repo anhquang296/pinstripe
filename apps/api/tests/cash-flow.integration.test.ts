@@ -32,19 +32,23 @@ function buildHeaders(): Record<string, string> {
 
 async function settleStandaloneCharge(): Promise<{ chargeId: string; chargeReference: string }> {
   const headers = buildHeaders();
+
   const customerResponse = await fastify.inject({
     method: 'POST',
     url: '/v1/customers',
     headers,
     payload: { email: `cash-${Date.now()}-${Math.random()}@example.test`, currency: 'vnd' },
   });
+
   const customerId = customerResponse.json().id;
+
   const paymentMethodResponse = await fastify.inject({
     method: 'POST',
     url: '/v1/payment_methods',
     headers,
     payload: { type: PaymentMethodTypeEnum.CARD, token: APPROVED_TOKEN, customerId },
   });
+
   const paymentMethodId = paymentMethodResponse.json().id;
 
   await fastify.inject({
@@ -60,6 +64,7 @@ async function settleStandaloneCharge(): Promise<{ chargeId: string; chargeRefer
     headers,
     payload: { customerId, amount: CHARGE_AMOUNT },
   });
+
   const paymentIntentId = paymentIntentResponse.json().id;
 
   await fastify.inject({
@@ -71,6 +76,7 @@ async function settleStandaloneCharge(): Promise<{ chargeId: string; chargeRefer
   await fastify.paymentService.drainProviderEvents();
 
   const settled = await fastify.paymentService.getPaymentIntent(paymentIntentId);
+
   const { latestChargeId, pspReference } = settled;
 
   if (latestChargeId && pspReference) {
@@ -89,6 +95,7 @@ describe('GET /v1/balance', () => {
       url: '/v1/balance',
       headers: buildAuthHeaders(secretToken),
     });
+
     const balance = response.json();
 
     expect(response.statusCode).toBe(200);
@@ -114,7 +121,9 @@ describe('GET /v1/balance_transactions', () => {
       url: '/v1/balance_transactions?limit=100',
       headers: buildAuthHeaders(secretToken),
     });
+
     const listed = response.json();
+
     const sourceIds = listed.data.map((balanceTransaction: { sourceId: string }) => {
       return balanceTransaction.sourceId;
     });
@@ -150,12 +159,15 @@ describe('POST /v1/payouts', () => {
       headers: buildHeaders(),
       payload: { currency: 'vnd', statementDescriptor: 'PINSTRIPE' },
     });
+
     const payout = created.json();
+
     const listed = await fastify.inject({
       method: 'GET',
       url: '/v1/payouts',
       headers: buildAuthHeaders(secretToken),
     });
+
     const ids = listed.json().data.map((row: { id: string }) => {
       return row.id;
     });
@@ -184,7 +196,9 @@ describe('POST /v1/disputes/:disputeId/evidence', () => {
       url: `/v1/disputes?chargeId=${chargeId}`,
       headers: buildAuthHeaders(secretToken),
     });
+
     const [dispute] = listed.json().data;
+
     const response = await fastify.inject({
       method: 'POST',
       url: `/v1/disputes/${dispute.id}/evidence`,

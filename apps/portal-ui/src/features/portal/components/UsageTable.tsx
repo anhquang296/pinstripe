@@ -40,6 +40,7 @@ export default function UsageTable({ items, isLoading }: UsageTableProps) {
   const rows = map(items, (item) => {
     return { ...item, id: item.subscriptionItemId };
   });
+
   const columns = [
     {
       key: 'productName',

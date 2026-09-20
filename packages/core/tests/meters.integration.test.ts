@@ -188,6 +188,7 @@ describe('MeterEventService.getMeterEventSummary', () => {
       windowEnd: WINDOW_END,
       receivedBefore: closedAt,
     });
+
     const stragglers = await fastify.meterEventService.getMeterEventSummary(meter.id, {
       customerId,
       windowStart: WINDOW_START,

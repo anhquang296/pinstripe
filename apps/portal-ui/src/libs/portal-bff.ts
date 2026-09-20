@@ -97,6 +97,7 @@ function resolvePortalRoute(
   segments: readonly string[],
 ): ResolvedPortalRoute | null {
   const path = join(segments, '/');
+
   const portalRoute = find(PORTAL_ROUTES, (candidateRoute) => {
     return candidateRoute.method === method && candidateRoute.pattern.test(path);
   });
@@ -152,7 +153,9 @@ function buildCredentialHeaders(
 
 async function buildSessionResponse(apiResponse: Response): Promise<NextResponse> {
   const portalSession = (await apiResponse.json()) as PortalSessionResponse;
+
   const { sessionKey, sessionExpiresAt } = portalSession;
+
   const response = NextResponse.json(
     { ...portalSession, sessionKey: null },
     { status: apiResponse.status },
@@ -196,10 +199,12 @@ async function buildPortalResponse(
   }
 
   const body = await apiResponse.arrayBuffer();
+
   const response = new NextResponse(body, {
     status: apiResponse.status,
     headers: buildForwardedHeaders(apiResponse),
   });
+
   const isSessionEnded =
     apiResponse.status === 401 ||
     (isSessionRoute && portalRoute.method === HttpMethodEnum.DELETE && apiResponse.ok);
@@ -219,9 +224,11 @@ async function forwardPortalRequest(
 
   if (portalApiKey) {
     const url = `${apiUrl}/portal/${portalRoute.path}${request.nextUrl.search}`;
+
     const headers: Record<string, string> = {
       ...buildCredentialHeaders(request, portalRoute, portalApiKey),
     };
+
     const init: RequestInit = { method: portalRoute.method, headers, cache: 'no-store' };
 
     if (portalRoute.method === HttpMethodEnum.POST) {

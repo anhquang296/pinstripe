@@ -8,6 +8,7 @@ import _ from 'lodash';
 const BEARER_PREFIX = 'Bearer ';
 const SESSION_COOKIE_PREFIX = 'pinstripe.';
 const SESSION_SCOPES = [ApiKeyScopeEnum.V1, ApiKeyScopeEnum.ADMIN];
+
 const USER_ROLES: Record<string, UserRole> = {
   [UserRoleEnum.ADMIN]: UserRoleEnum.ADMIN,
   [UserRoleEnum.MODERATOR]: UserRoleEnum.MODERATOR,
@@ -42,6 +43,7 @@ function hasSessionCookie(request: FastifyRequest, scope: ApiKeyScope): boolean 
 
 function buildSessionHeaders(request: FastifyRequest): Headers {
   const headers = new Headers();
+
   const { cookie } = request.headers;
 
   if (cookie) {

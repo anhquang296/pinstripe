@@ -34,6 +34,7 @@ export default function PortalConfigurationDrawer({
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: configuration } = useBillingPortalConfigurationQuery(configurationId);
+
   const { mutateAsync: updateConfiguration, isPending: isSaving } =
     useUpdateBillingPortalConfigurationMutation({ successMessage: 'Đã cập nhật cấu hình portal.' });
 

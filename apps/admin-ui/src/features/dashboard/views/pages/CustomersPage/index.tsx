@@ -34,15 +34,20 @@ import { customerSearchParams } from './customers.search-params';
 
 export default function CustomersPage() {
   const { customerId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(customerSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.CUSTOMER_WRITE);
 
   const { data: customers, isPending } = useCustomersQuery(

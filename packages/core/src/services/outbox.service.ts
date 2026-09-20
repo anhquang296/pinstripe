@@ -25,6 +25,7 @@ export class OutboxService {
     executor?: DatabaseTransaction,
   ): Promise<string[]> {
     const occurredAt = this.fastify.clock.now().toISOString();
+
     const outboxRows: NewOutboxEvent[] = _.map(events, (event) => {
       return {
         id: generateGid(ObjectPrefixEnum.EVENT),
@@ -86,6 +87,7 @@ export class OutboxService {
     event: ClaimedOutboxEvent,
   ): Promise<Job<DomainEventDispatchJob>> {
     const occurredAt = new Date(event.occurredAt);
+
     const job = buildDomainEventDispatchJob({
       eventId: event.id,
       aggregateType: event.aggregateType,

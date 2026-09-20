@@ -7,6 +7,7 @@ const DRAINING_STATUS_CODE = 503;
 
 export async function buildContext(): Promise<FastifyInstance> {
   const { LOG_LEVEL = 'info' } = process.env;
+
   const fastify = Fastify({ logger: { level: LOG_LEVEL } });
   let isDraining = false;
 

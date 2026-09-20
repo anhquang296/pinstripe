@@ -31,6 +31,7 @@ describe('IdempotencyService.beginRequest', () => {
   it('replays the stored response for a repeated key with the same body', async () => {
     const key = generateGid(ObjectPrefixEnum.REQUEST);
     const first = await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
+
     await fastify.idempotencyService.completeRequest(first.id, 201, { id: 'cus_1' });
 
     const second = await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
@@ -41,6 +42,7 @@ describe('IdempotencyService.beginRequest', () => {
   it('rejects a repeated key whose request body differs', async () => {
     const key = generateGid(ObjectPrefixEnum.REQUEST);
     const first = await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
+
     await fastify.idempotencyService.completeRequest(first.id, 201, { id: 'cus_1' });
 
     const act = fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'b' }));
@@ -50,6 +52,7 @@ describe('IdempotencyService.beginRequest', () => {
 
   it('rejects a repeated key while the first request is still running', async () => {
     const key = generateGid(ObjectPrefixEnum.REQUEST);
+
     await fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
 
     const act = fastify.idempotencyService.beginRequest(buildRequest(key, { name: 'a' }));
@@ -59,9 +62,11 @@ describe('IdempotencyService.beginRequest', () => {
 
   it('rejects a repeated key aimed at a different path param', async () => {
     const key = generateGid(ObjectPrefixEnum.REQUEST);
+
     const first = await fastify.idempotencyService.beginRequest(
       buildRequest(key, undefined, { invoiceId: 'in_1' }),
     );
+
     await fastify.idempotencyService.completeRequest(first.id, 200, { id: 'in_1' });
 
     const act = fastify.idempotencyService.beginRequest(
@@ -73,9 +78,11 @@ describe('IdempotencyService.beginRequest', () => {
 
   it('replays a repeated key aimed at the same path param when there is no body', async () => {
     const key = generateGid(ObjectPrefixEnum.REQUEST);
+
     const first = await fastify.idempotencyService.beginRequest(
       buildRequest(key, undefined, { invoiceId: 'in_1' }),
     );
+
     await fastify.idempotencyService.completeRequest(first.id, 200, { id: 'in_1' });
 
     const second = await fastify.idempotencyService.beginRequest(

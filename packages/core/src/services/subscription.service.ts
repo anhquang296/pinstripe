@@ -49,6 +49,7 @@ import _ from 'lodash';
 
 const MAX_PERIOD_ROLLS = 120;
 const ADVANCE_BATCH_SIZE = 500;
+
 const ROLLABLE_STATUSES = [
   SubscriptionStatusEnum.INCOMPLETE,
   SubscriptionStatusEnum.TRIALING,
@@ -84,9 +85,12 @@ export class SubscriptionService {
     const subscriptionId = generateGid(ObjectPrefixEnum.SUBSCRIPTION);
     const trialEnd = SubscriptionService.resolveTrialEnd(payload, now);
     const anchor = SubscriptionService.resolveBillingCycleAnchor(payload, trialEnd, now);
+
     const { interval, intervalCount } = resolveInterval(prices);
+
     const createdAt = now.toISOString();
     const currentPeriodEnd = trialEnd ?? advancePeriod(anchor, interval, intervalCount);
+
     const subscriptionItems = _.map(payload.items, (subscriptionItem) => {
       const { quantity = 1, taxRates = [], metadata = {} } = subscriptionItem;
 
@@ -100,6 +104,7 @@ export class SubscriptionService {
         createdAt,
       } satisfies NewSubscriptionItem;
     });
+
     const itemChanges: NewSubscriptionItemChange[] = _.map(
       subscriptionItems,
       (subscriptionItem): NewSubscriptionItemChange => {
@@ -116,14 +121,17 @@ export class SubscriptionService {
         };
       },
     );
+
     const missingPaymentMethod = _.get(
       payload,
       ['trialSettings', 'endBehavior', 'missingPaymentMethod'],
       TrialEndBehaviorEnum.CREATE_INVOICE,
     );
+
     const status = trialEnd ? SubscriptionStatusEnum.TRIALING : SubscriptionStatusEnum.ACTIVE;
     const trialStartAt = trialEnd ? createdAt : null;
     const trialEndAt = trialEnd ? trialEnd.toISOString() : null;
+
     const {
       collectionMethod = CollectionMethodEnum.CHARGE_AUTOMATICALLY,
       billingMode = BillingModeEnum.ADVANCE,
@@ -192,6 +200,7 @@ export class SubscriptionService {
 
   async getSubscription(id: string): Promise<SubscriptionResponse> {
     const subscription = await this.fastify.subscriptionRepository.getSubscription(id);
+
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [id],
       deletedAtIsNull: true,
@@ -206,15 +215,19 @@ export class SubscriptionService {
   ): Promise<ListResponse<PortalSubscriptionResponse>> {
     const subscriptions = await this.findSubscriptions({ ...query, customerId });
     const priceIds = _(subscriptions.data).flatMap('items').map('priceId').uniq().value();
+
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: priceIds },
       priceIds.length,
     );
+
     const productIds = _(prices).map('productId').uniq().value();
+
     const products = await this.fastify.productRepository.findProducts(
       { ids: productIds },
       productIds.length,
     );
+
     const pricesById = _.keyBy(prices, 'id');
     const productsById = _.keyBy(products, 'id');
 
@@ -258,6 +271,7 @@ export class SubscriptionService {
     query: FindSubscriptionsQuery,
   ): Promise<ListResponse<SubscriptionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const rows = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         customerId: query.customerId,
@@ -267,8 +281,10 @@ export class SubscriptionService {
       },
       limit + 1,
     );
+
     const hasMore = rows.length > limit;
     const page = rows.slice(0, limit);
+
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: _.map(page, 'id'),
       deletedAtIsNull: true,
@@ -307,7 +323,9 @@ export class SubscriptionService {
     }
 
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+
     const { prorationBehavior = ProrationBehaviorEnum.CREATE_PRORATIONS } = payload;
+
     const isProrated = prorationBehavior !== ProrationBehaviorEnum.NONE;
     const boundary = isProrated ? now : new Date(subscription.currentPeriodStart);
     const changes = this.resolveUpdateChanges(subscription, payload, now);
@@ -353,9 +371,12 @@ export class SubscriptionService {
     SubscriptionService.assertUpdatable(subscription);
 
     const now = await this.fastify.clockService.resolveSubscriptionNow(subscription);
+
     const { comment = null } = payload;
+
     const cancellationComment = _.get(payload, ['cancellationDetails', 'comment'], comment);
     const cancellationFeedback = _.get(payload, ['cancellationDetails', 'feedback'], null);
+
     const details: Partial<NewSubscription> = {
       cancellationReason: CancellationReasonEnum.CANCELLATION_REQUESTED,
       cancellationComment,
@@ -450,11 +471,14 @@ export class SubscriptionService {
 
     for (const subscription of due) {
       const subscriptionNow = await this.resolveScanNow(subscription, now);
+
       const { cancelAt } = subscription;
 
       if (cancelAt && new Date(cancelAt).getTime() <= subscriptionNow.getTime()) {
         const { canceledAt, cancellationReason } = subscription;
+
         const resolvedCanceledAt = canceledAt === null ? cancelAt : canceledAt;
+
         const resolvedCancellationReason =
           cancellationReason === null
             ? CancellationReasonEnum.CANCELLATION_REQUESTED
@@ -519,6 +543,7 @@ export class SubscriptionService {
     const expireBeforeAt = new Date(
       now.getTime() - INCOMPLETE_EXPIRY_HOURS * MILLISECONDS_PER_HOUR,
     );
+
     const stale = await this.fastify.subscriptionRepository.findSubscriptions(
       {
         testClockId: filters.testClockId,
@@ -589,6 +614,7 @@ export class SubscriptionService {
     chargedThroughDate: Date,
   ): Promise<void> {
     const subscription = await this.fastify.subscriptionRepository.getSubscription(subscriptionId);
+
     const isRecovering = _.includes(
       [
         SubscriptionStatusEnum.INCOMPLETE,
@@ -597,6 +623,7 @@ export class SubscriptionService {
       ],
       subscription.status,
     );
+
     const status = isRecovering ? SubscriptionStatusEnum.ACTIVE : subscription.status;
 
     await this.writeSubscription(
@@ -621,6 +648,7 @@ export class SubscriptionService {
       defaultTaxRates = subscription.defaultTaxRates,
       metadata = subscription.metadata,
     } = payload;
+
     const changes: Partial<NewSubscription> = {
       cancelAtPeriodEnd,
       collectionMethod,
@@ -678,11 +706,14 @@ export class SubscriptionService {
 
   private async advanceSubscription(subscription: Subscription, runAt: Date): Promise<void> {
     const now = await this.resolveScanNow(subscription, runAt);
+
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
       deletedAtIsNull: true,
     });
+
     const prices = await this.resolvePrices(_.map(subscriptionItems, 'priceId'));
+
     const { interval, intervalCount } = resolveInterval(prices);
 
     let current = subscription;
@@ -707,9 +738,12 @@ export class SubscriptionService {
     intervalCount: number,
   ): Promise<Subscription> {
     const periodEnd = subscription.currentPeriodEnd;
+
     const { cancelAt } = subscription;
+
     const isAdvance = subscription.billingMode === BillingModeEnum.ADVANCE;
     const isBillable = _.includes(BILLABLE_SUBSCRIPTION_STATUSES, subscription.status);
+
     const isCancelDue =
       cancelAt !== null && new Date(cancelAt).getTime() <= new Date(periodEnd).getTime();
 
@@ -728,7 +762,9 @@ export class SubscriptionService {
       }
 
       const { canceledAt, cancellationReason } = subscription;
+
       const resolvedCanceledAt = canceledAt === null ? endedAt : canceledAt;
+
       const resolvedCancellationReason =
         cancellationReason === null
           ? CancellationReasonEnum.CANCELLATION_REQUESTED

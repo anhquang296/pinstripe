@@ -29,6 +29,7 @@ export default function LedgerTransactionForm({
   onSave,
 }: LedgerTransactionFormProps) {
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'entries' });
+
   const entriesError = get(form.formState.errors.entries, 'root.message');
 
   const handleOnAddEntry = () => {

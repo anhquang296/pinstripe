@@ -30,6 +30,7 @@ export default function PriceDrawer({ priceId, onClose }: PriceDrawerProps) {
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: price } = usePriceQuery(priceId);
+
   const { mutateAsync: updatePrice, isPending: isSaving } = useUpdatePriceMutation({
     successMessage: 'Đã cập nhật price.',
   });

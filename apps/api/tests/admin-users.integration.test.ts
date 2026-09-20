@@ -46,6 +46,7 @@ function readSessionCookie(cookies: InjectedCookie[]): string {
 
 async function signIn(role: UserRole): Promise<{ userId: string; cookie: string }> {
   const email = makeEmail();
+
   const user = await fastify.userService.createUser({
     email,
     name: 'Dashboard Operator',
@@ -74,6 +75,7 @@ async function banOtherActiveAdmins(keptUserId: string): Promise<string[]> {
     { role: UserRoleEnum.ADMIN, banned: false },
     ACTIVE_ADMIN_SCAN_LIMIT,
   );
+
   const bannedAdminIds = _(admins)
     .map('id')
     .reject((id) => {
@@ -113,6 +115,7 @@ it('creates a user through the admin surface', async () => {
 
 it('lists and reads back a created user', async () => {
   const { cookie } = await signIn(UserRoleEnum.ADMIN);
+
   const created = await fastify.userService.createUser({
     email: makeEmail(),
     name: 'Listed Operator',
@@ -124,6 +127,7 @@ it('lists and reads back a created user', async () => {
     url: `${USERS_PATH}?role=${UserRoleEnum.MEMBER}`,
     headers: buildSessionHeaders(cookie),
   });
+
   const getResponse = await fastify.inject({
     method: 'GET',
     url: `${USERS_PATH}/${created.id}`,
@@ -137,6 +141,7 @@ it('lists and reads back a created user', async () => {
 
 it('refuses to demote the last active admin', async () => {
   const { userId, cookie } = await signIn(UserRoleEnum.ADMIN);
+
   const bannedAdminIds = await banOtherActiveAdmins(userId);
 
   const response = await fastify.inject({
@@ -153,6 +158,7 @@ it('refuses to demote the last active admin', async () => {
 
 it('demotes an admin while another active admin remains', async () => {
   const { cookie } = await signIn(UserRoleEnum.ADMIN);
+
   const spareAdmin = await fastify.userService.createUser({
     email: makeEmail(),
     name: 'Spare Admin',
@@ -172,6 +178,7 @@ it('demotes an admin while another active admin remains', async () => {
 
 it('revokes the sessions of a user whose role changes', async () => {
   const { cookie: adminCookie } = await signIn(UserRoleEnum.ADMIN);
+
   const { userId, cookie: memberCookie } = await signIn(UserRoleEnum.MEMBER);
 
   const patchResponse = await fastify.inject({
@@ -180,6 +187,7 @@ it('revokes the sessions of a user whose role changes', async () => {
     headers: buildSessionHeaders(adminCookie),
     payload: { role: UserRoleEnum.MODERATOR },
   });
+
   const revokedResponse = await fastify.inject({
     method: 'GET',
     url: '/v1/customers',

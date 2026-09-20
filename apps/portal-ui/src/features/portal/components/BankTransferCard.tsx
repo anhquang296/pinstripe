@@ -13,6 +13,7 @@ interface BankTransferCardProps {
 
 export default function BankTransferCard({ bankTransfer }: BankTransferCardProps) {
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
+
   const { qrPayload } = bankTransfer;
 
   useEffect(() => {

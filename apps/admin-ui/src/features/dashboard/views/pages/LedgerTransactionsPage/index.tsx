@@ -39,15 +39,20 @@ import LedgerTransactionDrawer from './LedgerTransactionDrawer';
 
 export default function LedgerTransactionsPage() {
   const { transactionId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(ledgerTransactionSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.LEDGER_WRITE);
 
   const { data: ledgerTransactions, isPending } = useLedgerTransactionsQuery(

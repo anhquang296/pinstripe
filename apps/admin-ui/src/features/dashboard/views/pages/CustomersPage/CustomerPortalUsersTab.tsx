@@ -33,14 +33,18 @@ export default function CustomerPortalUsersTab({ customerId }: CustomerPortalUse
   const [removingMembership, setRemovingMembership] = useState<PortalMembershipResponse | null>(
     null,
   );
+
   const canWrite = useCan(PermissionEnum.CUSTOMER_WRITE);
 
   const { data: portalMemberships } = usePortalMembershipsQuery({ customerId });
+
   const { mutateAsync: createPortalMembership, isPending: isInviting } =
     useCreatePortalMembershipMutation({ successMessage: 'Đã mời người dùng vào cổng nhà xe.' });
+
   const { mutate: updatePortalMembership } = useUpdatePortalMembershipMutation({
     successMessage: 'Đã đổi vai trò.',
   });
+
   const { mutateAsync: deletePortalMembership, isPending: isRemoving } =
     useDeletePortalMembershipMutation({ successMessage: 'Đã gỡ quyền truy cập.' });
 

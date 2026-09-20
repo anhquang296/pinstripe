@@ -34,6 +34,7 @@ export default function PaymentLinkDrawer({
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: paymentLink } = usePaymentLinkQuery(paymentLinkId);
+
   const { mutateAsync: updatePaymentLink, isPending: isSaving } = useUpdatePaymentLinkMutation({
     successMessage: 'Đã cập nhật payment link.',
   });

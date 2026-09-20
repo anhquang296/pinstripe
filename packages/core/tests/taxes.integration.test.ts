@@ -18,6 +18,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+
 const VIETNAM = 'VN';
 
 let fastify: FastifyInstance;
@@ -39,6 +40,7 @@ interface TaxRateOverrides {
 
 async function makeTaxRate(overrides: TaxRateOverrides = {}): Promise<string> {
   const { percentage = 10, inclusive = true, country, state } = overrides;
+
   const jurisdiction = country ?? 'internal';
 
   const taxRate = await fastify.taxRateService.createTaxRate({
@@ -62,6 +64,7 @@ interface CustomerOverrides {
 
 async function makeCustomerId(overrides: CustomerOverrides = {}): Promise<string> {
   const { currency = CurrencyEnum.VND, country, taxExempt } = overrides;
+
   const address = country ? { country } : undefined;
 
   const customer = await fastify.customerService.createCustomer({
@@ -86,6 +89,7 @@ async function readAccountBalance(
 it('carves an inclusive VND tax out of the line and credits tax payable', async () => {
   const taxRateId = await makeTaxRate({ percentage: 10, inclusive: true });
   const customerId = await makeCustomerId();
+
   const taxPayableBefore = await readAccountBalance(
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.VND,
@@ -100,11 +104,14 @@ it('carves an inclusive VND tax out of the line and credits tax payable', async 
 
   const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
   const [lineItem] = open.lineItems;
+
   const taxPayableAfter = await readAccountBalance(
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.VND,
   );
+
   const receivable = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
     CurrencyEnum.VND,
@@ -132,6 +139,7 @@ it('carves an inclusive VND tax out of the line and credits tax payable', async 
 it('adds an exclusive USD tax on top of the line and credits tax payable', async () => {
   const taxRateId = await makeTaxRate({ percentage: 8.5, inclusive: false });
   const customerId = await makeCustomerId({ currency: CurrencyEnum.USD });
+
   const taxPayableBefore = await readAccountBalance(
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.USD,
@@ -146,10 +154,12 @@ it('adds an exclusive USD tax on top of the line and credits tax payable', async
 
   const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
   const taxPayableAfter = await readAccountBalance(
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.USD,
   );
+
   const receivable = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
     CurrencyEnum.USD,
@@ -168,6 +178,7 @@ it('adds an exclusive USD tax on top of the line and credits tax payable', async
 it('reverses both the receivable and the tax payable when an inclusive invoice is voided', async () => {
   const taxRateId = await makeTaxRate({ percentage: 10, inclusive: true });
   const customerId = await makeCustomerId();
+
   const taxPayableBefore = await readAccountBalance(
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.VND,
@@ -189,6 +200,7 @@ it('reverses both the receivable and the tax payable when an inclusive invoice i
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.VND,
   );
+
   const receivable = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
     CurrencyEnum.VND,
@@ -202,6 +214,7 @@ it('reverses both the receivable and the tax payable when an inclusive invoice i
 it('reverses both sides when an exclusive USD invoice is voided', async () => {
   const taxRateId = await makeTaxRate({ percentage: 8.5, inclusive: false });
   const customerId = await makeCustomerId({ currency: CurrencyEnum.USD });
+
   const taxPayableBefore = await readAccountBalance(
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.USD,
@@ -223,6 +236,7 @@ it('reverses both sides when an exclusive USD invoice is voided', async () => {
     LedgerAccountCodeEnum.TAX_PAYABLE,
     CurrencyEnum.USD,
   );
+
   const receivable = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
     CurrencyEnum.USD,
@@ -236,6 +250,7 @@ it('reverses both sides when an exclusive USD invoice is voided', async () => {
 it('taxes the amount left after a discount, not the gross line', async () => {
   const taxRateId = await makeTaxRate({ percentage: 10, inclusive: false });
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Half',
     percentOff: 50,
@@ -292,6 +307,7 @@ it('looks the rate up by country when automatic tax is enabled', async () => {
     customerId,
     automaticTax: { enabled: true },
   });
+
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   expect(open.automaticTax).toEqual({
@@ -316,6 +332,7 @@ it('asks for a location when automatic tax is enabled and the customer has no ad
     customerId,
     automaticTax: { enabled: true },
   });
+
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   expect(open.automaticTax.status).toBe(AutomaticTaxStatusEnum.REQUIRES_LOCATION_INPUTS);
@@ -349,9 +366,11 @@ it('keeps the frozen rate snapshot on the line after the rate is deactivated', a
 it('reads an inclusive price as tax inclusive even when the rate is exclusive', async () => {
   const taxRateId = await makeTaxRate({ percentage: 10, inclusive: false });
   const customerId = await makeCustomerId();
+
   const product = await fastify.productService.createProduct({
     name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -378,15 +397,18 @@ it('reads an inclusive price as tax inclusive even when the rate is exclusive', 
 it('applies the default tax rates of a subscription to its cycle invoice', async () => {
   const taxRateId = await makeTaxRate({ percentage: 10, inclusive: false });
   const customerId = await makeCustomerId();
+
   const product = await fastify.productService.createProduct({
     name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
     unitAmount: 2_000_000,
     recurring: { interval: RecurringIntervalEnum.MONTH },
   });
+
   const subscription = await fastify.subscriptionService.createSubscription({
     customerId,
     items: [{ priceId: price.id }],
@@ -407,15 +429,18 @@ it('lets a subscription item override the default tax rates of its subscription'
   const defaultTaxRateId = await makeTaxRate({ percentage: 10, inclusive: false });
   const itemTaxRateId = await makeTaxRate({ percentage: 5, inclusive: false });
   const customerId = await makeCustomerId();
+
   const product = await fastify.productService.createProduct({
     name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
     unitAmount: 2_000_000,
     recurring: { interval: RecurringIntervalEnum.MONTH },
   });
+
   const subscription = await fastify.subscriptionService.createSubscription({
     customerId,
     items: [{ priceId: price.id, taxRates: [itemTaxRateId] }],
@@ -432,6 +457,7 @@ it('lets a subscription item override the default tax rates of its subscription'
 
 it('verifies a well formed tax id and records the verified name', async () => {
   const customerId = await makeCustomerId();
+
   const taxId = await fastify.taxIdService.createTaxId({
     customerId,
     type: TaxIdTypeEnum.VN_TIN,
@@ -449,6 +475,7 @@ it('verifies a well formed tax id and records the verified name', async () => {
 
 it('leaves a malformed tax id unverified', async () => {
   const customerId = await makeCustomerId();
+
   const taxId = await fastify.taxIdService.createTaxId({
     customerId,
     type: TaxIdTypeEnum.VN_TIN,
@@ -463,6 +490,7 @@ it('leaves a malformed tax id unverified', async () => {
 
 it('stops listing a tax id once it is deleted', async () => {
   const customerId = await makeCustomerId();
+
   const taxId = await fastify.taxIdService.createTaxId({
     customerId,
     type: TaxIdTypeEnum.EU_VAT,

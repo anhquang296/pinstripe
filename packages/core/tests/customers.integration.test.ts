@@ -31,6 +31,7 @@ describe('CustomerService.createCustomer', () => {
       name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
       frozenTime: '2026-06-01T00:00:00.000Z',
     });
+
     vi.spyOn(fastify.testClockService, 'isEnabled', 'get').mockReturnValue(false);
 
     const act = fastify.customerService.createCustomer({

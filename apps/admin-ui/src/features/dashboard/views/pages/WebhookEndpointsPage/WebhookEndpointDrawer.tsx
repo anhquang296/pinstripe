@@ -37,6 +37,7 @@ export default function WebhookEndpointDrawer({
   const canWrite = useCan(PermissionEnum.INTEGRATION_WRITE);
 
   const { data: webhookEndpoint } = useWebhookEndpointQuery(webhookEndpointId);
+
   const { data: webhookDeliveries } = useWebhookDeliveriesQuery({
     endpointId: webhookEndpointId,
     limit: PAGE_LIMIT,

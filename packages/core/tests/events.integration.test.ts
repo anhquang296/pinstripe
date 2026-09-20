@@ -20,6 +20,7 @@ afterAll(async () => {
 
 async function recordAndRelay(): Promise<string> {
   const aggregateId = generateGid(ObjectPrefixEnum.CUSTOMER);
+
   const [eventId] = await fastify.outboxService.recordEvents([
     {
       aggregateType: AggregateTypeEnum.CUSTOMER,

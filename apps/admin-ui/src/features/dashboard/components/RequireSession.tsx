@@ -6,8 +6,11 @@ import { Outlet, useLocation } from 'react-router-dom';
 
 export default function RequireSession() {
   const { basePaths, viewPaths, navigate } = useAuth();
+
   const { pathname, search } = useLocation();
+
   const { data: session, isFetching } = useSession(authClient);
+
   const isSignedOut = !session && !isFetching;
 
   useEffect(() => {

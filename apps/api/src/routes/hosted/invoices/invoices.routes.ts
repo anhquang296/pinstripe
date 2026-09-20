@@ -14,10 +14,12 @@ export const hostedInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
     { schema: { params: hostedInvoiceParamsSchema, querystring: hostedTokenSchema } },
     async (request, reply) => {
       const { invoiceId } = request.params;
+
       const entity = await fastify.invoiceDocumentService.getVerifiedInvoice(
         invoiceId,
         request.query.token,
       );
+
       const invoice = await fastify.invoiceService.getInvoice(entity.id);
       const pdfUrl = fastify.hostedUrlFactory.buildInvoicePdfUrl(entity.id);
 

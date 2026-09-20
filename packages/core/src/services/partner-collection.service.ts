@@ -38,11 +38,13 @@ export class PartnerCollectionService {
     now: Date,
   ): Promise<PartnerCollectionOutcome> {
     const customer = await this.fastify.customerRepository.getCustomer(invoice.customerId);
+
     const { partnerPlatform, partnerAccountId } = customer;
 
     if (partnerPlatform && partnerAccountId) {
       const collector = this.resolveCollector(invoice.collectionMethod, partnerPlatform);
       const collectionAttempt = await this.resolveCollectionAttempt(invoice, amountRemaining, now);
+
       const response = await this.requestCollection(
         collector,
         invoice,
@@ -117,6 +119,7 @@ export class PartnerCollectionService {
     }
 
     const createdAt = now.toISOString();
+
     const collectionAttempt =
       await this.fastify.collectionAttemptRepository.createCollectionAttempt({
         id: generateGid(ObjectPrefixEnum.COLLECTION_ATTEMPT),
@@ -171,7 +174,9 @@ export class PartnerCollectionService {
     now: Date,
   ): Promise<PartnerCollectionOutcome> {
     const { appliedAmount, reference } = collection;
+
     const updatedAt = now.toISOString();
+
     const clearingAccountCode = PartnerCollectionService.resolveClearingAccountCode(
       collectionAttempt.collectionMethod,
     );

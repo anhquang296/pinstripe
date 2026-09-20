@@ -86,6 +86,7 @@ export class PriceRepository {
 
   async createPrice(payload: NewPrice, executor?: DatabaseTransaction): Promise<Price | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [price] = await db.insert(prices).values(payload).returning();
 
     return price ?? null;
@@ -97,6 +98,7 @@ export class PriceRepository {
     executor?: DatabaseTransaction,
   ): Promise<Price | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [price] = await db.update(prices).set(payload).where(eq(prices.id, id)).returning();
 
     return price ?? null;

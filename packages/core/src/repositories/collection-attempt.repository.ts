@@ -39,6 +39,7 @@ export class CollectionAttemptRepository {
     executor?: DatabaseTransaction,
   ): Promise<CollectionAttempt | null> {
     const db = executor ?? this._db.master;
+
     const [collectionAttempt] = await db.insert(collectionAttempts).values(payload).returning();
 
     return collectionAttempt ?? null;
@@ -50,6 +51,7 @@ export class CollectionAttemptRepository {
     executor?: DatabaseTransaction,
   ): Promise<CollectionAttempt | null> {
     const db = executor ?? this._db.master;
+
     const [collectionAttempt] = await db
       .update(collectionAttempts)
       .set(payload)

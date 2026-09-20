@@ -82,6 +82,7 @@ export class LedgerAccountRepository {
     executor?: DatabaseTransaction,
   ): Promise<LedgerAccount | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [account] = await db.insert(ledgerAccounts).values(payload).returning();
 
     return account ?? null;

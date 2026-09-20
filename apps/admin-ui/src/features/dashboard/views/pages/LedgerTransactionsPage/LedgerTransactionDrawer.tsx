@@ -32,6 +32,7 @@ export default function LedgerTransactionDrawer({
   const canWrite = useCan(PermissionEnum.LEDGER_WRITE);
 
   const { data: ledgerTransaction } = useLedgerTransactionQuery(transactionId);
+
   const { mutateAsync: reverseLedgerTransaction, isPending: isReversing } =
     useReverseLedgerTransactionMutation({ successMessage: 'Đã đảo bút toán.' });
 

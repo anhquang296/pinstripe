@@ -20,6 +20,7 @@ export default function MeterEventBatchForm({
   onSave,
 }: MeterEventBatchFormProps) {
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'lines' });
+
   const linesError = get(form.formState.errors.lines, 'root.message');
 
   const handleOnAddLine = () => {

@@ -2,14 +2,20 @@ import path from 'node:path';
 
 const PACKAGE_ROOTS = [
   'packages/core',
-  'packages/eslint-config',
+  'packages/sdk',
   'apps/api',
   'apps/worker',
   'apps/admin-ui',
   'apps/portal-ui',
 ];
 
-const GENERATED_PATHS = ['.claude/rules/agentkit/', '.agentkit/', 'CLAUDE.md', 'AGENTS.md'];
+const GENERATED_PATHS = [
+  '.claude/rules/agentkit/',
+  '.agentkit/',
+  'CLAUDE.md',
+  'AGENTS.md',
+  'pnpm-lock.yaml',
+];
 
 function toRepoRelative(file) {
   return path.relative(process.cwd(), file);

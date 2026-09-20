@@ -86,6 +86,7 @@ export class InvoiceItemRepository {
     executor?: DatabaseTransaction,
   ): Promise<InvoiceItem | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [invoiceItem] = await db.insert(invoiceItems).values(payload).returning();
 
     return invoiceItem ?? null;
@@ -97,6 +98,7 @@ export class InvoiceItemRepository {
     executor?: DatabaseTransaction,
   ): Promise<InvoiceItem | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [invoiceItem] = await db
       .update(invoiceItems)
       .set(payload)

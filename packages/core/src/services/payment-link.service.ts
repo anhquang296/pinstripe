@@ -24,10 +24,12 @@ export class PaymentLinkService {
 
   async createPaymentLink(payload: CreatePaymentLinkPayload): Promise<PaymentLinkResponse> {
     const priceIds = _.uniq(_.map(payload.lineItems, 'priceId'));
+
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: priceIds },
       priceIds.length,
     );
+
     const pricesById = _.keyBy(prices, 'id');
     const currencies = _.uniq(_.map(prices, 'currency'));
 
@@ -47,6 +49,7 @@ export class PaymentLinkService {
 
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PAYMENT_LINK);
+
     const lineItems = _.map(payload.lineItems, (lineItem): NewPaymentLinkLineItem => {
       const { quantity = DEFAULT_QUANTITY } = lineItem;
 
@@ -58,6 +61,7 @@ export class PaymentLinkService {
         createdAt,
       };
     });
+
     const { mode = CheckoutSessionModeEnum.PAYMENT, metadata = {} } = payload;
 
     const createdPaymentLink = await this.fastify.database.master.transaction(async (tx) => {
@@ -95,6 +99,7 @@ export class PaymentLinkService {
   ): Promise<PaymentLinkResponse> {
     const paymentLink = await this.fastify.paymentLinkRepository.getPaymentLink(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const { isActive = paymentLink.isActive, successUrl = paymentLink.successUrl } = payload;
 
     const updatedPaymentLink = await this.fastify.database.master.transaction(async (tx) => {
@@ -133,12 +138,15 @@ export class PaymentLinkService {
 
   async findPaymentLinks(query: FindPaymentLinksQuery): Promise<ListResponse<PaymentLinkResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.paymentLinkRepository.findPaymentLinks(
       { isActive: query.isActive, beforeAt, afterAt },
       limit + 1,
     );
+
     const page = _.take(rows, limit);
     const lineItemsByPaymentLinkId = await this.resolveLineItems(_.map(page, 'id'));
 
@@ -160,6 +168,7 @@ export class PaymentLinkService {
       id,
       token,
     );
+
     const paymentLink = await this.fastify.paymentLinkRepository.findPaymentLink(id);
 
     if (isVerified && paymentLink) {

@@ -11,6 +11,7 @@ export interface SubscriptionInterval {
 
 export function resolveInterval(prices: readonly Price[]): SubscriptionInterval {
   const [firstPrice] = prices;
+
   const interval = _.get(firstPrice, 'recurringInterval');
   const intervalCount = _.get(firstPrice, 'recurringIntervalCount');
 

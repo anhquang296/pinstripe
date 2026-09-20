@@ -40,6 +40,7 @@ export default function PriceForm({
   onSave,
 }: PriceFormProps) {
   const { errors } = form.formState;
+
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'tiers' });
 
   const priceType = form.watch('priceType');

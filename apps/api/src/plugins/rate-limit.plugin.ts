@@ -6,6 +6,7 @@ import fp from 'fastify-plugin';
 export const rateLimitPlugin = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request, reply) => {
     const { apiRateLimit, apiRateWindowSeconds } = fastify.workflowSchedules;
+
     const rateLimitId = readRateLimitId(request);
 
     const key = fastify.redisKeyFactory.build(RedisNamespaceEnum.API_RATE_LIMIT, rateLimitId);

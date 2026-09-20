@@ -43,10 +43,12 @@ export function buildTransferContent(reference: string): string {
 
 export function buildVietQrPayload(transfer: VietQrTransfer): string {
   const beneficiary = buildField('00', transfer.bankBin) + buildField('01', transfer.accountNumber);
+
   const merchantAccount =
     buildField('00', NAPAS_GUID) +
     buildField('01', beneficiary) +
     buildField('02', TRANSFER_TO_ACCOUNT_SERVICE);
+
   const payloadWithoutCrc =
     buildField('00', '01') +
     buildField('01', '12') +

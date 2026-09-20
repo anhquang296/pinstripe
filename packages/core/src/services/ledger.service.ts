@@ -88,7 +88,9 @@ export class LedgerService {
     const createdAt = this.fastify.clock.now().toISOString();
     const transactionId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
     const postings = await this.buildPostings(transactionId, payload, createdAt);
+
     const { effectiveAt: requestedEffectiveAt, metadata = {} } = payload;
+
     const effectiveAt = requestedEffectiveAt
       ? new Date(requestedEffectiveAt).toISOString()
       : createdAt;
@@ -109,6 +111,7 @@ export class LedgerService {
       DomainEventTypeEnum.LEDGER_TRANSACTION_POSTED,
       executor,
     );
+
     const accountCodesById = await this.resolveAccountCodes(postings);
 
     return LedgerService.buildTransaction(postedTransaction, postings, accountCodesById);
@@ -126,7 +129,9 @@ export class LedgerService {
     query: FindLedgerTransactionsQuery,
   ): Promise<ListResponse<LedgerTransactionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const accountId = await this.resolveAccountFilter(query);
+
     const transactionRows = await this.fastify.ledgerTransactionRepository.findLedgerTransactions(
       {
         accountId,
@@ -135,12 +140,16 @@ export class LedgerService {
       },
       limit + 1,
     );
+
     const hasMore = transactionRows.length > limit;
     const page = _.take(transactionRows, limit);
+
     const postings = await this.fastify.ledgerTransactionRepository.findLedgerPostings(
       _.map(page, 'id'),
     );
+
     const accountCodesById = await this.resolveAccountCodes(postings);
+
     const transactions = _.map(page, (transaction) => {
       return LedgerService.buildTransaction(
         transaction,
@@ -162,10 +171,12 @@ export class LedgerService {
 
   async findAccounts(query: FindLedgerAccountsQuery): Promise<ListResponse<LedgerAccountResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const accountRows = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
       { code: query.code, customerId: query.customerId },
       limit + 1,
     );
+
     const hasMore = accountRows.length > limit;
 
     return {
@@ -190,8 +201,10 @@ export class LedgerService {
     const originalPostings = await this.fastify.ledgerTransactionRepository.findLedgerPostings([
       id,
     ]);
+
     const reversedAt = this.fastify.clock.now().toISOString();
     const reversalId = generateGid(ObjectPrefixEnum.LEDGER_TRANSACTION);
+
     const postings: PostedLedgerPosting[] = _.map(originalPostings, (posting) => {
       const direction =
         posting.direction === PostingDirectionEnum.DEBIT
@@ -399,6 +412,7 @@ export class LedgerService {
     postings: readonly (LedgerPosting | NewLedgerPosting)[],
   ): Promise<Record<string, LedgerAccountCode>> {
     const accountIds = _.uniq(_.map(postings, 'accountId'));
+
     const accounts = await this.fastify.ledgerAccountRepository.findLedgerAccounts(
       { ids: accountIds },
       accountIds.length || SINGLE_ROW_LIMIT,
@@ -435,6 +449,7 @@ export class LedgerService {
     const debits = _(payload.entries)
       .filter({ direction: PostingDirectionEnum.DEBIT })
       .sumBy('amount');
+
     const credits = _(payload.entries)
       .filter({ direction: PostingDirectionEnum.CREDIT })
       .sumBy('amount');

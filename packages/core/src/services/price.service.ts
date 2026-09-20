@@ -58,12 +58,14 @@ export class PriceService {
     now: string,
   ): Promise<Price> {
     const effectiveAt = PriceService.resolveEffectiveAt(payload.effectiveAt, now);
+
     const {
       nickname = '',
       taxBehavior = TaxBehaviorEnum.UNSPECIFIED,
       metadata = {},
       recurring,
     } = payload;
+
     const type = recurring ? PriceTypeEnum.RECURRING : PriceTypeEnum.ONE_TIME;
     const recurringColumns = PriceService.buildRecurringColumns(recurring);
 
@@ -185,8 +187,10 @@ export class PriceService {
 
   async findPrices(query: FindPricesQuery): Promise<ListResponse<PriceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.priceRepository.findPrices(
       {
         productId: query.productId,
@@ -197,6 +201,7 @@ export class PriceService {
       },
       limit + 1,
     );
+
     const hasMore = rows.length > limit;
 
     return {

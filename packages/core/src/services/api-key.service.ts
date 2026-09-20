@@ -87,7 +87,9 @@ export class ApiKeyService {
     const apiKey = await this.fastify.apiKeyRepository.getApiKey(id);
 
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const { revokedAt: currentRevokedAt } = apiKey;
+
     const revokedAt = currentRevokedAt === null ? updatedAt : currentRevokedAt;
 
     const revokedApiKey = await this.fastify.apiKeyRepository.updateApiKey(apiKey.id, {

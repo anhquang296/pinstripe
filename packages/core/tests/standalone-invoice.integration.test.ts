@@ -7,6 +7,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+
 let fastify: FastifyInstance;
 
 beforeAll(async () => {
@@ -102,6 +103,7 @@ it('balances the ledger when a credit balance pays part of an invoice', async ()
     CurrencyEnum.VND,
     customerId,
   );
+
   const consumed = await fastify.ledgerService.ensureAccount(
     LedgerAccountCodeEnum.CUSTOMER_CREDIT_BALANCE,
     CurrencyEnum.VND,

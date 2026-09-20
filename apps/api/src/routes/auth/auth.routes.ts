@@ -128,6 +128,7 @@ function readAuthError(text: string): { code?: string; message?: string } {
 
 function throwAuthError(statusCode: number, text: string): never {
   const { code, message = DEFAULT_AUTH_ERROR_MESSAGE } = readAuthError(text);
+
   const fallbackClass = statusCode < SERVER_ERROR_STATUS_MIN ? BadRequestError : InternalError;
   const AuthError = _.get(AUTH_ERROR_CLASSES, statusCode, fallbackClass);
 
@@ -164,6 +165,7 @@ async function replyWithSession(
   const { authSession, cookies } = await fastify.betterAuth.findActiveSession(
     buildForwardHeaders(request),
   );
+
   const body = authSession ? _.omit(authSession, SESSION_TOKEN_PATHS) : null;
 
   setAuthCookies(reply, cookies);
@@ -204,6 +206,7 @@ async function replyWithAuthResponse(
 export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.all('/*', async (request, reply) => {
     const path = readAuthPath(request);
+
     const { baseUrl } = fastify.betterAuth;
 
     assertAllowedPath(request, path);

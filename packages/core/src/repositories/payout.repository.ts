@@ -70,6 +70,7 @@ export class PayoutRepository {
 
   async createPayout(payload: NewPayout, executor?: DatabaseTransaction): Promise<Payout | null> {
     const db = executor ?? this._db.master;
+
     const [payout] = await db.insert(payouts).values(payload).returning();
 
     return payout ?? null;
@@ -81,6 +82,7 @@ export class PayoutRepository {
     executor?: DatabaseTransaction,
   ): Promise<Payout | null> {
     const db = executor ?? this._db.master;
+
     const [payout] = await db.update(payouts).set(payload).where(eq(payouts.id, id)).returning();
 
     return payout ?? null;

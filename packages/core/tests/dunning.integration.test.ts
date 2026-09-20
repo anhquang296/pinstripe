@@ -71,6 +71,7 @@ async function readOnlyDeliveryId(endpointId: string): Promise<string> {
 
 async function readDueAt(invoiceId: string): Promise<Date> {
   const invoice = await readInvoiceRow(invoiceId);
+
   const { dueAt } = invoice;
 
   if (dueAt) {
@@ -126,6 +127,7 @@ describe('DunningService.runDunningShard', () => {
       ...SHARD_JOB,
       runAt: afterDue.toISOString(),
     });
+
     const secondRun = await fastify.dunningService.runDunningShard({
       ...SHARD_JOB,
       runAt: new Date(
@@ -136,6 +138,7 @@ describe('DunningService.runDunningShard', () => {
     await fastify.paymentService.drainProviderEvents();
 
     const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
+
     const charges = await fastify.paymentIntentRepository.findCharges({
       paymentIntentIds: _.map(intents, 'id'),
     });
@@ -162,7 +165,9 @@ describe('DunningService.runDunningShard', () => {
 
       await runShard(new Date(dueAt.getTime() + MILLISECONDS_PER_DAY));
       const retried = await readInvoiceRow(invoiceId);
+
       const { nextAttemptAt } = retried;
+
       const delayMs = (nextAttemptAt ? Date.parse(nextAttemptAt) : 0) - failedAt;
 
       expect(retried.status).toBe(InvoiceStatusEnum.OPEN);
@@ -197,12 +202,14 @@ describe('DunningService.runDunningShard', () => {
       await runShard(runAt);
 
       const { nextAttemptAt } = await readInvoiceRow(invoiceId);
+
       const retryAt = nextAttemptAt ? new Date(nextAttemptAt) : runAt;
 
       runAt = new Date(retryAt.getTime() + MILLISECONDS_PER_DAY);
     }
 
     const intents = await fastify.paymentIntentRepository.findPaymentIntents({ invoiceId });
+
     const charges = await fastify.paymentIntentRepository.findCharges({
       paymentIntentIds: _.map(intents, 'id'),
     });
@@ -222,6 +229,7 @@ describe('DunningService.runDunningShard', () => {
       await runShard(runAt);
 
       const { nextAttemptAt } = await readInvoiceRow(invoiceId);
+
       const retryAt = nextAttemptAt ? new Date(nextAttemptAt) : runAt;
 
       runAt = new Date(retryAt.getTime() + MILLISECONDS_PER_DAY);
@@ -268,10 +276,12 @@ describe('WebhookService.createWebhookEndpoint', () => {
 describe('WebhookService.handleDomainEvent', () => {
   it('queues a delivery only for endpoints subscribed to that event', async () => {
     const eventId = generateGid(ObjectPrefixEnum.EVENT);
+
     const subscribed = await fastify.webhookService.createWebhookEndpoint({
       url: 'https://example.test/subscribed',
       enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
     });
+
     await fastify.webhookService.createWebhookEndpoint({
       url: 'https://example.test/uninterested',
       enabledEvents: [DomainEventTypeEnum.CUSTOMER_CREATED],
@@ -338,6 +348,7 @@ describe('WebhookService.handleDomainEvent', () => {
 
     const deliveryId = await readOnlyDeliveryId(created.id);
     const attempt = await fastify.webhookService.resolveDeliveryAttempt(deliveryId);
+
     const { secret } = created;
 
     expect(secret).not.toBeNull();
@@ -347,6 +358,7 @@ describe('WebhookService.handleDomainEvent', () => {
 
   it('carries the event id so a receiver can drop a repeat', async () => {
     const eventId = generateGid(ObjectPrefixEnum.EVENT);
+
     const created = await fastify.webhookService.createWebhookEndpoint({
       url: 'https://example.test/idempotent',
       enabledEvents: [DomainEventTypeEnum.REFUND_CREATED],

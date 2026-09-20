@@ -59,6 +59,7 @@ export class CreditNoteService {
     const id = generateGid(ObjectPrefixEnum.CREDIT_NOTE);
     const refundPayload = await this.requestRefund(invoice, split, payload.reason, id);
     const now = this.fastify.clock.now().toISOString();
+
     const { metadata = {} } = payload;
 
     const createdCreditNote = await this.fastify.database.master.transaction(async (tx) => {
@@ -72,6 +73,7 @@ export class CreditNoteService {
       }
 
       const ledgerTransactionId = await this.postCredit(invoice, split, id, tx);
+
       const creditNote = await this.fastify.creditNoteRepository.createCreditNote(
         {
           id,
@@ -173,6 +175,7 @@ export class CreditNoteService {
 
   async getCreditNote(id: string): Promise<CreditNoteResponse> {
     const creditNote = await this.fastify.creditNoteRepository.getCreditNote(id);
+
     const [built] = await this.buildCreditNotes([creditNote]);
 
     if (built) {
@@ -184,8 +187,10 @@ export class CreditNoteService {
 
   async findCreditNotes(query: FindCreditNotesQuery): Promise<ListResponse<CreditNoteResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.creditNoteRepository.findCreditNotes(
       { invoiceId: query.invoiceId, customerId: query.customerId, beforeAt, afterAt },
       limit + 1,
@@ -202,6 +207,7 @@ export class CreditNoteService {
     const transitions = await this.fastify.creditNoteRepository.findCreditNoteTransitions([
       creditNoteId,
     ]);
+
     const [latest] = transitions;
 
     return CreditNoteService.readStatus(latest);
@@ -212,7 +218,9 @@ export class CreditNoteService {
     payload: CreateCreditNotePayload,
   ): Promise<CreditNoteSplit> {
     const amount = _.sumBy(payload.lines, 'amount');
+
     const { refundAmount = 0, outOfBandAmount = 0 } = payload;
+
     const creditedAmount = await this.resolveCreditedAmount(invoice.id);
     const isPostPayment = invoice.amountPaid > 0;
 
@@ -290,6 +298,7 @@ export class CreditNoteService {
 
   private async resolveSettledCharge(invoice: Invoice) {
     const invoicePayments = await this.fastify.invoiceRepository.findInvoicePayments([invoice.id]);
+
     const chargeId = _(invoicePayments)
       .map('chargeId')
       .filter((candidate): candidate is string => {
@@ -339,6 +348,7 @@ export class CreditNoteService {
       creditNote.customerId,
       tx,
     );
+
     const endingBalance = customer.balance - creditNote.creditAmount;
 
     await this.fastify.customerRepository.updateCustomer(
@@ -415,9 +425,12 @@ export class CreditNoteService {
   ): Promise<CreditNoteResponse[]> {
     const creditNoteIds = _.map(creditNotes, 'id');
     const lines = await this.fastify.creditNoteRepository.findCreditNoteLineItems(creditNoteIds);
+
     const transitions =
       await this.fastify.creditNoteRepository.findCreditNoteTransitions(creditNoteIds);
+
     const linesByCreditNoteId = _.groupBy(lines, 'creditNoteId');
+
     const latestByCreditNoteId = _.keyBy(
       _.orderBy(transitions, ['occurredAt', 'id'], ['asc', 'asc']),
       'creditNoteId',
@@ -426,6 +439,7 @@ export class CreditNoteService {
     return _.map(creditNotes, (creditNote) => {
       const latest = latestByCreditNoteId[creditNote.id];
       const status = CreditNoteService.readStatus(latest);
+
       const voidedAt =
         status === CreditNoteStatusEnum.VOID ? _.get(latest, 'occurredAt', null) : null;
 

@@ -12,6 +12,7 @@ function setup(overrides: { body?: string; signedAt?: Date; secret?: string } = 
     secret = SECRET,
     signedAt = new Date(),
   } = overrides;
+
   const signatureHeader = buildWebhookSignature(rawBody, secret, signedAt);
 
   return { rawBody, signatureHeader };

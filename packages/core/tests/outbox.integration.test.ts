@@ -40,6 +40,7 @@ async function waitForPublished(eventId: string): Promise<string | undefined> {
 describe('OutboxService.relayOutboxEvents', () => {
   it('publishes a recorded event and leaves nothing claimable behind', async () => {
     const aggregateId = generateGid(ObjectPrefixEnum.CUSTOMER);
+
     const [eventId = ''] = await fastify.outboxService.recordEvents([
       {
         aggregateType: 'customer',

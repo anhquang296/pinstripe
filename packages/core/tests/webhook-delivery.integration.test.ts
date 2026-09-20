@@ -46,6 +46,7 @@ async function makeDelivery(): Promise<string> {
 
 it('marks a delivery exhausted once it burns through the attempt budget', async () => {
   const deliveryId = await makeDelivery();
+
   const { webhookMaxAttempts } = fastify.workflowSchedules;
 
   await fastify.webhookService.recordDeliveryResult(deliveryId, {
@@ -92,6 +93,7 @@ it('refuses to replay a delivery that is still pending', async () => {
 
 it('stops delivering to one endpoint once it is over its rate limit', async () => {
   const deliveryId = await makeDelivery();
+
   const { webhookEndpointRateLimit } = fastify.workflowSchedules;
 
   for (const _attempt of _.range(webhookEndpointRateLimit)) {

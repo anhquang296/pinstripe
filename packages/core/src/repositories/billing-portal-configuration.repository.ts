@@ -72,6 +72,7 @@ export class BillingPortalConfigurationRepository {
     executor?: DatabaseTransaction,
   ): Promise<BillingPortalConfiguration | null> {
     const db = executor ?? this._db.master;
+
     const [configuration] = await db
       .insert(billingPortalConfigurations)
       .values(payload)
@@ -86,6 +87,7 @@ export class BillingPortalConfigurationRepository {
     executor?: DatabaseTransaction,
   ): Promise<BillingPortalConfiguration | null> {
     const db = executor ?? this._db.master;
+
     const [configuration] = await db
       .update(billingPortalConfigurations)
       .set(payload)

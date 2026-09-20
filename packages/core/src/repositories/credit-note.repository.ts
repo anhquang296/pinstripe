@@ -97,6 +97,7 @@ export class CreditNoteRepository {
     executor?: DatabaseTransaction,
   ): Promise<CreditNote | null> {
     const db = executor ?? this._db.master;
+
     const [creditNote] = await db.insert(creditNotes).values(payload).returning();
 
     if (creditNote && !_.isEmpty(lines)) {
@@ -123,6 +124,7 @@ export class CreditNoteRepository {
     executor?: DatabaseTransaction,
   ): Promise<CreditNoteTransition | null> {
     const db = executor ?? this._db.master;
+
     const [transition] = await db.insert(creditNoteTransitions).values(payload).returning();
 
     return transition ?? null;

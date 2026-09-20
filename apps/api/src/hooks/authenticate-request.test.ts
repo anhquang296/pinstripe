@@ -41,6 +41,7 @@ function setup(overrides: SetupOverrides = {}) {
   } = overrides;
 
   const findActiveSession = vi.fn().mockResolvedValue({ authSession, cookies });
+
   const authenticateApiKey = vi
     .fn()
     .mockResolvedValue({ apiKeyId: 'key_1', type: ApiKeyTypeEnum.SECRET, scopes });
@@ -105,6 +106,7 @@ it('builds an actor from the session cookie of a GET request', async () => {
 
 it('sets the refreshed session cookie on the reply when the session is refreshed', async () => {
   const refreshedCookie = 'pinstripe.session_token=token.signature; Max-Age=3600; Path=/';
+
   const { request, reply, header } = setup({
     headers: { cookie: SESSION_COOKIE },
     cookies: [refreshedCookie],

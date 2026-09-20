@@ -14,6 +14,7 @@ interface RequestOverrides {
 
 function buildRequest(method: string, path: string, overrides: RequestOverrides = {}) {
   const { headers = {}, body, sessionKey } = overrides;
+
   const requestHeaders = new Headers({ host: 'portal.test', ...headers });
 
   if (sessionKey) {
@@ -56,6 +57,7 @@ it('refuses a path outside the allowlist without calling the API', async () => {
 
 it('refuses a mutating request whose origin is not the portal', async () => {
   const { fetchMock } = setup();
+
   const request = buildRequest('POST', 'links', {
     headers: { origin: 'http://attacker.test' },
     body: { email: 'ketoan@nhaxe.vn' },
@@ -69,6 +71,7 @@ it('refuses a mutating request whose origin is not the portal', async () => {
 
 it('sends a link request with the portal key and the end-user address', async () => {
   const { fetchMock } = setup(Response.json({ linkExpiresAt: '2026-09-19T08:00:00.000Z' }));
+
   const request = buildRequest('POST', 'links', {
     headers: { origin: PORTAL_ORIGIN, 'x-forwarded-for': '203.0.113.7, 10.0.0.1' },
     body: { email: 'ketoan@nhaxe.vn' },
@@ -103,6 +106,7 @@ it('keeps the session key in an httpOnly cookie and out of the response body', a
       { status: 201 },
     ),
   );
+
   const request = buildRequest('POST', 'sessions', {
     headers: { origin: PORTAL_ORIGIN },
     body: { linkKey: 'one-time-link-key-value' },
@@ -168,6 +172,7 @@ it.each([
 
 it('switches the operator with the session cookie, and only from the portal itself', async () => {
   const { fetchMock } = setup(Response.json({ id: 'ps_1', customerId: 'cus_2' }));
+
   const payload = { customerId: 'cus_2' };
 
   const switched = await handlePortalBffRequest(
@@ -178,6 +183,7 @@ it('switches the operator with the session cookie, and only from the portal itse
     }),
     ['sessions', 'current'],
   );
+
   const forged = await handlePortalBffRequest(
     buildRequest('POST', 'sessions/current', {
       headers: { origin: 'http://attacker.test' },
@@ -212,6 +218,7 @@ it('refuses an invoice path that is not an id', async () => {
 
 it('passes an invoice pdf through byte for byte with its download name', async () => {
   const pdfBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0xe2, 0x00, 0xff]);
+
   setup(
     new Response(pdfBytes, {
       headers: {
@@ -245,6 +252,7 @@ it('drops the session cookie when the API no longer accepts the session', async 
 
 it('drops the session cookie once the customer signs out', async () => {
   setup(Response.json({ id: 'ps_1', status: 'revoked' }));
+
   const request = buildRequest('DELETE', 'sessions', {
     headers: { origin: PORTAL_ORIGIN },
     sessionKey: 'raw-session-key',

@@ -71,6 +71,7 @@ export class PaymentMethodRepository {
     executor?: DatabaseTransaction,
   ): Promise<PaymentMethod | null> {
     const db = executor ?? this._db.master;
+
     const [paymentMethod] = await db.insert(paymentMethods).values(payload).returning();
 
     return paymentMethod ?? null;
@@ -82,6 +83,7 @@ export class PaymentMethodRepository {
     executor?: DatabaseTransaction,
   ): Promise<PaymentMethod | null> {
     const db = executor ?? this._db.master;
+
     const [paymentMethod] = await db
       .update(paymentMethods)
       .set(payload)

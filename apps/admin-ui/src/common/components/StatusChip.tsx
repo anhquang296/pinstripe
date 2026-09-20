@@ -15,6 +15,7 @@ const SUCCESS_STATUSES = [
   'matched',
   'issued',
 ];
+
 const WARNING_STATUSES = [
   'past_due',
   'review',
@@ -28,6 +29,7 @@ const WARNING_STATUSES = [
   'requires_payment_method',
   'requires_capture',
 ];
+
 const DANGER_STATUSES = [
   'overdue',
   'void',

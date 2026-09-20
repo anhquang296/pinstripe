@@ -22,6 +22,7 @@ export class TaxService {
     const taxedLines = _.map(lines, (line) => {
       return { ...line, taxAmounts: [...line.taxAmounts] };
     });
+
     const automaticTaxStatus = TaxService.resolveAutomaticTaxStatus(invoice, customer);
 
     if (_.isEmpty(taxedLines)) {

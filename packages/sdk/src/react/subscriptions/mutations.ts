@@ -18,7 +18,9 @@ export function useCreateSubscriptionMutation({
   successMessage,
 }: MutationProps<SubscriptionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -38,7 +40,9 @@ export function useUpdateSubscriptionMutation({
   successMessage,
 }: MutationProps<SubscriptionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -61,7 +65,9 @@ export function useCancelSubscriptionMutation({
   successMessage,
 }: MutationProps<SubscriptionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -80,6 +86,7 @@ export function useCancelSubscriptionMutation({
 
 function useSubscriptionItemInvalidation() {
   const queryClient = useQueryClient();
+
   const { queries } = usePinstripeContext();
 
   return () => {
@@ -96,7 +103,9 @@ export function useCreateSubscriptionItemMutation({
   successMessage,
 }: MutationProps<SubscriptionItemResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useSubscriptionItemInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -115,7 +124,9 @@ export function useUpdateSubscriptionItemMutation({
   successMessage,
 }: MutationProps<SubscriptionItemResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useSubscriptionItemInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -134,7 +145,9 @@ export function useDeleteSubscriptionItemMutation({
   successMessage,
 }: MutationProps<DeletedSubscriptionItemResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useSubscriptionItemInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

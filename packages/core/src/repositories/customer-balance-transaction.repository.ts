@@ -70,6 +70,7 @@ export class CustomerBalanceTransactionRepository {
     executor?: DatabaseTransaction,
   ): Promise<CustomerBalanceTransaction | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [balanceTransaction] = await db
       .insert(customerBalanceTransactions)
       .values(payload)

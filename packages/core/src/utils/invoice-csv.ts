@@ -6,6 +6,7 @@ import _ from 'lodash';
 
 const BYTE_ORDER_MARK = '﻿';
 const LINE_BREAK = '\r\n';
+
 const HEADER = [
   'Số hóa đơn',
   'Kỳ từ',
@@ -48,6 +49,7 @@ function formatCsvAmount(minorAmount: number, invoice: InvoiceResponse): string 
 
 function resolveStatusLabel(invoice: InvoiceResponse, now: Date): string {
   const { dueAt } = invoice;
+
   const isOverdue =
     invoice.status === InvoiceStatusEnum.OPEN && dueAt !== null && new Date(dueAt) < now;
 

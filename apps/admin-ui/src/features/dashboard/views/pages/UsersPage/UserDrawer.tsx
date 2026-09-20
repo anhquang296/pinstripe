@@ -27,6 +27,7 @@ export default function UserDrawer({ userId, onClose }: UserDrawerProps) {
   const canManage = useCan(PermissionEnum.USER_MANAGE);
 
   const { data: user } = useUserQuery(userId);
+
   const { mutateAsync: updateUser, isPending: isSaving } = useUpdateUserMutation({
     successMessage: 'Đã đặt lại mật khẩu.',
   });

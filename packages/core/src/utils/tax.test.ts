@@ -56,6 +56,7 @@ describe('buildLineTaxAmounts', () => {
     ];
 
     const result = buildLineTaxAmounts(1_000_001, snapshots, CurrencyEnum.VND);
+
     const combined = buildLineTaxAmounts(
       1_000_001,
       [makeSnapshot({ taxRateId: 'txr_both', percentage: 10, isInclusive: true })],

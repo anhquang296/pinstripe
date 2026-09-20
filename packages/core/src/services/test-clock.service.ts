@@ -54,6 +54,7 @@ export class TestClockService {
 
   async findTestClocks(query: FindTestClocksQuery): Promise<ListResponse<TestClockResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const rows = await this.fastify.testClockRepository.findTestClocks(
       {
         beforeAt: await this.resolveCursor(query.after),
@@ -61,6 +62,7 @@ export class TestClockService {
       },
       limit + 1,
     );
+
     const hasMore = rows.length > limit;
 
     return {

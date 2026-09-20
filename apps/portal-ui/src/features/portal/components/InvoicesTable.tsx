@@ -22,6 +22,7 @@ interface InvoicesTableProps {
 
 function renderDueDate(invoice: InvoiceResponse) {
   const { dueAt } = invoice;
+
   const overdueDays = resolveOverdueDays(invoice, new Date());
 
   if (dueAt && overdueDays > 0) {

@@ -18,6 +18,7 @@ export default function OverviewPage() {
   const reportWindow = useReportWindow(WINDOW_DAYS);
 
   const { data: revenue } = useRevenueSummaryQuery(reportWindow);
+
   const { data: reconciliation } = useReconciliationReportQuery(reportWindow);
 
   const currency = get(revenue, 'currency', CurrencyEnum.VND);

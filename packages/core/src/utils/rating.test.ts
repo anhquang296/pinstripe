@@ -148,6 +148,7 @@ describe('ratePrice graduated tiers', () => {
     const totals = _.map(_.range(0, 1_500, 37), (quantity) => {
       return ratePrice(graduated, quantity).amount;
     });
+
     const isMonotonic = _.every(totals, (total, index) => {
       const previousTotal = _.get(totals, index - 1, 0);
 
@@ -391,6 +392,7 @@ describe('rateLines', () => {
 
   it('nets a mid-cycle upgrade down to the difference between the two plans', () => {
     const switchedAt = new Date('2026-01-16T12:00:00.000Z');
+
     const lines = [
       makeLine({
         price: makePrice({ id: 'price_old', unitAmount: 62_000 }),

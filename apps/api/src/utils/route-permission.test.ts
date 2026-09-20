@@ -62,6 +62,7 @@ describe('resolveOperationPermission', () => {
 
   it('resolves a permission for every operation id in the published spec', () => {
     const operationIds = readSpecOperationIds();
+
     const unmappedOperationIds = _.reject(operationIds, (operationId) => {
       return Boolean(resolveOperationPermission(operationId));
     });

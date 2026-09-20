@@ -15,15 +15,19 @@ export const hostedPaymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastif
     { schema: { params: paymentLinkParamsSchema, querystring: hostedPaymentLinkQuerySchema } },
     async (request, reply) => {
       const { paymentLinkId } = request.params;
+
       const { token, customerId } = request.query;
+
       const paymentLink = await fastify.paymentLinkService.getHostedPaymentLink(
         paymentLinkId,
         token,
       );
+
       const checkoutSession = await fastify.checkoutService.createPaymentLinkCheckoutSession(
         paymentLink.id,
         customerId,
       );
+
       const { url } = checkoutSession;
 
       if (url) {

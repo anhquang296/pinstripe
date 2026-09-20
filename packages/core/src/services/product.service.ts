@@ -19,6 +19,7 @@ export class ProductService {
   async createProduct(payload: CreateProductPayload): Promise<ProductResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.PRODUCT);
+
     const { description = '', active = true, unitLabel = '', metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -92,12 +93,15 @@ export class ProductService {
 
   async findProducts(query: FindProductsQuery): Promise<ListResponse<ProductResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.productRepository.findProducts(
       { active: query.active, beforeAt, afterAt },
       limit + 1,
     );
+
     const hasMore = rows.length > limit;
 
     return {

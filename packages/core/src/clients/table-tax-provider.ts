@@ -42,9 +42,11 @@ export class TableTaxProvider implements TaxProvider {
     return _(draft.lines)
       .map((line) => {
         const rates = TableTaxProvider.resolveLineRates(line, explicitRateById, jurisdictionRates);
+
         const snapshots = _.map(rates, (rate) => {
           return TableTaxProvider.buildSnapshot(rate, line.taxBehavior);
         });
+
         const taxAmounts = buildLineTaxAmounts(line.taxableAmount, snapshots, draft.currency);
 
         return { reference: line.reference, taxAmounts };

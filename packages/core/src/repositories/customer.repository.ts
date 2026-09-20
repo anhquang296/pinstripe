@@ -84,6 +84,7 @@ export class CustomerRepository {
     executor?: DatabaseTransaction,
   ): Promise<Customer | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [customer] = await db.insert(customers).values(payload).returning();
 
     return customer ?? null;
@@ -95,6 +96,7 @@ export class CustomerRepository {
     executor?: DatabaseTransaction,
   ): Promise<Customer | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [customer] = await db
       .update(customers)
       .set(payload)

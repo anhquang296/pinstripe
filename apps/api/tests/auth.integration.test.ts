@@ -92,6 +92,7 @@ describe('scope enforcement', () => {
     const headers = buildAuthHeaders(apiKey.token);
 
     const v1Response = await fastify.inject({ method: 'GET', url: '/v1/ping', headers });
+
     const adminResponse = await fastify.inject({
       method: 'GET',
       url: '/api/v1/admin/ping',
@@ -112,11 +113,13 @@ describe('bootstrap keys from the environment', () => {
       url: '/v1/ping',
       headers: buildAuthHeaders(SECRET_API_KEY),
     });
+
     const adminResponse = await fastify.inject({
       method: 'GET',
       url: '/api/v1/admin/ping',
       headers: buildAuthHeaders(ADMIN_API_KEY),
     });
+
     const crossSurfaceResponse = await fastify.inject({
       method: 'GET',
       url: '/api/v1/admin/ping',
@@ -150,6 +153,7 @@ describe('platform envelope', () => {
       url: '/v1/ping',
       headers: buildAuthHeaders(apiKey.token),
     });
+
     const second = await fastify.inject({
       method: 'GET',
       url: '/v1/ping',

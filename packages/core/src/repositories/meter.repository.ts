@@ -64,6 +64,7 @@ export class MeterRepository {
 
   async createMeter(payload: NewMeter, executor?: DatabaseTransaction): Promise<Meter | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [meter] = await db.insert(meters).values(payload).returning();
 
     return meter ?? null;
@@ -75,6 +76,7 @@ export class MeterRepository {
     executor?: DatabaseTransaction,
   ): Promise<Meter | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [meter] = await db
       .update(meters)
       .set(payload)

@@ -28,12 +28,14 @@ export class PayoutService {
   async createPayout(payload: CreatePayoutPayload): Promise<PayoutResponse> {
     const now = this.fastify.clock.now();
     const createdAt = now.toISOString();
+
     const sweepable =
       await this.fastify.balanceTransactionRepository.findSweepableBalanceTransactions(
         payload.currency,
         createdAt,
         SWEEP_LIMIT,
       );
+
     const amount = _.sumBy(sweepable, 'net');
 
     if (amount <= 0) {
@@ -43,6 +45,7 @@ export class PayoutService {
     }
 
     const id = generateGid(ObjectPrefixEnum.PAYOUT);
+
     const pspPayout = await this.fastify.psp.createPayout({
       amount,
       currency: payload.currency,
@@ -102,8 +105,10 @@ export class PayoutService {
 
   async findPayouts(query: FindPayoutsQuery): Promise<ListResponse<PayoutResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.payoutRepository.findPayouts(
       { status: query.status, beforeAt, afterAt },
       limit + 1,

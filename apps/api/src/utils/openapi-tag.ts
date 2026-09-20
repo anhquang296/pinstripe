@@ -6,6 +6,7 @@ export function tagRouteByPrefix(
   surfacePrefix: string,
 ): void {
   const { prefix, schema } = routeOptions;
+
   const resourcePath = prefix.slice(surfacePrefix.length);
 
   if (schema && resourcePath) {

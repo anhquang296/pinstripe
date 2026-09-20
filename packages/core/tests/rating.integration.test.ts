@@ -18,9 +18,11 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildTestContext } from './context';
 
 const CLOCK_START_DAYS_AGO = 2;
+
 const CLOCK_START = new Date(
   Date.now() - CLOCK_START_DAYS_AGO * MILLISECONDS_PER_DAY,
 ).toISOString();
+
 const BASE_AMOUNT = 500_000;
 const SWAP_MID_CLOCK = new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString();
 const SWAP_PERIOD_START = '2026-03-01T00:00:00.000Z';
@@ -51,6 +53,7 @@ async function makeCustomer(): Promise<{ customerId: string; clockId: string }> 
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
+
   const customer = await fastify.customerService.createCustomer({
     email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
@@ -62,12 +65,14 @@ async function makeCustomer(): Promise<{ customerId: string; clockId: string }> 
 
 async function makeMeteredPrice(): Promise<{ priceId: string; eventName: string }> {
   const productId = await makeProduct();
+
   const meter = await fastify.meterService.createMeter({
     displayName: 'Swapped tokens',
     eventName: `swapped_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
     aggregation: MeterAggregationEnum.SUM,
     valueKey: 'tokens',
   });
+
   const price = await fastify.priceService.createPrice({
     productId,
     currency: CurrencyEnum.VND,
@@ -92,24 +97,29 @@ async function makeSwapScenario(): Promise<SwapScenario> {
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: SWAP_PERIOD_START,
   });
+
   const customer = await fastify.customerService.createCustomer({
     email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
     testClockId: clock.id,
   });
+
   const productId = await makeProduct();
+
   const oldPrice = await fastify.priceService.createPrice({
     productId,
     currency: CurrencyEnum.VND,
     unitAmount: OLD_AMOUNT,
     recurring: { interval: RecurringIntervalEnum.MONTH },
   });
+
   const newPrice = await fastify.priceService.createPrice({
     productId,
     currency: CurrencyEnum.VND,
     unitAmount: NEW_AMOUNT,
     recurring: { interval: RecurringIntervalEnum.MONTH },
   });
+
   const subscription = await fastify.subscriptionService.createSubscription({
     customerId: customer.id,
     items: [{ priceId: oldPrice.id }],
@@ -128,13 +138,16 @@ async function makeSwapScenario(): Promise<SwapScenario> {
 describe('RatingService.rateUpcomingInvoice', () => {
   it('rates a licensed subscription at the unit amount times its quantity', async () => {
     const { customerId } = await makeCustomer();
+
     const productId = await makeProduct();
+
     const price = await fastify.priceService.createPrice({
       productId,
       currency: CurrencyEnum.VND,
       unitAmount: BASE_AMOUNT,
       recurring: { interval: RecurringIntervalEnum.MONTH },
     });
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId: price.id, quantity: 3 }],
@@ -148,13 +161,16 @@ describe('RatingService.rateUpcomingInvoice', () => {
 
   it('rates a metered subscription from the usage recorded inside the period', async () => {
     const { customerId } = await makeCustomer();
+
     const productId = await makeProduct();
+
     const meter = await fastify.meterService.createMeter({
       displayName: 'Rated tokens',
       eventName: `rated_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
       aggregation: MeterAggregationEnum.SUM,
       valueKey: 'tokens',
     });
+
     const price = await fastify.priceService.createPrice({
       productId,
       currency: CurrencyEnum.VND,
@@ -162,6 +178,7 @@ describe('RatingService.rateUpcomingInvoice', () => {
       meterId: meter.id,
       recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
     });
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId: price.id }],
@@ -182,13 +199,16 @@ describe('RatingService.rateUpcomingInvoice', () => {
 
   it('rates a metered subscription with no usage as zero', async () => {
     const { customerId } = await makeCustomer();
+
     const productId = await makeProduct();
+
     const meter = await fastify.meterService.createMeter({
       displayName: 'Idle tokens',
       eventName: `idle_tokens_${generateGid(ObjectPrefixEnum.METER)}`,
       aggregation: MeterAggregationEnum.SUM,
       valueKey: 'tokens',
     });
+
     const price = await fastify.priceService.createPrice({
       productId,
       currency: CurrencyEnum.VND,
@@ -201,6 +221,7 @@ describe('RatingService.rateUpcomingInvoice', () => {
       meterId: meter.id,
       recurring: { interval: RecurringIntervalEnum.MONTH, usageType: UsageTypeEnum.METERED },
     });
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId: price.id }],
@@ -230,6 +251,7 @@ describe('PriceService.createPrice metered shape', () => {
 
   it('rejects a licensed price that names a meter it will never read', async () => {
     const productId = await makeProduct();
+
     const meter = await fastify.meterService.createMeter({
       displayName: 'Unused meter',
       eventName: `unused_${generateGid(ObjectPrefixEnum.METER)}`,
@@ -335,7 +357,9 @@ describe('RatingService proration', () => {
 
   it('keeps a metered line at a proration factor of one so usage is never divided twice', async () => {
     const { customerId, clockId } = await makeCustomer();
+
     const meteredPrice = await makeMeteredPrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId: meteredPrice.priceId }],
@@ -361,8 +385,10 @@ describe('RatingService proration', () => {
 
   it('drops the removed metered item usage when the replacement measures a different meter', async () => {
     const { customerId, clockId } = await makeCustomer();
+
     const oldMeteredPrice = await makeMeteredPrice();
     const newMeteredPrice = await makeMeteredPrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId: oldMeteredPrice.priceId }],

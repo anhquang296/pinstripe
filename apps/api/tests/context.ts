@@ -22,6 +22,7 @@ export async function mintApiKey(
   overrides: { type?: ApiKeyType } = {},
 ): Promise<MintedApiKey> {
   const { type = ApiKeyTypeEnum.SECRET } = overrides;
+
   const apiKey = await fastify.apiKeyService.createApiKey({
     name: `test ${scopes.join('-')}`,
     type,

@@ -71,6 +71,7 @@ export class SetupIntentRepository {
     executor?: DatabaseTransaction,
   ): Promise<SetupIntent | null> {
     const db = executor ?? this._db.master;
+
     const [setupIntent] = await db.insert(setupIntents).values(payload).returning();
 
     return setupIntent ?? null;
@@ -82,6 +83,7 @@ export class SetupIntentRepository {
     executor?: DatabaseTransaction,
   ): Promise<SetupIntent | null> {
     const db = executor ?? this._db.master;
+
     const [setupIntent] = await db
       .update(setupIntents)
       .set(payload)

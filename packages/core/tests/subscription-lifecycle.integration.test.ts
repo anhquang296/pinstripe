@@ -45,6 +45,7 @@ async function makePrice(): Promise<string> {
   const product = await fastify.productService.createProduct({
     name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -86,6 +87,7 @@ async function readEntitlementStatus(subscriptionId: string, customerId: string)
   await fastify.entitlementService.handleSubscriptionChanged(subscriptionId);
 
   const { data } = await fastify.entitlementService.findEntitlements({ customerId });
+
   const [entitlement] = data;
 
   return _.get(entitlement, 'status', EntitlementStatusEnum.REVOKED);
@@ -114,6 +116,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
   it('rolls the period, drafts, finalizes and collects on the real clock alone', async () => {
     const customerId = await makeCustomer({ token: OK_TOKEN });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -136,11 +139,13 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
       billingMode: BillingModeEnum.ARREARS,
     });
+
     const invoicesBefore = await fastify.invoiceRepository.findInvoices({
       subscriptionId: subscription.id,
     });
@@ -148,6 +153,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
     await runBilling(offsetFrom(subscription.currentPeriodEnd, 8 * MILLISECONDS_PER_DAY));
 
     const unchanged = await readSubscription(subscription.id);
+
     const invoicesAfter = await fastify.invoiceRepository.findInvoices({
       subscriptionId: subscription.id,
     });
@@ -159,10 +165,12 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
   it('leaves the first failed collection incomplete and expires it after 23 hours', async () => {
     const customerId = await makeCustomer({ token: DECLINED_TOKEN });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
     });
+
     const collectAt = offsetFrom(subscription.currentPeriodEnd, 8 * MILLISECONDS_PER_DAY);
 
     await runBilling(collectAt);
@@ -185,6 +193,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
   it('moves a subscription that has paid before to past_due and then to unpaid', async () => {
     const customerId = await makeCustomer({ token: OK_TOKEN });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -231,6 +240,7 @@ describe('BillingRunService.runBillingShard without a test clock', () => {
   it('counts a cycle with no payment method on file as a failed collection', async () => {
     const customerId = await makeCustomer();
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -252,6 +262,7 @@ describe('SubscriptionService.updateSubscription pauseCollection', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -287,10 +298,12 @@ describe('SubscriptionService.updateSubscription pauseCollection', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
     });
+
     const resumesAt = offsetFrom(CLOCK_START, 3 * MILLISECONDS_PER_DAY);
 
     await fastify.subscriptionService.updateSubscription(subscription.id, {
@@ -324,6 +337,7 @@ describe('SubscriptionService.updateSubscription pauseCollection', () => {
       const testClockId = await makeTestClock();
       const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
       const priceId = await makePrice();
+
       const subscription = await fastify.subscriptionService.createSubscription({
         customerId,
         items: [{ priceId }],
@@ -348,10 +362,12 @@ describe('SubscriptionService.cancelSubscription cancelAt', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
     });
+
     const cancelAt = offsetFrom(CLOCK_START, 10 * MILLISECONDS_PER_DAY);
 
     const scheduled = await fastify.subscriptionService.cancelSubscription(subscription.id, {
@@ -382,6 +398,7 @@ describe('SubscriptionService trial end behavior', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -403,6 +420,7 @@ describe('SubscriptionService trial end behavior', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -426,6 +444,7 @@ describe('SubscriptionService trial end behavior', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -448,11 +467,14 @@ describe('SubscriptionItemService', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId, quantity: 1 }],
     });
+
     const [item] = subscription.items;
+
     const itemId = _.get(item, 'id', '');
 
     await fastify.testClockService.advanceTestClock(testClockId, {
@@ -462,6 +484,7 @@ describe('SubscriptionItemService', () => {
     const updated = await fastify.subscriptionItemService.updateSubscriptionItem(itemId, {
       quantity: 3,
     });
+
     const changes = await fastify.subscriptionRepository.findSubscriptionItemChanges({
       subscriptionItemIds: [itemId],
     });
@@ -477,6 +500,7 @@ describe('SubscriptionItemService', () => {
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
     const secondPriceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -487,6 +511,7 @@ describe('SubscriptionItemService', () => {
       priceId: secondPriceId,
       quantity: 2,
     });
+
     const afterAdd = await fastify.subscriptionItemService.findSubscriptionItems({
       subscriptionId: subscription.id,
     });
@@ -494,6 +519,7 @@ describe('SubscriptionItemService', () => {
     expect(afterAdd.data).toHaveLength(2);
 
     const deleted = await fastify.subscriptionItemService.deleteSubscriptionItem(added.id, {});
+
     const afterDelete = await fastify.subscriptionItemService.findSubscriptionItems({
       subscriptionId: subscription.id,
     });
@@ -506,10 +532,12 @@ describe('SubscriptionItemService', () => {
     const testClockId = await makeTestClock();
     const customerId = await makeCustomer({ token: OK_TOKEN, testClockId });
     const priceId = await makePrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
     });
+
     const [item] = subscription.items;
 
     const act = fastify.subscriptionItemService.deleteSubscriptionItem(_.get(item, 'id', ''), {});

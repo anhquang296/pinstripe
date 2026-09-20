@@ -33,6 +33,7 @@ export interface UpdateDiscountVariables {
 
 function useDiscountInvalidation() {
   const queryClient = useQueryClient();
+
   const { queries } = usePinstripeContext();
 
   return () => {
@@ -48,7 +49,9 @@ function useDiscountInvalidation() {
 
 export function useCreateCouponMutation({ successMessage }: MutationProps<CouponResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -65,7 +68,9 @@ export function useCreateCouponMutation({ successMessage }: MutationProps<Coupon
 
 export function useUpdateCouponMutation({ successMessage }: MutationProps<CouponResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -84,7 +89,9 @@ export function useDeleteCouponMutation({
   successMessage,
 }: MutationProps<DeletedCouponResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -103,7 +110,9 @@ export function useCreatePromotionCodeMutation({
   successMessage,
 }: MutationProps<PromotionCodeResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -122,7 +131,9 @@ export function useUpdatePromotionCodeMutation({
   successMessage,
 }: MutationProps<PromotionCodeResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -141,7 +152,9 @@ export function useCreateDiscountMutation({
   successMessage,
 }: MutationProps<DiscountResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -160,7 +173,9 @@ export function useUpdateDiscountMutation({
   successMessage,
 }: MutationProps<DiscountResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -179,7 +194,9 @@ export function useDeleteDiscountMutation({
   successMessage,
 }: MutationProps<DeletedDiscountResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useDiscountInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

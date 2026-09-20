@@ -8,7 +8,9 @@ export function useCreateCheckoutSessionMutation({
   successMessage,
 }: MutationProps<CheckoutSessionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

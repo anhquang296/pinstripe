@@ -44,12 +44,15 @@ export default function ProductDrawer({ productId, onClose }: ProductDrawerProps
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: product } = useProductQuery(productId);
+
   const { data: prices } = usePricesQuery({ productId, limit: PAGE_LIMIT });
+
   const { data: meters } = useMetersQuery({ limit: OPTION_LIMIT, status: MeterStatusEnum.ACTIVE });
 
   const { mutateAsync: updateProduct, isPending: isSaving } = useUpdateProductMutation({
     successMessage: 'Đã cập nhật product.',
   });
+
   const { mutateAsync: createPrice, isPending: isCreatingPrice } = useCreatePriceMutation({
     successMessage: 'Đã tạo price.',
   });
@@ -58,6 +61,7 @@ export default function ProductDrawer({ productId, onClose }: ProductDrawerProps
     resolver: productFormResolver,
     defaultValues: productFormDefaultValues,
   });
+
   const priceForm = useForm<PriceFormData>({
     resolver: priceFormResolver,
     defaultValues: { ...priceFormDefaultValues, productId },
@@ -70,6 +74,7 @@ export default function ProductDrawer({ productId, onClose }: ProductDrawerProps
   }, [product, productForm]);
 
   const productOptions = [{ value: productId, label: get(product, 'name', productId) }];
+
   const meterOptions = map(get(meters, 'data', []), (meter) => {
     return { value: meter.id, label: `${meter.displayName} (${meter.eventName})` };
   });

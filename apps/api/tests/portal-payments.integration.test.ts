@@ -36,13 +36,16 @@ async function makePortalCustomer(
   metadata: Record<string, string> = {},
 ): Promise<{ customerId: string; headers: Record<string, string> }> {
   const email = `${_.uniqueId('portal-payments-')}-${Date.now()}@portal.test`;
+
   const customer = await fastify.customerService.createCustomer({
     email,
     currency: CurrencyEnum.VND,
     name: 'Nhà xe Thanh Toán',
     metadata,
   });
+
   const link = await fastify.portalSessionService.createPortalLink({ email });
+
   const portalSession = await fastify.portalSessionService.redeemPortalLink({
     linkKey: String(link.linkKey),
   });
@@ -70,6 +73,7 @@ async function makeOpenInvoice(customerId: string, amount: number): Promise<Invo
 
 it('lists a recorded payment with the number of the invoice it settled', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const openInvoice = await makeOpenInvoice(customerId, 500_000);
 
   await fastify.invoiceService.payInvoice(openInvoice.id, {});
@@ -89,6 +93,7 @@ it('lists a recorded payment with the number of the invoice it settled', async (
 
 it('narrows the payment history to one invoice of the customer', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const firstInvoice = await makeOpenInvoice(customerId, 100_000);
   const secondInvoice = await makeOpenInvoice(customerId, 200_000);
 
@@ -106,6 +111,7 @@ it('narrows the payment history to one invoice of the customer', async () => {
 
 it('shows no payment of another customer, even when asked by its invoice id', async () => {
   const { headers } = await makePortalCustomer();
+
   const other = await makePortalCustomer();
   const otherInvoice = await makeOpenInvoice(other.customerId, 100_000);
 
@@ -122,6 +128,7 @@ it('shows no payment of another customer, even when asked by its invoice id', as
 
 it('gives bank transfer details and a VietQR payload for an open invoice', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const openInvoice = await makeOpenInvoice(customerId, 750_000);
 
   const response = await fastify.inject({
@@ -129,6 +136,7 @@ it('gives bank transfer details and a VietQR payload for an open invoice', async
     url: `/portal/invoices/${openInvoice.id}/bank_transfer`,
     headers,
   });
+
   const bankTransfer = response.json();
 
   expect(response.statusCode).toBe(200);
@@ -144,6 +152,7 @@ it('gives bank transfer details and a VietQR payload for an open invoice', async
 
 it('offers no bank transfer for an invoice that is already paid', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const openInvoice = await makeOpenInvoice(customerId, 300_000);
 
   await fastify.invoiceService.payInvoice(openInvoice.id, {});
@@ -159,6 +168,7 @@ it('offers no bank transfer for an invoice that is already paid', async () => {
 
 it('exports the customer invoices as a csv Excel can open', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const openInvoice = await makeOpenInvoice(customerId, 400_000);
 
   const response = await fastify.inject({

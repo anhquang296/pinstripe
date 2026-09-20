@@ -33,15 +33,20 @@ import TestClockDrawer from './TestClockDrawer';
 
 export default function TestClocksPage() {
   const { testClockId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const [search, setSearch] = useQueryStates(cursorSearchParams);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.TEST_CLOCK_WRITE);
 
   const {

@@ -19,6 +19,7 @@ export default function PortalTopbar({
   onSignOut,
 }: PortalTopbarProps) {
   const { role, userEmail } = account;
+
   const roleLabel = role ? PORTAL_ROLE_LABELS[role] : null;
   const viewerLabel = join(compact([userEmail, roleLabel]), ' · ');
 

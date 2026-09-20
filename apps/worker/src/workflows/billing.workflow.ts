@@ -58,6 +58,7 @@ export class BillingWorkflow implements Workflow {
 
   private async dispatchShards(): Promise<void> {
     const { billingRunShardCount, billingRunJitterMs } = this.fastify.workflowSchedules;
+
     const runAt = this.fastify.clock.now();
     const queue = this.fastify.queues.resolve(QueueNameEnum.BILLING);
 

@@ -86,6 +86,7 @@ export class RefundRepository {
 
   async createRefund(payload: NewRefund, executor?: DatabaseTransaction): Promise<Refund | null> {
     const db = executor ?? this._db.master;
+
     const [refund] = await db.insert(refunds).values(payload).returning();
 
     return refund ?? null;
@@ -96,6 +97,7 @@ export class RefundRepository {
     executor?: DatabaseTransaction,
   ): Promise<RefundTransition | null> {
     const db = executor ?? this._db.master;
+
     const [transition] = await db.insert(refundTransitions).values(payload).returning();
 
     return transition ?? null;

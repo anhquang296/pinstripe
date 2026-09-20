@@ -10,6 +10,7 @@ import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { buildTestContext } from './context';
+
 let fastify: FastifyInstance;
 
 beforeAll(async () => {
@@ -72,6 +73,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('saves the card and makes it the default once the callback lands', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod();
+
     const setupIntent = await fastify.setupIntentService.createSetupIntent({
       customerId,
       paymentMethodId: paymentMethod.id,
@@ -94,6 +96,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('takes no money while saving the card', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod();
+
     const setupIntent = await fastify.setupIntentService.createSetupIntent({
       customerId,
       paymentMethodId: paymentMethod.id,
@@ -110,6 +113,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('parks a card that needs 3DS and finishes it through the callback', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod(PspTokenEnum.VISA_3DS);
+
     const setupIntent = await fastify.setupIntentService.createSetupIntent({
       customerId,
       paymentMethodId: paymentMethod.id,
@@ -118,6 +122,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
     const confirmed = await fastify.setupIntentService.confirmSetupIntent(setupIntent.id, {});
 
     const { pspReference, nextAction } = confirmed;
+
     const authenticationReference = pspReference === null ? '' : pspReference;
     const expectedReference = pspReference === null ? 'no-reference' : pspReference;
     const redirectUrl = _.get(nextAction, 'redirectUrl');
@@ -135,6 +140,7 @@ describe('SetupIntentService.confirmSetupIntent', () => {
   it('sends the caller back for another card when the processor rejects this one', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod(PspTokenEnum.CARD_EXPIRED);
+
     const setupIntent = await fastify.setupIntentService.createSetupIntent({
       customerId,
       paymentMethodId: paymentMethod.id,
@@ -177,6 +183,7 @@ describe('SetupIntentService.cancelSetupIntent', () => {
   it('refuses to cancel a setup that already saved the card', async () => {
     const customerId = await makeCustomer();
     const paymentMethod = await makeUnattachedPaymentMethod();
+
     const setupIntent = await fastify.setupIntentService.createSetupIntent({
       customerId,
       paymentMethodId: paymentMethod.id,

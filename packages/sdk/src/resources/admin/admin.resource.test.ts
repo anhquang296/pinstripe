@@ -11,6 +11,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 function setup(body: unknown, status = 200) {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(body, status));
+
   const client = new PinstripeClient({
     baseUrl: '',
     fetch: fetchImpl as FetchImpl,
@@ -89,6 +90,7 @@ it('sends the admin api key on an admin resource', async () => {
   await client.admin.apiKeys.find();
 
   const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+
   const headers = init.headers as Record<string, string>;
 
   expect(headers.authorization).toBe('Bearer ak_test_1');

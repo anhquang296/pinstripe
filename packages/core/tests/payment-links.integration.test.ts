@@ -35,6 +35,7 @@ describe('PaymentLinkService.createPaymentLink', () => {
       successUrl: SUCCESS_URL,
       lineItems: [{ priceId: fixture.priceId, quantity: 3 }],
     });
+
     const token = fastify.hostedUrlFactory.buildToken(
       HostedResourceEnum.PAYMENT_LINK,
       paymentLink.id,
@@ -71,10 +72,12 @@ describe('PaymentLinkService.createPaymentLink', () => {
 describe('PaymentLinkService.findPaymentLinks', () => {
   it('returns only switched-off links with their line items when asked for inactive ones', async () => {
     const fixture = await makeFixture();
+
     const activeLink = await fastify.paymentLinkService.createPaymentLink({
       successUrl: SUCCESS_URL,
       lineItems: [{ priceId: fixture.priceId }],
     });
+
     const inactiveLink = await fastify.paymentLinkService.createPaymentLink({
       successUrl: SUCCESS_URL,
       lineItems: [{ priceId: fixture.priceId, quantity: 2 }],
@@ -86,6 +89,7 @@ describe('PaymentLinkService.findPaymentLinks', () => {
       isActive: false,
       limit: 100,
     });
+
     const listedIds = _.map(result.data, 'id');
     const listedInactiveLink = _.find(result.data, { id: inactiveLink.id });
 
@@ -99,6 +103,7 @@ describe('PaymentLinkService.findPaymentLinks', () => {
 describe('CheckoutService.createPaymentLinkCheckoutSession', () => {
   it('opens a checkout session that carries the link line items', async () => {
     const fixture = await makeFixture();
+
     const paymentLink = await fastify.paymentLinkService.createPaymentLink({
       mode: CheckoutSessionModeEnum.SUBSCRIPTION,
       successUrl: SUCCESS_URL,
@@ -117,6 +122,7 @@ describe('CheckoutService.createPaymentLinkCheckoutSession', () => {
 
   it('refuses a link the merchant has switched off', async () => {
     const fixture = await makeFixture();
+
     const paymentLink = await fastify.paymentLinkService.createPaymentLink({
       successUrl: SUCCESS_URL,
       lineItems: [{ priceId: fixture.priceId }],

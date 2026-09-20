@@ -102,6 +102,7 @@ export class BalanceTransactionRepository {
     executor?: DatabaseTransaction,
   ): Promise<BalanceTransaction | null> {
     const db = executor ?? this._db.master;
+
     const [balanceTransaction] = await db.insert(balanceTransactions).values(payload).returning();
 
     return balanceTransaction ?? null;
@@ -117,6 +118,7 @@ export class BalanceTransactionRepository {
     }
 
     const db = executor ?? this._db.master;
+
     const assigned = await db
       .update(balanceTransactions)
       .set({ payoutId })

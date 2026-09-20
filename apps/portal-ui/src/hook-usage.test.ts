@@ -27,6 +27,7 @@ function findSourceFiles(directory: string): string[] {
 }
 
 const sdkPortalIndex = readFileSync(SDK_PORTAL_INDEX, 'utf8');
+
 const hookNames = uniq(
   compact(
     map([...sdkPortalIndex.matchAll(EXPORTED_HOOK)], (match) => {
@@ -34,6 +35,7 @@ const hookNames = uniq(
     }),
   ),
 );
+
 const appSources = map(findSourceFiles(SOURCE_DIR), (sourcePath) => {
   return readFileSync(sourcePath, 'utf8');
 });

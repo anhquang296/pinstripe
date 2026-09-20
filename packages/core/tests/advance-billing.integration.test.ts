@@ -47,6 +47,7 @@ async function makeCustomer(
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime,
   });
+
   const customer = await fastify.customerService.createCustomer({
     email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
@@ -82,6 +83,7 @@ async function makeMeteredPrice(): Promise<{ priceId: string; eventName: string 
     aggregation: MeterAggregationEnum.SUM,
     valueKey: 'tokens',
   });
+
   const price = await fastify.priceService.createPrice({
     productId: await makeProductId(),
     currency: CurrencyEnum.VND,
@@ -95,8 +97,10 @@ async function makeMeteredPrice(): Promise<{ priceId: string; eventName: string 
 
 async function makeScenario(): Promise<Scenario> {
   const { customerId, clockId } = await makeCustomer();
+
   const oldPriceId = await makeLicensedPriceId(OLD_AMOUNT);
   const newPriceId = await makeLicensedPriceId(NEW_AMOUNT);
+
   const subscription = await fastify.subscriptionService.createSubscription({
     customerId,
     items: [{ priceId: oldPriceId }],
@@ -127,6 +131,7 @@ describe('SubscriptionService.createSubscription billing in advance', () => {
     const { subscriptionId } = await makeScenario();
 
     const invoice = await getInvoiceByReason(subscriptionId, BillingReasonEnum.SUBSCRIPTION_CREATE);
+
     const [lineItem] = invoice.lineItems;
 
     expect(invoice.status).toBe(InvoiceStatusEnum.OPEN);
@@ -138,7 +143,9 @@ describe('SubscriptionService.createSubscription billing in advance', () => {
 
   it('issues nothing at once while the subscription is still trialing', async () => {
     const { customerId } = await makeCustomer();
+
     const priceId = await makeLicensedPriceId(OLD_AMOUNT);
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId }],
@@ -250,9 +257,12 @@ describe('SubscriptionService.cancelSubscription billing in advance', () => {
 describe('BillingRunService cycle invoice billing in advance', () => {
   it('bills the licensed item for the period ahead and the metered item for the one behind', async () => {
     const recentStart = new Date(Date.now() - 2 * MILLISECONDS_PER_DAY).toISOString();
+
     const { customerId, clockId } = await makeCustomer(recentStart);
+
     const licensedPriceId = await makeLicensedPriceId(NEW_AMOUNT);
     const metered = await makeMeteredPrice();
+
     const subscription = await fastify.subscriptionService.createSubscription({
       customerId,
       items: [{ priceId: licensedPriceId }, { priceId: metered.priceId }],
@@ -274,10 +284,12 @@ describe('BillingRunService cycle invoice billing in advance', () => {
       subscription.id,
       BillingReasonEnum.SUBSCRIPTION_CREATE,
     );
+
     const cycleInvoice = await getInvoiceByReason(
       subscription.id,
       BillingReasonEnum.SUBSCRIPTION_CYCLE,
     );
+
     const usageLine = _.find(cycleInvoice.lineItems, { type: LineItemTypeEnum.USAGE });
     const licensedLine = _.find(cycleInvoice.lineItems, { type: LineItemTypeEnum.SUBSCRIPTION });
 

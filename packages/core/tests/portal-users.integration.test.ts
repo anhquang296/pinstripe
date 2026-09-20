@@ -25,6 +25,7 @@ afterAll(async () => {
 
 async function makeCustomer(): Promise<{ id: string; email: string }> {
   const email = `${generateGid(ObjectPrefixEnum.CUSTOMER)}@operator.test`;
+
   const customer = await fastify.customerService.createCustomer({
     email,
     currency: CurrencyEnum.VND,
@@ -40,6 +41,7 @@ function makeEmail(): string {
 
 async function signIn(email: string) {
   const link = await fastify.portalSessionService.createPortalLink({ email });
+
   const portalSession = await fastify.portalSessionService.redeemPortalLink({
     linkKey: String(link.linkKey),
   });
@@ -51,6 +53,7 @@ it('makes the billing email the owner of its customer the first time it signs in
   const customer = await makeCustomer();
 
   const portalAuth = await signIn(customer.email);
+
   await signIn(customer.email);
 
   const memberships = await fastify.portalUserService.findPortalMemberships({
@@ -99,6 +102,7 @@ it('moves a session between the operators its user belongs to, and only those', 
   }
 
   const portalAuth = await signIn(email);
+
   const switched = await fastify.portalSessionService.switchPortalSessionCustomer(
     portalAuth,
     secondCustomer.id,
@@ -113,12 +117,15 @@ it('moves a session between the operators its user belongs to, and only those', 
 it('ends a live session as soon as the membership behind it is removed', async () => {
   const customer = await makeCustomer();
   const email = makeEmail();
+
   const portalMembership = await fastify.portalUserService.createPortalMembership({
     customerId: customer.id,
     email,
     role: PortalRoleEnum.ACCOUNTANT,
   });
+
   const link = await fastify.portalSessionService.createPortalLink({ email });
+
   const portalSession = await fastify.portalSessionService.redeemPortalLink({
     linkKey: String(link.linkKey),
   });
@@ -133,12 +140,15 @@ it('ends a live session as soon as the membership behind it is removed', async (
 it('reads the role again on every request, so a role change applies at once', async () => {
   const customer = await makeCustomer();
   const email = makeEmail();
+
   const portalMembership = await fastify.portalUserService.createPortalMembership({
     customerId: customer.id,
     email,
     role: PortalRoleEnum.ACCOUNTANT,
   });
+
   const link = await fastify.portalSessionService.createPortalLink({ email });
+
   const portalSession = await fastify.portalSessionService.redeemPortalLink({
     linkKey: String(link.linkKey),
   });
@@ -162,6 +172,7 @@ it('refuses to remove the billing email of a customer from its portal', async ()
   const memberships = await fastify.portalUserService.findPortalMemberships({
     customerId: customer.id,
   });
+
   const ownerMembershipId = String(_.get(memberships, 'data.0.id'));
 
   await expect(fastify.portalUserService.deletePortalMembership(ownerMembershipId)).rejects.toThrow(

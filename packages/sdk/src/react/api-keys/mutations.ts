@@ -6,7 +6,9 @@ import type { ApiKeyResponse, CreateApiKeyPayload } from '@type/contracts.types'
 
 export function useCreateApiKeyMutation({ successMessage }: MutationProps<ApiKeyResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -23,7 +25,9 @@ export function useCreateApiKeyMutation({ successMessage }: MutationProps<ApiKey
 
 export function useDeleteApiKeyMutation({ successMessage }: MutationProps<ApiKeyResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

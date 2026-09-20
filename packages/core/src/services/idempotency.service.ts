@@ -41,6 +41,7 @@ export class IdempotencyService {
 
     const now = this.fastify.clock.now();
     const lockedAt = now.toISOString();
+
     const expiresAt = new Date(
       now.getTime() + this.config.retentionHours * MILLISECONDS_PER_HOUR,
     ).toISOString();

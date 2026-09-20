@@ -37,6 +37,7 @@ export class InvoiceItemService {
       periodEnd = now,
       metadata = {},
     } = payload;
+
     const amount = await this.resolveAmount(payload, quantity);
 
     await this.assertInvoiceIsDraft(payload.invoiceId);
@@ -91,6 +92,7 @@ export class InvoiceItemService {
 
     if (priceId) {
       const price = await this.fastify.priceService.getPrice(priceId);
+
       const { unitAmount } = price;
 
       if (unitAmount !== null) {

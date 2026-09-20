@@ -57,6 +57,7 @@ it('adds an item to a subscription and lists it back', async () => {
     headers: authHeaders,
     payload: { subscriptionId: subscription.id, priceId: secondPrice.id, quantity: 2 },
   });
+
   const listed = await fastify.inject({
     method: 'GET',
     url: `/v1/subscription_items?subscriptionId=${subscription.id}`,
@@ -72,7 +73,9 @@ it('adds an item to a subscription and lists it back', async () => {
 it('keeps the item id when the quantity is updated', async () => {
   const price = await makePrice();
   const subscription = await makeSubscription(price.id);
+
   const [item] = subscription.items;
+
   const itemId = _.get(item, 'id');
 
   const updated = await fastify.inject({
@@ -90,7 +93,9 @@ it('keeps the item id when the quantity is updated', async () => {
 it('refuses to delete the only item of a subscription', async () => {
   const price = await makePrice();
   const subscription = await makeSubscription(price.id);
+
   const [item] = subscription.items;
+
   const itemId = _.get(item, 'id');
 
   const response = await fastify.inject({

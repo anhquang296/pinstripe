@@ -48,6 +48,7 @@ it('creates a tax rate and reads it back', async () => {
       country: 'VN',
     },
   });
+
   const taxRate = created.json();
 
   const read = await fastify.inject({
@@ -92,6 +93,7 @@ it('deactivates a tax rate without touching its percentage', async () => {
       taxType: TaxTypeEnum.VAT,
     },
   });
+
   const taxRate = created.json();
 
   const updated = await fastify.inject({
@@ -114,6 +116,7 @@ it('creates a tax id that starts out pending verification', async () => {
     headers: authHeaders,
     payload: { customerId, type: TaxIdTypeEnum.VN_TIN, value: '0123456789', country: 'VN' },
   });
+
   const taxId = response.json();
 
   expect(response.statusCode).toBe(201);
@@ -123,12 +126,14 @@ it('creates a tax id that starts out pending verification', async () => {
 
 it('nests the customer object into a tax id that asks for it', async () => {
   const customerId = await makeCustomerId();
+
   const created = await fastify.inject({
     method: 'POST',
     url: '/v1/tax_ids',
     headers: authHeaders,
     payload: { customerId, type: TaxIdTypeEnum.US_EIN, value: '12-3456789' },
   });
+
   const taxId = created.json();
 
   const response = await fastify.inject({
@@ -136,6 +141,7 @@ it('nests the customer object into a tax id that asks for it', async () => {
     url: `/v1/tax_ids/${taxId.id}?expand[]=customer`,
     headers: authHeaders,
   });
+
   const expanded = response.json();
 
   expect(expanded.customerId).toBe(customerId);
@@ -160,12 +166,14 @@ it('refuses a second identical tax id for the same customer', async () => {
 
 it('reports a deleted tax id as gone', async () => {
   const customerId = await makeCustomerId();
+
   const created = await fastify.inject({
     method: 'POST',
     url: '/v1/tax_ids',
     headers: authHeaders,
     payload: { customerId, type: TaxIdTypeEnum.OTHER, value: 'internal-42' },
   });
+
   const taxId = created.json();
 
   const deleted = await fastify.inject({
@@ -173,6 +181,7 @@ it('reports a deleted tax id as gone', async () => {
     url: `/v1/tax_ids/${taxId.id}`,
     headers: authHeaders,
   });
+
   const read = await fastify.inject({
     method: 'GET',
     url: `/v1/tax_ids/${taxId.id}`,

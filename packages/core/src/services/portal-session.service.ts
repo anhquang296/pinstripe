@@ -52,12 +52,14 @@ export class PortalSessionService {
 
     if (portalLogin) {
       const { portalUser, portalMembership } = portalLogin;
+
       const { portalSession, linkKey } = await this.createPendingPortalSession(
         portalMembership.customerId,
         portalUser.id,
         now,
         linkExpiresAt,
       );
+
       const url = this.buildMagicLinkUrl(linkKey);
 
       await this.fastify.notificationService.dispatchPortalMagicLink(portalSession, url, {
@@ -84,6 +86,7 @@ export class PortalSessionService {
       { linkTokenHash: PortalSessionService.hashKey(payload.linkKey) },
       1,
     );
+
     const now = this.fastify.clock.now();
 
     if (!portalSession || portalSession.status !== PortalSessionStatusEnum.PENDING) {
@@ -98,6 +101,7 @@ export class PortalSessionService {
 
     const sessionKey = PortalSessionService.buildKey();
     const redeemedAt = now.toISOString();
+
     const activated = await this.fastify.portalSessionRepository.updatePortalSession(
       portalSession.id,
       {
@@ -120,6 +124,7 @@ export class PortalSessionService {
     const customer = await this.fastify.customerRepository.getCustomer(customerId);
     const now = this.fastify.clock.now();
     const linkExpiresAt = this.resolveLinkExpiry(now);
+
     const { portalSession, linkKey } = await this.createPendingPortalSession(
       customer.id,
       null,
@@ -142,6 +147,7 @@ export class PortalSessionService {
 
     const now = this.fastify.clock.now();
     const sessionExpiresAt = _.get(portalSession, 'sessionExpiresAt', null);
+
     const isLive =
       _.get(portalSession, 'status') === PortalSessionStatusEnum.ACTIVE &&
       sessionExpiresAt !== null &&
@@ -149,6 +155,7 @@ export class PortalSessionService {
 
     if (portalSession && isLive) {
       const { portalUserId } = portalSession;
+
       const role = await this.resolveSessionRole(portalUserId, portalSession.customerId);
 
       return {
@@ -172,6 +179,7 @@ export class PortalSessionService {
       await this.fastify.portalUserService.getSessionMembership(portalUserId, customerId);
 
       const updatedAt = this.fastify.clock.now().toISOString();
+
       const portalSession = await this.fastify.portalSessionRepository.updatePortalSession(
         portalSessionId,
         { customerId, updatedAt },
@@ -206,6 +214,7 @@ export class PortalSessionService {
   async revokePortalSession(id: string): Promise<PortalSessionResponse> {
     const portalSession = await this.fastify.portalSessionRepository.getPortalSession(id);
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const revoked = await this.fastify.portalSessionRepository.updatePortalSession(
       portalSession.id,
       { status: PortalSessionStatusEnum.REVOKED, updatedAt },
@@ -238,6 +247,7 @@ export class PortalSessionService {
   ): Promise<PendingPortalSession> {
     const linkKey = PortalSessionService.buildKey();
     const createdAt = now.toISOString();
+
     const portalSession = await this.fastify.portalSessionRepository.createPortalSession({
       id: generateGid(ObjectPrefixEnum.PORTAL_SESSION),
       customerId,

@@ -63,13 +63,16 @@ interface MeterDrawerProps {
 
 export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
   const [summaryCustomerId, setSummaryCustomerId] = useState<string | null>(null);
+
   const canWriteCatalog = useCan(PermissionEnum.CATALOG_WRITE);
   const canWriteSubscription = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: meter } = useMeterQuery(meterId);
+
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
 
   const [usageWindow] = useState(buildUsageWindow);
+
   const { data: summary } = useMeterEventSummaryQuery(
     meterId,
     { ...usageWindow, customerId: toString(summaryCustomerId) },
@@ -79,9 +82,11 @@ export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
   const { mutateAsync: updateMeter, isPending: isSaving } = useUpdateMeterMutation({
     successMessage: 'Đã cập nhật meter.',
   });
+
   const { mutateAsync: createMeterEvent, isPending: isSending } = useCreateMeterEventMutation({
     successMessage: 'Đã ghi nhận usage event.',
   });
+
   const { mutateAsync: createMeterEventBatch, isPending: isSendingBatch } =
     useCreateMeterEventBatchMutation({ successMessage: 'Đã gửi batch event.' });
 
@@ -89,10 +94,12 @@ export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
     resolver: meterFormResolver,
     defaultValues: meterFormDefaultValues,
   });
+
   const eventForm = useForm<MeterEventFormData>({
     resolver: meterEventFormResolver,
     defaultValues: meterEventFormDefaultValues,
   });
+
   const batchForm = useForm<MeterEventBatchFormData>({
     resolver: meterEventBatchFormResolver,
     defaultValues: meterEventBatchFormDefaultValues,

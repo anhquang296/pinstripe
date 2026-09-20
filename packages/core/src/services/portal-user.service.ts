@@ -92,10 +92,12 @@ export class PortalUserService {
       { portalUserId },
       MEMBERSHIP_LIMIT,
     );
+
     const customers = await this.fastify.customerRepository.findCustomers(
       { ids: _.map(portalMemberships, 'customerId') },
       MEMBERSHIP_LIMIT,
     );
+
     const customersById = _.keyBy(customers, 'id');
 
     return _.flatMap(portalMemberships, (portalMembership) => {
@@ -119,14 +121,18 @@ export class PortalUserService {
     query: FindPortalMembershipsQuery,
   ): Promise<ListResponse<PortalMembershipResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT, customerId } = query;
+
     const portalMemberships = await this.fastify.portalUserRepository.findPortalMemberships(
       { customerId },
       limit + 1,
     );
+
     const page = _.take(portalMemberships, limit);
+
     const portalUsers = await this.fastify.portalUserRepository.findPortalUsers(
       _.map(page, 'portalUserId'),
     );
+
     const portalUsersById = _.keyBy(portalUsers, 'id');
 
     return {
@@ -148,7 +154,9 @@ export class PortalUserService {
     payload: CreatePortalMembershipPayload,
   ): Promise<PortalMembershipResponse> {
     const customer = await this.fastify.customerService.getCustomer(payload.customerId);
+
     const { name = '' } = payload;
+
     const portalUser = await this.ensurePortalUser(payload.email, name);
     const createdAt = this.fastify.clock.now().toISOString();
 
@@ -185,6 +193,7 @@ export class PortalUserService {
     const portalMembership = await this.fastify.portalUserRepository.getPortalMembership(id);
     const portalUser = await this.getPortalUser(portalMembership.portalUserId);
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const updatedMembership = await this.fastify.portalUserRepository.updatePortalMembership(id, {
       role: payload.role,
       updatedAt,

@@ -23,6 +23,7 @@ export class CouponService {
 
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.COUPON);
+
     const { name = '', appliesToProductIds = [], metadata = {} } = payload;
 
     const coupon = await this.fastify.couponRepository.createCoupon({
@@ -92,6 +93,7 @@ export class CouponService {
 
   async updateCoupon(id: string, payload: UpdateCouponPayload): Promise<CouponResponse> {
     const existingCoupon = await this.fastify.couponRepository.getCoupon(id);
+
     const { name = existingCoupon.name, metadata = existingCoupon.metadata } = payload;
 
     const coupon = await this.fastify.couponRepository.updateCoupon(id, {
@@ -111,6 +113,7 @@ export class CouponService {
     await this.fastify.couponRepository.getCoupon(id);
 
     const now = this.fastify.clock.now().toISOString();
+
     const activeDiscounts = await this.fastify.discountRepository.findDiscounts(
       { couponId: id, activeAt: now },
       1,
@@ -127,6 +130,7 @@ export class CouponService {
 
   async findCoupons(query: FindCouponsQuery): Promise<ListResponse<CouponResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
 

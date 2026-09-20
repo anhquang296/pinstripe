@@ -63,7 +63,9 @@ export class CheckoutService {
     const id = generateGid(ObjectPrefixEnum.CHECKOUT_SESSION);
     const lineItems = CheckoutService.buildLineItems(id, drafts, prices, createdAt);
     const amountTotal = _.sumBy(lineItems, 'amountTotal');
+
     const { metadata = {} } = payload;
+
     const paymentStatus =
       payload.mode === CheckoutSessionModeEnum.SETUP
         ? CheckoutPaymentStatusEnum.NO_PAYMENT_REQUIRED
@@ -123,6 +125,7 @@ export class CheckoutService {
     const linkLineItems = await this.fastify.paymentLinkRepository.findPaymentLinkLineItems([
       paymentLink.id,
     ]);
+
     const session = await this.createCheckoutSession({
       mode: paymentLink.mode,
       customerId,
@@ -131,6 +134,7 @@ export class CheckoutService {
         return { priceId: lineItem.priceId, quantity: lineItem.quantity };
       }),
     });
+
     const linkedSession = await this.fastify.checkoutSessionRepository.updateCheckoutSession(
       session.id,
       { paymentLinkId: paymentLink.id, updatedAt: this.fastify.clock.now().toISOString() },
@@ -159,12 +163,15 @@ export class CheckoutService {
     query: FindCheckoutSessionsQuery,
   ): Promise<ListResponse<CheckoutSessionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.checkoutSessionRepository.findCheckoutSessions(
       { customerId: query.customerId, status: query.status, beforeAt, afterAt },
       limit + 1,
     );
+
     const page = _.take(rows, limit);
     const lineItemsBySessionId = await this.resolveLineItems(_.map(page, 'id'));
 
@@ -313,6 +320,7 @@ export class CheckoutService {
     const lineItems = await this.fastify.checkoutSessionRepository.findCheckoutSessionLineItems([
       checkoutSession.id,
     ]);
+
     const subscription = await this.fastify.subscriptionService.createSubscription({
       customerId: checkoutSession.customerId,
       items: _.map(lineItems, (lineItem) => {
@@ -354,7 +362,9 @@ export class CheckoutService {
       customerId: checkoutSession.customerId,
       metadata: { checkoutSessionId: checkoutSession.id },
     });
+
     const invoice = await this.fastify.invoiceService.finalizeInvoice(draft.id);
+
     const paymentIntent = await this.fastify.paymentService.createPaymentIntent({
       invoiceId: invoice.id,
       paymentMethodId,
@@ -397,6 +407,7 @@ export class CheckoutService {
     }
 
     const customer = await this.fastify.customerRepository.getCustomer(checkoutSession.customerId);
+
     const { defaultPaymentMethodId } = customer;
 
     if (defaultPaymentMethodId) {
@@ -439,6 +450,7 @@ export class CheckoutService {
       id,
       token,
     );
+
     const checkoutSession = await this.fastify.checkoutSessionRepository.findCheckoutSession(id);
 
     if (isVerified && checkoutSession) {
@@ -462,6 +474,7 @@ export class CheckoutService {
       { ids: priceIds },
       priceIds.length,
     );
+
     const pricesById = _.keyBy(prices, 'id');
 
     for (const priceId of priceIds) {

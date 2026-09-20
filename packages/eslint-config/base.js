@@ -8,6 +8,7 @@ import {
   AGENTKIT_STYLE_RULES,
   STEP_NAMED_LOCAL_SYNTAX,
 } from './agentkit.js';
+import { STYLISTIC_RULES, stylisticPlugin } from './stylistic.js';
 
 export function base({ ignores = [], tsconfigRootDir } = {}) {
   return [
@@ -49,7 +50,8 @@ export function base({ ignores = [], tsconfigRootDir } = {}) {
     prettierRecommended,
     {
       files: ['**/*.{ts,tsx}'],
-      rules: AGENTKIT_STYLE_RULES,
+      plugins: { '@stylistic': stylisticPlugin },
+      rules: { ...AGENTKIT_STYLE_RULES, ...STYLISTIC_RULES },
     },
     {
       files: ['**/*.test.ts', '**/*.test.tsx', '**/tests/**'],

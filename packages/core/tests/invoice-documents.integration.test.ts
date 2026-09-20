@@ -74,6 +74,7 @@ describe('invoice documents', () => {
 
   it('renders a replacement copy when the stored object has gone missing', async () => {
     const { invoiceId } = await makeOpenInvoice(fastify);
+
     const invoice = await fastify.invoiceRepository.findInvoice(invoiceId);
 
     if (!invoice) {

@@ -47,22 +47,29 @@ const STATUS_OPTIONS = map(values(CheckoutSessionStatusEnum), (status) => {
 
 export default function CheckoutSessionsPage() {
   const { checkoutSessionId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(checkoutSessionSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: checkoutSessions, isPending } = useCheckoutSessionsQuery(
     { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
+
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
+
   const { data: prices } = usePricesQuery({ limit: OPTION_LIMIT, active: true });
 
   const { mutateAsync: createCheckoutSession, isPending: isSaving } =
@@ -82,10 +89,12 @@ export default function CheckoutSessionsPage() {
       return { value: customer.id, label: customer.name || customer.id };
     }),
   ];
+
   const priceOptions = [
     { value: '', label: '— không gắn bảng giá —' },
     ...map(get(prices, 'data', []), (price) => {
       const { lookupKey } = price;
+
       const priceName = lookupKey === null ? price.id : lookupKey;
 
       return { value: price.id, label: `${priceName} · ${formatPriceAmount(price)}` };

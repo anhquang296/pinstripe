@@ -42,6 +42,7 @@ async function readAccountBalance(code: LedgerAccountCodeEnum): Promise<number> 
 
 async function readEntitlementStatus(customerId: string, productId: string): Promise<string> {
   const { data } = await fastify.entitlementService.findEntitlements({ customerId, productId });
+
   const [entitlement] = data;
 
   return _.get(entitlement, 'status', EntitlementStatusEnum.REVOKED);
@@ -49,6 +50,7 @@ async function readEntitlementStatus(customerId: string, productId: string): Pro
 
 async function openDispute(): Promise<DisputeFixture> {
   const fixture = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
+
   const { chargeId, chargeReference } = await settleInvoice(fastify, fixture.invoiceId);
 
   fastify.psp.openDispute({
@@ -60,6 +62,7 @@ async function openDispute(): Promise<DisputeFixture> {
   await fastify.paymentService.drainProviderEvents();
 
   const disputes = await fastify.disputeService.findDisputes({ chargeId });
+
   const [dispute] = disputes.data;
 
   if (!dispute) {
@@ -78,6 +81,7 @@ describe('DisputeService.handleDisputeOpened', () => {
   it('withholds the disputed amount and asks the subscription to stop trusting the payment', async () => {
     const heldBefore = await readAccountBalance(LedgerAccountCodeEnum.DISPUTES_HELD);
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
+
     const { disputeId, subscriptionId, customerId, productId } = await openDispute();
 
     const dispute = await fastify.disputeService.getDispute(disputeId);
@@ -101,6 +105,7 @@ describe('DisputeService.handleDisputeOpened', () => {
 
   it('ignores a dispute callback it has already recorded', async () => {
     const { disputeId } = await openDispute();
+
     const dispute = await fastify.disputeService.getDispute(disputeId);
 
     await fastify.disputeService.handleDisputeOpened({
@@ -134,7 +139,9 @@ describe('DisputeService.handleDisputeClosed', () => {
   it('nets the hold back out when the dispute is won', async () => {
     const heldBefore = await readAccountBalance(LedgerAccountCodeEnum.DISPUTES_HELD);
     const receivableBefore = await readAccountBalance(LedgerAccountCodeEnum.PSP_RECEIVABLE);
+
     const { disputeId, subscriptionId } = await openDispute();
+
     const dispute = await fastify.disputeService.getDispute(disputeId);
 
     fastify.psp.closeDispute(dispute.pspReference, DisputeOutcomeEnum.WON);
@@ -143,6 +150,7 @@ describe('DisputeService.handleDisputeClosed', () => {
 
     const closed = await fastify.disputeService.getDispute(disputeId);
     const subscription = await fastify.subscriptionService.getSubscription(subscriptionId);
+
     const balanceTransactions = await fastify.balanceTransactionRepository.findBalanceTransactions({
       sourceId: disputeId,
     });
@@ -159,7 +167,9 @@ describe('DisputeService.handleDisputeClosed', () => {
 
   it('writes the money off and blocks the entitlement when the dispute is lost', async () => {
     const heldBefore = await readAccountBalance(LedgerAccountCodeEnum.DISPUTES_HELD);
+
     const { disputeId, subscriptionId, customerId, productId } = await openDispute();
+
     const dispute = await fastify.disputeService.getDispute(disputeId);
 
     fastify.psp.closeDispute(dispute.pspReference, DisputeOutcomeEnum.LOST);

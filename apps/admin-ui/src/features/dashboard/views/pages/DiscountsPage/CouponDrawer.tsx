@@ -46,11 +46,15 @@ interface CouponDrawerProps {
 
 export default function CouponDrawer({ couponId, onClose }: CouponDrawerProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
   const [selectedPromotionCodeId, setSelectedPromotionCodeId] = useState('');
+
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: coupon } = useCouponQuery(couponId);
+
   const { data: promotionCodes } = usePromotionCodesQuery({ couponId, limit: PAGE_LIMIT });
+
   const { data: promotionCode } = usePromotionCodeQuery(selectedPromotionCodeId, {
     enabled: Boolean(selectedPromotionCodeId),
   });
@@ -58,11 +62,14 @@ export default function CouponDrawer({ couponId, onClose }: CouponDrawerProps) {
   const { mutateAsync: updateCoupon, isPending: isSaving } = useUpdateCouponMutation({
     successMessage: 'Đã cập nhật coupon.',
   });
+
   const { mutateAsync: deleteCoupon, isPending: isDeleting } = useDeleteCouponMutation({
     successMessage: 'Đã xoá coupon.',
   });
+
   const { mutateAsync: createPromotionCode, isPending: isCreatingCode } =
     useCreatePromotionCodeMutation({ successMessage: 'Đã tạo promotion code.' });
+
   const { mutate: updatePromotionCode } = useUpdatePromotionCodeMutation({
     successMessage: 'Đã cập nhật promotion code.',
   });
@@ -71,6 +78,7 @@ export default function CouponDrawer({ couponId, onClose }: CouponDrawerProps) {
     resolver: couponFormResolver,
     defaultValues: couponFormDefaultValues,
   });
+
   const promotionCodeForm = useForm<PromotionCodeFormData>({
     resolver: promotionCodeFormResolver,
     defaultValues: { ...promotionCodeFormDefaultValues, couponId },

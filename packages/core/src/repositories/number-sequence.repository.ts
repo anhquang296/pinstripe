@@ -15,6 +15,7 @@ export class NumberSequenceRepository {
     executor?: DatabaseTransaction,
   ): Promise<number | null> {
     const db = executor ?? this._db.master;
+
     const [claimed] = await db
       .update(numberSequences)
       .set({ nextValue: sql`${numberSequences.nextValue} + 1` })

@@ -30,12 +30,15 @@ interface DiscountDrawerProps {
 
 export default function DiscountDrawer({ discountId, onClose }: DiscountDrawerProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: discount } = useDiscountQuery(discountId);
+
   const { mutateAsync: updateDiscount, isPending: isSaving } = useUpdateDiscountMutation({
     successMessage: 'Đã cập nhật ghi chú giảm giá.',
   });
+
   const { mutateAsync: deleteDiscount, isPending: isDeleting } = useDeleteDiscountMutation({
     successMessage: 'Đã gỡ giảm giá.',
   });

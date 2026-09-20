@@ -44,15 +44,20 @@ import { invoiceSearchParams, serializeInvoiceSearch } from './invoices.search-p
 
 export default function InvoicesPage() {
   const { status, invoiceId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(invoiceSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.INVOICE_WRITE);
 
   const invoiceStatus = toEnumMember(InvoiceStatusEnum, toString(status), InvoiceStatusEnum.DRAFT);
@@ -62,7 +67,9 @@ export default function InvoicesPage() {
     { limit: PAGE_LIMIT, status: invoiceStatus, ...toQuery(search) },
     { hasPlaceholder: true },
   );
+
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
+
   const { data: subscriptions } = useSubscriptionsQuery({ limit: OPTION_LIMIT });
 
   const { mutateAsync: createInvoice, isPending: isSaving } = useCreateInvoiceMutation({
@@ -84,6 +91,7 @@ export default function InvoicesPage() {
       return { value: customer.id, label: `${customer.name || customer.email} (${customer.id})` };
     }),
   ];
+
   const subscriptionOptions = [
     { value: '', label: '— không chọn —' },
     ...map(get(subscriptions, 'data', []), (subscription) => {
@@ -92,6 +100,7 @@ export default function InvoicesPage() {
   ];
 
   const tabSearch = serializeInvoiceSearch({ customerId: search.customerId, after: null });
+
   const tabs = map(INVOICE_STATUS_TABS, (tab) => {
     return {
       to: tab.to,

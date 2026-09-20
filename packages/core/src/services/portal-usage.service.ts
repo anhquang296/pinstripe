@@ -36,29 +36,37 @@ export class PortalUsageService {
       { customerId },
       SUBSCRIPTION_LIMIT,
     );
+
     const liveSubscriptions = _.filter(subscriptions, (subscription) => {
       return _.includes(LIVE_SUBSCRIPTION_STATUSES, subscription.status);
     });
+
     const subscriptionItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: _.map(liveSubscriptions, 'id'),
       deletedAtIsNull: true,
     });
+
     const priceIds = _(subscriptionItems).map('priceId').uniq().value();
+
     const prices = await this.fastify.priceRepository.findPrices(
       { ids: priceIds },
       priceIds.length,
     );
+
     const meteredPricesById = _(prices)
       .filter((price) => {
         return price.usageType === UsageTypeEnum.METERED && price.meterId !== null;
       })
       .keyBy('id')
       .value();
+
     const productIds = _(meteredPricesById).map('productId').uniq().value();
+
     const products = await this.fastify.productRepository.findProducts(
       { ids: productIds },
       productIds.length,
     );
+
     const productsById = _.keyBy(products, 'id');
     const subscriptionsById = _.keyBy(liveSubscriptions, 'id');
 
@@ -84,6 +92,7 @@ export class PortalUsageService {
   ): Promise<PortalUsageItem> {
     const meterId = String(price.meterId);
     const meter = await this.fastify.meterRepository.getMeter(meterId);
+
     const summary = await this.fastify.meterEventService.getMeterEventSummary(meterId, {
       customerId: subscription.customerId,
       windowStart: subscription.currentPeriodStart,

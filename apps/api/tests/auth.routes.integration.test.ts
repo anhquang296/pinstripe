@@ -175,7 +175,9 @@ describe('get session', () => {
   it('returns null once the session passes the absolute ttl', async () => {
     const user = await makeUser();
     const cookie = await signIn(user.email);
+
     const { ADMIN_SESSION_ABSOLUTE_TTL_HOURS } = fastify.config;
+
     const createdAt = new Date(Date.now() - (ADMIN_SESSION_ABSOLUTE_TTL_HOURS + 1) * MS_PER_HOUR);
 
     await fastify.database.master
@@ -191,7 +193,9 @@ describe('get session', () => {
   it('sends the refreshed session cookie once the session is due for a refresh', async () => {
     const user = await makeUser();
     const cookie = await signIn(user.email);
+
     const { ADMIN_SESSION_IDLE_TTL_MINUTES } = fastify.config;
+
     const expiresAt = new Date(Date.now() + (ADMIN_SESSION_IDLE_TTL_MINUTES - 10) * MS_PER_MINUTE);
 
     await fastify.database.master
@@ -239,7 +243,9 @@ describe('update user', () => {
 describe('bootstrap admin', () => {
   it('creates the first admin once, however many times it is called', async () => {
     const { MANAGEMENT_API_KEY } = fastify.config;
+
     const email = `${generateGid(ObjectPrefixEnum.USER)}@bootstrap.test`;
+
     const options = {
       method: 'POST' as const,
       url: '/api/v1/management/users/bootstrap',

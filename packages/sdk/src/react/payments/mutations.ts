@@ -17,6 +17,7 @@ export type ChargeInvoiceVariables = Pick<
 
 function usePaymentInvalidation() {
   const queryClient = useQueryClient();
+
   const { queries } = usePinstripeContext();
 
   return () => {
@@ -35,7 +36,9 @@ export function useChargeInvoiceMutation({
   successMessage,
 }: MutationProps<PaymentIntentResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = usePaymentInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -54,7 +57,9 @@ export function useChargeInvoiceMutation({
 
 export function useCreateRefundMutation({ successMessage }: MutationProps<RefundResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = usePaymentInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -73,7 +78,9 @@ export function useCancelPaymentIntentMutation({
   successMessage,
 }: MutationProps<PaymentIntentResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = usePaymentInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

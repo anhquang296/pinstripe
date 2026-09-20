@@ -42,15 +42,20 @@ const ACTIVE_OPTIONS = [
 
 export default function TaxRatesPage() {
   const { taxRateId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(taxRateSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: taxRates, isPending } = useTaxRatesQuery(

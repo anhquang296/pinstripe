@@ -14,7 +14,9 @@ export function useCreateCustomerMutation({
   successMessage,
 }: MutationProps<CustomerResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -33,7 +35,9 @@ export function useUpdateCustomerMutation({
   successMessage,
 }: MutationProps<CustomerResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -58,7 +62,9 @@ export function useCreateCustomerBalanceTransactionMutation({
   successMessage,
 }: MutationProps<CustomerBalanceTransactionResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -78,7 +84,9 @@ export function useCreateCustomerBalanceTransactionMutation({
 
 export function useDeleteCustomerMutation({ successMessage }: MutationProps = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

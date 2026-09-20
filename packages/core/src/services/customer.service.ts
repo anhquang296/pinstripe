@@ -169,6 +169,7 @@ export class CustomerService {
   ): void {
     const isKeyMismatched =
       _.has(payload, 'partnerPlatform') !== _.has(payload, 'partnerAccountId');
+
     const isValueMismatched =
       _.isNil(payload.partnerPlatform) !== _.isNil(payload.partnerAccountId);
 

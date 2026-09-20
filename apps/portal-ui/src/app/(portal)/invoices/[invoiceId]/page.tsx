@@ -20,11 +20,17 @@ interface InvoicePageProps {
 
 export default function InvoicePage({ params }: InvoicePageProps) {
   const { invoiceId } = use(params);
+
   const { data: invoice, isPending } = usePortalInvoiceQuery(invoiceId);
+
   const isOpen = get(invoice, 'status') === InvoiceStatusEnum.OPEN;
+
   const { data: bankTransfer } = usePortalBankTransferQuery(invoiceId, { enabled: isOpen });
+
   const { data: payments, isPending: isPaymentsPending } = usePortalPaymentsQuery({ invoiceId });
+
   const { data: comparison } = usePortalInvoiceComparisonQuery(invoiceId);
+
   const { data: reminders } = usePortalInvoiceRemindersQuery(invoiceId);
 
   if (invoice) {

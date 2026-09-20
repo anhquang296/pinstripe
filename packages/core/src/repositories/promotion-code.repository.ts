@@ -70,6 +70,7 @@ export class PromotionCodeRepository {
     executor?: DatabaseTransaction,
   ): Promise<PromotionCode | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [promotionCode] = await db.insert(promotionCodes).values(payload).returning();
 
     return promotionCode ?? null;
@@ -81,6 +82,7 @@ export class PromotionCodeRepository {
     executor?: DatabaseTransaction,
   ): Promise<PromotionCode | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [promotionCode] = await db
       .update(promotionCodes)
       .set(payload)
@@ -95,6 +97,7 @@ export class PromotionCodeRepository {
     executor?: DatabaseTransaction,
   ): Promise<PromotionCode | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [promotionCode] = await db
       .update(promotionCodes)
       .set({ timesRedeemed: sql`${promotionCodes.timesRedeemed} + 1` })

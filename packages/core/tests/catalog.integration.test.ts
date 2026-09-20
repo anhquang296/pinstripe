@@ -44,6 +44,7 @@ describe('PriceService.createPrice', () => {
   it('creates a new version instead of mutating the existing price', async () => {
     const product = await createProduct();
     const lookupKey = `key_${generateGid(ObjectPrefixEnum.PRICE)}`;
+
     const first = await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,
@@ -57,6 +58,7 @@ describe('PriceService.createPrice', () => {
       lookupKey,
       unitAmount: 120_000,
     });
+
     const reloadedFirst = await fastify.priceService.getPrice(first.id);
 
     expect(second.version).toBe(2);
@@ -103,6 +105,7 @@ describe('PriceService.resolvePrice', () => {
   it('returns the version in force at the given instant, not the newest one', async () => {
     const product = await createProduct();
     const lookupKey = `key_${generateGid(ObjectPrefixEnum.PRICE)}`;
+
     await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,
@@ -122,6 +125,7 @@ describe('PriceService.resolvePrice', () => {
       lookupKey,
       new Date('2026-06-01T00:00:00.000Z'),
     );
+
     const current = await fastify.priceService.resolvePrice(
       lookupKey,
       new Date('2027-06-01T00:00:00.000Z'),
@@ -134,6 +138,7 @@ describe('PriceService.resolvePrice', () => {
   it('throws when no version is effective yet at that instant', async () => {
     const product = await createProduct();
     const lookupKey = `key_${generateGid(ObjectPrefixEnum.PRICE)}`;
+
     await fastify.priceService.createPrice({
       productId: product.id,
       currency: CurrencyEnum.VND,

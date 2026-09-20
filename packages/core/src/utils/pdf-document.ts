@@ -31,6 +31,7 @@ function resolveFontPaths(): Record<string, string> {
 
 function writeLine(document: PDFKit.PDFDocument, line: PdfLine): void {
   const { text, amount, isTitle = false, isBold = false } = line;
+
   const font = isTitle || isBold ? BOLD_FONT : REGULAR_FONT;
   const fontSize = isTitle ? TITLE_FONT_SIZE : DEFAULT_FONT_SIZE;
   const contentWidth = document.page.width - PAGE_MARGIN * 2;

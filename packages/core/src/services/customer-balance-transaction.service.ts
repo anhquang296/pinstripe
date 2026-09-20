@@ -26,6 +26,7 @@ export class CustomerBalanceTransactionService {
     const now = this.fastify.clock.now().toISOString();
 
     const id = generateGid(ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION);
+
     const { description = '', metadata = {} } = payload;
 
     return this.fastify.database.master.transaction(async (tx) => {
@@ -89,9 +90,11 @@ export class CustomerBalanceTransactionService {
     }
 
     const isCreditGranted = amount < 0;
+
     const balanceDirection = isCreditGranted
       ? PostingDirectionEnum.CREDIT
       : PostingDirectionEnum.DEBIT;
+
     const revenueDirection = isCreditGranted
       ? PostingDirectionEnum.DEBIT
       : PostingDirectionEnum.CREDIT;

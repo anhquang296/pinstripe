@@ -24,12 +24,14 @@ interface InvoiceView {
 }
 
 const PAGE_LIMIT = 20;
+
 const ALL_INVOICES_VIEW: InvoiceView = {
   key: 'all',
   label: 'Tất cả',
   query: {},
   emptyMessage: 'Chưa có hóa đơn nào.',
 };
+
 const INVOICE_VIEWS: InvoiceView[] = [
   ALL_INVOICES_VIEW,
   {
@@ -54,13 +56,18 @@ const INVOICE_VIEWS: InvoiceView[] = [
 
 export default function InvoicesPage({ searchParams }: InvoicesPageProps) {
   const { view } = use(searchParams);
+
   const router = useRouter();
+
   const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+
   const activeView = find(INVOICE_VIEWS, { key: toString(view) }) || ALL_INVOICES_VIEW;
+
   const { data: invoices, isPending } = usePortalInvoicesQuery(
     { ...activeView.query, limit: PAGE_LIMIT, after },
     { hasPlaceholder: true },
   );
+
   const invoiceRows = get(invoices, 'data', []);
   const exportSearch = new URLSearchParams(mapValues(activeView.query, toString)).toString();
   const exportUrl = `/bff/portal/invoice_exports?${exportSearch}`;

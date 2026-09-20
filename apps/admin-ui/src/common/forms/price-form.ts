@@ -165,9 +165,11 @@ export function priceFormDataToPayload(formData: PriceFormData): CreatePricePayl
         usageType: formData.usageType,
       }
     : undefined;
+
   const effectiveAt = formData.effectiveAt
     ? new Date(formData.effectiveAt).toISOString()
     : undefined;
+
   const unitAmount = isTiered ? undefined : toOptionalNumber(formData.unitAmount);
   const tiersMode = isTiered ? formData.tiersMode : undefined;
   const tiers = isTiered ? map(formData.tiers, toTierPayload) : undefined;

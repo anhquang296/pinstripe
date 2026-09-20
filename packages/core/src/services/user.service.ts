@@ -92,6 +92,7 @@ export class UserService {
     const user = await this.fastify.userRepository.getUser(id);
 
     const { role = user.role, status } = payload;
+
     const banned = status ? status === UserStatusEnum.DISABLED : user.banned;
 
     await this.ensureAdminRemains(user, role, banned);

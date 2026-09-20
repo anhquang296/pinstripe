@@ -25,12 +25,15 @@ async function makePortalCustomer(): Promise<{
   headers: Record<string, string>;
 }> {
   const email = `${_.uniqueId('portal-invoices-')}-${Date.now()}@portal.test`;
+
   const customer = await fastify.customerService.createCustomer({
     email,
     currency: CurrencyEnum.VND,
     name: 'Nhà xe Portal Test',
   });
+
   const link = await fastify.portalSessionService.createPortalLink({ email });
+
   const portalSession = await fastify.portalSessionService.redeemPortalLink({
     linkKey: String(link.linkKey),
   });
@@ -56,6 +59,7 @@ async function moveDueDateIntoThePast(invoiceId: string): Promise<void> {
 
 it('splits open invoices into overdue and not yet due', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const overdueInvoice = await makeOpenInvoice(customerId);
   const upcomingInvoice = await makeOpenInvoice(customerId);
 
@@ -66,6 +70,7 @@ it('splits open invoices into overdue and not yet due', async () => {
     url: '/portal/invoices?isOverdue=true',
     headers,
   });
+
   const upcoming = await fastify.inject({
     method: 'GET',
     url: '/portal/invoices?isOverdue=false',
@@ -78,6 +83,7 @@ it('splits open invoices into overdue and not yet due', async () => {
 
 it('reads one of the customer own invoices together with its due date', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const openInvoice = await makeOpenInvoice(customerId);
 
   const response = await fastify.inject({
@@ -93,6 +99,7 @@ it('reads one of the customer own invoices together with its due date', async ()
 
 it('answers 404 for an invoice that belongs to another customer', async () => {
   const { headers } = await makePortalCustomer();
+
   const other = await makePortalCustomer();
   const otherInvoice = await makeOpenInvoice(other.customerId);
 
@@ -101,6 +108,7 @@ it('answers 404 for an invoice that belongs to another customer', async () => {
     url: `/portal/invoices/${otherInvoice.id}`,
     headers,
   });
+
   const pdf = await fastify.inject({
     method: 'GET',
     url: `/portal/invoices/${otherInvoice.id}/pdf`,
@@ -113,6 +121,7 @@ it('answers 404 for an invoice that belongs to another customer', async () => {
 
 it('answers 404 for a draft invoice of the customer', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const draftInvoice = await fastify.invoiceService.createInvoice({
     customerId,
     collectionMethod: CollectionMethodEnum.SEND_INVOICE,
@@ -130,6 +139,7 @@ it('answers 404 for a draft invoice of the customer', async () => {
 
 it('serves the pdf of the customer own invoice', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const openInvoice = await makeOpenInvoice(customerId);
 
   const response = await fastify.inject({
@@ -145,12 +155,14 @@ it('serves the pdf of the customer own invoice', async () => {
 
 it('totals the open invoices of the customer and names the next due date', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const overdueInvoice = await makeOpenInvoice(customerId);
   const upcomingInvoice = await makeOpenInvoice(customerId);
 
   await moveDueDateIntoThePast(overdueInvoice.id);
 
   const response = await fastify.inject({ method: 'GET', url: '/portal/invoice_totals', headers });
+
   const [totals] = response.json().totals;
 
   expect(response.statusCode).toBe(200);
@@ -164,7 +176,9 @@ it('totals the open invoices of the customer and names the next due date', async
 
 it('lists the customer subscriptions with the product name of every item', async () => {
   const { customerId, headers } = await makePortalCustomer();
+
   const product = await fastify.productService.createProduct({ name: 'Phần mềm BMS' });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -179,6 +193,7 @@ it('lists the customer subscriptions with the product name of every item', async
   });
 
   const response = await fastify.inject({ method: 'GET', url: '/portal/subscriptions', headers });
+
   const [subscription] = response.json().data;
 
   expect(response.statusCode).toBe(200);

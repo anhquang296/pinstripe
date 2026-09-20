@@ -72,9 +72,13 @@ interface InvoiceDrawerProps {
 
 export default function InvoiceDrawer({ invoiceId, onClose }: InvoiceDrawerProps) {
   const [activeTab, setActiveTab] = useState(DETAIL_TAB);
+
   const [selectedInvoiceItemId, setSelectedInvoiceItemId] = useState('');
+
   const [selectedCreditNoteId, setSelectedCreditNoteId] = useState('');
+
   const [isVoidOpen, setIsVoidOpen] = useState(false);
+
   const [isVoidCreditNoteOpen, setIsVoidCreditNoteOpen] = useState(false);
 
   const canWrite = useCan(PermissionEnum.INVOICE_WRITE);
@@ -83,17 +87,21 @@ export default function InvoiceDrawer({ invoiceId, onClose }: InvoiceDrawerProps
   const canRefund = useCan(PermissionEnum.REFUND_WRITE);
 
   const { data: invoice } = useInvoiceQuery(invoiceId);
+
   const { data: invoiceItems } = useInvoiceItemsQuery(
     { invoiceId, limit: PAGE_LIMIT },
     { enabled: activeTab === DETAIL_TAB },
   );
+
   const { data: invoiceItem } = useInvoiceItemQuery(selectedInvoiceItemId, {
     enabled: Boolean(selectedInvoiceItemId),
   });
+
   const { data: creditNotes } = useCreditNotesQuery(
     { invoiceId, limit: PAGE_LIMIT },
     { enabled: activeTab === CREDIT_NOTE_TAB },
   );
+
   const { data: creditNote } = useCreditNoteQuery(selectedCreditNoteId, {
     enabled: Boolean(selectedCreditNoteId),
   });
@@ -107,27 +115,35 @@ export default function InvoiceDrawer({ invoiceId, onClose }: InvoiceDrawerProps
       return 'Đã phát hành hoá đơn.';
     },
   });
+
   const { mutate: payInvoice, isPending: isPaying } = usePayInvoiceMutation({
     successMessage: 'Đã ghi nhận thanh toán.',
   });
+
   const { mutateAsync: voidInvoice, isPending: isVoiding } = useVoidInvoiceMutation({
     successMessage: 'Đã huỷ hoá đơn.',
   });
+
   const { mutate: chargeInvoice, isPending: isCharging } = useChargeInvoiceMutation();
+
   const { mutateAsync: createInvoiceItem, isPending: isAddingItem } = useCreateInvoiceItemMutation({
     successMessage: 'Đã thêm dòng hoá đơn.',
   });
+
   const { mutateAsync: updateInvoiceItem, isPending: isSavingItem } = useUpdateInvoiceItemMutation({
     successMessage: 'Đã cập nhật dòng hoá đơn.',
   });
+
   const { mutate: deleteInvoiceItem } = useDeleteInvoiceItemMutation({
     successMessage: 'Đã xoá dòng hoá đơn.',
   });
+
   const { mutateAsync: createCreditNote, isPending: isCrediting } = useCreateCreditNoteMutation({
     successMessage: (createdCreditNote) => {
       return `Đã tạo ${createdCreditNote.number}.`;
     },
   });
+
   const { mutateAsync: voidCreditNote, isPending: isVoidingCreditNote } = useVoidCreditNoteMutation(
     { successMessage: 'Đã huỷ credit note.' },
   );
@@ -136,6 +152,7 @@ export default function InvoiceDrawer({ invoiceId, onClose }: InvoiceDrawerProps
     resolver: invoiceItemFormResolver,
     defaultValues: invoiceItemFormDefaultValues,
   });
+
   const creditNoteForm = useForm<CreditNoteFormData>({
     resolver: creditNoteFormResolver,
     defaultValues: creditNoteFormDefaultValues,

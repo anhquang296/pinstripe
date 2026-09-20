@@ -34,6 +34,7 @@ async function aggregateReport() {
 describe('ReconciliationService.aggregateReconciliationReport', () => {
   it('matches a charge across the processor, the ledger and the invoice', async () => {
     const { invoiceId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
+
     const { chargeId } = await settleInvoice(fastify, invoiceId);
 
     const report = await aggregateReport();
@@ -46,6 +47,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
   it('flags a charge the invoice ledger never recorded a settlement for', async () => {
     const { invoiceId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
+
     const { chargeId } = await settleInvoice(fastify, invoiceId);
 
     await fastify.database.master.execute(
@@ -61,7 +63,9 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
   it('scans past the first page instead of silently dropping the rest', async () => {
     const { invoiceId, customerId } = await makeOpenInvoice(fastify, { unitAmount: BASE_AMOUNT });
+
     const { paymentIntentId } = await settleInvoice(fastify, invoiceId);
+
     const now = new Date();
 
     for (const index of _.range(UNPAGED_CHARGE_COUNT)) {
@@ -90,6 +94,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     }
 
     const report = await aggregateReport();
+
     const missing = _.filter(report.exceptions, {
       outcome: ReconciliationOutcomeEnum.MISSING_IN_LEDGER,
     });

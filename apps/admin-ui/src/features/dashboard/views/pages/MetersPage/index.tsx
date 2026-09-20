@@ -42,15 +42,20 @@ const STATUS_OPTIONS = [
 
 export default function MetersPage() {
   const { meterId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(meterSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: meters, isPending } = useMetersQuery(

@@ -49,11 +49,14 @@ describe('MeterEventService.ingestMeterEventBatch', () => {
       aggregation: MeterAggregationEnum.SUM,
       valueKey: 'tokens',
     });
+
     const customer = await fastify.customerService.createCustomer({
       email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
     });
+
     const events = buildEvents(meter, customer.id);
+
     const expectedDuplicates = _.filter(events, (_event, index) => {
       return index % DUPLICATE_RATE === 0 && index > 0;
     }).length;

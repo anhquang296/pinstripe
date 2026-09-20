@@ -46,21 +46,27 @@ const STATUS_OPTIONS = map(values(RefundStatusEnum), (status) => {
 
 export default function RefundsPage() {
   const { refundId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(refundSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canRefund = useCan(PermissionEnum.REFUND_WRITE);
 
   const { data: refunds, isPending } = useRefundsQuery(
     { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
+
   const { data: paymentIntents } = usePaymentIntentsQuery({ limit: OPTION_LIMIT });
 
   const { mutateAsync: createRefund, isPending: isSaving } = useCreateRefundMutation({

@@ -46,7 +46,9 @@ export class WebhookService {
   ): Promise<WebhookEndpointResponse> {
     const now = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.WEBHOOK_ENDPOINT);
+
     const { description = '', metadata = {} } = payload;
+
     const createdEndpoint = await this.fastify.webhookRepository.createWebhookEndpoint({
       id,
       url: payload.url,
@@ -99,8 +101,10 @@ export class WebhookService {
     query: FindWebhookEndpointsQuery,
   ): Promise<ListResponse<WebhookEndpointResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveEndpointCursor(query.after);
     const afterAt = await this.resolveEndpointCursor(query.before);
+
     const rows = await this.fastify.webhookRepository.findWebhookEndpoints(
       { status: query.status, beforeAt, afterAt },
       limit + 1,
@@ -119,6 +123,7 @@ export class WebhookService {
     query: FindWebhookDeliveriesQuery,
   ): Promise<ListResponse<WebhookDeliveryResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const rows = await this.fastify.webhookRepository.findWebhookDeliveries(
       { endpointId: query.endpointId, status: query.status },
       limit + 1,
@@ -136,6 +141,7 @@ export class WebhookService {
       { status: WebhookEndpointStatusEnum.ENABLED },
       ENDPOINT_SCAN_LIMIT,
     );
+
     const subscribed = _.filter(endpoints, (endpoint) => {
       return _.includes(endpoint.enabledEvents, event.eventType);
     });
@@ -145,12 +151,14 @@ export class WebhookService {
     }
 
     const createdAt = this.fastify.clock.now().toISOString();
+
     const payload: PinstripeEvent = {
       id: event.eventId,
       type: event.eventType,
       createdAt: event.occurredAt,
       data: { object: event.payload },
     };
+
     const deliveries = await this.fastify.webhookRepository.createWebhookDeliveries(
       _.map(subscribed, (endpoint) => {
         return {

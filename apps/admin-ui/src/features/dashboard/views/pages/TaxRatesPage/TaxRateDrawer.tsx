@@ -28,6 +28,7 @@ export default function TaxRateDrawer({ taxRateId, onClose }: TaxRateDrawerProps
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: taxRate } = useTaxRateQuery(taxRateId);
+
   const { mutateAsync: updateTaxRate, isPending: isSaving } = useUpdateTaxRateMutation({
     successMessage: 'Đã cập nhật tax rate.',
   });

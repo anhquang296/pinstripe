@@ -153,6 +153,7 @@ export class InvoiceDocumentService {
       id,
       token,
     );
+
     const invoice = await this.fastify.invoiceRepository.findInvoice(id);
 
     if (isVerified && invoice) {
@@ -181,6 +182,7 @@ export class InvoiceDocumentService {
     const amount = (value: number) => {
       return formatDocumentMoney(value, invoice.currency);
     };
+
     const periodLabel = `${formatDocumentDate(invoice.periodStart)} – ${formatDocumentDate(invoice.periodEnd)}`;
     const dueLabel = buildOptionalLabel(invoice.dueAt && formatDocumentDate(invoice.dueAt));
 

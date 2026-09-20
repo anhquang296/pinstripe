@@ -18,6 +18,7 @@ import type {
 
 function useInvoiceInvalidation() {
   const queryClient = useQueryClient();
+
   const { queries } = usePinstripeContext();
 
   return (invoiceId: string) => {
@@ -32,7 +33,9 @@ function useInvoiceInvalidation() {
 
 export function useCreateInvoiceMutation({ successMessage }: MutationProps<InvoiceResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -51,7 +54,9 @@ export function useFinalizeInvoiceMutation({
   successMessage,
 }: MutationProps<InvoiceResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -68,7 +73,9 @@ export function useFinalizeInvoiceMutation({
 
 export function usePayInvoiceMutation({ successMessage }: MutationProps<InvoiceResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -85,7 +92,9 @@ export function usePayInvoiceMutation({ successMessage }: MutationProps<InvoiceR
 
 export function useVoidInvoiceMutation({ successMessage }: MutationProps<InvoiceResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -102,6 +111,7 @@ export function useVoidInvoiceMutation({ successMessage }: MutationProps<Invoice
 
 function useInvoiceItemInvalidation() {
   const queryClient = useQueryClient();
+
   const { queries } = usePinstripeContext();
 
   return (invoiceItemId: string) => {
@@ -117,7 +127,9 @@ export function useCreateInvoiceItemMutation({
   successMessage,
 }: MutationProps<InvoiceItemResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceItemInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -136,7 +148,9 @@ export function useUpdateInvoiceItemMutation({
   successMessage,
 }: MutationProps<InvoiceItemResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceItemInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -155,7 +169,9 @@ export function useDeleteInvoiceItemMutation({
   successMessage,
 }: MutationProps<DeletedInvoiceItemResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceItemInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -174,7 +190,9 @@ export function useCreateCreditNoteMutation({
   successMessage,
 }: MutationProps<CreditNoteResponse> = {}) {
   const { client } = usePinstripeContext();
+
   const invalidate = useInvoiceInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -193,8 +211,11 @@ export function useVoidCreditNoteMutation({
   successMessage,
 }: MutationProps<CreditNoteResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const invalidate = useInvoiceInvalidation();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

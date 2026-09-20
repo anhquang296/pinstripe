@@ -50,15 +50,20 @@ export default function InvoiceDetail({
   isPaymentsLoading,
 }: InvoiceDetailProps) {
   const now = new Date();
+
   const { number, currency } = invoice;
+
   const { label, tone } = resolveInvoiceStatusLabel(invoice, now);
+
   const overdueDays = resolveOverdueDays(invoice, now);
   const dueLabel = buildOptionalDate(invoice.dueAt);
   const overdueDescription = overdueDays > 0 ? `Đã quá hạn ${overdueDays} ngày.` : undefined;
   const pdfUrl = `/bff/portal/invoices/${encodeURIComponent(invoice.id)}/pdf`;
+
   const amount = (value: number) => {
     return formatCurrency(value, currency);
   };
+
   const lineItemColumns = [
     {
       key: 'description',
@@ -106,6 +111,7 @@ export default function InvoiceDetail({
       },
     },
   ];
+
   const totals = [
     { label: 'Tạm tính', value: amount(invoice.subtotal) },
     { label: 'Giảm giá', value: amount(invoice.totalDiscountAmount) },

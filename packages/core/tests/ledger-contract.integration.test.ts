@@ -27,10 +27,12 @@ async function findPostingsByExternalId(externalId: string) {
   }
 
   const postings = await fastify.ledgerTransactionRepository.findLedgerPostings([transaction.id]);
+
   const accounts = await fastify.ledgerAccountRepository.findLedgerAccounts(
     { ids: _.map(postings, 'accountId') },
     postings.length,
   );
+
   const accountById = _.keyBy(accounts, 'id');
 
   return _.map(postings, (posting) => {
@@ -49,6 +51,7 @@ it('names a cash receipt with the reference the processor reports', async () => 
   const externalId = `invoice_payment:${invoiceId}:${paid.amountPaid}`;
 
   const postings = await findPostingsByExternalId(externalId);
+
   const [payment] = await fastify.invoiceRepository.findInvoicePayments([invoiceId]);
 
   expect(_.map(postings, 'code').sort()).toEqual([

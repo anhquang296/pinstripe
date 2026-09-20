@@ -25,9 +25,11 @@ export default function ReportsPage() {
   const reportWindow = useReportWindow(WINDOW_DAYS);
 
   const { data: revenue } = useRevenueSummaryQuery(reportWindow);
+
   const { data: reconciliation, isPending } = useReconciliationReportQuery(reportWindow);
 
   const currency = get(revenue, 'currency', CurrencyEnum.VND);
+
   const exceptions = map(get(reconciliation, 'exceptions', []), (exception) => {
     return { ...exception, id: `${exception.source}:${exception.reference}` };
   });

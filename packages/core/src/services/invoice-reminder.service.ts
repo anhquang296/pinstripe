@@ -55,9 +55,11 @@ export class InvoiceReminderService {
 
   private buildReminderRules(now: Date): InvoiceReminderRule[] {
     const { billingOpsEmail } = this.invoiceReminderConfig;
+
     const shiftDays = (days: number) => {
       return new Date(now.getTime() + days * MILLISECONDS_PER_DAY);
     };
+
     const customerRules: InvoiceReminderRule[] = [
       {
         kind: InvoiceReminderKindEnum.DUE_SOON,
@@ -98,6 +100,7 @@ export class InvoiceReminderService {
     const REMINDER_BATCH_SIZE = 500;
 
     const { portalBaseUrl } = this.invoiceReminderConfig;
+
     const dueInvoices = await this.fastify.invoiceRepository.findInvoices(
       {
         status: InvoiceStatusEnum.OPEN,
@@ -107,11 +110,14 @@ export class InvoiceReminderService {
       },
       REMINDER_BATCH_SIZE,
     );
+
     const sentReminders = await this.fastify.invoiceRepository.findInvoiceReminders(
       _.map(dueInvoices, 'id'),
       invoiceReminderRule.kind,
     );
+
     const remindedInvoiceIds = new Set(_.map(sentReminders, 'invoiceId'));
+
     const pendingInvoices = _.reject(dueInvoices, (invoice) => {
       return remindedInvoiceIds.has(invoice.id);
     });
@@ -120,6 +126,7 @@ export class InvoiceReminderService {
 
     for (const invoice of pendingInvoices) {
       const sentAt = now.toISOString();
+
       const invoiceReminder = await this.fastify.invoiceRepository.createInvoiceReminder({
         id: generateGid(ObjectPrefixEnum.INVOICE_REMINDER),
         invoiceId: invoice.id,

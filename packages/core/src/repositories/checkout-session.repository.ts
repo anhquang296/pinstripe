@@ -78,6 +78,7 @@ export class CheckoutSessionRepository {
     executor?: DatabaseTransaction,
   ): Promise<CheckoutSession | null> {
     const db = executor ?? this._db.master;
+
     const [checkoutSession] = await db.insert(checkoutSessions).values(payload).returning();
 
     return checkoutSession ?? null;
@@ -89,6 +90,7 @@ export class CheckoutSessionRepository {
     executor?: DatabaseTransaction,
   ): Promise<CheckoutSession | null> {
     const db = executor ?? this._db.master;
+
     const [checkoutSession] = await db
       .update(checkoutSessions)
       .set(payload)

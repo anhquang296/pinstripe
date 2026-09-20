@@ -66,6 +66,7 @@ export class PortalSessionRepository {
     executor?: DatabaseTransaction,
   ): Promise<PortalSession | null> {
     const db = executor ?? this._db.master;
+
     const [portalSession] = await db.insert(portalSessions).values(payload).returning();
 
     return portalSession ?? null;
@@ -77,6 +78,7 @@ export class PortalSessionRepository {
     executor?: DatabaseTransaction,
   ): Promise<PortalSession | null> {
     const db = executor ?? this._db.master;
+
     const [portalSession] = await db
       .update(portalSessions)
       .set(payload)

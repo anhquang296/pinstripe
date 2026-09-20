@@ -31,9 +31,11 @@ export class SetupIntentService {
     const paymentMethodId = await this.resolveRequestedPaymentMethodId(payload);
     const createdAt = this.fastify.clock.now().toISOString();
     const id = generateGid(ObjectPrefixEnum.SETUP_INTENT);
+
     const status = paymentMethodId
       ? SetupIntentStatusEnum.REQUIRES_CONFIRMATION
       : SetupIntentStatusEnum.REQUIRES_PAYMENT_METHOD;
+
     const { usage = SetupIntentUsageEnum.OFF_SESSION, metadata = {} } = payload;
 
     const createdSetupIntent = await this.fastify.setupIntentRepository.createSetupIntent({
@@ -64,6 +66,7 @@ export class SetupIntentService {
     payload: ConfirmSetupIntentPayload,
   ): Promise<SetupIntentResponse> {
     const setupIntent = await this.fastify.setupIntentRepository.getSetupIntent(id);
+
     const { paymentMethodId = setupIntent.paymentMethodId } = payload;
 
     if (!paymentMethodId) {
@@ -81,10 +84,13 @@ export class SetupIntentService {
       token: paymentMethod.pspToken,
       idempotencyKey: `setup:${setupIntent.id}`,
     });
+
     const isAwaitingAction = confirmation.status === PspIntentStatusEnum.REQUIRES_ACTION;
+
     const status = isAwaitingAction
       ? SetupIntentStatusEnum.REQUIRES_ACTION
       : SetupIntentStatusEnum.PROCESSING;
+
     const metadata = { ...setupIntent.metadata, ...payload.metadata };
 
     const confirmedSetupIntent = await this.fastify.setupIntentRepository.updateSetupIntent(
@@ -117,6 +123,7 @@ export class SetupIntentService {
     SetupIntentService.assertTransition(setupIntent.status, SetupIntentStatusEnum.CANCELED);
 
     const { cancellationReason = PaymentCancellationReasonEnum.REQUESTED_BY_CUSTOMER } = payload;
+
     const metadata = { ...setupIntent.metadata, ...payload.metadata };
 
     const canceledSetupIntent = await this.fastify.setupIntentRepository.updateSetupIntent(
@@ -143,8 +150,10 @@ export class SetupIntentService {
 
   async findSetupIntents(query: FindSetupIntentsQuery): Promise<ListResponse<SetupIntentResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.setupIntentRepository.findSetupIntents(
       { customerId: query.customerId, status: query.status, beforeAt, afterAt },
       limit + 1,
@@ -165,6 +174,7 @@ export class SetupIntentService {
     }
 
     const updatedAt = this.fastify.clock.now().toISOString();
+
     const { paymentMethodId } = setupIntent;
 
     await this.fastify.database.master.transaction(async (tx) => {

@@ -164,6 +164,7 @@ function rateGraduatedTiers(
     }
 
     const { flatAmount: tierFlatAmount = 0, unitAmount: tierUnitAmount = 0 } = tier;
+
     const flatAmount = Money.of(tierFlatAmount, currency);
     const unitAmount = Money.of(tierUnitAmount, currency);
 
@@ -180,6 +181,7 @@ function rateVolumeTiers(tiers: readonly PriceTier[], quantity: number, currency
 
   if (tier) {
     const { flatAmount: tierFlatAmount = 0, unitAmount: tierUnitAmount = 0 } = tier;
+
     const flatAmount = Money.of(tierFlatAmount, currency);
     const unitAmount = Money.of(tierUnitAmount, currency);
 
@@ -202,6 +204,7 @@ export function ratePrice(price: RatingPrice, quantity: number): Money {
 
   if (price.billingScheme === BillingSchemeEnum.PER_UNIT) {
     const { unitAmount: priceUnitAmount } = price;
+
     const unitMinorAmount = priceUnitAmount === null ? 0 : priceUnitAmount;
     const unitAmount = Money.of(unitMinorAmount, price.currency);
 

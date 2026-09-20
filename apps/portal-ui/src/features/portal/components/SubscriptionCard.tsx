@@ -42,8 +42,11 @@ function buildItemPriceLabel(subscriptionItem: SubscriptionItem, currency: strin
 
 export default function SubscriptionCard({ subscription }: SubscriptionCardProps) {
   const { label, tone } = SUBSCRIPTION_STATUS_LABELS[subscription.status];
+
   const { cancelAt, trialEnd } = subscription;
+
   const periodLabel = `${formatDate(subscription.currentPeriodStart)} – ${formatDate(subscription.currentPeriodEnd)}`;
+
   const details = [
     { label: 'Kỳ hiện tại', value: periodLabel },
     { label: 'Kỳ thu tiếp theo', value: formatDate(subscription.currentPeriodEnd) },

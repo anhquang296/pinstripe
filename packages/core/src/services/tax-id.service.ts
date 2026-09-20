@@ -182,6 +182,7 @@ export class TaxIdService {
 
   async findTaxIds(query: FindTaxIdsQuery): Promise<ListResponse<TaxIdResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
 

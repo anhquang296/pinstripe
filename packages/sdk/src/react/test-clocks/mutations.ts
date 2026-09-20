@@ -12,7 +12,9 @@ export function useCreateTestClockMutation({
   successMessage,
 }: MutationProps<TestClockResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -31,7 +33,9 @@ export function useAdvanceTestClockMutation({
   successMessage,
 }: MutationProps<TestClockResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

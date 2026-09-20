@@ -50,14 +50,18 @@ function buildCreditLabel(account: PortalIdentityResponse): string {
 
 export default function AccountPage() {
   const { data: account } = usePortalAccountQuery();
+
   const { data: paymentMethods } = usePortalPaymentMethodsQuery({ limit: 20 });
+
   const form = useForm<PortalRequestFormData>({
     resolver: portalRequestFormResolver,
     defaultValues: portalRequestFormDefaultValues,
   });
+
   const { mutate: createPortalRequest, isPending: isSubmitting } = useCreatePortalRequestMutation({
     successMessage: 'Đã gửi yêu cầu. Kế toán Vexere sẽ liên hệ với nhà xe.',
   });
+
   const handleOnSubmit = form.handleSubmit((data) => {
     createPortalRequest(
       { kind: PortalRequestKindEnum.PROFILE_UPDATE, message: data.message },
@@ -71,8 +75,10 @@ export default function AccountPage() {
 
   if (account) {
     const { sessionExpiresAt, accountantName, accountantEmail, role, userEmail } = account;
+
     const roleLabel = role ? PORTAL_ROLE_LABELS[role] : 'Truy cập bằng link Vexere gửi';
     const sessionLabel = sessionExpiresAt ? formatDateTime(sessionExpiresAt) : '—';
+
     const accountantEmailValue = accountantEmail ? (
       <Link href={`mailto:${accountantEmail}`}>{accountantEmail}</Link>
     ) : (

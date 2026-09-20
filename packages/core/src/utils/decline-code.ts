@@ -55,6 +55,7 @@ export function resolveRetryDelayDays(
   const schedule = declineCode
     ? _.get(DECLINE_TAXONOMY, [declineCode, 'retryDelayDays'], fallbackDelayDays)
     : fallbackDelayDays;
+
   const delayDays = _.get(schedule, attemptCount - 1, null);
 
   return delayDays;

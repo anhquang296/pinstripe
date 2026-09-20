@@ -12,7 +12,9 @@ export function useCreatePaymentLinkMutation({
   successMessage,
 }: MutationProps<PaymentLinkResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -31,7 +33,9 @@ export function useUpdatePaymentLinkMutation({
   successMessage,
 }: MutationProps<PaymentLinkResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

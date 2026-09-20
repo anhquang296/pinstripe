@@ -8,6 +8,7 @@ export function formatCurrency(minorAmount: number, currency: string): string {
     style: 'currency',
     currency: toUpper(currency),
   });
+
   const { maximumFractionDigits = 0 } = formatter.resolvedOptions();
 
   return formatter.format(minorAmount / 10 ** maximumFractionDigits);

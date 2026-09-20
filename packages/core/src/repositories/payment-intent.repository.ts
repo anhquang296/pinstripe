@@ -148,6 +148,7 @@ export class PaymentIntentRepository {
     executor?: DatabaseTransaction,
   ): Promise<PaymentIntent | null> {
     const db = executor ?? this._db.master;
+
     const [paymentIntent] = await db.insert(paymentIntents).values(payload).returning();
 
     return paymentIntent ?? null;
@@ -155,6 +156,7 @@ export class PaymentIntentRepository {
 
   async createCharge(payload: NewCharge, executor?: DatabaseTransaction): Promise<Charge | null> {
     const db = executor ?? this._db.master;
+
     const [charge] = await db.insert(charges).values(payload).returning();
 
     return charge ?? null;
@@ -166,6 +168,7 @@ export class PaymentIntentRepository {
     executor?: DatabaseTransaction,
   ): Promise<PaymentIntent | null> {
     const db = executor ?? this._db.master;
+
     const [paymentIntent] = await db
       .update(paymentIntents)
       .set(payload)
@@ -181,6 +184,7 @@ export class PaymentIntentRepository {
     executor?: DatabaseTransaction,
   ): Promise<Charge | null> {
     const db = executor ?? this._db.master;
+
     const [charge] = await db.update(charges).set(payload).where(eq(charges.id, id)).returning();
 
     return charge ?? null;

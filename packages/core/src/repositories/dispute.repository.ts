@@ -75,6 +75,7 @@ export class DisputeRepository {
     executor?: DatabaseTransaction,
   ): Promise<Dispute | null> {
     const db = executor ?? this._db.master;
+
     const [dispute] = await db.insert(disputes).values(payload).returning();
 
     return dispute ?? null;
@@ -86,6 +87,7 @@ export class DisputeRepository {
     executor?: DatabaseTransaction,
   ): Promise<Dispute | null> {
     const db = executor ?? this._db.master;
+
     const [dispute] = await db.update(disputes).set(payload).where(eq(disputes.id, id)).returning();
 
     return dispute ?? null;

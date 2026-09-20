@@ -57,6 +57,7 @@ export class MeterEventRepository {
     }
 
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const insertedRows = await db
       .insert(meterEvents)
       .values([...payloads])

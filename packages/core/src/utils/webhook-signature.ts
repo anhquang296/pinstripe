@@ -44,6 +44,7 @@ export function isWebhookSignatureValid(
       return [key, value];
     }),
   );
+
   const timestamp = parts.t;
   const signature = parts[SIGNATURE_SCHEME];
 

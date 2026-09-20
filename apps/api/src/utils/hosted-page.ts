@@ -53,6 +53,7 @@ export function buildCheckoutPage(
       return `<tr><td>${escapeHtml(lineItem.priceId)}</td><td>${lineItem.quantity}</td><td>${lineItem.amountTotal}</td></tr>`;
     })
     .join('');
+
   const summary = `<table><thead><tr><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead><tbody>${rows}</tbody></table>`;
   const total = `<p><strong>Tổng: ${checkoutSession.amountTotal} ${escapeHtml(checkoutSession.currency)}</strong></p>`;
 

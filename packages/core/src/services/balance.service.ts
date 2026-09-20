@@ -50,8 +50,10 @@ export class BalanceService {
     query: FindBalanceTransactionsQuery,
   ): Promise<ListResponse<BalanceTransactionResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
+
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
+
     const rows = await this.fastify.balanceTransactionRepository.findBalanceTransactions(
       { type: query.type, payoutId: query.payoutId, beforeAt, afterAt },
       limit + 1,
@@ -72,6 +74,7 @@ export class BalanceService {
     const gross = charge.amountCaptured;
     const fee = Math.min(this.fastify.psp.calculateProcessingFee(gross), gross);
     const net = gross - fee;
+
     const creditEntry: PostLedgerTransactionPayload['entries'][number] = invoiceId
       ? {
           accountCode: LedgerAccountCodeEnum.ACCOUNTS_RECEIVABLE,
@@ -84,6 +87,7 @@ export class BalanceService {
           direction: PostingDirectionEnum.CREDIT,
           amount: gross,
         };
+
     const settlementEntries: PostLedgerTransactionPayload['entries'] = [
       {
         accountCode: LedgerAccountCodeEnum.PSP_RECEIVABLE,

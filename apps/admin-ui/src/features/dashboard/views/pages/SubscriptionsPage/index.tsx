@@ -47,22 +47,29 @@ const STATUS_OPTIONS = map(values(SubscriptionStatusEnum), (status) => {
 
 export default function SubscriptionsPage() {
   const { subscriptionId } = useParams();
+
   const navigate = useSearchPreservingNavigate();
+
   const [search, setSearch] = useQueryStates(subscriptionSearchParams);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {
       setSearch({ after });
     },
   });
+
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: subscriptions, isPending } = useSubscriptionsQuery(
     { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
+
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
+
   const { data: prices } = usePricesQuery({ limit: OPTION_LIMIT, active: true });
 
   const { mutateAsync: createSubscription, isPending: isSaving } = useCreateSubscriptionMutation({
@@ -91,6 +98,7 @@ export default function SubscriptionsPage() {
     { value: '', label: '— chọn bảng giá —' },
     ...map(filter(get(prices, 'data', []), { type: PriceTypeEnum.RECURRING }), (price) => {
       const { lookupKey } = price;
+
       const priceName = lookupKey === null ? price.id : lookupKey;
 
       return {

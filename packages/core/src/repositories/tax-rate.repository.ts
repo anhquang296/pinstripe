@@ -98,6 +98,7 @@ export class TaxRateRepository {
     executor?: DatabaseTransaction,
   ): Promise<TaxRate | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [taxRate] = await db.insert(taxRates).values(payload).returning();
 
     return taxRate ?? null;
@@ -109,6 +110,7 @@ export class TaxRateRepository {
     executor?: DatabaseTransaction,
   ): Promise<TaxRate | null> {
     const db: Database | DatabaseTransaction = executor ?? this._db.master;
+
     const [taxRate] = await db.update(taxRates).set(payload).where(eq(taxRates.id, id)).returning();
 
     return taxRate ?? null;

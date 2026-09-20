@@ -69,6 +69,7 @@ export class SubscriptionItemService {
     const subscription = await this.fastify.subscriptionRepository.getSubscription(
       payload.subscriptionId,
     );
+
     const timing = await this.resolveTiming(subscription, payload.prorationBehavior);
     const price = await this.fastify.priceRepository.getPrice(payload.priceId);
 
@@ -100,16 +101,20 @@ export class SubscriptionItemService {
     payload: UpdateSubscriptionItemPayload,
   ): Promise<SubscriptionItemResponse> {
     const subscriptionItem = await this.getSubscriptionItemRow(id);
+
     const subscription = await this.fastify.subscriptionRepository.getSubscription(
       subscriptionItem.subscriptionId,
     );
+
     const timing = await this.resolveTiming(subscription, payload.prorationBehavior);
+
     const {
       priceId = subscriptionItem.priceId,
       quantity = subscriptionItem.quantity,
       taxRates = subscriptionItem.taxRates,
       metadata = subscriptionItem.metadata,
     } = payload;
+
     const line: SubscriptionItemLine = {
       id: subscriptionItem.id,
       priceId,
@@ -117,6 +122,7 @@ export class SubscriptionItemService {
       taxRates,
       metadata,
     };
+
     const price = await this.fastify.priceRepository.getPrice(line.priceId);
 
     assertPricesUsable([price], subscription.currency);
@@ -143,9 +149,11 @@ export class SubscriptionItemService {
     payload: DeleteSubscriptionItemPayload,
   ): Promise<DeletedSubscriptionItemResponse> {
     const subscriptionItem = await this.getSubscriptionItemRow(id);
+
     const subscription = await this.fastify.subscriptionRepository.getSubscription(
       subscriptionItem.subscriptionId,
     );
+
     const liveItems = await this.fastify.subscriptionRepository.findSubscriptionItems({
       subscriptionIds: [subscription.id],
       deletedAtIsNull: true,
@@ -177,6 +185,7 @@ export class SubscriptionItemService {
       { subscriptionIds: [subscription.id], deletedAtIsNull: true },
       tx,
     );
+
     const prices = await this.resolvePrices(_.map(lines, 'priceId'));
 
     assertPricesUsable(prices, subscription.currency);
@@ -213,6 +222,7 @@ export class SubscriptionItemService {
     tx: DatabaseTransaction,
   ): Promise<SubscriptionItemResponse> {
     const { quantity = 1, taxRates = [], metadata = {} } = line;
+
     const subscriptionItem = {
       id: generateGid(ObjectPrefixEnum.SUBSCRIPTION_ITEM),
       subscriptionId: subscription.id,
@@ -252,6 +262,7 @@ export class SubscriptionItemService {
       taxRates = subscriptionItem.taxRates,
       metadata = subscriptionItem.metadata,
     } = line;
+
     const isRebilled =
       line.priceId !== subscriptionItem.priceId || quantity !== subscriptionItem.quantity;
 

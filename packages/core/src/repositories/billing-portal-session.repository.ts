@@ -57,6 +57,7 @@ export class BillingPortalSessionRepository {
     executor?: DatabaseTransaction,
   ): Promise<BillingPortalSession | null> {
     const db = executor ?? this._db.master;
+
     const [session] = await db.insert(billingPortalSessions).values(payload).returning();
 
     return session ?? null;

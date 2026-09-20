@@ -28,6 +28,7 @@ const STATUS_OPTIONS = [
 
 export default function WebhookDeliveriesPage() {
   const [search, setSearch] = useQueryStates(webhookDeliverySearchParams);
+
   const { hasPrevious, advancePage, revertPage } = useCursorPagination({
     after: search.after,
     onPageChange: (after) => {

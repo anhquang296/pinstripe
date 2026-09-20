@@ -22,6 +22,7 @@ export default function PortalSidebar() {
         {map(NAVIGATION_ITEMS, (navigationItem) => {
           const isActive =
             navigationItem.to === '/' ? pathname === '/' : startsWith(pathname, navigationItem.to);
+
           const stateClassName = isActive
             ? 'border-l-accent bg-accent-soft text-accent'
             : 'text-foreground';

@@ -14,7 +14,9 @@ import type {
 
 export function useCreateMeterMutation({ successMessage }: MutationProps<MeterResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -31,7 +33,9 @@ export function useCreateMeterMutation({ successMessage }: MutationProps<MeterRe
 
 export function useUpdateMeterMutation({ successMessage }: MutationProps<MeterResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -51,7 +55,9 @@ export function useCreateMeterEventMutation({
   successMessage,
 }: MutationProps<MeterEventResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({
@@ -70,7 +76,9 @@ export function useCreateMeterEventBatchMutation({
   successMessage,
 }: MutationProps<CreateMeterEventBatchResponse> = {}) {
   const queryClient = useQueryClient();
+
   const { client, queries } = usePinstripeContext();
+
   const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
 
   return useMutation({

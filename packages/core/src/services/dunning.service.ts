@@ -50,6 +50,7 @@ export class DunningService {
 
   async runDunningShard(job: DunningRunShardJob): Promise<DunningRunResult> {
     const runAt = new Date(job.runAt);
+
     const due = await this.fastify.invoiceRepository.findInvoices(
       {
         status: InvoiceStatusEnum.OPEN,
@@ -112,6 +113,7 @@ export class DunningService {
 
     const now = await this.resolveDunningNow(invoice, failedAt);
     const attemptCount = invoice.attemptCount + 1;
+
     const nextDelayDays = resolveRetryDelayDays(
       declineCode,
       attemptCount,
@@ -333,6 +335,7 @@ export class DunningService {
     if (subscriptionId) {
       const subscription =
         await this.fastify.subscriptionRepository.findSubscription(subscriptionId);
+
       const subscriptionPaymentMethodId = _.get(subscription, 'defaultPaymentMethodId', null);
 
       if (subscriptionPaymentMethodId) {

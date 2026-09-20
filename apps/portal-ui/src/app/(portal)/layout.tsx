@@ -16,7 +16,9 @@ interface PortalLayoutProps {
 
 export default function PortalLayout({ children }: PortalLayoutProps) {
   const router = useRouter();
+
   const { mutate: deletePortalSession, isPending: isSigningOut } = useDeletePortalSessionMutation();
+
   const { mutate: updatePortalSession, isPending: isSwitching } = useUpdatePortalSessionMutation({
     successMessage: 'Đã chuyển nhà xe.',
   });

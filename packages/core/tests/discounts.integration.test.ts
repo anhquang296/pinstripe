@@ -35,6 +35,7 @@ async function makePriceId(unitAmount: number): Promise<{ productId: string; pri
   const product = await fastify.productService.createProduct({
     name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
@@ -74,6 +75,7 @@ async function billStandalone(customerId: string, amount: number): Promise<numbe
 
 it('writes a percent discount onto the line and into the invoice total', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Twenty',
     percentOff: 20,
@@ -89,6 +91,7 @@ it('writes a percent discount onto the line and into the invoice total', async (
 
   const draft = await fastify.invoiceService.createInvoice({ customerId });
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
   const [lineItem] = open.lineItems;
 
   expect(open.subtotal).toBe(500_000);
@@ -100,11 +103,13 @@ it('writes a percent discount onto the line and into the invoice total', async (
 
 it('stacks two discounts sequentially on the running balance', async () => {
   const customerId = await makeCustomerId();
+
   const firstCoupon = await fastify.couponService.createCoupon({
     name: 'First',
     percentOff: 20,
     duration: CouponDurationEnum.FOREVER,
   });
+
   const secondCoupon = await fastify.couponService.createCoupon({
     name: 'Second',
     percentOff: 20,
@@ -121,6 +126,7 @@ it('stacks two discounts sequentially on the running balance', async () => {
 
 it('caps a fixed amount discount at the amount still left on the invoice', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Big',
     amountOff: 800_000,
@@ -137,6 +143,7 @@ it('caps a fixed amount discount at the amount still left on the invoice', async
 
 it('spends a once coupon on the first invoice and leaves the second alone', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Welcome',
     percentOff: 50,
@@ -154,6 +161,7 @@ it('spends a once coupon on the first invoice and leaves the second alone', asyn
 
 it('leaves a line that is not discountable at its full amount', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Half',
     percentOff: 50,
@@ -182,6 +190,7 @@ it('leaves a line that is not discountable at its full amount', async () => {
 
 it('refuses a coupon that has run out of redemptions', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Scarce',
     percentOff: 10,
@@ -198,11 +207,13 @@ it('refuses a coupon that has run out of redemptions', async () => {
 
 it('redeems a promotion code and records it on the discount', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Coded',
     percentOff: 25,
     duration: CouponDurationEnum.FOREVER,
   });
+
   const promotionCode = await fastify.promotionCodeService.createPromotionCode({
     couponId: coupon.id,
     code: 'SPRING25',
@@ -212,6 +223,7 @@ it('redeems a promotion code and records it on the discount', async () => {
     promotionCode: 'spring25',
     customerId,
   });
+
   const redeemed = await fastify.promotionCodeService.getPromotionCode(promotionCode.id);
 
   expect(discount.promotionCodeId).toBe(promotionCode.id);
@@ -220,6 +232,7 @@ it('redeems a promotion code and records it on the discount', async () => {
 
 it('skips a discount whose promotion code asks for a higher minimum amount', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Bulk',
     percentOff: 30,
@@ -243,6 +256,7 @@ it('discounts three subscription invoices with a three month coupon and leaves t
     unitAmount: 1_000_000,
     billingMode: BillingModeEnum.ARREARS,
   });
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Three months',
     percentOff: 20,
@@ -261,6 +275,7 @@ it('discounts three subscription invoices with a three month coupon and leaves t
     const draft = await fastify.invoiceService.createInvoice({
       subscriptionId: fixture.subscriptionId,
     });
+
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
     discountedTotals.push(open.totalDiscountAmount);
@@ -277,6 +292,7 @@ it('discounts three subscription invoices with a three month coupon and leaves t
 
 it('discounts only the line whose product the coupon applies to', async () => {
   const fixture = await makeTwoProductSubscription(1_000_000);
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'One plan only',
     percentOff: 20,
@@ -292,6 +308,7 @@ it('discounts only the line whose product the coupon applies to', async () => {
   const draft = await fastify.invoiceService.createInvoice({
     subscriptionId: fixture.subscriptionId,
   });
+
   const open = await fastify.invoiceService.finalizeInvoice(draft.id);
 
   expect(open.subtotal).toBe(2_000_000);
@@ -300,6 +317,7 @@ it('discounts only the line whose product the coupon applies to', async () => {
 
 it('refuses a coupon that is past its redeem by date', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Expired',
     percentOff: 15,
@@ -314,6 +332,7 @@ it('refuses a coupon that is past its redeem by date', async () => {
 
 it('refuses a first time transaction promotion code for a customer who has already paid', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Newcomer',
     percentOff: 15,
@@ -343,11 +362,13 @@ it('refuses a first time transaction promotion code for a customer who has alrea
 
 it('keeps an invoice item discount on its own line', async () => {
   const customerId = await makeCustomerId();
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'One line',
     percentOff: 50,
     duration: CouponDurationEnum.FOREVER,
   });
+
   const discountedItem = await fastify.invoiceItemService.createInvoiceItem({
     customerId,
     description: 'Discounted',
@@ -373,6 +394,7 @@ it('keeps an invoice item discount on its own line', async () => {
 
 it('reports MRR net of an active subscription discount', async () => {
   const fixture = await makeSubscription(fastify, { unitAmount: 2_000_000 });
+
   const coupon = await fastify.couponService.createCoupon({
     name: 'Mrr',
     percentOff: 25,

@@ -33,6 +33,7 @@ async function makeActiveSubscription(
     name: `clock ${generateGid(ObjectPrefixEnum.TEST_CLOCK)}`,
     frozenTime: CLOCK_START,
   });
+
   const customer = await fastify.customerService.createCustomer({
     email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
     currency: CurrencyEnum.VND,
@@ -40,15 +41,18 @@ async function makeActiveSubscription(
   });
 
   await makePaymentMethod(fastify, customer.id);
+
   const product = await fastify.productService.createProduct({
     name: `Plan ${generateGid(ObjectPrefixEnum.PRODUCT)}`,
   });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
     unitAmount: amount,
     recurring: { interval },
   });
+
   const subscription = await fastify.subscriptionService.createSubscription({
     customerId: customer.id,
     items: [{ priceId: price.id }],
@@ -93,6 +97,7 @@ describe('ReportingService.aggregateRevenueSummary', () => {
     const vnd = await fastify.reportingService.aggregateRevenueSummary({
       currency: CurrencyEnum.VND,
     });
+
     const usd = await fastify.reportingService.aggregateRevenueSummary({
       currency: CurrencyEnum.USD,
     });
@@ -119,6 +124,7 @@ describe('ReportingService.aggregateRevenueSummary', () => {
 describe('ReconciliationService.aggregateReconciliationReport', () => {
   it('matches a collected payment against the balance it moved in the ledger', async () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
+
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
     const windowStart = new Date(Date.now() - MILLISECONDS_PER_DAY);
@@ -134,7 +140,9 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       windowStart: windowStart.toISOString(),
       windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
     });
+
     const settled = await fastify.paymentService.getPaymentIntent(paymentIntent.id);
+
     const exception = _.find(report.exceptions, {
       reference: `charge:${settled.latestChargeId}`,
     });
@@ -145,6 +153,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
   it('nets a refund back out so the processor and the ledger still agree', async () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
+
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
     const paymentIntent = await fastify.paymentService.createPaymentIntent({ invoiceId: open.id });
@@ -153,6 +162,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
     await fastify.paymentService.drainProviderEvents();
 
     const { latestChargeId } = await fastify.paymentService.getPaymentIntent(paymentIntent.id);
+
     const chargeId = latestChargeId === null ? '' : latestChargeId;
 
     const refund = await fastify.refundService.createRefund({
@@ -167,6 +177,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
       windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
     });
+
     const exception = _.find(report.exceptions, { reference: `refund:${refund.id}` });
 
     expect(exception).toBeUndefined();
@@ -174,8 +185,10 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
 
   it('still matches when the invoice was only part paid', async () => {
     const { subscriptionId } = await makeActiveSubscription(MONTHLY_AMOUNT);
+
     const draft = await fastify.invoiceService.createInvoice({ subscriptionId });
     const open = await fastify.invoiceService.finalizeInvoice(draft.id);
+
     const paymentIntent = await fastify.paymentService.createPaymentIntent({
       invoiceId: open.id,
       amount: 120_000,
@@ -188,6 +201,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
       windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
     });
+
     const exception = _.find(report.exceptions, {
       reference: `payment_intent:${paymentIntent.id}`,
     });
@@ -200,6 +214,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       email: `${generateGid(ObjectPrefixEnum.CUSTOMER)}@example.test`,
       currency: CurrencyEnum.VND,
     });
+
     const strayReference = `charge:${generateGid(ObjectPrefixEnum.CHARGE)}`;
 
     await fastify.ledgerService.postTransaction({
@@ -221,6 +236,7 @@ describe('ReconciliationService.aggregateReconciliationReport', () => {
       windowStart: new Date(Date.now() - MILLISECONDS_PER_DAY).toISOString(),
       windowEnd: new Date(Date.now() + MILLISECONDS_PER_DAY).toISOString(),
     });
+
     const exception = _.find(report.exceptions, { reference: strayReference });
 
     expect(_.get(exception, 'outcome')).toBe(ReconciliationOutcomeEnum.MISSING_IN_PROCESSOR);

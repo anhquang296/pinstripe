@@ -42,6 +42,7 @@ it('leaves the response untouched when nothing is expanded', async () => {
 
 it('nests the product object into a price that asks for it', async () => {
   const product = await fastify.productService.createProduct({ name: 'Expandable' });
+
   const price = await fastify.priceService.createPrice({
     productId: product.id,
     currency: CurrencyEnum.VND,
