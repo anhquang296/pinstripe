@@ -2,6 +2,7 @@ import type { ReportRangePreset } from '@common/utils/report-range';
 import { REPORT_RANGE_LABELS, ReportRangePresetEnum } from '@common/utils/report-range';
 import type { DateValue } from '@heroui/react';
 import { DateRangePicker, ListBox, RangeCalendar, Select } from '@heroui/react';
+import { DateInputGroup } from '@heroui/react/date-input-group';
 import { parseDate } from '@internationalized/date';
 import { useReportRangeStore } from '@libs/report-range.store';
 import { isNull, map, toString } from 'lodash-es';
@@ -86,9 +87,27 @@ export default function ReportRangePicker() {
           value={calendarValue}
           onChange={handleOnRangeChange}
         >
-          <DateRangePicker.Trigger>
-            <DateRangePicker.TriggerIndicator />
-          </DateRangePicker.Trigger>
+          <DateInputGroup>
+            <DateInputGroup.Input slot="start">
+              {(segment) => {
+                return <DateInputGroup.Segment segment={segment} />;
+              }}
+            </DateInputGroup.Input>
+
+            <DateRangePicker.RangeSeparator />
+
+            <DateInputGroup.Input slot="end">
+              {(segment) => {
+                return <DateInputGroup.Segment segment={segment} />;
+              }}
+            </DateInputGroup.Input>
+
+            <DateInputGroup.Suffix>
+              <DateRangePicker.Trigger>
+                <DateRangePicker.TriggerIndicator />
+              </DateRangePicker.Trigger>
+            </DateInputGroup.Suffix>
+          </DateInputGroup>
           <DateRangePicker.Popover>
             <RangeCalendar>
               <RangeCalendar.Header>
