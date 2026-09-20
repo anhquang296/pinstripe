@@ -1,5 +1,6 @@
 import { UserButton } from '@better-auth-ui/heroui';
 import ReportRangePicker from '@common/components/ReportRangePicker';
+import NotificationButton from '@features/dashboard/components/NotificationButton';
 import { NAVIGATION_GROUPS } from '@features/dashboard/constants/navigation';
 import { hasReportRange } from '@features/dashboard/constants/report-range';
 import { find, flatMap, get, startsWith } from 'lodash-es';
@@ -31,6 +32,8 @@ export default function AppTopbar() {
 
       <div className="ml-auto flex items-center gap-3">
         {hasReportRange(pathname) ? <ReportRangePicker /> : null}
+
+        <NotificationButton />
 
         <UserButton size="icon" />
       </div>
