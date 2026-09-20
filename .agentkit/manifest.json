@@ -1,7 +1,7 @@
 {
-  "version": "0.6.2",
+  "version": "0.6.7",
   "files": {
-    ".claude/rules/agentkit/00-index.md": "749107cf3f1ced9776942b5cc881422a45ff422bf0301538cb39291d5370207d",
+    ".claude/rules/agentkit/00-index.md": "19bd9ec94f59262531a72b1a24db9a28b51723baee2d8794fbcc4de945d9c7fa",
     ".claude/rules/agentkit/core/agent-tooling-convention.md": "17f8ed35b8d15e2abc2cbae42a053b3a123db41110bc8ecd6c48f2d25b39c5d1",
     ".claude/rules/agentkit/core/brace-style-convention.md": "0482287ad68cb3bdc04a526f3aa42bb169da932130a1174959d3ff6cbc3a3c84",
     ".claude/rules/agentkit/core/comment-convention.md": "69fab5cbd5541fa5df00c1e2c9d67a39af7184ae31f4e9f39dbbc628151c736c",
@@ -13,7 +13,7 @@
     ".claude/rules/agentkit/core/naming-convention.md": "acdd306b42c87ffbdb55912688d691382570dd4c5cd1c63ebf49109aeec466df",
     ".claude/rules/agentkit/core/nested-access-convention.md": "eb85face4d72974d3785254564e5eb58f644133d72c16966080c07dc81b7f3bc",
     ".claude/rules/agentkit/core/nullability-convention.md": "9d0f6969e9176c3e2caacadebf7fdf56de56a2e3a231bbb4fa620430e81f857b",
-    ".claude/rules/agentkit/core/rule-maintenance.md": "13909f950e329d3ff3615820c114086ae8da5a2eeff1d4da0a0e92f3788fa72d",
+    ".claude/rules/agentkit/core/rule-maintenance.md": "92f86b7976c819f6a797588a07a3400c13b9fbad15967cd5e1ff87c05a66d452",
     ".claude/rules/agentkit/core/statement-convention.md": "9ea7e000c27ed643e198bfce91faafd699ca92c62b468f2817ae781dddb69915",
     ".claude/rules/agentkit/core/testing.md": "256b1a2a8afdd90cad6b3c4d87c4c131d4f98c33dbf4fcd5f31fc635ac70c9b2",
     ".claude/rules/agentkit/core/typescript.md": "0a0e72e3755975c8e7607159d4f51e1f5c11c5db59338630ef0335bbb00f9952",
@@ -30,6 +30,7 @@
     ".claude/rules/agentkit/profiles/node-backend/schema-type-convention.md": "0abd9a1319385df2246ae55c81f81dd3fab42c50781da7ca1388d02e06d40f6d",
     ".claude/rules/agentkit/profiles/node-backend/sdk-client-convention.md": "b8f53cd2a2bbb21614a440c9cbf6e7f77bf789a8653e78ac948d3352c973ff15",
     ".claude/rules/agentkit/profiles/node-backend/service-convention.md": "18e187d2b8d57847b19d46a8221174b35a3917dc6cb40b999ba7583f6adfbe9e",
+    ".claude/rules/agentkit/profiles/nuqs/search-params-convention.md": "7bea78e1203806afc7bacb104047a3426e95c69f8a0d297d8b8346a20c074e5f",
     ".claude/rules/agentkit/profiles/react/api-client-convention.md": "36def5f20cac49f258bcf78380c173bc507061c8aa8371a45446397df7364e11",
     ".claude/rules/agentkit/profiles/react/component-convention.md": "5745f27ecb0485b7a38ca6e992ca311bc76e8fe2797c990b7e8acf6644f16534",
     ".claude/rules/agentkit/profiles/react/form-convention.md": "0a2276bfd59dc5e34e5a0b97a9466735ba91926a1f9c771e1db405d4b150acea",

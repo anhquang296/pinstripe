@@ -8,6 +8,7 @@
     "lodash",
     "monorepo-turborepo",
     "node-backend",
+    "nuqs",
     "react"
   ],
   "vars": {
@@ -18,5 +19,6 @@
   },
   "overrides": {
     "eject": []
-  }
+  },
+  "rules": []
 }

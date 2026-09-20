@@ -26,7 +26,7 @@ Does **not** apply to human-facing docs — `README.md`, ADRs, runbooks. Those h
 
 | Path                        | Owner    | Editing it means                                                             |
 | --------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `.claude/rules/agentkit/**` | agentkit | Your edit is overwritten by the next `agentkit sync`. Change the kit instead. |
+| `.claude/rules/agentkit/**` | agentkit | Your edit is overwritten by the next `agentkit check`. Change the kit instead. |
 | `.claude/rules/local/**`    | this repo | Free to edit. Never touched by sync.                                          |
 | `CLAUDE.md`, `AGENTS.md`    | shared   | Only the span between `<!-- agentkit:start -->` and `<!-- agentkit:end -->` is generated. Everything outside it is the project's own. |
 | `.agentkit/config.json`     | this repo | Which rules this project gets, and the values their placeholders need.        |
@@ -35,7 +35,7 @@ Does **not** apply to human-facing docs — `README.md`, ADRs, runbooks. Those h
 When a rule needs to change, the question is which of two things is true:
 
 - **It is wrong or incomplete everywhere** → fix it in the agentkit repo, bump the kit, re-sync. Every project gets the fix.
-- **It is only true here** → write it in `.claude/rules/local/`, or `agentkit eject` the rule and own the copy.
+- **It is only true here** → write it in `.claude/rules/local/`, or untick the rule in `agentkit rules` and own the copy.
 
 Copying a generated rule into `local/` and editing both is the one option that is never right — two files now claim the same authority and they will disagree.
 

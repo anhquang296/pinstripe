@@ -1,4 +1,4 @@
-<!-- agentkit:start v0.6.2 -->
+<!-- agentkit:start v0.6.7 -->
 ## Coding conventions
 
 The rules below are the source of truth for how code here is written, and every one of them applies
@@ -37,6 +37,7 @@ They are a floor, not a gate. Read them once and keep working; there is no per-f
 | Naming and layout for request/response schemas and the types derived from them — camelCase schemas, suffix matching HTTP position, no intermediate fragments. | `.claude/rules/agentkit/profiles/node-backend/schema-type-convention.md` |
 | How a third-party SDK wrapper is shaped — named after the SDK, `(config, logger)`, no env, no I/O in the constructor, its own error class. | `.claude/rules/agentkit/profiles/node-backend/sdk-client-convention.md` |
 | What a service owns — the verb that states the read's outcome, throwing what the repository returned as null, and the response envelope boundary. | `.claude/rules/agentkit/profiles/node-backend/service-convention.md` |
+| URL search params as the store — parsers declared once per screen, related params written together with `useQueryStates`, enum params from their enum, and the query key derived from the URL. | `.claude/rules/agentkit/profiles/nuqs/search-params-convention.md` |
 | The frontend's HTTP layer — one client in one file, a folder per domain, stateless request functions, and the response envelope kept visible. | `.claude/rules/agentkit/profiles/react/api-client-convention.md` |
 | How a React component file is shaped — PascalCase file, one default export, `{Component}Props`, `on*` props paired with `handleOn*` handlers, and when a file becomes a folder. | `.claude/rules/agentkit/profiles/react/component-convention.md` |
 | React Hook Form + Zod — one config file per form, `useForm` in the page, the whole form object passed down, and a real `<form>` element. | `.claude/rules/agentkit/profiles/react/form-convention.md` |
