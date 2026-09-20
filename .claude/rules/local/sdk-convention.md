@@ -102,8 +102,16 @@ Hook của bề mặt khách hàng (`portal.*`) sống ở entry riêng `@pinstr
 (`src/react/portal/`), không nằm trong barrel `src/react/index.ts`. Lý do là hai test đối xứng dưới
 đây: admin-ui không bao giờ dùng hook của khách hàng, và `portal-ui` không dùng hook của dashboard.
 Key của chúng vẫn đăng ký trong `createPinstripeQueries` dưới subject `PinstripeQuerySubjectEnum.PORTAL`,
-nên cả hai entry dùng chung một `PinstripeProvider`. `useCreatePortalLinkMutation` là ngoại lệ lịch sử:
-nó ở barrel chính vì admin-ui dùng nó để gửi link cho khách, và `portal-ui` cũng import nó từ đó.
+nên cả hai entry dùng chung một `PinstripeProvider`.
+
+`useCreatePortalLinkMutation` cũng ở entry portal, không ở barrel chính: `POST /portal/links` chỉ nhận
+API key scope `portal` (`verifyPortalKeyRequest`), mà cookie session của dashboard **không** xác thực
+được surface `portal` — xem [`auth-convention.md`](./auth-convention.md). Admin-ui gọi nó là 404/401,
+không bao giờ chạy. Kế toán Vexere mở link cho một nhà xe bằng `billingPortal.sessions.create`
+(`POST /v1/billing_portal/sessions`, surface `v1`, quyền `customer.write`), trả đúng URL
+`/login/verify?linkKey=…` dùng một lần. Đường gửi email chỉ có ở `portal-ui`, nơi BFF gắn
+`PINSTRIPE_PORTAL_API_KEY`. Không thêm lại một nút "tạo link portal" vào admin-ui khi chưa có route v1
+gửi email.
 
 Đầu kia của cùng một sợi dây nằm ở `apps/admin-ui/src/hook-usage.test.ts`: nó đọc barrel
 `@pinstripe/sdk/react`, lấy mọi export kết thúc bằng `Query` hay `Mutation`, rồi khẳng định mỗi cái

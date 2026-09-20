@@ -4,7 +4,6 @@ export { useApiKeysQuery } from '@react/api-keys/queries';
 export {
   useCreateBillingPortalConfigurationMutation,
   useCreateBillingPortalSessionMutation,
-  useCreatePortalLinkMutation,
   useUpdateBillingPortalConfigurationMutation,
 } from '@react/billing-portal/mutations';
 export {

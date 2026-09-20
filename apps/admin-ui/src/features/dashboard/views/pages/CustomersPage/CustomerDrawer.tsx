@@ -39,7 +39,6 @@ import {
   useBillingPortalSessionQuery,
   useCreateBillingPortalSessionMutation,
   useCreateCustomerBalanceTransactionMutation,
-  useCreatePortalLinkMutation,
   useCreateTaxIdMutation,
   useCustomerBalanceTransactionsQuery,
   useCustomerQuery,
@@ -122,9 +121,6 @@ export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerPr
     successMessage: 'Đã thêm mã số thuế.',
   });
   const { mutate: deleteTaxId } = useDeleteTaxIdMutation({ successMessage: 'Đã xoá mã số thuế.' });
-  const { mutate: createPortalLink } = useCreatePortalLinkMutation({
-    successMessage: 'Đã gửi link portal cho khách.',
-  });
   const { mutateAsync: createBillingPortalSession } = useCreateBillingPortalSessionMutation();
 
   const customerForm = useForm<CustomerFormData>({
@@ -169,14 +165,6 @@ export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerPr
     await deleteCustomer(customerId);
     setIsDeleteOpen(false);
     onClose();
-  };
-
-  const handleOnCreatePortalLink = () => {
-    const email = get(customer, 'email');
-
-    if (email) {
-      createPortalLink({ email });
-    }
   };
 
   const handleOnOpenBillingPortal = async () => {
@@ -239,9 +227,6 @@ export default function CustomerDrawer({ customerId, onClose }: CustomerDrawerPr
           {canWriteSubscription ? (
             <DrawerSection title="Portal">
               <div className="flex flex-wrap items-center gap-3">
-                <Button variant="ghost" onPress={handleOnCreatePortalLink}>
-                  Tạo link portal
-                </Button>
                 <Button variant="ghost" onPress={handleOnOpenBillingPortal}>
                   Mở billing portal
                 </Button>

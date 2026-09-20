@@ -97,7 +97,7 @@ export default function InvoicesPage({ searchParams }: InvoicesPageProps) {
           <Tabs.List aria-label="Lọc hóa đơn">
             {map(INVOICE_VIEWS, (invoiceView) => {
               return (
-                <Tabs.Tab key={invoiceView.key} id={invoiceView.key}>
+                <Tabs.Tab key={invoiceView.key} id={invoiceView.key} className="whitespace-nowrap">
                   {invoiceView.label}
                   <Tabs.Indicator />
                 </Tabs.Tab>

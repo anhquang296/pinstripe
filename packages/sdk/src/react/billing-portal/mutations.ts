@@ -7,8 +7,6 @@ import type {
   BillingPortalSessionResponse,
   CreateBillingPortalConfigurationPayload,
   CreateBillingPortalSessionPayload,
-  CreatePortalLinkPayload,
-  PortalLinkResponse,
   UpdateBillingPortalConfigurationPayload,
 } from '@type/contracts.types';
 
@@ -74,21 +72,6 @@ export function useCreateBillingPortalSessionMutation({
       queryClient.invalidateQueries({ queryKey: queries.billing_portal.session._def });
       notifySuccess(session);
     },
-    onError: notifyError,
-  });
-}
-
-export function useCreatePortalLinkMutation({
-  successMessage,
-}: MutationProps<PortalLinkResponse> = {}) {
-  const { client } = usePinstripeContext();
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
-
-  return useMutation({
-    mutationFn: (payload: CreatePortalLinkPayload) => {
-      return client.portal.links.create(payload);
-    },
-    onSuccess: notifySuccess,
     onError: notifyError,
   });
 }

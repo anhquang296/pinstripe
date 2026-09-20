@@ -5,7 +5,7 @@ import { loginFormDefaultValues, loginFormResolver } from '@common/forms/login-f
 import AuthCard from '@features/auth/components/AuthCard';
 import LoginForm from '@features/auth/components/LoginForm';
 import { Alert } from '@heroui/react';
-import { useCreatePortalLinkMutation } from '@pinstripe/sdk/react';
+import { useCreatePortalLinkMutation } from '@pinstripe/sdk/react/portal';
 import { useForm } from 'react-hook-form';
 
 export default function LoginPage() {
