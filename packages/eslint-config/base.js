@@ -51,7 +51,14 @@ export function base({ ignores = [], tsconfigRootDir } = {}) {
     {
       files: ['**/*.{ts,tsx}'],
       plugins: { '@stylistic': stylisticPlugin },
-      rules: { ...AGENTKIT_STYLE_RULES, ...STYLISTIC_RULES },
+      rules: {
+        'arrow-body-style': ['error', 'always'],
+        'curly': ['error', 'all'],
+        '@typescript-eslint/no-explicit-any': 'error',
+        '@typescript-eslint/no-non-null-assertion': 'error',
+        ...AGENTKIT_STYLE_RULES,
+        ...STYLISTIC_RULES
+      },
     },
     {
       files: ['**/*.test.ts', '**/*.test.tsx', '**/tests/**'],

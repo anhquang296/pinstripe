@@ -52,11 +52,7 @@ export const AGENTKIT_RESTRICTED_SYNTAX = [
 ];
 
 export const AGENTKIT_STYLE_RULES = {
-  'arrow-body-style': ['error', 'always'],
-  curly: ['error', 'all'],
   'no-restricted-syntax': ['error', ...AGENTKIT_RESTRICTED_SYNTAX],
-  '@typescript-eslint/no-explicit-any': 'error',
-  '@typescript-eslint/no-non-null-assertion': 'error',
 };
 
 export const RELATIVE_PARENT_IMPORTS = {
