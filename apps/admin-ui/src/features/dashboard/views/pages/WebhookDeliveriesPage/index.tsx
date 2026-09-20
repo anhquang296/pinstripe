@@ -1,4 +1,5 @@
 import DataTable from '@common/components/DataTable';
+import EntityCell from '@common/components/EntityCell';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
 import PageCard from '@common/components/PageCard';
@@ -118,21 +119,14 @@ export default function WebhookDeliveriesPage() {
             label: 'Event',
             isRowHeader: true,
             renderCell: (webhookDelivery) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{webhookDelivery.eventType}</span>
-                  <span className="text-app-label font-mono text-[11px]">
-                    {webhookDelivery.eventId}
-                  </span>
-                </div>
-              );
+              return <EntityCell id={webhookDelivery.eventId} name={webhookDelivery.eventType} />;
             },
           },
           {
             key: 'endpointId',
             label: 'Endpoint',
             renderCell: (webhookDelivery) => {
-              return <span className="font-mono text-[11px]">{webhookDelivery.endpointId}</span>;
+              return <EntityCell id={webhookDelivery.endpointId} />;
             },
           },
           {

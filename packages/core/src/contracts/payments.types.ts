@@ -1,3 +1,4 @@
+import { customerSchema } from '@contracts/customers.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
@@ -210,7 +211,7 @@ export const paymentIntentSchema = Type.Object({
   id: Type.String(),
   invoiceId: Type.Union([Type.String(), Type.Null()]),
   customerId: Type.String(),
-  customer: Type.Optional(Type.Unknown()),
+  customer: Type.Optional(customerSchema),
   status: Type.Unsafe<PaymentIntentStatus>(Type.Enum(PaymentIntentStatusEnum)),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   amount: Type.Integer(),

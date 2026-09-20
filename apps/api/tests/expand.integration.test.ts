@@ -1,4 +1,8 @@
-import { CurrencyEnum } from '@pinstripe/core/contracts';
+import {
+  CheckoutSessionModeEnum,
+  CurrencyEnum,
+  RecurringIntervalEnum,
+} from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
@@ -59,6 +63,71 @@ it('nests the product object into a price that asks for it', async () => {
 
   expect(expanded.productId).toBe(product.id);
   expect(expanded.product.name).toBe('Expandable');
+});
+
+it('nests the customer object into every subscription of a list read', async () => {
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Expandable subscriber',
+    currency: CurrencyEnum.VND,
+  });
+
+  const product = await fastify.productService.createProduct({ name: 'Expandable plan' });
+
+  const price = await fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount: 300_000,
+    recurring: { interval: RecurringIntervalEnum.MONTH },
+  });
+
+  await fastify.subscriptionService.createSubscription({
+    customerId: customer.id,
+    items: [{ priceId: price.id }],
+  });
+
+  const response = await fastify.inject({
+    method: 'GET',
+    url: `/v1/subscriptions?customerId=${customer.id}&expand[]=customer`,
+    headers: authHeaders,
+  });
+
+  const [subscription] = response.json().data;
+
+  expect(subscription.customerId).toBe(customer.id);
+  expect(subscription.customer.name).toBe('Expandable subscriber');
+});
+
+it('nests the customer object into every checkout session of a list read', async () => {
+  const customer = await fastify.customerService.createCustomer({
+    name: 'Expandable shopper',
+    currency: CurrencyEnum.VND,
+  });
+
+  const product = await fastify.productService.createProduct({ name: 'Expandable ticket' });
+
+  const price = await fastify.priceService.createPrice({
+    productId: product.id,
+    currency: CurrencyEnum.VND,
+    unitAmount: 50_000,
+  });
+
+  await fastify.checkoutService.createCheckoutSession({
+    mode: CheckoutSessionModeEnum.PAYMENT,
+    customerId: customer.id,
+    successUrl: 'https://vexere.test/success',
+    lineItems: [{ priceId: price.id }],
+  });
+
+  const response = await fastify.inject({
+    method: 'GET',
+    url: `/v1/checkout/sessions?customerId=${customer.id}&expand[]=customer`,
+    headers: authHeaders,
+  });
+
+  const [checkoutSession] = response.json().data;
+
+  expect(checkoutSession.customerId).toBe(customer.id);
+  expect(checkoutSession.customer.name).toBe('Expandable shopper');
 });
 
 it('rejects a property that cannot be expanded', async () => {

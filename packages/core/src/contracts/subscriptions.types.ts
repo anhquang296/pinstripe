@@ -1,3 +1,4 @@
+import { customerSchema } from '@contracts/customers.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
@@ -112,7 +113,7 @@ export const subscriptionItemSchema = Type.Object({
 export const subscriptionSchema = Type.Object({
   id: Type.String(),
   customerId: Type.String(),
-  customer: Type.Optional(Type.Unknown()),
+  customer: Type.Optional(customerSchema),
   status: Type.Unsafe<SubscriptionStatus>(Type.Enum(SubscriptionStatusEnum)),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   collectionMethod: Type.Unsafe<CollectionMethod>(Type.Enum(CollectionMethodEnum)),

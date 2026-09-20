@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -164,12 +165,7 @@ export default function WebhookEndpointsPage() {
             label: 'Endpoint',
             isRowHeader: true,
             renderCell: (webhookEndpoint) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{webhookEndpoint.url}</span>
-                  <span className="text-app-label font-mono text-[11px]">{webhookEndpoint.id}</span>
-                </div>
-              );
+              return <EntityCell id={webhookEndpoint.id} name={webhookEndpoint.url} />;
             },
           },
           {

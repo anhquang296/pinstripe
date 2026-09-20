@@ -1,6 +1,7 @@
 import ConfirmDialog from '@common/components/ConfirmDialog';
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
@@ -147,12 +148,7 @@ export default function ApiKeysPage() {
             label: 'Tên khoá',
             isRowHeader: true,
             renderCell: (apiKey) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{apiKey.name}</span>
-                  <span className="text-app-label font-mono text-[11px]">{apiKey.id}</span>
-                </div>
-              );
+              return <EntityCell id={apiKey.id} name={apiKey.name} />;
             },
           },
           {

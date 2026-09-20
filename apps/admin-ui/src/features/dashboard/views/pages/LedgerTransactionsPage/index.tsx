@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
@@ -154,12 +155,10 @@ export default function LedgerTransactionsPage() {
             isRowHeader: true,
             renderCell: (ledgerTransaction) => {
               return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{ledgerTransaction.description}</span>
-                  <span className="text-app-label font-mono text-[11px]">
-                    {ledgerTransaction.id}
-                  </span>
-                </div>
+                <EntityCell
+                  id={ledgerTransaction.id}
+                  name={ledgerTransaction.description || undefined}
+                />
               );
             },
           },

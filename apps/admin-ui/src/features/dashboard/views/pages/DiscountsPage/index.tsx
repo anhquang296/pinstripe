@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
@@ -195,12 +196,7 @@ export default function DiscountsPage() {
             label: 'Coupon',
             isRowHeader: true,
             renderCell: (coupon) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{coupon.name || coupon.id}</span>
-                  <span className="text-app-label font-mono text-[11px]">{coupon.id}</span>
-                </div>
-              );
+              return <EntityCell id={coupon.id} name={coupon.name || undefined} />;
             },
           },
           {

@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -168,12 +169,7 @@ export default function PaymentLinksPage() {
             label: 'Payment link',
             isRowHeader: true,
             renderCell: (paymentLink) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{paymentLink.url}</span>
-                  <span className="text-app-label font-mono text-[11px]">{paymentLink.id}</span>
-                </div>
-              );
+              return <EntityCell id={paymentLink.id} name={paymentLink.url} />;
             },
           },
           {

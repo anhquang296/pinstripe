@@ -1,3 +1,4 @@
+import { customerSchema } from '@contracts/customers.types';
 import type { CollectionMethod } from '@contracts/subscriptions.types';
 import { CollectionMethodEnum } from '@contracts/subscriptions.types';
 import type { AuthorityStatus, AutomaticTaxStatus, TaxType } from '@contracts/taxes.types';
@@ -69,7 +70,7 @@ export const invoiceSchema = Type.Object({
   id: Type.String(),
   number: Type.Union([Type.String(), Type.Null()]),
   customerId: Type.String(),
-  customer: Type.Optional(Type.Unknown()),
+  customer: Type.Optional(customerSchema),
   subscriptionId: Type.Union([Type.String(), Type.Null()]),
   subscription: Type.Optional(Type.Unknown()),
   status: Type.Unsafe<InvoiceStatus>(Type.Enum(InvoiceStatusEnum)),

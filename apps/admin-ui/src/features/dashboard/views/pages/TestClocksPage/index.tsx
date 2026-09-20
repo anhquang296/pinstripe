@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
@@ -143,12 +144,7 @@ export default function TestClocksPage() {
             label: 'Đồng hồ',
             isRowHeader: true,
             renderCell: (testClock) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{testClock.name}</span>
-                  <span className="text-app-label font-mono text-[11px]">{testClock.id}</span>
-                </div>
-              );
+              return <EntityCell id={testClock.id} name={testClock.name} />;
             },
           },
           {

@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -64,7 +65,7 @@ export default function CheckoutSessionsPage() {
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: checkoutSessions, isPending } = useCheckoutSessionsQuery(
-    { limit: PAGE_LIMIT, ...toQuery(search) },
+    { limit: PAGE_LIMIT, expand: ['customer'], ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -184,13 +185,17 @@ export default function CheckoutSessionsPage() {
             label: 'Phiên',
             isRowHeader: true,
             renderCell: (checkoutSession) => {
+              return <EntityCell id={checkoutSession.id} />;
+            },
+          },
+          {
+            key: 'customerId',
+            label: 'Khách hàng',
+            renderCell: (checkoutSession) => {
+              const customerName = get(checkoutSession, 'customer.name', '');
+
               return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{checkoutSession.id}</span>
-                  <span className="text-app-label font-mono text-[11px]">
-                    {checkoutSession.customerId}
-                  </span>
-                </div>
+                <EntityCell id={checkoutSession.customerId} name={customerName || undefined} />
               );
             },
           },

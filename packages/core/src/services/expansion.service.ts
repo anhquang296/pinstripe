@@ -59,6 +59,7 @@ export class ExpansionService {
       [ObjectPrefixEnum.TAX_ID]: { customer },
       [ObjectPrefixEnum.CUSTOMER_BALANCE_TRANSACTION]: { customer },
       [ObjectPrefixEnum.SUBSCRIPTION]: { customer },
+      [ObjectPrefixEnum.CHECKOUT_SESSION]: { customer },
       [ObjectPrefixEnum.PAYMENT_INTENT]: { customer },
       [ObjectPrefixEnum.REFUND]: { customer },
       [ObjectPrefixEnum.CREDIT_NOTE]: { customer },

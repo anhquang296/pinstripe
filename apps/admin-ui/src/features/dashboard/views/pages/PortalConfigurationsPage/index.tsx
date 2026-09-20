@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
@@ -135,12 +136,7 @@ export default function PortalConfigurationsPage() {
             label: 'Cấu hình',
             isRowHeader: true,
             renderCell: (configuration) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{configuration.businessName}</span>
-                  <span className="text-app-label font-mono text-[11px]">{configuration.id}</span>
-                </div>
-              );
+              return <EntityCell id={configuration.id} name={configuration.businessName} />;
             },
           },
           {

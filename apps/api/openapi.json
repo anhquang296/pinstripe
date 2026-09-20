@@ -3731,7 +3731,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -4263,7 +4460,204 @@
                           "customerId": {
                             "type": "string"
                           },
-                          "customer": {},
+                          "customer": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "email",
+                              "name",
+                              "description",
+                              "phone",
+                              "taxId",
+                              "taxExempt",
+                              "address",
+                              "currency",
+                              "defaultPaymentMethodId",
+                              "testClockId",
+                              "partnerPlatform",
+                              "partnerAccountId",
+                              "balance",
+                              "metadata",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "phone": {
+                                "type": "string"
+                              },
+                              "taxId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "taxExempt": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["none"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["exempt"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["reverse"]
+                                  }
+                                ]
+                              },
+                              "address": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "line1": {
+                                        "type": "string"
+                                      },
+                                      "line2": {
+                                        "type": "string"
+                                      },
+                                      "city": {
+                                        "type": "string"
+                                      },
+                                      "state": {
+                                        "type": "string"
+                                      },
+                                      "postalCode": {
+                                        "type": "string"
+                                      },
+                                      "country": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "currency": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vnd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["usd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["eur"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["gbp"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["jpy"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["sgd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["aud"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["thb"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["krw"]
+                                  }
+                                ]
+                              },
+                              "defaultPaymentMethodId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "testClockId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerPlatform": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vexere"]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerAccountId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "balance": {
+                                "type": "integer"
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            }
+                          },
                           "status": {
                             "anyOf": [
                               {
@@ -4709,7 +5103,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -5333,7 +5924,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -5808,7 +6596,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -7956,7 +8941,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "subscriptionId": {
                       "anyOf": [
                         {
@@ -8649,7 +9831,204 @@
                           "customerId": {
                             "type": "string"
                           },
-                          "customer": {},
+                          "customer": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "email",
+                              "name",
+                              "description",
+                              "phone",
+                              "taxId",
+                              "taxExempt",
+                              "address",
+                              "currency",
+                              "defaultPaymentMethodId",
+                              "testClockId",
+                              "partnerPlatform",
+                              "partnerAccountId",
+                              "balance",
+                              "metadata",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "phone": {
+                                "type": "string"
+                              },
+                              "taxId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "taxExempt": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["none"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["exempt"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["reverse"]
+                                  }
+                                ]
+                              },
+                              "address": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "line1": {
+                                        "type": "string"
+                                      },
+                                      "line2": {
+                                        "type": "string"
+                                      },
+                                      "city": {
+                                        "type": "string"
+                                      },
+                                      "state": {
+                                        "type": "string"
+                                      },
+                                      "postalCode": {
+                                        "type": "string"
+                                      },
+                                      "country": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "currency": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vnd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["usd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["eur"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["gbp"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["jpy"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["sgd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["aud"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["thb"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["krw"]
+                                  }
+                                ]
+                              },
+                              "defaultPaymentMethodId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "testClockId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerPlatform": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vexere"]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerAccountId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "balance": {
+                                "type": "integer"
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            }
+                          },
                           "subscriptionId": {
                             "anyOf": [
                               {
@@ -9260,7 +10639,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "subscriptionId": {
                       "anyOf": [
                         {
@@ -9868,7 +11444,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "subscriptionId": {
                       "anyOf": [
                         {
@@ -10499,7 +12272,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "subscriptionId": {
                       "anyOf": [
                         {
@@ -11126,7 +13096,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "subscriptionId": {
                       "anyOf": [
                         {
@@ -17690,7 +19857,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -18429,7 +20793,204 @@
                           "customerId": {
                             "type": "string"
                           },
-                          "customer": {},
+                          "customer": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "email",
+                              "name",
+                              "description",
+                              "phone",
+                              "taxId",
+                              "taxExempt",
+                              "address",
+                              "currency",
+                              "defaultPaymentMethodId",
+                              "testClockId",
+                              "partnerPlatform",
+                              "partnerAccountId",
+                              "balance",
+                              "metadata",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "phone": {
+                                "type": "string"
+                              },
+                              "taxId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "taxExempt": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["none"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["exempt"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["reverse"]
+                                  }
+                                ]
+                              },
+                              "address": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "line1": {
+                                        "type": "string"
+                                      },
+                                      "line2": {
+                                        "type": "string"
+                                      },
+                                      "city": {
+                                        "type": "string"
+                                      },
+                                      "state": {
+                                        "type": "string"
+                                      },
+                                      "postalCode": {
+                                        "type": "string"
+                                      },
+                                      "country": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "currency": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vnd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["usd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["eur"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["gbp"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["jpy"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["sgd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["aud"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["thb"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["krw"]
+                                  }
+                                ]
+                              },
+                              "defaultPaymentMethodId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "testClockId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerPlatform": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vexere"]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerAccountId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "balance": {
+                                "type": "integer"
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            }
+                          },
                           "status": {
                             "anyOf": [
                               {
@@ -19078,7 +21639,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -19747,7 +22505,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -20416,7 +23371,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -21105,7 +24257,204 @@
                     "customerId": {
                       "type": "string"
                     },
-                    "customer": {},
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "status": {
                       "anyOf": [
                         {
@@ -26972,6 +30321,204 @@
                     "customerId": {
                       "type": "string"
                     },
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "currency": {
                       "anyOf": [
                         {
@@ -27217,6 +30764,17 @@
             "in": "query",
             "name": "status",
             "required": false
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "in": "query",
+            "name": "expand",
+            "required": false
           }
         ],
         "responses": {
@@ -27317,6 +30875,204 @@
                           },
                           "customerId": {
                             "type": "string"
+                          },
+                          "customer": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "email",
+                              "name",
+                              "description",
+                              "phone",
+                              "taxId",
+                              "taxExempt",
+                              "address",
+                              "currency",
+                              "defaultPaymentMethodId",
+                              "testClockId",
+                              "partnerPlatform",
+                              "partnerAccountId",
+                              "balance",
+                              "metadata",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "phone": {
+                                "type": "string"
+                              },
+                              "taxId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "taxExempt": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["none"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["exempt"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["reverse"]
+                                  }
+                                ]
+                              },
+                              "address": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "line1": {
+                                        "type": "string"
+                                      },
+                                      "line2": {
+                                        "type": "string"
+                                      },
+                                      "city": {
+                                        "type": "string"
+                                      },
+                                      "state": {
+                                        "type": "string"
+                                      },
+                                      "postalCode": {
+                                        "type": "string"
+                                      },
+                                      "country": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "currency": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vnd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["usd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["eur"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["gbp"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["jpy"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["sgd"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["aud"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["thb"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["krw"]
+                                  }
+                                ]
+                              },
+                              "defaultPaymentMethodId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "testClockId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerPlatform": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["vexere"]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "partnerAccountId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "balance": {
+                                "type": "integer"
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              "createdAt": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              }
+                            }
                           },
                           "currency": {
                             "anyOf": [
@@ -27613,6 +31369,204 @@
                     },
                     "customerId": {
                       "type": "string"
+                    },
+                    "customer": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "description",
+                        "phone",
+                        "taxId",
+                        "taxExempt",
+                        "address",
+                        "currency",
+                        "defaultPaymentMethodId",
+                        "testClockId",
+                        "partnerPlatform",
+                        "partnerAccountId",
+                        "balance",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "taxId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "taxExempt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["exempt"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["reverse"]
+                            }
+                          ]
+                        },
+                        "address": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "line1": {
+                                  "type": "string"
+                                },
+                                "line2": {
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "type": "string"
+                                },
+                                "postalCode": {
+                                  "type": "string"
+                                },
+                                "country": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "currency": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vnd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["usd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["eur"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["gbp"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["jpy"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["sgd"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["aud"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["thb"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["krw"]
+                            }
+                          ]
+                        },
+                        "defaultPaymentMethodId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "testClockId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerPlatform": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["vexere"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "partnerAccountId": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "balance": {
+                          "type": "integer"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
                     },
                     "currency": {
                       "anyOf": [

@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -147,12 +148,7 @@ export default function ProductsPage() {
             label: 'Product',
             isRowHeader: true,
             renderCell: (product) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{product.name}</span>
-                  <span className="text-app-label font-mono text-[11px]">{product.id}</span>
-                </div>
-              );
+              return <EntityCell id={product.id} name={product.name} />;
             },
           },
           {

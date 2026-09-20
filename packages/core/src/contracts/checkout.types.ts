@@ -1,3 +1,4 @@
+import { customerSchema } from '@contracts/customers.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 import type { Currency } from '@utils/currency';
@@ -40,6 +41,7 @@ export const checkoutSessionSchema = Type.Object({
   status: Type.Unsafe<CheckoutSessionStatus>(Type.Enum(CheckoutSessionStatusEnum)),
   paymentStatus: Type.Unsafe<CheckoutPaymentStatus>(Type.Enum(CheckoutPaymentStatusEnum)),
   customerId: Type.String(),
+  customer: Type.Optional(customerSchema),
   currency: Type.Unsafe<Currency>(Type.Enum(CurrencyEnum)),
   amountSubtotal: Type.Integer(),
   amountTotal: Type.Integer(),
@@ -112,6 +114,7 @@ export const findCheckoutSessionsSchema = Type.Object(
     before: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String({ minLength: 1 })),
     status: Type.Optional(Type.Unsafe<CheckoutSessionStatus>(Type.Enum(CheckoutSessionStatusEnum))),
+    expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );

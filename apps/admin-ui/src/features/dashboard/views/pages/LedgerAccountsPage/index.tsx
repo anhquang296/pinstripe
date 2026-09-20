@@ -1,4 +1,5 @@
 import DataTable from '@common/components/DataTable';
+import EntityCell from '@common/components/EntityCell';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
 import PageCard from '@common/components/PageCard';
@@ -131,12 +132,7 @@ export default function LedgerAccountsPage() {
             label: 'Tài khoản',
             isRowHeader: true,
             renderCell: (ledgerAccount) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{ledgerAccount.code}</span>
-                  <span className="text-app-label font-mono text-[11px]">{ledgerAccount.id}</span>
-                </div>
-              );
+              return <EntityCell id={ledgerAccount.id} name={ledgerAccount.code} />;
             },
           },
           {

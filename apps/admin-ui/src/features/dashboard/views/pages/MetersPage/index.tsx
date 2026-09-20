@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -152,12 +153,7 @@ export default function MetersPage() {
             label: 'Meter',
             isRowHeader: true,
             renderCell: (meter) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{meter.displayName}</span>
-                  <span className="text-app-label font-mono text-[11px]">{meter.id}</span>
-                </div>
-              );
+              return <EntityCell id={meter.id} name={meter.displayName} />;
             },
           },
           {

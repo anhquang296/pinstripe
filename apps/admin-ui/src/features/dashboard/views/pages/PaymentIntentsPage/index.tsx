@@ -1,4 +1,5 @@
 import DataTable from '@common/components/DataTable';
+import EntityCell from '@common/components/EntityCell';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
 import PageCard from '@common/components/PageCard';
@@ -42,7 +43,7 @@ export default function PaymentIntentsPage() {
   });
 
   const { data: paymentIntents, isPending } = usePaymentIntentsQuery(
-    { limit: PAGE_LIMIT, ...toQuery(search) },
+    { limit: PAGE_LIMIT, expand: ['customer'], ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -127,14 +128,16 @@ export default function PaymentIntentsPage() {
             label: 'Payment intent',
             isRowHeader: true,
             renderCell: (paymentIntent) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{paymentIntent.id}</span>
-                  <span className="text-app-label font-mono text-[11px]">
-                    {paymentIntent.customerId}
-                  </span>
-                </div>
-              );
+              return <EntityCell id={paymentIntent.id} />;
+            },
+          },
+          {
+            key: 'customerId',
+            label: 'Khách hàng',
+            renderCell: (paymentIntent) => {
+              const customerName = get(paymentIntent, 'customer.name', '');
+
+              return <EntityCell id={paymentIntent.customerId} name={customerName || undefined} />;
             },
           },
           {

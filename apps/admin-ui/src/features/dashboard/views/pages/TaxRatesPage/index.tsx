@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -147,12 +148,7 @@ export default function TaxRatesPage() {
             label: 'Tax rate',
             isRowHeader: true,
             renderCell: (taxRate) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{taxRate.displayName}</span>
-                  <span className="text-app-label font-mono text-[11px]">{taxRate.id}</span>
-                </div>
-              );
+              return <EntityCell id={taxRate.id} name={taxRate.displayName} />;
             },
           },
           {

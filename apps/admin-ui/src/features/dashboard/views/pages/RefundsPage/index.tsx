@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -191,12 +192,14 @@ export default function RefundsPage() {
             label: 'Refund',
             isRowHeader: true,
             renderCell: (refund) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{refund.id}</span>
-                  <span className="text-app-label font-mono text-[11px]">{refund.chargeId}</span>
-                </div>
-              );
+              return <EntityCell id={refund.id} />;
+            },
+          },
+          {
+            key: 'chargeId',
+            label: 'Charge',
+            renderCell: (refund) => {
+              return <EntityCell id={refund.chargeId} />;
             },
           },
           {

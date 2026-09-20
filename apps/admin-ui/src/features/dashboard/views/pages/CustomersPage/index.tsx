@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
@@ -156,12 +157,7 @@ export default function CustomersPage() {
             label: 'Khách hàng',
             isRowHeader: true,
             renderCell: (customer) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{customer.name || '—'}</span>
-                  <span className="text-app-label font-mono text-[11px]">{customer.id}</span>
-                </div>
-              );
+              return <EntityCell id={customer.id} name={customer.name || undefined} />;
             },
           },
           {

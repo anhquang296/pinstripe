@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -170,20 +171,26 @@ export default function PricesPage() {
         onPrevious={revertPage}
         columns={[
           {
+            key: 'nickname',
+            label: 'Nickname',
+            isRowHeader: true,
+            renderCell: (price) => {
+              const { nickname } = price;
+
+              return <EntityCell id={price.id} name={nickname || undefined} />;
+            },
+          },
+          {
             key: 'lookupKey',
             label: 'Lookup key',
-            isRowHeader: true,
             renderCell: (price) => {
               const { lookupKey } = price;
 
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">
-                    {lookupKey === null ? price.nickname || '—' : lookupKey}
-                  </span>
-                  <span className="text-app-label font-mono text-[11px]">{price.id}</span>
-                </div>
-              );
+              if (lookupKey) {
+                return <span className="font-mono text-xs">{lookupKey}</span>;
+              }
+
+              return '—';
             },
           },
           {

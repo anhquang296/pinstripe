@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import FilterSelect from '@common/components/FilterSelect';
@@ -64,7 +65,7 @@ export default function SubscriptionsPage() {
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: subscriptions, isPending } = useSubscriptionsQuery(
-    { limit: PAGE_LIMIT, ...toQuery(search) },
+    { limit: PAGE_LIMIT, expand: ['customer'], ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -188,14 +189,16 @@ export default function SubscriptionsPage() {
             label: 'Subscription',
             isRowHeader: true,
             renderCell: (subscription) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{subscription.id}</span>
-                  <span className="text-app-label font-mono text-[11px]">
-                    {subscription.customerId}
-                  </span>
-                </div>
-              );
+              return <EntityCell id={subscription.id} />;
+            },
+          },
+          {
+            key: 'customerId',
+            label: 'Khách hàng',
+            renderCell: (subscription) => {
+              const customerName = get(subscription, 'customer.name', '');
+
+              return <EntityCell id={subscription.customerId} name={customerName || undefined} />;
             },
           },
           {

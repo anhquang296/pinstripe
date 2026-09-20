@@ -1,5 +1,6 @@
 import DataTable from '@common/components/DataTable';
 import DrawerSection from '@common/components/DrawerSection';
+import EntityCell from '@common/components/EntityCell';
 import EntityDrawer from '@common/components/EntityDrawer';
 import FilterBar from '@common/components/FilterBar';
 import PageCard from '@common/components/PageCard';
@@ -33,7 +34,7 @@ import {
   useInvoicesQuery,
   useSubscriptionsQuery,
 } from '@pinstripe/sdk/react';
-import { fromPairs, get, isEmpty, last, map, size, sumBy, toString } from 'lodash-es';
+import { get, isEmpty, last, map, size, sumBy, toString } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -64,7 +65,7 @@ export default function InvoicesPage() {
   const statusCounts = useInvoiceStatusCounts();
 
   const { data: invoices, isPending } = useInvoicesQuery(
-    { limit: PAGE_LIMIT, status: invoiceStatus, ...toQuery(search) },
+    { limit: PAGE_LIMIT, status: invoiceStatus, expand: ['customer'], ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -86,12 +87,6 @@ export default function InvoicesPage() {
   const currency = get(rows, '0.currency', CurrencyEnum.VND);
 
   const customerRows = get(customers, 'data', []);
-
-  const customerNameById = fromPairs(
-    map(customerRows, (customer) => {
-      return [customer.id, customer.name || customer.email];
-    }),
-  );
 
   const customerOptions = [
     { value: '', label: '— không chọn —' },
@@ -197,26 +192,16 @@ export default function InvoicesPage() {
             label: 'Số hoá đơn',
             isRowHeader: true,
             renderCell: (invoice) => {
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{invoice.number || 'Chưa phát hành'}</span>
-                  <span className="text-app-label font-mono text-[11px]">{invoice.id}</span>
-                </div>
-              );
+              return <EntityCell id={invoice.id} name={invoice.number || 'Chưa phát hành'} />;
             },
           },
           {
             key: 'customerId',
             label: 'Khách hàng',
             renderCell: (invoice) => {
-              const customerName = get(customerNameById, invoice.customerId, '');
+              const customerName = get(invoice, 'customer.name', '');
 
-              return (
-                <div className="flex flex-col">
-                  <span className="font-medium">{customerName || invoice.customerId}</span>
-                  <span className="text-app-label font-mono text-[11px]">{invoice.customerId}</span>
-                </div>
-              );
+              return <EntityCell id={invoice.customerId} name={customerName || undefined} />;
             },
           },
           {
