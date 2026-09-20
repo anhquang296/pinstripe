@@ -5,13 +5,11 @@ import PageCard from '@common/components/PageCard';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
-import { useReportWindow } from '@common/hooks/useReportWindow';
+import { useReportRangeLabel, useReportWindow } from '@common/hooks/useReportWindow';
 import { formatCurrency, formatDate } from '@common/utils/format';
 import { CurrencyEnum } from '@pinstripe/core/contracts';
 import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@pinstripe/sdk/react';
 import { get, isNil, map, size } from 'lodash-es';
-
-const WINDOW_DAYS = 30;
 
 function formatExceptionAmount(amount: number | null, currency: string): string {
   if (isNil(amount)) {
@@ -22,7 +20,8 @@ function formatExceptionAmount(amount: number | null, currency: string): string 
 }
 
 export default function ReportsPage() {
-  const reportWindow = useReportWindow(WINDOW_DAYS);
+  const reportWindow = useReportWindow();
+  const rangeLabel = useReportRangeLabel();
 
   const { data: revenue } = useRevenueSummaryQuery(reportWindow);
 
@@ -62,7 +61,7 @@ export default function ReportsPage() {
         />
       </StatGrid>
 
-      <DrawerSection title={`Đối soát ${WINDOW_DAYS} ngày`}>
+      <DrawerSection title={`Đối soát — ${rangeLabel}`}>
         <DetailList
           items={[
             {

@@ -6,7 +6,6 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
 import { OPTION_LIMIT } from '@common/constants/pagination';
-import { MILLISECONDS_PER_DAY } from '@common/constants/time';
 import type { MeterEventBatchFormData } from '@common/forms/meter-event-batch-form';
 import {
   meterEventBatchFormDataToPayload,
@@ -26,6 +25,7 @@ import {
   meterFormResolver,
   meterToFormData,
 } from '@common/forms/meter-form';
+import { useReportRangeLabel, useReportWindow } from '@common/hooks/useReportWindow';
 import { formatDate } from '@common/utils/format';
 import MeterEventBatchForm from '@features/dashboard/components/MeterEventBatchForm';
 import MeterEventForm from '@features/dashboard/components/MeterEventForm';
@@ -45,17 +45,6 @@ import { get, isNull, map, toString } from 'lodash-es';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-const USAGE_WINDOW_DAYS = 30;
-
-function buildUsageWindow(): { windowStart: string; windowEnd: string } {
-  const now = Date.now();
-
-  return {
-    windowStart: new Date(now - USAGE_WINDOW_DAYS * MILLISECONDS_PER_DAY).toISOString(),
-    windowEnd: new Date(now + MILLISECONDS_PER_DAY).toISOString(),
-  };
-}
-
 interface MeterDrawerProps {
   meterId: string;
   onClose: () => void;
@@ -71,7 +60,8 @@ export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
 
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
 
-  const [usageWindow] = useState(buildUsageWindow);
+  const usageWindow = useReportWindow();
+  const usageRangeLabel = useReportRangeLabel();
 
   const { data: summary } = useMeterEventSummaryQuery(
     meterId,
@@ -180,7 +170,7 @@ export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
         ) : null}
 
         <DrawerSection
-          title={`Lượng dùng ${USAGE_WINDOW_DAYS} ngày gần nhất`}
+          title={`Lượng dùng — ${usageRangeLabel}`}
           actions={
             <FilterSelect
               label="Khách hàng"

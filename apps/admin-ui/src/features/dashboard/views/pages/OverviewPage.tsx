@@ -3,7 +3,7 @@ import DrawerSection from '@common/components/DrawerSection';
 import PageCard from '@common/components/PageCard';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
-import { useReportWindow } from '@common/hooks/useReportWindow';
+import { useReportRangeLabel, useReportWindow } from '@common/hooks/useReportWindow';
 import { formatCurrency } from '@common/utils/format';
 import { Button } from '@heroui/react';
 import { CurrencyEnum } from '@pinstripe/core/contracts';
@@ -11,11 +11,10 @@ import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@pinstripe
 import { get, size } from 'lodash-es';
 import { useNavigate } from 'react-router-dom';
 
-const WINDOW_DAYS = 30;
-
 export default function OverviewPage() {
   const navigate = useNavigate();
-  const reportWindow = useReportWindow(WINDOW_DAYS);
+  const reportWindow = useReportWindow();
+  const rangeLabel = useReportRangeLabel();
 
   const { data: revenue } = useRevenueSummaryQuery(reportWindow);
 
@@ -32,7 +31,7 @@ export default function OverviewPage() {
   return (
     <PageCard
       title="Tổng quan"
-      description={`Doanh thu và đối soát ${WINDOW_DAYS} ngày gần nhất.`}
+      description={`Doanh thu và đối soát — ${rangeLabel}.`}
       actions={
         <Button variant="ghost" onPress={handleOnOpenReports}>
           Xem báo cáo đầy đủ
@@ -51,9 +50,9 @@ export default function OverviewPage() {
           meta={`Đã thu ${formatCurrency(get(revenue, 'collectedInWindow', 0), currency)}`}
         />
         <StatItem
-          label="Đã hoàn"
-          value={formatCurrency(get(revenue, 'refundedInWindow', 0), currency)}
-          meta={`Còn phải thu ${formatCurrency(get(revenue, 'outstanding', 0), currency)}`}
+          label="Còn phải thu"
+          value={formatCurrency(get(revenue, 'outstanding', 0), currency)}
+          meta={`Đã hoàn ${formatCurrency(get(revenue, 'refundedInWindow', 0), currency)}`}
         />
         <StatItem
           label="Thuê bao đang chạy"

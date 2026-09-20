@@ -1,22 +1,40 @@
-import { MILLISECONDS_PER_DAY } from '@common/constants/time';
+import type { ReportWindowResult } from '@common/utils/report-range';
+import { buildReportRangeLabel, buildReportWindow, buildToday } from '@common/utils/report-range';
+import { useReportRangeStore } from '@libs/report-range.store';
 import { useMemo } from 'react';
 
-export interface ReportWindowResult {
-  windowStart: string;
-  windowEnd: string;
-}
+export type { ReportWindowResult };
 
-function buildReportWindow(windowDays: number): ReportWindowResult {
-  const now = Date.now();
+export function useReportWindow(): ReportWindowResult {
+  const preset = useReportRangeStore((state) => {
+    return state.preset;
+  });
 
-  return {
-    windowStart: new Date(now - windowDays * MILLISECONDS_PER_DAY).toISOString(),
-    windowEnd: new Date(now + MILLISECONDS_PER_DAY).toISOString(),
-  };
-}
+  const fromDate = useReportRangeStore((state) => {
+    return state.fromDate;
+  });
 
-export function useReportWindow(windowDays: number): ReportWindowResult {
+  const toDate = useReportRangeStore((state) => {
+    return state.toDate;
+  });
+
   return useMemo(() => {
-    return buildReportWindow(windowDays);
-  }, [windowDays]);
+    return buildReportWindow({ preset, fromDate, toDate }, buildToday());
+  }, [preset, fromDate, toDate]);
+}
+
+export function useReportRangeLabel(): string {
+  const preset = useReportRangeStore((state) => {
+    return state.preset;
+  });
+
+  const fromDate = useReportRangeStore((state) => {
+    return state.fromDate;
+  });
+
+  const toDate = useReportRangeStore((state) => {
+    return state.toDate;
+  });
+
+  return buildReportRangeLabel({ preset, fromDate, toDate });
 }

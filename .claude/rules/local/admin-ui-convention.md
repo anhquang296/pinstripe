@@ -203,6 +203,34 @@ Mở và đóng drawer đi qua `useSearchPreservingNavigate()`, không `useNavig
 **vẫn** bỏ query khi đổi màn — mỗi màn một tập parser riêng; ngoại lệ duy nhất là `InvoicesPage`, nơi
 tab là cùng một màn khác path segment nên href dựng bằng `serializeInvoiceSearch`.
 
+## Khoảng thời gian báo cáo là ngoại lệ duy nhất, và nó ở trong store
+
+Khoảng thời gian của các màn báo cáo **không** phải search param. Nó sống trong
+`useReportRangeStore` (`src/libs/report-range.store.ts`, zustand + `persist` vào localStorage dưới
+key `pinstripe-report-range`), vì nó là trạng thái toàn cục chứ không phải filter của một màn: nó
+phải sống sót qua mọi kiểu điều hướng, mà `PageTabs` cố tình bỏ query khi đổi màn và picker thì nằm
+trong `AppTopbar`, tức ngoài `<Outlet />`. Đây là ngoại lệ **duy nhất** — mọi filter của một màn
+list vẫn bắt buộc đi qua nuqs theo mục trên.
+
+Store giữ **preset**, không giữ timestamp: `{ preset, fromDate, toDate }` với `fromDate` / `toDate`
+là `yyyy-MM-dd` và chỉ có nghĩa khi preset là `CUSTOM`. Persist một `windowStart` / `windowEnd`
+tuyệt đối thì hôm sau mở lại vẫn là cửa sổ của hôm qua, và "30 ngày gần nhất" thành sai.
+
+`buildReportWindow` (`src/common/utils/report-range.ts`) là hàm thuần quy preset ra
+`{ windowStart, windowEnd }`, neo vào **đầu ngày theo giờ Việt Nam** qua `@internationalized/date`,
+không phải `Date.now()`: giá trị đứng yên suốt cả ngày nên query key của React Query không đổi mỗi
+lần mount, và `windowEnd` là đầu ngày kế tiếp — biên mở, khớp `gte(start)` / `lt(end)` của
+`reporting.repository.ts`. Page đọc qua `useReportWindow()` / `useReportRangeLabel()`, không tự dựng
+cửa sổ.
+
+`ReportRangePicker` dùng thẳng `Select` + `DateRangePicker` của HeroUI chứ không qua `FilterSelect`:
+yêu cầu "`FilterSelect` phải có `Label` hiển thị" là luật của `FilterBar` trên màn list, còn đây là
+control trong top bar cao cố định (`h-topbar`) — nhãn đi bằng `aria-label`.
+
+Picker chỉ hiện trên route thực sự tiêu thụ khoảng thời gian, theo `hasReportRange()`
+(`src/features/dashboard/constants/report-range.ts`). Hiện nó trên một màn không dùng tới là nói dối
+người dùng; danh sách đó dài ra khi thêm màn tiêu thụ.
+
 ## Field đi qua `Controller`
 
 Form dùng react-hook-form theo [`form-convention.md`](../agentkit/profiles/react/form-convention.md); field render qua `src/common/components/FormField/Render{Text,Select,Number,Date,Checkbox,CheckboxGroup}Field`, mỗi cái bọc `Controller` quanh một control HeroUI. Không `form.register` trên control của HeroUI — nó không nhận `ref` + `onChange` kiểu DOM.
@@ -256,6 +284,11 @@ Tiền và ngày đi qua `src/common/utils/format.ts`: `formatCurrency(minorAmou
 - Giữ tab của một màn bằng state thay vì route con, hay mở drawer của entity chính mà không có route param.
 - Tự giữ mảng cursor trong page thay vì `useCursorPagination`, hay thêm lại `resetPage` vào hook đó.
 - Giữ filter hay cursor của một màn list trong `useState` thay vì search param.
+- Chuyển khoảng thời gian báo cáo sang search param, hay dựng một store thứ hai cho một filter khác
+  — `useReportRangeStore` là ngoại lệ duy nhất.
+- Persist `windowStart` / `windowEnd` tuyệt đối thay cho preset, hay neo cửa sổ vào `Date.now()`
+  thay vì đầu ngày giờ Việt Nam.
+- Tự dựng cửa sổ thời gian trong một page thay vì gọi `useReportWindow()`.
 - Cho `useCursorPagination` tự sở hữu param `after` — nó nhận từ page, nếu không mỗi lần đổi filter là hai lần ghi.
 - Ghi filter rồi reset cursor bằng hai setter — một hành động là một `setSearch`.
 - Dùng sentinel `'all'` / `''` cho một filter vắng mặt, hay `.withDefault()` cho nó.

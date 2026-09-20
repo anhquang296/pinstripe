@@ -19,10 +19,10 @@ export default function AppSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-20 flex w-sidebar flex-col border-r border-separator bg-surface">
       <div className="flex h-topbar items-center gap-2 border-b border-separator px-4">
-        <span className="flex size-5 items-center justify-center rounded-sm bg-accent text-[10px] font-semibold text-accent-foreground">
+        <span className="flex size-6 items-center justify-center rounded-sm bg-accent text-[11px] font-semibold text-accent-foreground">
           PS
         </span>
-        <span className="text-[13px] font-semibold">Pinstripe</span>
+        <span className="text-[14px] font-semibold">Pinstripe</span>
       </div>
 
       <nav className="flex flex-1 flex-col gap-4 overflow-y-auto py-3">

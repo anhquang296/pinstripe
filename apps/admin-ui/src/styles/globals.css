@@ -3,8 +3,8 @@
 @import '@better-auth-ui/heroui/styles';
 
 :root {
-  --app-sidebar-width: 248px;
-  --app-topbar-height: 44px;
+  --app-sidebar-width: 232px;
+  --app-topbar-height: 52px;
   --app-control-height: 32px;
   --app-label: color-mix(in oklab, var(--foreground) 70%, transparent);
   --app-scrollbar-size: 10px;

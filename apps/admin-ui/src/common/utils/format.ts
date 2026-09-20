@@ -1,7 +1,8 @@
 import { toUpper } from 'lodash-es';
 
 const LOCALE = 'vi-VN';
-const TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
+export const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
 export function formatCurrency(minorAmount: number, currency: string): string {
   const formatter = new Intl.NumberFormat(LOCALE, {
@@ -22,7 +23,7 @@ export function formatDate(isoDate: string): string {
   }
 
   return new Intl.DateTimeFormat(LOCALE, {
-    timeZone: TIME_ZONE,
+    timeZone: VIETNAM_TIME_ZONE,
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

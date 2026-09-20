@@ -103,13 +103,19 @@ export default function CustomersPage() {
       description="Khách hàng, số dư và thông tin thanh toán."
       actions={
         canWrite ? (
-          <Button
-            onPress={() => {
-              setIsCreateOpen(true);
-            }}
-          >
-            Tạo customer
-          </Button>
+          <>
+            <Button variant="secondary" isDisabled>
+              Import
+            </Button>
+
+            <Button
+              onPress={() => {
+                setIsCreateOpen(true);
+              }}
+            >
+              Tạo customer
+            </Button>
+          </>
         ) : null
       }
     >
