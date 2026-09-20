@@ -15,8 +15,9 @@ import {
   apiKeyFormDefaultValues,
   apiKeyFormResolver,
 } from '@common/forms/api-key-form';
-import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { cursorSearchParams, useCursorPagination } from '@common/hooks/useCursorPagination';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import ApiKeyForm from '@features/dashboard/components/ApiKeyForm';
 import { Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
@@ -29,6 +30,7 @@ import {
   useDeleteApiKeyMutation,
 } from '@pinstripe/sdk/react';
 import { filter, get, join, last, reject, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -38,11 +40,17 @@ export default function ApiKeysPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createdToken, setCreatedToken] = useState('');
   const [revokingApiKey, setRevokingApiKey] = useState<ApiKeyResponse | null>(null);
-  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const [search, setSearch] = useQueryStates(cursorSearchParams);
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canManage = useCan(PermissionEnum.API_KEY_MANAGE);
 
   const { data: apiKeys, isPending } = useApiKeysQuery(
-    { limit: PAGE_LIMIT, after },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 

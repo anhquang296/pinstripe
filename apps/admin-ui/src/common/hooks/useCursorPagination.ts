@@ -1,38 +1,42 @@
-import { dropRight, isEmpty, last } from 'lodash-es';
+import { dropRight, isEmpty, isNull, last } from 'lodash-es';
+import { parseAsString } from 'nuqs';
 import { useCallback, useState } from 'react';
 
+export const cursorSearchParams = { after: parseAsString };
+
+interface CursorPaginationProps {
+  after: string | null;
+  onPageChange: (after: string | null) => void;
+}
+
 export interface CursorPaginationResult {
-  after: string | undefined;
   hasPrevious: boolean;
   advancePage: (lastId: string) => void;
   revertPage: () => void;
-  resetPage: () => void;
 }
 
-export function useCursorPagination(): CursorPaginationResult {
-  const [cursors, setCursors] = useState<string[]>([]);
+export function useCursorPagination({
+  after,
+  onPageChange,
+}: CursorPaginationProps): CursorPaginationResult {
+  const [previousCursors, setPreviousCursors] = useState<(string | null)[]>([]);
 
-  const advancePage = useCallback((lastId: string) => {
-    setCursors((currentCursors) => {
-      return [...currentCursors, lastId];
-    });
-  }, []);
+  const advancePage = useCallback(
+    (lastId: string) => {
+      setPreviousCursors([...previousCursors, after]);
+      onPageChange(lastId);
+    },
+    [previousCursors, after, onPageChange],
+  );
 
   const revertPage = useCallback(() => {
-    setCursors((currentCursors) => {
-      return dropRight(currentCursors);
-    });
-  }, []);
-
-  const resetPage = useCallback(() => {
-    setCursors([]);
-  }, []);
+    onPageChange(last(previousCursors) ?? null);
+    setPreviousCursors(dropRight(previousCursors));
+  }, [previousCursors, onPageChange]);
 
   return {
-    after: last(cursors),
-    hasPrevious: !isEmpty(cursors),
+    hasPrevious: !isNull(after) && !isEmpty(previousCursors),
     advancePage,
     revertPage,
-    resetPage,
   };
 }

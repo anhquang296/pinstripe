@@ -151,7 +151,57 @@ Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/
 
 Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/api-keys`, `/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/test-clocks/:testClockId`, `/admin/users/:userId`).
 
-Phân trang cursor đi qua `src/common/hooks/useCursorPagination.ts`: `after` cho query, `advancePage(lastId)` / `revertPage()` cho `DataTable`, `resetPage()` mỗi khi filter đổi. Đừng tự giữ mảng cursor trong page.
+## Filter và cursor sống trên URL
+
+Mọi filter của một màn list — select, ô tìm, cursor phân trang — là search param, qua `nuqs` theo
+[`search-params-convention.md`](../agentkit/profiles/nuqs/search-params-convention.md). Không `useState`
+cho filter: reload phải giữ nguyên màn, và URL phải copy gửi được. `NuqsAdapter` mount **một lần**, ở
+root route của `src/providers/RoutesProvider.tsx` (adapter dựng trên `useNavigate` + `useSearchParams`
+nên phải nằm trong data router).
+
+Parser của mỗi màn nằm cạnh page trong `{entity}.search-params.ts` (`SubscriptionsPage/subscriptions.search-params.ts`),
+không nằm trong `common/` — `common/` không được biết entity. Chỉ khai `createSerializer` khi có nơi
+dùng thật; hiện chỉ `InvoicesPage` cần, để dựng href cho tab.
+
+```tsx
+// CORRECT — một hành động, một lần ghi; reset cursor là một key trong cùng object
+const [search, setSearch] = useQueryStates(subscriptionSearchParams);
+
+const handleOnStatusSelect = (value: string | null) => {
+  const status = isNull(value) ? null : subscriptionSearchParams.status.parse(value);
+
+  setSearch({ status, after: null });
+};
+
+// WRONG — hai setter cho một hành động, và URL trung gian sai
+setStatusFilter(value);
+resetPage();
+```
+
+Filter có thể vắng mặt thì **không** `.withDefault()`: đọc ra `null`, xoá bằng ghi `null`, key rời khỏi
+URL. Không sentinel `'all'` / `''`. `FilterSelect` nhận `string | null` và có `Select.ClearButton` —
+đó là đường về trạng thái không lọc.
+
+Cursor phân trang là param `after`, cùng tên với field của `Find*Query`, khai một lần ở
+`cursorSearchParams` cạnh `src/common/hooks/useCursorPagination.ts`. Hook **nhận** param chứ không sở
+hữu (nếu nó tự `useQueryState` thì mỗi lần đổi filter là hai lần ghi), và chỉ giữ lịch sử cursor trong
+state cho nút Trước: `useCursorPagination({ after, onPageChange })` → `{ hasPrevious, advancePage, revertPage }`.
+Sau reload nút Trước bị disable — đó là đánh đổi có chủ ý, không phải bug. Đừng tự giữ mảng cursor
+trong page, và đừng thêm lại `resetPage`.
+
+`search` đi vào query qua `toQuery()` (`src/common/utils/search-params.ts`), thứ bỏ mọi key `null` vì
+`Find*Query` là `Type.Optional` và `additionalProperties: false`. Param không phải field DTO —
+`q` của `/admin/users`, thứ lọc client-side — phải destructure ra trước khi spread.
+
+Ô tìm debounce **tại lần ghi** (`limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS)`), không mirror sang
+`useState` và không bọc hook debounce bên ngoài: nuqs trả giá trị optimistic ngay nên input không khựng.
+Xoá trắng thì bỏ debounce để param rời URL tức thì. Debounce chỉ làm dịu thanh địa chỉ — query vẫn
+refetch mỗi phím gõ.
+
+Mở và đóng drawer đi qua `useSearchPreservingNavigate()`, không `useNavigate()` trực tiếp:
+`navigate(path)` trần nuốt mất query string và làm rơi filter người dùng vừa đặt. `PageTabs` thì
+**vẫn** bỏ query khi đổi màn — mỗi màn một tập parser riêng; ngoại lệ duy nhất là `InvoicesPage`, nơi
+tab là cùng một màn khác path segment nên href dựng bằng `serializeInvoiceSearch`.
 
 ## Field đi qua `Controller`
 
@@ -204,7 +254,14 @@ Tiền và ngày đi qua `src/common/utils/format.ts`: `formatCurrency(minorAmou
 - Dựng một trang form riêng cho tạo / sửa thay vì drawer, hay xác nhận xoá bằng `window.confirm`.
 - Dùng `form.register` trên control của HeroUI thay vì `Render*Field`.
 - Giữ tab của một màn bằng state thay vì route con, hay mở drawer của entity chính mà không có route param.
-- Tự giữ mảng cursor trong page thay vì `useCursorPagination`.
+- Tự giữ mảng cursor trong page thay vì `useCursorPagination`, hay thêm lại `resetPage` vào hook đó.
+- Giữ filter hay cursor của một màn list trong `useState` thay vì search param.
+- Cho `useCursorPagination` tự sở hữu param `after` — nó nhận từ page, nếu không mỗi lần đổi filter là hai lần ghi.
+- Ghi filter rồi reset cursor bằng hai setter — một hành động là một `setSearch`.
+- Dùng sentinel `'all'` / `''` cho một filter vắng mặt, hay `.withDefault()` cho nó.
+- Khai parser filter trong `common/`, hay khai `createSerializer` mà không có nơi dùng.
+- Mirror giá trị ô tìm sang `useState` để debounce thay vì `limitUrlUpdates` tại lần ghi.
+- Mở hay đóng drawer bằng `useNavigate()` trần — nó nuốt query string; dùng `useSearchPreservingNavigate()`.
 - Ghép nhiều checkbox boolean cho một field mảng thay vì `RenderCheckboxGroupField`.
 - Đưa một secret chỉ trả một lần vào query cache, hay thêm hook đọc lại nó.
 - Thêm nút xoá user, hay cho `/admin/roles` sửa được `ROLE_PERMISSIONS`.

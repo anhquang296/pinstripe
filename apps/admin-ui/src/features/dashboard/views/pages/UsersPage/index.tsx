@@ -9,6 +9,7 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
 import { PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import type { UserFormData } from '@common/forms/user-form';
 import {
   userFormDataToPayload,
@@ -16,8 +17,9 @@ import {
   userFormResolver,
 } from '@common/forms/user-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import UserForm from '@features/dashboard/components/UserForm';
 import { ArrowRotateLeft, Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
@@ -25,16 +27,17 @@ import { useCan } from '@libs/permissions';
 import type { UserResponse, UserRole } from '@pinstripe/core/contracts';
 import { PermissionEnum, UserRoleEnum, UserStatusEnum } from '@pinstripe/core/contracts';
 import { useCreateUserMutation, useUpdateUserMutation, useUsersQuery } from '@pinstripe/sdk/react';
-import { filter, get, includes, last, size, toLower } from 'lodash-es';
+import { filter, get, includes, isEmpty, isNull, last, size, toLower, toString } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import UserDrawer from './UserDrawer';
 import UserRoleChips from './UserRoleChips';
+import { userSearchParams } from './users.search-params';
 
 const ROLE_FILTER_OPTIONS = [
-  { value: 'all', label: 'Tất cả vai trò' },
   { value: UserRoleEnum.ADMIN, label: 'admin' },
   { value: UserRoleEnum.MODERATOR, label: 'moderator' },
   { value: UserRoleEnum.MEMBER, label: 'member' },
@@ -42,22 +45,19 @@ const ROLE_FILTER_OPTIONS = [
 
 export default function UsersPage() {
   const { userId } = useParams();
-  const navigate = useNavigate();
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useSearchPreservingNavigate();
+  const [{ q, ...serverSearch }, setSearch] = useQueryStates(userSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: serverSearch.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canManage = useCan(PermissionEnum.USER_MANAGE);
 
   const { data: users, isPending } = useUsersQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      role:
-        roleFilter === 'all'
-          ? undefined
-          : toEnumMember(UserRoleEnum, roleFilter, UserRoleEnum.MEMBER),
-    },
+    { limit: PAGE_LIMIT, ...toQuery(serverSearch) },
     { hasPlaceholder: true },
   );
 
@@ -75,14 +75,12 @@ export default function UsersPage() {
 
   const allRows = get(users, 'data', []);
   const hasMore = get(users, 'hasMore', false);
-  const searchText = toLower(searchTerm);
-  const rows = filter(allRows, (user) => {
-    if (searchText === '') {
-      return true;
-    }
-
-    return includes(toLower(user.email), searchText) || includes(toLower(user.name), searchText);
-  });
+  const keyword = toLower(toString(q));
+  const rows = isEmpty(keyword)
+    ? allRows
+    : filter(allRows, (user) => {
+        return includes(toLower(user.email), keyword) || includes(toLower(user.name), keyword);
+      });
 
   const handleOnSave = form.handleSubmit(async (formData) => {
     await createUser(userFormDataToPayload(formData));
@@ -90,9 +88,17 @@ export default function UsersPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnRoleFilterSelect = (nextRole: string) => {
-    setRoleFilter(nextRole);
-    resetPage();
+  const handleOnRoleSelect = (value: string | null) => {
+    const role = isNull(value) ? null : userSearchParams.role.parse(value);
+
+    setSearch({ role, after: null });
+  };
+
+  const handleOnKeywordChange = (keyword: string) => {
+    setSearch(
+      { q: isEmpty(keyword) ? null : keyword },
+      { limitUrlUpdates: isEmpty(keyword) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -150,15 +156,16 @@ export default function UsersPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchTerm}
+            searchValue={q}
             searchPlaceholder="Tìm theo email hoặc tên"
-            onSearchChange={setSearchTerm}
+            onSearchChange={handleOnKeywordChange}
           >
             <FilterSelect
               label="Vai trò"
+              placeholder="Tất cả vai trò"
               options={ROLE_FILTER_OPTIONS}
-              selectedValue={roleFilter}
-              onSelect={handleOnRoleFilterSelect}
+              selectedValue={serverSearch.role}
+              onSelect={handleOnRoleSelect}
             />
           </FilterBar>
         }

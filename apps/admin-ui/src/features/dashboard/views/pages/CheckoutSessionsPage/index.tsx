@@ -16,9 +16,10 @@ import {
   checkoutSessionFormResolver,
 } from '@common/forms/checkout-session-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatCurrency, formatDate } from '@common/utils/format';
 import { formatPriceAmount } from '@common/utils/price';
+import { toQuery } from '@common/utils/search-params';
 import CheckoutSessionForm from '@features/dashboard/components/CheckoutSessionForm';
 import { CHECKOUT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -31,37 +32,34 @@ import {
   useCustomersQuery,
   usePricesQuery,
 } from '@pinstripe/sdk/react';
-import { filter, get, last, map, size } from 'lodash-es';
+import { filter, get, isNull, last, map, size, values } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { checkoutSessionSearchParams } from './checkout-sessions.search-params';
 import CheckoutSessionDrawer from './CheckoutSessionDrawer';
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  ...map(CheckoutSessionStatusEnum, (status) => {
-    return { value: status, label: status };
-  }),
-];
+const STATUS_OPTIONS = map(values(CheckoutSessionStatusEnum), (status) => {
+  return { value: status, label: status };
+});
 
 export default function CheckoutSessionsPage() {
   const { checkoutSessionId } = useParams();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState('all');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(checkoutSessionSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: checkoutSessions, isPending } = useCheckoutSessionsQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      status:
-        statusFilter === 'all'
-          ? undefined
-          : toEnumMember(CheckoutSessionStatusEnum, statusFilter, CheckoutSessionStatusEnum.OPEN),
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
@@ -100,9 +98,10 @@ export default function CheckoutSessionsPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnFilterSelect = (nextStatusFilter: string) => {
-    setStatusFilter(nextStatusFilter);
-    resetPage();
+  const handleOnStatusSelect = (value: string | null) => {
+    const status = isNull(value) ? null : checkoutSessionSearchParams.status.parse(value);
+
+    setSearch({ status, after: null });
   };
 
   const handleOnNext = () => {
@@ -155,9 +154,10 @@ export default function CheckoutSessionsPage() {
           <FilterBar itemCount={size(rows)}>
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={STATUS_OPTIONS}
-              selectedValue={statusFilter}
-              onSelect={handleOnFilterSelect}
+              selectedValue={search.status}
+              onSelect={handleOnStatusSelect}
             />
           </FilterBar>
         }

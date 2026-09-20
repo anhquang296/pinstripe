@@ -6,43 +6,39 @@ import PageTabs from '@common/components/PageTabs';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import { PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatCurrency } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import { LEDGER_TABS } from '@features/dashboard/constants/tabs';
 import type { LedgerAccountResponse } from '@pinstripe/core/contracts';
 import { CurrencyEnum, LedgerAccountCodeEnum } from '@pinstripe/core/contracts';
 import { useLedgerAccountsQuery } from '@pinstripe/sdk/react';
-import { filter, get, last, map, size, sumBy, values } from 'lodash-es';
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { filter, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
+import { useParams } from 'react-router-dom';
 
+import { ledgerAccountSearchParams } from './ledger-accounts.search-params';
 import LedgerAccountDrawer from './LedgerAccountDrawer';
 
-const CODE_OPTIONS = [
-  { value: 'all', label: 'Tất cả tài khoản' },
-  ...map(values(LedgerAccountCodeEnum), (accountCode) => {
-    return { value: accountCode, label: accountCode };
-  }),
-];
+const CODE_OPTIONS = map(values(LedgerAccountCodeEnum), (accountCode) => {
+  return { value: accountCode, label: accountCode };
+});
 
 export default function LedgerAccountsPage() {
   const { accountId } = useParams();
-  const navigate = useNavigate();
-  const [codeFilter, setCodeFilter] = useState('all');
-  const [searchCustomerId, setSearchCustomerId] = useState('');
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(ledgerAccountSearchParams);
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
 
   const { data: ledgerAccounts, isPending } = useLedgerAccountsQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      code:
-        codeFilter === 'all'
-          ? undefined
-          : toEnumMember(LedgerAccountCodeEnum, codeFilter, LedgerAccountCodeEnum.CASH),
-      customerId: searchCustomerId || undefined,
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -50,14 +46,17 @@ export default function LedgerAccountsPage() {
   const hasMore = get(ledgerAccounts, 'hasMore', false);
   const currency = get(rows, '0.currency', CurrencyEnum.VND);
 
-  const handleOnCodeChange = (nextCode: string) => {
-    setCodeFilter(nextCode);
-    resetPage();
+  const handleOnCodeSelect = (value: string | null) => {
+    const code = isNull(value) ? null : ledgerAccountSearchParams.code.parse(value);
+
+    setSearch({ code, after: null });
   };
 
-  const handleOnSearchChange = (nextCustomerId: string) => {
-    setSearchCustomerId(nextCustomerId);
-    resetPage();
+  const handleOnCustomerIdChange = (customerId: string) => {
+    setSearch(
+      { customerId: isEmpty(customerId) ? null : customerId, after: null },
+      { limitUrlUpdates: isEmpty(customerId) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -93,15 +92,16 @@ export default function LedgerAccountsPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchCustomerId}
+            searchValue={search.customerId}
             searchPlaceholder="Lọc theo customer id"
-            onSearchChange={handleOnSearchChange}
+            onSearchChange={handleOnCustomerIdChange}
           >
             <FilterSelect
               label="Tài khoản"
+              placeholder="Tất cả tài khoản"
               options={CODE_OPTIONS}
-              selectedValue={codeFilter}
-              onSelect={handleOnCodeChange}
+              selectedValue={search.code}
+              onSelect={handleOnCodeSelect}
             />
           </FilterBar>
         }

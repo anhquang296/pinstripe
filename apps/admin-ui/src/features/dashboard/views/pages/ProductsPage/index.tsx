@@ -16,7 +16,9 @@ import {
   productFormResolver,
 } from '@common/forms/product-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toBooleanFilter, toBooleanSelectValue, toQuery } from '@common/utils/search-params';
 import ProductForm from '@features/dashboard/components/ProductForm';
 import { CATALOG_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -25,32 +27,34 @@ import type { ProductResponse } from '@pinstripe/core/contracts';
 import { PermissionEnum } from '@pinstripe/core/contracts';
 import { useCreateProductMutation, useProductsQuery } from '@pinstripe/sdk/react';
 import { filter, get, last, reject, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import ProductDrawer from './ProductDrawer';
+import { productSearchParams } from './products.search-params';
 
 const ACTIVE_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  { value: 'active', label: 'Đang bán' },
-  { value: 'inactive', label: 'Ngừng bán' },
+  { value: 'true', label: 'Đang bán' },
+  { value: 'false', label: 'Ngừng bán' },
 ];
 
 export default function ProductsPage() {
   const { productId } = useParams();
-  const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState('all');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(productSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: products, isPending } = useProductsQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      active: activeFilter === 'all' ? undefined : activeFilter === 'active',
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -72,9 +76,8 @@ export default function ProductsPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnFilterSelect = (nextActiveFilter: string) => {
-    setActiveFilter(nextActiveFilter);
-    resetPage();
+  const handleOnActiveSelect = (value: string | null) => {
+    setSearch({ active: toBooleanFilter(value), after: null });
   };
 
   const handleOnNext = () => {
@@ -118,9 +121,10 @@ export default function ProductsPage() {
           <FilterBar itemCount={size(rows)}>
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={ACTIVE_OPTIONS}
-              selectedValue={activeFilter}
-              onSelect={handleOnFilterSelect}
+              selectedValue={toBooleanSelectValue(search.active)}
+              onSelect={handleOnActiveSelect}
             />
           </FilterBar>
         }

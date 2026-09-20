@@ -1,5 +1,5 @@
 import { Label, ListBox, Select } from '@heroui/react';
-import { map, toString } from 'lodash-es';
+import { isNull, map, toString } from 'lodash-es';
 
 interface FilterSelectOption {
   value: string;
@@ -8,13 +8,15 @@ interface FilterSelectOption {
 
 interface FilterSelectProps {
   label: string;
+  placeholder: string;
   options: FilterSelectOption[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
+  selectedValue: string | null;
+  onSelect: (value: string | null) => void;
 }
 
 export default function FilterSelect({
   label,
+  placeholder,
   options,
   selectedValue,
   onSelect,
@@ -22,15 +24,19 @@ export default function FilterSelect({
   return (
     <Select
       className="w-56"
-      placeholder={label}
-      selectedKey={selectedValue === '' ? null : selectedValue}
+      placeholder={placeholder}
+      selectedKey={selectedValue}
+      onClear={() => {
+        onSelect(null);
+      }}
       onSelectionChange={(key) => {
-        onSelect(toString(key));
+        onSelect(isNull(key) ? null : toString(key));
       }}
     >
       <Label>{label}</Label>
       <Select.Trigger>
         <Select.Value />
+        <Select.ClearButton />
         <Select.Indicator />
       </Select.Trigger>
       <Select.Popover>

@@ -16,9 +16,10 @@ import {
   subscriptionFormResolver,
 } from '@common/forms/subscription-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
 import { formatPriceAmount } from '@common/utils/price';
+import { toQuery } from '@common/utils/search-params';
 import SubscriptionForm from '@features/dashboard/components/SubscriptionForm';
 import { SUBSCRIPTION_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -31,37 +32,34 @@ import {
   usePricesQuery,
   useSubscriptionsQuery,
 } from '@pinstripe/sdk/react';
-import { filter, get, last, map, size, toUpper } from 'lodash-es';
+import { filter, get, isNull, last, map, size, toUpper, values } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import SubscriptionDrawer from './SubscriptionDrawer';
+import { subscriptionSearchParams } from './subscriptions.search-params';
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  ...map(SubscriptionStatusEnum, (status) => {
-    return { value: status, label: status };
-  }),
-];
+const STATUS_OPTIONS = map(values(SubscriptionStatusEnum), (status) => {
+  return { value: status, label: status };
+});
 
 export default function SubscriptionsPage() {
   const { subscriptionId } = useParams();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState('all');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(subscriptionSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: subscriptions, isPending } = useSubscriptionsQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      status:
-        statusFilter === 'all'
-          ? undefined
-          : toEnumMember(SubscriptionStatusEnum, statusFilter, SubscriptionStatusEnum.ACTIVE),
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
@@ -108,9 +106,10 @@ export default function SubscriptionsPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnFilterSelect = (nextStatusFilter: string) => {
-    setStatusFilter(nextStatusFilter);
-    resetPage();
+  const handleOnStatusSelect = (value: string | null) => {
+    const status = isNull(value) ? null : subscriptionSearchParams.status.parse(value);
+
+    setSearch({ status, after: null });
   };
 
   const handleOnNext = () => {
@@ -160,9 +159,10 @@ export default function SubscriptionsPage() {
           <FilterBar itemCount={size(rows)}>
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={STATUS_OPTIONS}
-              selectedValue={statusFilter}
-              onSelect={handleOnFilterSelect}
+              selectedValue={search.status}
+              onSelect={handleOnStatusSelect}
             />
           </FilterBar>
         }

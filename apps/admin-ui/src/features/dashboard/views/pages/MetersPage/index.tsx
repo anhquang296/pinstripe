@@ -16,8 +16,9 @@ import {
   meterFormResolver,
 } from '@common/forms/meter-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import MeterForm from '@features/dashboard/components/MeterForm';
 import { SUBSCRIPTION_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -25,36 +26,35 @@ import { useCan } from '@libs/permissions';
 import type { MeterResponse } from '@pinstripe/core/contracts';
 import { MeterStatusEnum, PermissionEnum } from '@pinstripe/core/contracts';
 import { useCreateMeterMutation, useMetersQuery } from '@pinstripe/sdk/react';
-import { filter, get, last, size } from 'lodash-es';
+import { filter, get, isNull, last, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import MeterDrawer from './MeterDrawer';
+import { meterSearchParams } from './meters.search-params';
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
   { value: MeterStatusEnum.ACTIVE, label: 'Đang chạy' },
   { value: MeterStatusEnum.INACTIVE, label: 'Đã tắt' },
 ];
 
 export default function MetersPage() {
   const { meterId } = useParams();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState('all');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(meterSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: meters, isPending } = useMetersQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      status:
-        statusFilter === 'all'
-          ? undefined
-          : toEnumMember(MeterStatusEnum, statusFilter, MeterStatusEnum.ACTIVE),
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -76,9 +76,10 @@ export default function MetersPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnFilterSelect = (nextStatusFilter: string) => {
-    setStatusFilter(nextStatusFilter);
-    resetPage();
+  const handleOnStatusSelect = (value: string | null) => {
+    const status = isNull(value) ? null : meterSearchParams.status.parse(value);
+
+    setSearch({ status, after: null });
   };
 
   const handleOnNext = () => {
@@ -125,9 +126,10 @@ export default function MetersPage() {
           <FilterBar itemCount={size(rows)}>
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={STATUS_OPTIONS}
-              selectedValue={statusFilter}
-              onSelect={handleOnFilterSelect}
+              selectedValue={search.status}
+              onSelect={handleOnStatusSelect}
             />
           </FilterBar>
         }

@@ -2,8 +2,9 @@ import { Tabs } from '@heroui/react';
 import { find, get, head, map, startsWith, toString } from 'lodash-es';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-interface PageTabsItem {
+export interface PageTabsItem {
   to: string;
+  search?: string;
   label: string;
 }
 
@@ -26,7 +27,9 @@ export default function PageTabs({ items }: PageTabsProps) {
       className="w-fit"
       selectedKey={activeKey}
       onSelectionChange={(key) => {
-        navigate(toString(key));
+        const nextItem = find(items, { to: toString(key) });
+
+        navigate({ pathname: toString(key), search: get(nextItem, 'search', '') });
       }}
     >
       <Tabs.ListContainer>

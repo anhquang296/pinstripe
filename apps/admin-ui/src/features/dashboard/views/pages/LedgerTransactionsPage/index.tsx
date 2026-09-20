@@ -7,6 +7,7 @@ import PageTabs from '@common/components/PageTabs';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import { PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import type { LedgerTransactionFormData } from '@common/forms/ledger-transaction-form';
 import {
   ledgerTransactionFormDataToPayload,
@@ -14,7 +15,9 @@ import {
   ledgerTransactionFormResolver,
 } from '@common/forms/ledger-transaction-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import LedgerTransactionForm from '@features/dashboard/components/LedgerTransactionForm';
 import { LEDGER_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -25,23 +28,30 @@ import {
   useCreateLedgerTransactionMutation,
   useLedgerTransactionsQuery,
 } from '@pinstripe/sdk/react';
-import { filter, get, last, size, sumBy } from 'lodash-es';
+import { filter, get, isEmpty, last, size, sumBy } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { ledgerTransactionSearchParams } from './ledger-transactions.search-params';
 import LedgerTransactionDrawer from './LedgerTransactionDrawer';
 
 export default function LedgerTransactionsPage() {
   const { transactionId } = useParams();
-  const navigate = useNavigate();
-  const [searchCustomerId, setSearchCustomerId] = useState('');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(ledgerTransactionSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.LEDGER_WRITE);
 
   const { data: ledgerTransactions, isPending } = useLedgerTransactionsQuery(
-    { limit: PAGE_LIMIT, after, customerId: searchCustomerId || undefined },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -62,9 +72,11 @@ export default function LedgerTransactionsPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnSearchChange = (nextCustomerId: string) => {
-    setSearchCustomerId(nextCustomerId);
-    resetPage();
+  const handleOnCustomerIdChange = (customerId: string) => {
+    setSearch(
+      { customerId: isEmpty(customerId) ? null : customerId, after: null },
+      { limitUrlUpdates: isEmpty(customerId) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -116,9 +128,9 @@ export default function LedgerTransactionsPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchCustomerId}
+            searchValue={search.customerId}
             searchPlaceholder="Lọc theo customer id"
-            onSearchChange={handleOnSearchChange}
+            onSearchChange={handleOnCustomerIdChange}
           />
         }
         label="Danh sách bút toán"

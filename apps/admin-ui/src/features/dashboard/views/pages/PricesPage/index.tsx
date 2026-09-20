@@ -16,8 +16,10 @@ import {
   priceFormResolver,
 } from '@common/forms/price-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
 import { formatPriceAmount } from '@common/utils/price';
+import { toBooleanFilter, toBooleanSelectValue, toQuery } from '@common/utils/search-params';
 import PriceForm from '@features/dashboard/components/PriceForm';
 import { CATALOG_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -31,32 +33,34 @@ import {
   useProductsQuery,
 } from '@pinstripe/sdk/react';
 import { filter, get, last, map, reject, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import PriceDrawer from './PriceDrawer';
+import { priceSearchParams } from './prices.search-params';
 
 const ACTIVE_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  { value: 'active', label: 'Đang bán' },
-  { value: 'inactive', label: 'Ngừng bán' },
+  { value: 'true', label: 'Đang bán' },
+  { value: 'false', label: 'Ngừng bán' },
 ];
 
 export default function PricesPage() {
   const { priceId } = useParams();
-  const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState('all');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(priceSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: prices, isPending } = usePricesQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      active: activeFilter === 'all' ? undefined : activeFilter === 'active',
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
   const { data: products } = useProductsQuery({ limit: OPTION_LIMIT, active: true });
@@ -93,9 +97,8 @@ export default function PricesPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnFilterSelect = (nextActiveFilter: string) => {
-    setActiveFilter(nextActiveFilter);
-    resetPage();
+  const handleOnActiveSelect = (value: string | null) => {
+    setSearch({ active: toBooleanFilter(value), after: null });
   };
 
   const handleOnNext = () => {
@@ -142,9 +145,10 @@ export default function PricesPage() {
           <FilterBar itemCount={size(rows)}>
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={ACTIVE_OPTIONS}
-              selectedValue={activeFilter}
-              onSelect={handleOnFilterSelect}
+              selectedValue={toBooleanSelectValue(search.active)}
+              onSelect={handleOnActiveSelect}
             />
           </FilterBar>
         }

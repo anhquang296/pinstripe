@@ -20,8 +20,10 @@ import {
   discountFormDefaultValues,
   discountFormResolver,
 } from '@common/forms/discount-form';
-import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { cursorSearchParams, useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import CouponForm from '@features/dashboard/components/CouponForm';
 import DiscountForm from '@features/dashboard/components/DiscountForm';
 import { SUBSCRIPTION_TABS } from '@features/dashboard/constants/tabs';
@@ -38,23 +40,30 @@ import {
   useSubscriptionsQuery,
 } from '@pinstripe/sdk/react';
 import { filter, get, last, map, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import CouponDrawer from './CouponDrawer';
 import DiscountDrawer from './DiscountDrawer';
 
 export default function DiscountsPage() {
   const { couponId } = useParams();
-  const navigate = useNavigate();
+  const navigate = useSearchPreservingNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedDiscountId, setSelectedDiscountId] = useState('');
-  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const [search, setSearch] = useQueryStates(cursorSearchParams);
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: coupons, isPending } = useCouponsQuery(
-    { limit: PAGE_LIMIT, after },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
   const { data: discounts } = useDiscountsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });

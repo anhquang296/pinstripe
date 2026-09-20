@@ -7,43 +7,39 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
 import { PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatCurrency, formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import { PAYMENT_TABS } from '@features/dashboard/constants/tabs';
 import type { PaymentIntentResponse } from '@pinstripe/core/contracts';
 import { CurrencyEnum, PaymentIntentStatusEnum } from '@pinstripe/core/contracts';
 import { usePaymentIntentsQuery } from '@pinstripe/sdk/react';
-import { filter, get, last, map, size, sumBy, values } from 'lodash-es';
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { filter, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
+import { useParams } from 'react-router-dom';
 
+import { paymentIntentSearchParams } from './payment-intents.search-params';
 import PaymentIntentDrawer from './PaymentIntentDrawer';
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  ...map(values(PaymentIntentStatusEnum), (status) => {
-    return { value: status, label: status };
-  }),
-];
+const STATUS_OPTIONS = map(values(PaymentIntentStatusEnum), (status) => {
+  return { value: status, label: status };
+});
 
 export default function PaymentIntentsPage() {
   const { paymentIntentId } = useParams();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchInvoiceId, setSearchInvoiceId] = useState('');
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(paymentIntentSearchParams);
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
 
   const { data: paymentIntents, isPending } = usePaymentIntentsQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      status:
-        statusFilter === 'all'
-          ? undefined
-          : toEnumMember(PaymentIntentStatusEnum, statusFilter, PaymentIntentStatusEnum.SUCCEEDED),
-      invoiceId: searchInvoiceId || undefined,
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -51,14 +47,17 @@ export default function PaymentIntentsPage() {
   const hasMore = get(paymentIntents, 'hasMore', false);
   const currency = get(rows, '0.currency', CurrencyEnum.VND);
 
-  const handleOnStatusChange = (nextStatus: string) => {
-    setStatusFilter(nextStatus);
-    resetPage();
+  const handleOnStatusSelect = (value: string | null) => {
+    const status = isNull(value) ? null : paymentIntentSearchParams.status.parse(value);
+
+    setSearch({ status, after: null });
   };
 
-  const handleOnSearchChange = (nextInvoiceId: string) => {
-    setSearchInvoiceId(nextInvoiceId);
-    resetPage();
+  const handleOnInvoiceIdChange = (invoiceId: string) => {
+    setSearch(
+      { invoiceId: isEmpty(invoiceId) ? null : invoiceId, after: null },
+      { limitUrlUpdates: isEmpty(invoiceId) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -97,15 +96,16 @@ export default function PaymentIntentsPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchInvoiceId}
+            searchValue={search.invoiceId}
             searchPlaceholder="Lọc theo invoice id"
-            onSearchChange={handleOnSearchChange}
+            onSearchChange={handleOnInvoiceIdChange}
           >
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={STATUS_OPTIONS}
-              selectedValue={statusFilter}
-              onSelect={handleOnStatusChange}
+              selectedValue={search.status}
+              onSelect={handleOnStatusSelect}
             />
           </FilterBar>
         }

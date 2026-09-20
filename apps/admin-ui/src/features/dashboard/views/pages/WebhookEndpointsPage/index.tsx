@@ -16,8 +16,9 @@ import {
   webhookEndpointFormResolver,
 } from '@common/forms/webhook-endpoint-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import WebhookEndpointForm from '@features/dashboard/components/WebhookEndpointForm';
 import { WEBHOOK_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -25,40 +26,35 @@ import { useCan } from '@libs/permissions';
 import type { WebhookEndpointResponse } from '@pinstripe/core/contracts';
 import { PermissionEnum, WebhookEndpointStatusEnum } from '@pinstripe/core/contracts';
 import { useCreateWebhookEndpointMutation, useWebhookEndpointsQuery } from '@pinstripe/sdk/react';
-import { filter, get, last, size, sumBy } from 'lodash-es';
+import { filter, get, isNull, last, size, sumBy } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { webhookEndpointSearchParams } from './webhook-endpoints.search-params';
 import WebhookEndpointDrawer from './WebhookEndpointDrawer';
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
   { value: WebhookEndpointStatusEnum.ENABLED, label: 'enabled' },
   { value: WebhookEndpointStatusEnum.DISABLED, label: 'disabled' },
 ];
 
 export default function WebhookEndpointsPage() {
   const { webhookEndpointId } = useParams();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState('all');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(webhookEndpointSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.INTEGRATION_WRITE);
 
   const { data: webhookEndpoints, isPending } = useWebhookEndpointsQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      status:
-        statusFilter === 'all'
-          ? undefined
-          : toEnumMember(
-              WebhookEndpointStatusEnum,
-              statusFilter,
-              WebhookEndpointStatusEnum.ENABLED,
-            ),
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -83,9 +79,10 @@ export default function WebhookEndpointsPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnStatusSelect = (nextStatus: string) => {
-    setStatusFilter(nextStatus);
-    resetPage();
+  const handleOnStatusSelect = (value: string | null) => {
+    const status = isNull(value) ? null : webhookEndpointSearchParams.status.parse(value);
+
+    setSearch({ status, after: null });
   };
 
   const handleOnNext = () => {
@@ -140,8 +137,9 @@ export default function WebhookEndpointsPage() {
           <FilterBar itemCount={size(rows)}>
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={STATUS_OPTIONS}
-              selectedValue={statusFilter}
+              selectedValue={search.status}
               onSelect={handleOnStatusSelect}
             />
           </FilterBar>

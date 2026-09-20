@@ -6,6 +6,7 @@ import PageCard from '@common/components/PageCard';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import { PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import type { CustomerFormData } from '@common/forms/customer-form';
 import {
   customerFormDataToPayload,
@@ -13,30 +14,39 @@ import {
   customerFormResolver,
 } from '@common/forms/customer-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatCurrency, formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import CustomerForm from '@features/dashboard/components/CustomerForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { CustomerResponse } from '@pinstripe/core/contracts';
 import { PermissionEnum, TaxExemptEnum } from '@pinstripe/core/contracts';
 import { useCreateCustomerMutation, useCustomersQuery } from '@pinstripe/sdk/react';
-import { filter, get, last, size, toUpper } from 'lodash-es';
+import { filter, get, isEmpty, last, size, toUpper } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import CustomerDrawer from './CustomerDrawer';
+import { customerSearchParams } from './customers.search-params';
 
 export default function CustomersPage() {
   const { customerId } = useParams();
-  const navigate = useNavigate();
-  const [searchEmail, setSearchEmail] = useState('');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(customerSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.CUSTOMER_WRITE);
 
   const { data: customers, isPending } = useCustomersQuery(
-    { limit: PAGE_LIMIT, after, email: searchEmail || undefined },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -58,9 +68,11 @@ export default function CustomersPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnSearchChange = (nextSearchEmail: string) => {
-    setSearchEmail(nextSearchEmail);
-    resetPage();
+  const handleOnEmailChange = (email: string) => {
+    setSearch(
+      { email: isEmpty(email) ? null : email, after: null },
+      { limitUrlUpdates: isEmpty(email) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -120,9 +132,9 @@ export default function CustomersPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchEmail}
+            searchValue={search.email}
             searchPlaceholder="Tìm theo email"
-            onSearchChange={handleOnSearchChange}
+            onSearchChange={handleOnEmailChange}
           />
         }
         label="Danh sách customer"

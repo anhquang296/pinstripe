@@ -8,6 +8,7 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import type { InvoiceFormData } from '@common/forms/invoice-form';
 import {
   invoiceFormDataToPayload,
@@ -16,8 +17,10 @@ import {
 } from '@common/forms/invoice-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import { useInvoiceStatusCounts } from '@common/hooks/useInvoiceStatusCounts';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { toEnumMember } from '@common/utils/enum';
 import { formatCurrency, formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import InvoiceForm from '@features/dashboard/components/InvoiceForm';
 import { INVOICE_STATUS_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -30,31 +33,33 @@ import {
   useInvoicesQuery,
   useSubscriptionsQuery,
 } from '@pinstripe/sdk/react';
-import { get, last, map, size, sumBy, toString } from 'lodash-es';
+import { get, isEmpty, last, map, size, sumBy, toString } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import InvoiceDrawer from './InvoiceDrawer';
+import { invoiceSearchParams, serializeInvoiceSearch } from './invoices.search-params';
 
 export default function InvoicesPage() {
   const { status, invoiceId } = useParams();
-  const navigate = useNavigate();
-  const [searchCustomerId, setSearchCustomerId] = useState('');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(invoiceSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.INVOICE_WRITE);
 
   const invoiceStatus = toEnumMember(InvoiceStatusEnum, toString(status), InvoiceStatusEnum.DRAFT);
   const statusCounts = useInvoiceStatusCounts();
 
   const { data: invoices, isPending } = useInvoicesQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      status: invoiceStatus,
-      customerId: searchCustomerId || undefined,
-    },
+    { limit: PAGE_LIMIT, status: invoiceStatus, ...toQuery(search) },
     { hasPlaceholder: true },
   );
   const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
@@ -86,8 +91,13 @@ export default function InvoicesPage() {
     }),
   ];
 
+  const tabSearch = serializeInvoiceSearch({ customerId: search.customerId, after: null });
   const tabs = map(INVOICE_STATUS_TABS, (tab) => {
-    return { to: tab.to, label: `${tab.label} · ${statusCounts[tab.status]}` };
+    return {
+      to: tab.to,
+      search: tabSearch,
+      label: `${tab.label} · ${statusCounts[tab.status]}`,
+    };
   });
 
   const handleOnSave = form.handleSubmit(async (formData) => {
@@ -96,9 +106,11 @@ export default function InvoicesPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnSearchChange = (nextCustomerId: string) => {
-    setSearchCustomerId(nextCustomerId);
-    resetPage();
+  const handleOnCustomerIdChange = (customerId: string) => {
+    setSearch(
+      { customerId: isEmpty(customerId) ? null : customerId, after: null },
+      { limitUrlUpdates: isEmpty(customerId) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -148,9 +160,9 @@ export default function InvoicesPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchCustomerId}
+            searchValue={search.customerId}
             searchPlaceholder="Lọc theo customer id"
-            onSearchChange={handleOnSearchChange}
+            onSearchChange={handleOnCustomerIdChange}
           />
         }
         label="Danh sách hoá đơn"

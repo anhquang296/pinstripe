@@ -13,8 +13,10 @@ import {
   testClockFormDefaultValues,
   testClockFormResolver,
 } from '@common/forms/test-clock-form';
-import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { cursorSearchParams, useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import TestClockForm from '@features/dashboard/components/TestClockForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
@@ -22,24 +24,31 @@ import type { TestClockResponse } from '@pinstripe/core/contracts';
 import { PermissionEnum, TestClockStatusEnum } from '@pinstripe/core/contracts';
 import { useCreateTestClockMutation, useTestClocksQuery } from '@pinstripe/sdk/react';
 import { filter, get, last, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import TestClockDrawer from './TestClockDrawer';
 
 export default function TestClocksPage() {
   const { testClockId } = useParams();
-  const navigate = useNavigate();
+  const navigate = useSearchPreservingNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const [search, setSearch] = useQueryStates(cursorSearchParams);
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.TEST_CLOCK_WRITE);
 
   const {
     data: testClocks,
     isPending,
     error,
-  } = useTestClocksQuery({ limit: PAGE_LIMIT, after }, { hasPlaceholder: true });
+  } = useTestClocksQuery({ limit: PAGE_LIMIT, ...toQuery(search) }, { hasPlaceholder: true });
 
   const { mutateAsync: createTestClock, isPending: isSaving } = useCreateTestClockMutation({
     successMessage: 'Đã tạo test clock.',

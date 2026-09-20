@@ -9,6 +9,7 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
 import { OPTION_LIMIT, PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import type { RefundFormData } from '@common/forms/refund-form';
 import {
   refundFormDataToPayload,
@@ -16,8 +17,9 @@ import {
   refundFormResolver,
 } from '@common/forms/refund-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatCurrency, formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import RefundForm from '@features/dashboard/components/RefundForm';
 import { PAYMENT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -29,39 +31,34 @@ import {
   usePaymentIntentsQuery,
   useRefundsQuery,
 } from '@pinstripe/sdk/react';
-import { filter, flatMap, get, last, map, size, sumBy, values } from 'lodash-es';
+import { filter, flatMap, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import RefundDrawer from './RefundDrawer';
+import { refundSearchParams } from './refunds.search-params';
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  ...map(values(RefundStatusEnum), (status) => {
-    return { value: status, label: status };
-  }),
-];
+const STATUS_OPTIONS = map(values(RefundStatusEnum), (status) => {
+  return { value: status, label: status };
+});
 
 export default function RefundsPage() {
   const { refundId } = useParams();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchInvoiceId, setSearchInvoiceId] = useState('');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(refundSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canRefund = useCan(PermissionEnum.REFUND_WRITE);
 
   const { data: refunds, isPending } = useRefundsQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      status:
-        statusFilter === 'all'
-          ? undefined
-          : toEnumMember(RefundStatusEnum, statusFilter, RefundStatusEnum.SUCCEEDED),
-      invoiceId: searchInvoiceId || undefined,
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
   const { data: paymentIntents } = usePaymentIntentsQuery({ limit: OPTION_LIMIT });
@@ -97,14 +94,17 @@ export default function RefundsPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnStatusChange = (nextStatus: string) => {
-    setStatusFilter(nextStatus);
-    resetPage();
+  const handleOnStatusSelect = (value: string | null) => {
+    const status = isNull(value) ? null : refundSearchParams.status.parse(value);
+
+    setSearch({ status, after: null });
   };
 
-  const handleOnSearchChange = (nextInvoiceId: string) => {
-    setSearchInvoiceId(nextInvoiceId);
-    resetPage();
+  const handleOnInvoiceIdChange = (invoiceId: string) => {
+    setSearch(
+      { invoiceId: isEmpty(invoiceId) ? null : invoiceId, after: null },
+      { limitUrlUpdates: isEmpty(invoiceId) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -157,15 +157,16 @@ export default function RefundsPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchInvoiceId}
+            searchValue={search.invoiceId}
             searchPlaceholder="Lọc theo invoice id"
-            onSearchChange={handleOnSearchChange}
+            onSearchChange={handleOnInvoiceIdChange}
           >
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={STATUS_OPTIONS}
-              selectedValue={statusFilter}
-              onSelect={handleOnStatusChange}
+              selectedValue={search.status}
+              onSelect={handleOnStatusSelect}
             />
           </FilterBar>
         }

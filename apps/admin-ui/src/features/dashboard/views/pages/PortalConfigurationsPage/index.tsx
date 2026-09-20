@@ -14,8 +14,10 @@ import {
   portalConfigurationFormDefaultValues,
   portalConfigurationFormResolver,
 } from '@common/forms/portal-configuration-form';
-import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { cursorSearchParams, useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import PortalConfigurationForm from '@features/dashboard/components/PortalConfigurationForm';
 import { CHECKOUT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -27,21 +29,28 @@ import {
   useCreateBillingPortalConfigurationMutation,
 } from '@pinstripe/sdk/react';
 import { filter, get, last, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import PortalConfigurationDrawer from './PortalConfigurationDrawer';
 
 export default function PortalConfigurationsPage() {
   const { configurationId } = useParams();
-  const navigate = useNavigate();
+  const navigate = useSearchPreservingNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const [search, setSearch] = useQueryStates(cursorSearchParams);
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: configurations, isPending } = useBillingPortalConfigurationsQuery(
-    { limit: PAGE_LIMIT, after },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 

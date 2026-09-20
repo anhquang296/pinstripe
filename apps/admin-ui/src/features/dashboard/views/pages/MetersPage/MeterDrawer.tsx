@@ -41,7 +41,7 @@ import {
   useMeterQuery,
   useUpdateMeterMutation,
 } from '@pinstripe/sdk/react';
-import { get, map } from 'lodash-es';
+import { get, isNull, map, toString } from 'lodash-es';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -62,7 +62,7 @@ interface MeterDrawerProps {
 }
 
 export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
-  const [summaryCustomerId, setSummaryCustomerId] = useState('');
+  const [summaryCustomerId, setSummaryCustomerId] = useState<string | null>(null);
   const canWriteCatalog = useCan(PermissionEnum.CATALOG_WRITE);
   const canWriteSubscription = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
@@ -72,8 +72,8 @@ export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
   const [usageWindow] = useState(buildUsageWindow);
   const { data: summary } = useMeterEventSummaryQuery(
     meterId,
-    { ...usageWindow, customerId: summaryCustomerId },
-    { enabled: Boolean(summaryCustomerId) },
+    { ...usageWindow, customerId: toString(summaryCustomerId) },
+    { enabled: !isNull(summaryCustomerId) },
   );
 
   const { mutateAsync: updateMeter, isPending: isSaving } = useUpdateMeterMutation({
@@ -177,6 +177,7 @@ export default function MeterDrawer({ meterId, onClose }: MeterDrawerProps) {
           actions={
             <FilterSelect
               label="Khách hàng"
+              placeholder="— chọn khách hàng —"
               options={customerOptions}
               selectedValue={summaryCustomerId}
               onSelect={setSummaryCustomerId}

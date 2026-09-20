@@ -7,17 +7,19 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
 import { PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
-import { toEnumMember } from '@common/utils/enum';
 import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
 import { WEBHOOK_TABS } from '@features/dashboard/constants/tabs';
 import { WebhookDeliveryStatusEnum } from '@pinstripe/core/contracts';
 import { useWebhookDeliveriesQuery } from '@pinstripe/sdk/react';
-import { filter, get, last, size } from 'lodash-es';
-import { useState } from 'react';
+import { filter, get, isEmpty, isNull, last, size } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
+
+import { webhookDeliverySearchParams } from './webhook-deliveries.search-params';
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
   { value: WebhookDeliveryStatusEnum.PENDING, label: 'pending' },
   { value: WebhookDeliveryStatusEnum.SUCCEEDED, label: 'succeeded' },
   { value: WebhookDeliveryStatusEnum.FAILED, label: 'failed' },
@@ -25,38 +27,33 @@ const STATUS_OPTIONS = [
 ];
 
 export default function WebhookDeliveriesPage() {
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchEndpointId, setSearchEndpointId] = useState('');
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const [search, setSearch] = useQueryStates(webhookDeliverySearchParams);
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
 
   const { data: webhookDeliveries, isPending } = useWebhookDeliveriesQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      endpointId: searchEndpointId || undefined,
-      status:
-        statusFilter === 'all'
-          ? undefined
-          : toEnumMember(
-              WebhookDeliveryStatusEnum,
-              statusFilter,
-              WebhookDeliveryStatusEnum.PENDING,
-            ),
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
   const rows = get(webhookDeliveries, 'data', []);
   const hasMore = get(webhookDeliveries, 'hasMore', false);
 
-  const handleOnStatusSelect = (nextStatus: string) => {
-    setStatusFilter(nextStatus);
-    resetPage();
+  const handleOnStatusSelect = (value: string | null) => {
+    const status = isNull(value) ? null : webhookDeliverySearchParams.status.parse(value);
+
+    setSearch({ status, after: null });
   };
 
-  const handleOnSearchChange = (nextEndpointId: string) => {
-    setSearchEndpointId(nextEndpointId);
-    resetPage();
+  const handleOnEndpointIdChange = (endpointId: string) => {
+    setSearch(
+      { endpointId: isEmpty(endpointId) ? null : endpointId, after: null },
+      { limitUrlUpdates: isEmpty(endpointId) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
   };
 
   const handleOnNext = () => {
@@ -93,14 +90,15 @@ export default function WebhookDeliveriesPage() {
         toolbar={
           <FilterBar
             itemCount={size(rows)}
-            searchValue={searchEndpointId}
+            searchValue={search.endpointId}
             searchPlaceholder="Lọc theo endpoint id"
-            onSearchChange={handleOnSearchChange}
+            onSearchChange={handleOnEndpointIdChange}
           >
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={STATUS_OPTIONS}
-              selectedValue={statusFilter}
+              selectedValue={search.status}
               onSelect={handleOnStatusSelect}
             />
           </FilterBar>

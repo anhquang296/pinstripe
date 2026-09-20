@@ -16,8 +16,10 @@ import {
   paymentLinkFormResolver,
 } from '@common/forms/payment-link-form';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
 import { formatPriceAmount } from '@common/utils/price';
+import { toBooleanFilter, toBooleanSelectValue, toQuery } from '@common/utils/search-params';
 import PaymentLinkForm from '@features/dashboard/components/PaymentLinkForm';
 import { CHECKOUT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
@@ -30,32 +32,34 @@ import {
   usePricesQuery,
 } from '@pinstripe/sdk/react';
 import { filter, get, last, map, reject, size } from 'lodash-es';
+import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { paymentLinkSearchParams } from './payment-links.search-params';
 import PaymentLinkDrawer from './PaymentLinkDrawer';
 
 const ACTIVE_OPTIONS = [
-  { value: 'all', label: 'Tất cả trạng thái' },
-  { value: 'active', label: 'Đang mở' },
-  { value: 'inactive', label: 'Đã đóng' },
+  { value: 'true', label: 'Đang mở' },
+  { value: 'false', label: 'Đã đóng' },
 ];
 
 export default function PaymentLinksPage() {
   const { paymentLinkId } = useParams();
-  const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState('all');
+  const navigate = useSearchPreservingNavigate();
+  const [search, setSearch] = useQueryStates(paymentLinkSearchParams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: search.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: paymentLinks, isPending } = usePaymentLinksQuery(
-    {
-      limit: PAGE_LIMIT,
-      after,
-      isActive: activeFilter === 'all' ? undefined : activeFilter === 'active',
-    },
+    { limit: PAGE_LIMIT, ...toQuery(search) },
     { hasPlaceholder: true },
   );
   const { data: prices } = usePricesQuery({ limit: OPTION_LIMIT, active: true });
@@ -88,9 +92,8 @@ export default function PaymentLinksPage() {
     setIsCreateOpen(false);
   });
 
-  const handleOnFilterSelect = (nextActiveFilter: string) => {
-    setActiveFilter(nextActiveFilter);
-    resetPage();
+  const handleOnActiveSelect = (value: string | null) => {
+    setSearch({ isActive: toBooleanFilter(value), after: null });
   };
 
   const handleOnNext = () => {
@@ -137,9 +140,10 @@ export default function PaymentLinksPage() {
           <FilterBar itemCount={size(rows)}>
             <FilterSelect
               label="Trạng thái"
+              placeholder="Tất cả trạng thái"
               options={ACTIVE_OPTIONS}
-              selectedValue={activeFilter}
-              onSelect={handleOnFilterSelect}
+              selectedValue={toBooleanSelectValue(search.isActive)}
+              onSelect={handleOnActiveSelect}
             />
           </FilterBar>
         }
