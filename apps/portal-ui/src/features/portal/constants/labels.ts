@@ -1,15 +1,19 @@
 import type {
   CollectionMethod,
+  InvoiceReminderKind,
   InvoiceStatus,
   PortalPaymentChannel,
+  PortalRequestKind,
   PortalRole,
   RecurringInterval,
   SubscriptionStatus,
 } from '@pinstripe/core/contracts';
 import {
   CollectionMethodEnum,
+  InvoiceReminderKindEnum,
   InvoiceStatusEnum,
   PortalPaymentChannelEnum,
+  PortalRequestKindEnum,
   PortalRoleEnum,
   RecurringIntervalEnum,
   SubscriptionStatusEnum,
@@ -31,6 +35,17 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, StatusLabel> = {
 };
 
 export const OVERDUE_INVOICE_LABEL: StatusLabel = { label: 'Quá hạn', tone: 'danger' };
+
+export const INVOICE_REMINDER_KIND_LABELS: Record<InvoiceReminderKind, string> = {
+  [InvoiceReminderKindEnum.DUE_SOON]: 'Nhắc trước hạn',
+  [InvoiceReminderKindEnum.OVERDUE]: 'Nhắc quá hạn',
+  [InvoiceReminderKindEnum.OVERDUE_INTERNAL]: 'Báo kế toán Vexere',
+};
+
+export const PORTAL_REQUEST_KIND_LABELS: Record<PortalRequestKind, string> = {
+  [PortalRequestKindEnum.PLAN_CHANGE]: 'Yêu cầu đổi gói',
+  [PortalRequestKindEnum.PROFILE_UPDATE]: 'Yêu cầu cập nhật hồ sơ',
+};
 
 export const SUBSCRIPTION_STATUS_LABELS: Record<SubscriptionStatus, StatusLabel> = {
   [SubscriptionStatusEnum.INCOMPLETE]: { label: 'Chưa hoàn tất', tone: 'warning' },

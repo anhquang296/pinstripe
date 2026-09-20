@@ -83,7 +83,9 @@ import type { PaymentService } from '@services/payment.service';
 import type { PaymentLinkService } from '@services/payment-link.service';
 import type { PaymentMethodService } from '@services/payment-method.service';
 import type { PayoutService } from '@services/payout.service';
+import type { PortalRequestService } from '@services/portal-request.service';
 import type { PortalSessionService } from '@services/portal-session.service';
+import type { PortalUsageService } from '@services/portal-usage.service';
 import type { PortalUserService } from '@services/portal-user.service';
 import type { PriceService } from '@services/price.service';
 import type { ProductService } from '@services/product.service';
@@ -210,6 +212,8 @@ declare module 'fastify' {
     invoiceReminderService: InvoiceReminderService;
     portalSessionService: PortalSessionService;
     portalUserService: PortalUserService;
+    portalUsageService: PortalUsageService;
+    portalRequestService: PortalRequestService;
     billingPortalService: BillingPortalService;
     paymentLinkService: PaymentLinkService;
     checkoutService: CheckoutService;

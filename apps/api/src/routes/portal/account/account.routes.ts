@@ -1,5 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
+  createPortalRequestSchema,
   CUSTOMER_ACCOUNTANT_EMAIL_KEY,
   CUSTOMER_ACCOUNTANT_NAME_KEY,
   findPortalPaymentMethodsSchema,
@@ -7,8 +8,10 @@ import {
   ListResponseSchema,
   paymentMethodSchema,
   portalIdentitySchema,
+  portalRequestSchema,
   portalSessionSchema,
   portalSubscriptionSchema,
+  portalUsageSchema,
   switchPortalCustomerSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
@@ -77,6 +80,33 @@ export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) =>
       );
 
       return ApiResponse.success(reply, subscriptions);
+    },
+  );
+
+  fastify.get(
+    '/usage',
+    { schema: { response: { 200: portalUsageSchema } } },
+    async (request, reply) => {
+      const { customerId } = readPortalAuth(request);
+
+      const usage = await fastify.portalUsageService.findCustomerUsage(customerId);
+
+      return ApiResponse.success(reply, usage);
+    },
+  );
+
+  fastify.post(
+    '/requests',
+    { schema: { body: createPortalRequestSchema, response: { 201: portalRequestSchema } } },
+    async (request, reply) => {
+      const { customerId } = readPortalAuth(request);
+
+      const portalRequest = await fastify.portalRequestService.createPortalRequest(
+        customerId,
+        request.body,
+      );
+
+      return ApiResponse.created(reply, portalRequest);
     },
   );
 

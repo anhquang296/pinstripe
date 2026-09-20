@@ -6,7 +6,9 @@ import { Alert, Link, Spinner } from '@heroui/react';
 import { InvoiceStatusEnum } from '@pinstripe/core/contracts';
 import {
   usePortalBankTransferQuery,
+  usePortalInvoiceComparisonQuery,
   usePortalInvoiceQuery,
+  usePortalInvoiceRemindersQuery,
   usePortalPaymentsQuery,
 } from '@pinstripe/sdk/react/portal';
 import { get } from 'lodash-es';
@@ -22,6 +24,8 @@ export default function InvoicePage({ params }: InvoicePageProps) {
   const isOpen = get(invoice, 'status') === InvoiceStatusEnum.OPEN;
   const { data: bankTransfer } = usePortalBankTransferQuery(invoiceId, { enabled: isOpen });
   const { data: payments, isPending: isPaymentsPending } = usePortalPaymentsQuery({ invoiceId });
+  const { data: comparison } = usePortalInvoiceComparisonQuery(invoiceId);
+  const { data: reminders } = usePortalInvoiceRemindersQuery(invoiceId);
 
   if (invoice) {
     const payableBankTransfer = isOpen && bankTransfer ? bankTransfer : null;
@@ -30,6 +34,8 @@ export default function InvoicePage({ params }: InvoicePageProps) {
       <InvoiceDetail
         invoice={invoice}
         bankTransfer={payableBankTransfer}
+        comparison={comparison ?? null}
+        reminders={get(reminders, 'reminders', [])}
         payments={get(payments, 'data', [])}
         isPaymentsLoading={isPaymentsPending}
       />

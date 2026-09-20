@@ -4,6 +4,8 @@ import PageCard from '@common/components/PageCard';
 import StatusChip from '@common/components/StatusChip';
 import { formatCurrency, formatDate } from '@common/utils/format';
 import BankTransferCard from '@features/portal/components/BankTransferCard';
+import InvoiceComparisonCard from '@features/portal/components/InvoiceComparisonCard';
+import InvoiceRemindersCard from '@features/portal/components/InvoiceRemindersCard';
 import PaymentsTable from '@features/portal/components/PaymentsTable';
 import { COLLECTION_METHOD_LABELS } from '@features/portal/constants/labels';
 import {
@@ -14,6 +16,8 @@ import { buttonVariants, Card, Link } from '@heroui/react';
 import type {
   InvoiceResponse,
   PortalBankTransferResponse,
+  PortalInvoiceComparisonResponse,
+  PortalInvoiceRemindersResponse,
   PortalPaymentResponse,
 } from '@pinstripe/sdk';
 import { map } from 'lodash-es';
@@ -21,6 +25,8 @@ import { map } from 'lodash-es';
 interface InvoiceDetailProps {
   invoice: InvoiceResponse;
   bankTransfer: PortalBankTransferResponse | null;
+  comparison: PortalInvoiceComparisonResponse | null;
+  reminders: PortalInvoiceRemindersResponse['reminders'];
   payments: PortalPaymentResponse[];
   isPaymentsLoading: boolean;
 }
@@ -38,6 +44,8 @@ function buildOptionalDate(isoDate: string | null): string {
 export default function InvoiceDetail({
   invoice,
   bankTransfer,
+  comparison,
+  reminders,
   payments,
   isPaymentsLoading,
 }: InvoiceDetailProps) {
@@ -167,7 +175,11 @@ export default function InvoiceDetail({
         </Card.Content>
       </Card>
 
+      {comparison ? <InvoiceComparisonCard comparison={comparison} /> : null}
+
       {bankTransfer ? <BankTransferCard bankTransfer={bankTransfer} /> : null}
+
+      <InvoiceRemindersCard reminders={reminders} />
 
       <Card>
         <Card.Header>

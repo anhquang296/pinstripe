@@ -2,13 +2,25 @@
 
 import DetailList from '@common/components/DetailList';
 import PageCard from '@common/components/PageCard';
+import type { PortalRequestFormData } from '@common/forms/portal-request-form';
+import {
+  portalRequestFormDefaultValues,
+  portalRequestFormResolver,
+} from '@common/forms/portal-request-form';
 import { formatCurrency, formatDateTime } from '@common/utils/format';
 import PaymentMethodList from '@features/portal/components/PaymentMethodList';
+import PortalRequestForm from '@features/portal/components/PortalRequestForm';
 import { PORTAL_ROLE_LABELS } from '@features/portal/constants/labels';
 import { Alert, Card, Link } from '@heroui/react';
+import { PortalRequestKindEnum } from '@pinstripe/core/contracts';
 import type { PortalIdentityResponse } from '@pinstripe/sdk';
-import { usePortalAccountQuery, usePortalPaymentMethodsQuery } from '@pinstripe/sdk/react/portal';
+import {
+  useCreatePortalRequestMutation,
+  usePortalAccountQuery,
+  usePortalPaymentMethodsQuery,
+} from '@pinstripe/sdk/react/portal';
 import { compact, get, join, toUpper } from 'lodash-es';
+import { useForm } from 'react-hook-form';
 
 function buildOptionalText(value: string | null): string {
   if (value) {
@@ -39,6 +51,23 @@ function buildCreditLabel(account: PortalIdentityResponse): string {
 export default function AccountPage() {
   const { data: account } = usePortalAccountQuery();
   const { data: paymentMethods } = usePortalPaymentMethodsQuery({ limit: 20 });
+  const form = useForm<PortalRequestFormData>({
+    resolver: portalRequestFormResolver,
+    defaultValues: portalRequestFormDefaultValues,
+  });
+  const { mutate: createPortalRequest, isPending: isSubmitting } = useCreatePortalRequestMutation({
+    successMessage: 'Đã gửi yêu cầu. Kế toán Vexere sẽ liên hệ với nhà xe.',
+  });
+  const handleOnSubmit = form.handleSubmit((data) => {
+    createPortalRequest(
+      { kind: PortalRequestKindEnum.PROFILE_UPDATE, message: data.message },
+      {
+        onSuccess: () => {
+          form.reset(portalRequestFormDefaultValues);
+        },
+      },
+    );
+  });
 
   if (account) {
     const { sessionExpiresAt, accountantName, accountantEmail, role, userEmail } = account;
@@ -85,6 +114,24 @@ export default function AccountPage() {
                 { label: 'Họ tên', value: buildOptionalText(accountantName) },
                 { label: 'Email', value: accountantEmailValue },
               ]}
+            />
+          </Card.Content>
+        </Card>
+
+        <Card>
+          <Card.Header className="flex flex-col gap-1">
+            <Card.Title>Yêu cầu cập nhật hồ sơ</Card.Title>
+            <Card.Description>
+              Tên pháp nhân, mã số thuế, địa chỉ và email thanh toán do kế toán Vexere cập nhật. Ghi
+              rõ thông tin cần sửa để kế toán xử lý.
+            </Card.Description>
+          </Card.Header>
+          <Card.Content>
+            <PortalRequestForm
+              form={form}
+              placeholder="Ví dụ: đổi email thanh toán sang ketoan2@nhaxe.vn."
+              isSubmitting={isSubmitting}
+              onSubmit={handleOnSubmit}
             />
           </Card.Content>
         </Card>

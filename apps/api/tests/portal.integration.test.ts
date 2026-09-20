@@ -4,6 +4,7 @@ import {
   CollectionMethodEnum,
   CurrencyEnum,
   PORTAL_CLIENT_IP_HEADER,
+  PortalRequestKindEnum,
 } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -42,14 +43,11 @@ async function makeSessionHeaders(email: string): Promise<Record<string, string>
   await makeCustomer(email);
 
   const link = await fastify.portalSessionService.createPortalLink({ email });
-  const redeemed = await fastify.inject({
-    method: 'POST',
-    url: '/portal/sessions',
-    headers: portalKeyHeaders,
-    payload: { linkKey: String(link.linkKey) },
+  const portalSession = await fastify.portalSessionService.redeemPortalLink({
+    linkKey: String(link.linkKey),
   });
 
-  return buildAuthHeaders(String(redeemed.json().sessionKey));
+  return buildAuthHeaders(String(portalSession.sessionKey));
 }
 
 describe('portal link surface', () => {
@@ -191,6 +189,107 @@ describe('portal account surface', () => {
     expect(response.statusCode).toBe(200);
     expect(invoiceIds).toContain(openInvoice.id);
     expect(invoiceIds).not.toContain(draftInvoice.id);
+  });
+
+  it('answers an empty usage list for a customer with no metered service', async () => {
+    const headers = await makeSessionHeaders('usage@portal.test');
+
+    const response = await fastify.inject({ method: 'GET', url: '/portal/usage', headers });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().items).toEqual([]);
+  });
+
+  it('records a plan change request the operator submits', async () => {
+    const headers = await makeSessionHeaders('requests@portal.test');
+
+    const response = await fastify.inject({
+      method: 'POST',
+      url: '/portal/requests',
+      headers,
+      payload: { kind: PortalRequestKindEnum.PLAN_CHANGE, message: 'Muốn lên gói Pro' },
+    });
+
+    expect(response.statusCode).toBe(201);
+    expect(response.json().kind).toBe(PortalRequestKindEnum.PLAN_CHANGE);
+  });
+
+  it('refuses a request with an empty message', async () => {
+    const headers = await makeSessionHeaders('empty-request@portal.test');
+
+    const response = await fastify.inject({
+      method: 'POST',
+      url: '/portal/requests',
+      headers,
+      payload: { kind: PortalRequestKindEnum.PROFILE_UPDATE, message: '' },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('compares an invoice with no predecessor against a zero previous total', async () => {
+    const headers = await makeSessionHeaders('comparison@portal.test');
+    const me = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+    const draft = await fastify.invoiceService.createInvoice({
+      customerId: String(me.json().customerId),
+      collectionMethod: CollectionMethodEnum.SEND_INVOICE,
+      daysUntilDue: 7,
+    });
+    const invoice = await fastify.invoiceService.finalizeInvoice(draft.id);
+
+    const response = await fastify.inject({
+      method: 'GET',
+      url: `/portal/invoices/${invoice.id}/comparison`,
+      headers,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().previousInvoiceId).toBeNull();
+    expect(response.json().previousTotal).toBe(0);
+  });
+
+  it('answers an empty reminder history for an invoice nobody has been reminded about', async () => {
+    const headers = await makeSessionHeaders('reminders@portal.test');
+    const me = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+    const draft = await fastify.invoiceService.createInvoice({
+      customerId: String(me.json().customerId),
+      collectionMethod: CollectionMethodEnum.SEND_INVOICE,
+      daysUntilDue: 7,
+    });
+    const invoice = await fastify.invoiceService.finalizeInvoice(draft.id);
+
+    const response = await fastify.inject({
+      method: 'GET',
+      url: `/portal/invoices/${invoice.id}/reminders`,
+      headers,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().reminders).toEqual([]);
+  });
+
+  it('refuses a comparison for an invoice of another customer', async () => {
+    const otherHeaders = await makeSessionHeaders('other-comparison@portal.test');
+    const otherMe = await fastify.inject({
+      method: 'GET',
+      url: '/portal/me',
+      headers: otherHeaders,
+    });
+    const draft = await fastify.invoiceService.createInvoice({
+      customerId: String(otherMe.json().customerId),
+      collectionMethod: CollectionMethodEnum.SEND_INVOICE,
+      daysUntilDue: 7,
+    });
+    const invoice = await fastify.invoiceService.finalizeInvoice(draft.id);
+    const headers = await makeSessionHeaders('intruder-comparison@portal.test');
+
+    const response = await fastify.inject({
+      method: 'GET',
+      url: `/portal/invoices/${invoice.id}/comparison`,
+      headers,
+    });
+
+    expect(response.statusCode).toBe(404);
   });
 
   it('refuses a request with no session key', async () => {

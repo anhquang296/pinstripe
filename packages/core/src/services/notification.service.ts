@@ -173,6 +173,7 @@ export class NotificationService {
       nextAttemptAt,
       dueAt: dueAt ? new Date(dueAt) : null,
       url: job.url,
+      message: job.message,
     };
   }
 

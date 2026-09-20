@@ -134,6 +134,26 @@ Danh tính portal là **người**, không phải customer:
 
 Hiện hai vai trò chỉ khác nhau ở phần hiển thị: portal chưa có thao tác ghi nào cần phân quyền.
 
+### 11. Mức sử dụng, so với kỳ trước, và yêu cầu gửi kế toán
+
+- `GET /portal/usage` đọc mức dùng kỳ hiện tại của các subscription item có giá `metered`:
+  `PortalUsageService` lấy subscription còn sống (`active`, `trialing`, `past_due`, `unpaid`), hỏi
+  `meterEventService.getMeterEventSummary` theo đúng cửa sổ `currentPeriodStart`–`currentPeriodEnd`.
+  "Hạn mức trong gói" suy ra từ `upTo` của **bậc giá đầu tiên** — giá không có `tiers` thì không có hạn
+  mức, portal ghi "Tính theo thực dùng". Không có bảng quota mới, và portal không tự cảnh báo vượt: nó
+  chỉ hiển thị số đã dùng, phần trong gói và phần còn lại.
+- `GET /portal/invoices/:invoiceId/comparison` so hóa đơn với hóa đơn liền trước **của cùng
+  subscription** (`periodEnd <= periodStart` của hóa đơn đang xem, loại chính nó ra), ghép dòng theo
+  `description` và trả chênh lệch từng dòng. Không có hóa đơn trước thì `previousInvoiceId = null` và
+  portal ẩn khối này — không bịa ra một kỳ trước bằng 0 để hiển thị.
+- `GET /portal/invoices/:invoiceId/reminders` trả lịch sử nhắc nợ đã gửi từ `invoice_reminders`, **bỏ**
+  `overdue_internal`: đó là thư nội bộ gửi `BILLING_OPS_EMAIL`, nhà xe không cần biết Vexere đã leo
+  thang nội bộ.
+- `POST /portal/requests` (`plan_change`, `profile_update`) không tạo bản ghi domain: nó gửi email tới
+  `BILLING_OPS_EMAIL` với nội dung nhà xe ghi, giới hạn 5 yêu cầu/giờ/customer qua Redis. Thiếu
+  `BILLING_OPS_EMAIL` thì route vẫn 201 nhưng ghi log `warn` và không gửi — không bao giờ rơi về email
+  của chính nhà xe. Đổi gói và sửa hồ sơ vẫn do kế toán Vexere thực hiện trong admin-ui.
+
 ## Hệ quả
 
 - Ai giữ hộp thư của một người dùng portal là vào được với quyền của người đó; không có mật khẩu hay 2FA.

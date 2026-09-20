@@ -5,7 +5,9 @@ import {
   invoiceSchema,
   ListResponseSchema,
   portalBankTransferSchema,
+  portalInvoiceComparisonSchema,
   portalInvoiceParamsSchema,
+  portalInvoiceRemindersSchema,
   portalInvoiceTotalsSchema,
   portalPaymentSchema,
 } from '@pinstripe/core/contracts';
@@ -110,6 +112,46 @@ export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) =
         .type(PDF_CONTENT_TYPE)
         .header('content-disposition', `attachment; filename="${invoiceId}.pdf"`)
         .send(document);
+    },
+  );
+
+  fastify.get(
+    '/invoices/:invoiceId/comparison',
+    {
+      schema: {
+        params: portalInvoiceParamsSchema,
+        response: { 200: portalInvoiceComparisonSchema },
+      },
+    },
+    async (request, reply) => {
+      const { customerId } = readPortalAuth(request);
+
+      const comparison = await fastify.invoiceService.getCustomerInvoiceComparison(
+        customerId,
+        request.params.invoiceId,
+      );
+
+      return ApiResponse.success(reply, comparison);
+    },
+  );
+
+  fastify.get(
+    '/invoices/:invoiceId/reminders',
+    {
+      schema: {
+        params: portalInvoiceParamsSchema,
+        response: { 200: portalInvoiceRemindersSchema },
+      },
+    },
+    async (request, reply) => {
+      const { customerId } = readPortalAuth(request);
+
+      const reminders = await fastify.invoiceService.findCustomerInvoiceReminders(
+        customerId,
+        request.params.invoiceId,
+      );
+
+      return ApiResponse.success(reply, reminders);
     },
   );
 
