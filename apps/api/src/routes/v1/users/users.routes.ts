@@ -3,20 +3,18 @@ import {
   createUserSchema,
   findUsersSchema,
   ListResponseSchema,
-  PermissionEnum,
   updateUserSchema,
   userParamsSchema,
   userSchema,
 } from '@pinstripe/core/contracts';
 import { ApiResponse } from '@utils/api-response';
-import { buildRouteConfig } from '@utils/route-permission';
 
 export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/',
     {
-      config: buildRouteConfig(PermissionEnum.USER_MANAGE),
       schema: {
+        operationId: 'users.find',
         querystring: findUsersSchema,
         response: { 200: ListResponseSchema(userSchema) },
       },
@@ -31,8 +29,11 @@ export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(
     '/:userId',
     {
-      config: buildRouteConfig(PermissionEnum.USER_MANAGE),
-      schema: { params: userParamsSchema, response: { 200: userSchema } },
+      schema: {
+        operationId: 'users.get',
+        params: userParamsSchema,
+        response: { 200: userSchema },
+      },
     },
     async (request, reply) => {
       const user = await fastify.userService.getUser(request.params.userId);
@@ -44,8 +45,11 @@ export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(
     '/',
     {
-      config: buildRouteConfig(PermissionEnum.USER_MANAGE),
-      schema: { body: createUserSchema, response: { 201: userSchema } },
+      schema: {
+        operationId: 'users.create',
+        body: createUserSchema,
+        response: { 201: userSchema },
+      },
     },
     async (request, reply) => {
       const user = await fastify.userService.createUser(request.body);
@@ -57,8 +61,12 @@ export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.patch(
     '/:userId',
     {
-      config: buildRouteConfig(PermissionEnum.USER_MANAGE),
-      schema: { params: userParamsSchema, body: updateUserSchema, response: { 200: userSchema } },
+      schema: {
+        operationId: 'users.update',
+        params: userParamsSchema,
+        body: updateUserSchema,
+        response: { 200: userSchema },
+      },
     },
     async (request, reply) => {
       const user = await fastify.userService.updateUser(request.params.userId, request.body);

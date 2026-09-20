@@ -78,7 +78,7 @@ it('lists a recorded payment with the number of the invoice it settled', async (
 
   await fastify.invoiceService.payInvoice(openInvoice.id, {});
 
-  const response = await fastify.inject({ method: 'GET', url: '/portal/payments', headers });
+  const response = await fastify.inject({ method: 'GET', url: '/v1/portal/payments', headers });
 
   expect(response.statusCode).toBe(200);
   expect(response.json().data).toEqual([
@@ -102,7 +102,7 @@ it('narrows the payment history to one invoice of the customer', async () => {
 
   const response = await fastify.inject({
     method: 'GET',
-    url: `/portal/payments?invoiceId=${secondInvoice.id}`,
+    url: `/v1/portal/payments?invoiceId=${secondInvoice.id}`,
     headers,
   });
 
@@ -119,7 +119,7 @@ it('shows no payment of another customer, even when asked by its invoice id', as
 
   const response = await fastify.inject({
     method: 'GET',
-    url: `/portal/payments?invoiceId=${otherInvoice.id}`,
+    url: `/v1/portal/payments?invoiceId=${otherInvoice.id}`,
     headers,
   });
 
@@ -133,7 +133,7 @@ it('gives bank transfer details and a VietQR payload for an open invoice', async
 
   const response = await fastify.inject({
     method: 'GET',
-    url: `/portal/invoices/${openInvoice.id}/bank_transfer`,
+    url: `/v1/portal/invoices/${openInvoice.id}/bank_transfer`,
     headers,
   });
 
@@ -159,7 +159,7 @@ it('offers no bank transfer for an invoice that is already paid', async () => {
 
   const response = await fastify.inject({
     method: 'GET',
-    url: `/portal/invoices/${openInvoice.id}/bank_transfer`,
+    url: `/v1/portal/invoices/${openInvoice.id}/bank_transfer`,
     headers,
   });
 
@@ -173,7 +173,7 @@ it('exports the customer invoices as a csv Excel can open', async () => {
 
   const response = await fastify.inject({
     method: 'GET',
-    url: '/portal/invoice_exports',
+    url: '/v1/portal/invoice_exports',
     headers,
   });
 
@@ -190,7 +190,7 @@ it('names the Vexere accountant in charge and the credit balance on /portal/me',
     accountantEmail: 'van.tran@vexere.test',
   });
 
-  const response = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+  const response = await fastify.inject({ method: 'GET', url: '/v1/portal/me', headers });
 
   expect(response.json()).toMatchObject({
     accountantName: 'Trần Vân',

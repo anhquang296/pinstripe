@@ -1,4 +1,5 @@
-import type { ApiKeyScope, ApiKeyType } from '@contracts/api-keys.types';
+import type { ApiKeyType } from '@contracts/api-keys.types';
+import type { Permission } from '@contracts/users.types';
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { sql } from 'drizzle-orm';
 import { index, jsonb, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
@@ -9,7 +10,7 @@ export const apiKeys = pgTable(
     id: text('id').primaryKey(),
     name: text('name').notNull(),
     type: text('type').$type<ApiKeyType>().notNull(),
-    scopes: jsonb('scopes').$type<ApiKeyScope[]>().notNull().default([]),
+    permissions: jsonb('permissions').$type<Permission[]>().notNull().default([]),
     tokenPrefix: text('token_prefix').notNull(),
     tokenHash: text('token_hash').notNull(),
     lastUsedAt: isoTimestamp('last_used_at'),

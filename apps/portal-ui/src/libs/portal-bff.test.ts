@@ -21,7 +21,7 @@ function buildRequest(method: string, path: string, overrides: RequestOverrides 
     requestHeaders.set('cookie', `${PORTAL_SESSION_COOKIE}=${sessionKey}`);
   }
 
-  return new NextRequest(`${PORTAL_ORIGIN}/bff/portal/${path}`, {
+  return new NextRequest(`${PORTAL_ORIGIN}/bff/v1/portal/${path}`, {
     method,
     headers: requestHeaders,
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -81,7 +81,7 @@ it('sends a link request with the portal key and the end-user address', async ()
 
   expect(response.status).toBe(200);
   expect(fetchMock).toHaveBeenCalledWith(
-    'http://api.test/portal/links',
+    'http://api.test/v1/portal/links',
     expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ email: 'ketoan@nhaxe.vn' }),
@@ -132,7 +132,7 @@ it('reads account data with the session cookie, never with the portal key', asyn
   ]);
 
   expect(fetchMock).toHaveBeenCalledWith(
-    'http://api.test/portal/me',
+    'http://api.test/v1/portal/me',
     expect.objectContaining({
       headers: { authorization: 'Bearer raw-session-key' },
     }),
@@ -149,7 +149,7 @@ it('forwards one invoice of the customer by its id', async () => {
 
   expect(response.status).toBe(200);
   expect(fetchMock).toHaveBeenCalledWith(
-    'http://api.test/portal/invoices/in_01abc',
+    'http://api.test/v1/portal/invoices/in_01abc',
     expect.anything(),
   );
 });
@@ -167,7 +167,7 @@ it.each([
   );
 
   expect(response.status).toBe(200);
-  expect(fetchMock).toHaveBeenCalledWith(`http://api.test/portal/${path}`, expect.anything());
+  expect(fetchMock).toHaveBeenCalledWith(`http://api.test/v1/portal/${path}`, expect.anything());
 });
 
 it('switches the operator with the session cookie, and only from the portal itself', async () => {
@@ -197,7 +197,7 @@ it('switches the operator with the session cookie, and only from the portal itse
   expect(forged.status).toBe(403);
   expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(fetchMock).toHaveBeenCalledWith(
-    'http://api.test/portal/sessions/current',
+    'http://api.test/v1/portal/sessions/current',
     expect.objectContaining({
       headers: expect.objectContaining({ authorization: 'Bearer raw-session-key' }),
     }),

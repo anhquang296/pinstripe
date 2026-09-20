@@ -1,13 +1,11 @@
-import type { ApiKeyScope, UserAuth, UserRole } from '@pinstripe/core/contracts';
-import { ApiKeyScopeEnum, ROLE_PERMISSIONS, UserRoleEnum } from '@pinstripe/core/contracts';
+import type { UserAuth, UserRole } from '@pinstripe/core/contracts';
+import { ROLE_PERMISSIONS, UserRoleEnum } from '@pinstripe/core/contracts';
 import { ForbiddenError, UnauthorizedError } from '@pinstripe/core/errors';
-import { ApiKeyService } from '@pinstripe/core/services';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 
 const BEARER_PREFIX = 'Bearer ';
 const SESSION_COOKIE_PREFIX = 'pinstripe.';
-const SESSION_SCOPES = [ApiKeyScopeEnum.V1, ApiKeyScopeEnum.ADMIN];
 
 const USER_ROLES: Record<string, UserRole> = {
   [UserRoleEnum.ADMIN]: UserRoleEnum.ADMIN,
@@ -35,10 +33,10 @@ export function readBearerToken(request: FastifyRequest): string {
   throw new UnauthorizedError('Missing bearer token in Authorization header');
 }
 
-function hasSessionCookie(request: FastifyRequest, scope: ApiKeyScope): boolean {
+function hasSessionCookie(request: FastifyRequest): boolean {
   const { cookie = '' } = request.headers;
 
-  return _.includes(SESSION_SCOPES, scope) && _.includes(cookie, SESSION_COOKIE_PREFIX);
+  return _.includes(cookie, SESSION_COOKIE_PREFIX);
 }
 
 function buildSessionHeaders(request: FastifyRequest): Headers {
@@ -89,17 +87,10 @@ async function readSessionActor(request: FastifyRequest, reply: FastifyReply): P
   throw new UnauthorizedError('This dashboard session is no longer valid; sign in again');
 }
 
-async function authenticateApiKey(request: FastifyRequest, scope: ApiKeyScope): Promise<void> {
+export async function authenticateApiKey(request: FastifyRequest): Promise<void> {
   const token = readBearerToken(request);
-  const auth = await request.server.apiKeyService.authenticateApiKey(token);
 
-  if (ApiKeyService.hasScope(auth, scope)) {
-    request.auth = auth;
-
-    return;
-  }
-
-  throw new ForbiddenError(`This API key is not permitted to call the ${scope} surface`);
+  request.auth = await request.server.apiKeyService.authenticateApiKey(token);
 }
 
 async function authenticateSession(request: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -111,13 +102,12 @@ async function authenticateSession(request: FastifyRequest, reply: FastifyReply)
 export async function authenticateRequest(
   request: FastifyRequest,
   reply: FastifyReply,
-  scope: ApiKeyScope,
 ): Promise<void> {
   if (findBearerToken(request)) {
-    return authenticateApiKey(request, scope);
+    return authenticateApiKey(request);
   }
 
-  if (hasSessionCookie(request, scope)) {
+  if (hasSessionCookie(request)) {
     return authenticateSession(request, reply);
   }
 

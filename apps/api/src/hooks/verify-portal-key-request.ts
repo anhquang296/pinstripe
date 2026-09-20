@@ -1,10 +1,17 @@
-import { authenticateRequest } from '@hooks/authenticate-request';
-import { ApiKeyScopeEnum } from '@pinstripe/core/contracts';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import { authenticateApiKey } from '@hooks/authenticate-request';
+import { PermissionEnum } from '@pinstripe/core/contracts';
+import { ForbiddenError } from '@pinstripe/core/errors';
+import { ApiKeyService } from '@pinstripe/core/services';
+import type { FastifyRequest } from 'fastify';
 
-export async function verifyPortalKeyRequest(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<void> {
-  await authenticateRequest(request, reply, ApiKeyScopeEnum.PORTAL);
+export async function verifyPortalKeyRequest(request: FastifyRequest): Promise<void> {
+  await authenticateApiKey(request);
+
+  const { auth } = request;
+
+  if (auth && ApiKeyService.hasPermission(auth, PermissionEnum.PORTAL_WRITE)) {
+    return;
+  }
+
+  throw new ForbiddenError('This API key is not permitted to open a portal session');
 }

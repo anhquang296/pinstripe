@@ -1,5 +1,4 @@
 import {
-  ApiKeyScopeEnum,
   CurrencyEnum,
   TaxIdTypeEnum,
   TaxIdVerificationStatusEnum,
@@ -8,7 +7,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 let fastify: FastifyInstance;
 let authHeaders: Record<string, string>;
@@ -16,7 +15,7 @@ let authHeaders: Record<string, string>;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+  const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   authHeaders = buildAuthHeaders(apiKey.token);
 });

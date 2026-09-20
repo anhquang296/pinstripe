@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type { CreatePortalLinkPayload, PortalLinkResponse } from '@type/contracts.types';
 
-const PORTAL_LINKS_PATH = '/portal/links';
+const PORTAL_LINKS_PATH = '/v1/portal/links';
 
 export class PortalLinksResource {
   private _transport: PinstripeTransport;

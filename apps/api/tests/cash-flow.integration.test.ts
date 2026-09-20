@@ -1,12 +1,8 @@
-import {
-  ApiKeyScopeEnum,
-  DisputeReasonEnum,
-  PaymentMethodTypeEnum,
-} from '@pinstripe/core/contracts';
+import { DisputeReasonEnum, PaymentMethodTypeEnum } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 const APPROVED_TOKEN = 'tok_visa_ok';
 const CHARGE_AMOUNT = 250_000;
@@ -17,7 +13,7 @@ let secretToken: string;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+  const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   secretToken = apiKey.token;
 });

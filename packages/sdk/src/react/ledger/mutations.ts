@@ -37,7 +37,7 @@ export function useCreateLedgerTransactionMutation({
 
   return useMutation({
     mutationFn: (payload: PostLedgerTransactionPayload) => {
-      return client.admin.ledgerTransactions.create(payload);
+      return client.ledger.transactions.create(payload);
     },
     onSuccess: (ledgerTransaction) => {
       invalidate();
@@ -58,7 +58,7 @@ export function useReverseLedgerTransactionMutation({
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: ReverseLedgerTransactionPayload }) => {
-      return client.admin.ledgerTransactions.reverse(id, payload);
+      return client.ledger.transactions.reverse(id, payload);
     },
     onSuccess: (ledgerTransaction, { id }) => {
       invalidate(id);

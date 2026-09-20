@@ -3,6 +3,8 @@ import { PermissionEnum } from '@pinstripe/core/contracts';
 import { expandPlugin } from '@plugins/expand.plugin';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { rateLimitPlugin } from '@plugins/rate-limit.plugin';
+import { accountRoutes } from '@routes/v1/account/account.routes';
+import { apiKeysRoutes } from '@routes/v1/api-keys/api-keys.routes';
 import { balanceRoutes } from '@routes/v1/balance/balance.routes';
 import { balanceTransactionsRoutes } from '@routes/v1/balance-transactions/balance-transactions.routes';
 import { billingPortalRoutes } from '@routes/v1/billing-portal/billing-portal.routes';
@@ -16,6 +18,7 @@ import { entitlementsRoutes } from '@routes/v1/entitlements/entitlements.routes'
 import { eventsRoutes } from '@routes/v1/events/events.routes';
 import { invoiceItemsRoutes } from '@routes/v1/invoice-items/invoice-items.routes';
 import { invoicesRoutes } from '@routes/v1/invoices/invoices.routes';
+import { ledgerRoutes } from '@routes/v1/ledger/ledger.routes';
 import { meterEventsRoutes } from '@routes/v1/meter-events/meter-events.routes';
 import { metersRoutes } from '@routes/v1/meters/meters.routes';
 import { paymentIntentsRoutes } from '@routes/v1/payment-intents/payment-intents.routes';
@@ -27,12 +30,14 @@ import { pricesRoutes } from '@routes/v1/prices/prices.routes';
 import { productsRoutes } from '@routes/v1/products/products.routes';
 import { promotionCodesRoutes } from '@routes/v1/promotion-codes/promotion-codes.routes';
 import { refundsRoutes } from '@routes/v1/refunds/refunds.routes';
+import { reportingRoutes } from '@routes/v1/reporting/reporting.routes';
 import { setupIntentsRoutes } from '@routes/v1/setup-intents/setup-intents.routes';
 import { subscriptionItemsRoutes } from '@routes/v1/subscription-items/subscription-items.routes';
 import { subscriptionsRoutes } from '@routes/v1/subscriptions/subscriptions.routes';
 import { taxIdsRoutes } from '@routes/v1/tax-ids/tax-ids.routes';
 import { taxRatesRoutes } from '@routes/v1/tax-rates/tax-rates.routes';
 import { testClocksRoutes } from '@routes/v1/test-clocks/test-clocks.routes';
+import { usersRoutes } from '@routes/v1/users/users.routes';
 import { webhookDeliveriesRoutes } from '@routes/v1/webhook-deliveries/webhook-deliveries.routes';
 import { webhookEndpointsRoutes } from '@routes/v1/webhook-endpoints/webhook-endpoints.routes';
 import { Type } from '@sinclair/typebox';
@@ -82,6 +87,11 @@ export async function v1Routes(fastify: FastifyInstance): Promise<void> {
   await fastify.register(webhookDeliveriesRoutes, { prefix: '/webhook_deliveries' });
   await fastify.register(metersRoutes, { prefix: '/billing/meters' });
   await fastify.register(meterEventsRoutes, { prefix: '/billing' });
+  await fastify.register(ledgerRoutes, { prefix: '/ledger' });
+  await fastify.register(reportingRoutes, { prefix: '/reporting' });
+  await fastify.register(usersRoutes, { prefix: '/users' });
+  await fastify.register(apiKeysRoutes, { prefix: '/api_keys' });
+  await fastify.register(accountRoutes, { prefix: '/account' });
 
   if (fastify.testClockService.isEnabled) {
     await fastify.register(testClocksRoutes, { prefix: '/test_helpers/test_clocks' });

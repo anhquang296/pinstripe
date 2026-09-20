@@ -1,8 +1,7 @@
-import { ApiKeyScopeEnum } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 let fastify: FastifyInstance;
 
@@ -17,7 +16,7 @@ afterAll(async () => {
 });
 
 it('returns 404 for the test clock routes when test clocks are disabled', async () => {
-  const { token } = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+  const { token } = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   const response = await fastify.inject({
     method: 'POST',

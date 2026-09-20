@@ -1,5 +1,5 @@
-import type { RequestAuth, UserAuth } from '@pinstripe/core/contracts';
-import { ApiKeyScopeEnum, ApiKeyTypeEnum } from '@pinstripe/core/contracts';
+import type { Permission, RequestAuth, UserAuth } from '@pinstripe/core/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@pinstripe/core/contracts';
 import type { BootstrapApiKey } from '@pinstripe/core/services';
 import fp from 'fastify-plugin';
 
@@ -10,26 +10,20 @@ declare module 'fastify' {
   }
 }
 
+const SECRET_KEY_PERMISSIONS: readonly Permission[] = Object.values(PermissionEnum);
+
 export const apiKeyPlugin = fp(async (fastify) => {
-  const { SECRET_API_KEY, ADMIN_API_KEY, SYSTEM_API_KEY, MANAGEMENT_API_KEY, PORTAL_API_KEY } =
-    fastify.config;
+  const { SECRET_API_KEY, PORTAL_API_KEY } = fastify.config;
 
   const bootstrapKeys: BootstrapApiKey[] = [
-    { name: 'bootstrap secret', token: SECRET_API_KEY, scopes: [ApiKeyScopeEnum.V1] },
-    { name: 'bootstrap admin', token: ADMIN_API_KEY, scopes: [ApiKeyScopeEnum.ADMIN] },
-    { name: 'bootstrap system', token: SYSTEM_API_KEY, scopes: [ApiKeyScopeEnum.SYSTEM] },
-    {
-      name: 'bootstrap management',
-      token: MANAGEMENT_API_KEY,
-      scopes: [ApiKeyScopeEnum.MANAGEMENT],
-    },
+    { name: 'bootstrap secret', token: SECRET_API_KEY, permissions: SECRET_KEY_PERMISSIONS },
   ];
 
   if (PORTAL_API_KEY) {
     bootstrapKeys.push({
       name: 'bootstrap portal',
       token: PORTAL_API_KEY,
-      scopes: [ApiKeyScopeEnum.PORTAL],
+      permissions: [PermissionEnum.PORTAL_WRITE],
       type: ApiKeyTypeEnum.PUBLISHABLE,
     });
   }

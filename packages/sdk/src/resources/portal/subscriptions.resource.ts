@@ -7,7 +7,7 @@ import type {
   PortalSubscriptionResponse,
 } from '@type/contracts.types';
 
-const PORTAL_SUBSCRIPTIONS_PATH = '/portal/subscriptions';
+const PORTAL_SUBSCRIPTIONS_PATH = '/v1/portal/subscriptions';
 
 export class PortalSubscriptionsResource {
   private _transport: PinstripeTransport;

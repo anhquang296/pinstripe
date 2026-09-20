@@ -13,7 +13,7 @@ export function useCreateApiKeyMutation({ successMessage }: MutationProps<ApiKey
 
   return useMutation({
     mutationFn: (payload: CreateApiKeyPayload) => {
-      return client.admin.apiKeys.create(payload);
+      return client.apiKeys.create(payload);
     },
     onSuccess: (apiKey) => {
       queryClient.invalidateQueries({ queryKey: queries.api_key.apiKeys._def });
@@ -32,7 +32,7 @@ export function useDeleteApiKeyMutation({ successMessage }: MutationProps<ApiKey
 
   return useMutation({
     mutationFn: (apiKeyId: string) => {
-      return client.admin.apiKeys.delete(apiKeyId);
+      return client.apiKeys.delete(apiKeyId);
     },
     onSuccess: (apiKey) => {
       queryClient.invalidateQueries({ queryKey: queries.api_key.apiKeys._def });

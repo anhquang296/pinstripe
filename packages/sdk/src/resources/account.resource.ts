@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type { AccountResponse } from '@type/contracts.types';
 
-const ACCOUNT_PATH = '/api/v1/admin/account';
+const ACCOUNT_PATH = '/v1/account';
 
 export class AccountResource {
   private _transport: PinstripeTransport;

@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type { PortalInvoiceTotalsResponse } from '@type/contracts.types';
 
-const PORTAL_INVOICE_TOTALS_PATH = '/portal/invoice_totals';
+const PORTAL_INVOICE_TOTALS_PATH = '/v1/portal/invoice_totals';
 
 export class PortalInvoiceTotalsResource {
   private _transport: PinstripeTransport;

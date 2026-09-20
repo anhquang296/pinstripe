@@ -1,9 +1,9 @@
-import { ApiKeyScopeEnum, CurrencyEnum, PortalRoleEnum } from '@pinstripe/core/contracts';
+import { CurrencyEnum, PortalRoleEnum } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 let fastify: FastifyInstance;
 let secretKeyHeaders: Record<string, string>;
@@ -11,7 +11,7 @@ let secretKeyHeaders: Record<string, string>;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+  const secretKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   secretKeyHeaders = buildAuthHeaders(secretKey.token);
 });
@@ -122,20 +122,20 @@ it('shows a person every operator they can open and switches between them', asyn
   }
 
   const headers = await signIn(email);
-  const before = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+  const before = await fastify.inject({ method: 'GET', url: '/v1/portal/me', headers });
 
   const switched = await fastify.inject({
     method: 'POST',
-    url: '/portal/sessions/current',
+    url: '/v1/portal/sessions/current',
     headers,
     payload: { customerId: secondCustomer.id },
   });
 
-  const after = await fastify.inject({ method: 'GET', url: '/portal/me', headers });
+  const after = await fastify.inject({ method: 'GET', url: '/v1/portal/me', headers });
 
   const refused = await fastify.inject({
     method: 'POST',
-    url: '/portal/sessions/current',
+    url: '/v1/portal/sessions/current',
     headers,
     payload: { customerId: strangerCustomer.id },
   });

@@ -12,7 +12,8 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "openapi": "tsx scripts/generate-openapi.ts && prettier --write openapi.json"
+    "openapi": "tsx scripts/generate-openapi.ts && prettier --write openapi.json",
+    "bootstrap-admin": "tsx --env-file=../../.env scripts/bootstrap-admin.ts"
   },
   "dependencies": {
     "@fastify/swagger": "^9.8.1",

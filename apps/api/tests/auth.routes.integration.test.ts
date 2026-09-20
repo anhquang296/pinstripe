@@ -6,7 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp } from './context';
+import { buildTestApp } from './context';
 
 interface AuthRequestOptions {
   method: 'GET' | 'POST';
@@ -20,7 +20,7 @@ interface InjectedCookie {
   value: string;
 }
 
-const AUTH_PATH = '/api/v1/auth';
+const AUTH_PATH = '/v1/auth';
 const SESSION_COOKIE_PREFIX = 'pinstripe';
 const PASSWORD = 'correct horse battery staple';
 const MS_PER_HOUR = 3_600_000;
@@ -241,23 +241,20 @@ describe('update user', () => {
 });
 
 describe('bootstrap admin', () => {
-  it('creates the first admin once, however many times it is called', async () => {
-    const { MANAGEMENT_API_KEY } = fastify.config;
-
+  it('creates the first admin once, however many times the cli runs', async () => {
     const email = `${generateGid(ObjectPrefixEnum.USER)}@bootstrap.test`;
 
-    const options = {
-      method: 'POST' as const,
-      url: '/api/v1/management/users/bootstrap',
-      headers: buildAuthHeaders(MANAGEMENT_API_KEY),
-      payload: { email, name: 'First Admin', password: PASSWORD },
+    const payload = {
+      email,
+      name: 'First Admin',
+      password: PASSWORD,
+      role: UserRoleEnum.ADMIN,
     };
 
-    const first = await fastify.inject(options);
-    const second = await fastify.inject(options);
+    const first = await fastify.userService.ensureUser(payload);
+    const second = await fastify.userService.ensureUser(payload);
 
-    expect(first.statusCode).toBe(200);
-    expect(first.json().role).toBe(UserRoleEnum.ADMIN);
-    expect(second.json().id).toBe(first.json().id);
+    expect(first.role).toBe(UserRoleEnum.ADMIN);
+    expect(second.id).toBe(first.id);
   });
 });

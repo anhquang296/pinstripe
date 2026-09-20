@@ -7,7 +7,7 @@ import type {
   SwitchPortalCustomerPayload,
 } from '@type/contracts.types';
 
-const PORTAL_SESSIONS_PATH = '/portal/sessions';
+const PORTAL_SESSIONS_PATH = '/v1/portal/sessions';
 
 export class PortalSessionsResource {
   private _transport: PinstripeTransport;

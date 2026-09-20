@@ -42,9 +42,6 @@ export const envSchema = Type.Object({
   SMTP_FROM_EMAIL: Default(Type.String({ minLength: 1 }), 'billing@pinstripe.test'),
 
   SECRET_API_KEY: Type.String({ minLength: 16 }),
-  ADMIN_API_KEY: Type.String({ minLength: 16 }),
-  SYSTEM_API_KEY: Type.String({ minLength: 16 }),
-  MANAGEMENT_API_KEY: Type.String({ minLength: 16 }),
   PORTAL_API_KEY: Optional(Type.String({ minLength: 16 })),
 
   TEST_CLOCKS_ENABLED: Default(Type.Boolean(), false),

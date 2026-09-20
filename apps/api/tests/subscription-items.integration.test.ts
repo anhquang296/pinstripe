@@ -1,10 +1,10 @@
 import type { PriceResponse, SubscriptionResponse } from '@pinstripe/core/contracts';
-import { ApiKeyScopeEnum, CurrencyEnum, RecurringIntervalEnum } from '@pinstripe/core/contracts';
+import { CurrencyEnum, RecurringIntervalEnum } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 let fastify: FastifyInstance;
 let authHeaders: Record<string, string>;
@@ -12,7 +12,7 @@ let authHeaders: Record<string, string>;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+  const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   authHeaders = buildAuthHeaders(apiKey.token);
 });

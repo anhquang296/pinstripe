@@ -9,7 +9,7 @@ export function createApiKeyQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.admin.apiKeys.find(query);
+          return client.apiKeys.find(query);
         },
       };
     },

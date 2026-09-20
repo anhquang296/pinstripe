@@ -1,6 +1,5 @@
 import type { CheckoutSessionResponse } from '@pinstripe/core/contracts';
 import {
-  ApiKeyScopeEnum,
   CheckoutSessionModeEnum,
   CurrencyEnum,
   RecurringIntervalEnum,
@@ -9,7 +8,7 @@ import { HostedResourceEnum } from '@pinstripe/core/utils';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 const SUCCESS_URL = 'https://merchant.test/thanks';
 const UNIT_AMOUNT = 250_000;
@@ -20,7 +19,7 @@ let secretHeaders: Record<string, string>;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const secretKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+  const secretKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   secretHeaders = buildAuthHeaders(secretKey.token);
 });
@@ -70,7 +69,7 @@ describe('hosted checkout page', () => {
 
     const response = await fastify.inject({
       method: 'GET',
-      url: `/hosted/checkout/${checkoutSession.id}?token=${token}`,
+      url: `/v1/hosted/checkout/${checkoutSession.id}?token=${token}`,
     });
 
     expect(response.statusCode).toBe(200);
@@ -83,7 +82,7 @@ describe('hosted checkout page', () => {
 
     const response = await fastify.inject({
       method: 'GET',
-      url: `/hosted/checkout/${checkoutSession.id}`,
+      url: `/v1/hosted/checkout/${checkoutSession.id}`,
     });
 
     expect(response.statusCode).toBe(400);
@@ -100,7 +99,7 @@ describe('hosted checkout page', () => {
 
     const response = await fastify.inject({
       method: 'GET',
-      url: `/hosted/checkout/${checkoutSession.id}?token=${token}`,
+      url: `/v1/hosted/checkout/${checkoutSession.id}?token=${token}`,
     });
 
     expect(response.statusCode).toBe(404);
@@ -116,7 +115,7 @@ describe('hosted checkout page', () => {
 
     const response = await fastify.inject({
       method: 'POST',
-      url: `/hosted/checkout/${checkoutSession.id}/complete?token=${token}`,
+      url: `/v1/hosted/checkout/${checkoutSession.id}/complete?token=${token}`,
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       payload: 'token=tok_visa_ok',
     });
@@ -140,7 +139,7 @@ describe('hosted invoice page', () => {
 
     await fastify.inject({
       method: 'POST',
-      url: `/hosted/checkout/${checkoutSession.id}/complete?token=${checkoutToken}`,
+      url: `/v1/hosted/checkout/${checkoutSession.id}/complete?token=${checkoutToken}`,
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       payload: 'token=tok_visa_ok',
     });
@@ -151,12 +150,12 @@ describe('hosted invoice page', () => {
 
     const page = await fastify.inject({
       method: 'GET',
-      url: `/hosted/invoice/${invoiceId}?token=${invoiceToken}`,
+      url: `/v1/hosted/invoice/${invoiceId}?token=${invoiceToken}`,
     });
 
     const pdf = await fastify.inject({
       method: 'GET',
-      url: `/hosted/invoice/${invoiceId}/pdf?token=${invoiceToken}`,
+      url: `/v1/hosted/invoice/${invoiceId}/pdf?token=${invoiceToken}`,
     });
 
     expect(page.statusCode).toBe(200);

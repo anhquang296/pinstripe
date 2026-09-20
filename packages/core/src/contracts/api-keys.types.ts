@@ -1,3 +1,5 @@
+import type { Permission } from '@contracts/users.types';
+import { PermissionEnum } from '@contracts/users.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 
@@ -8,20 +10,11 @@ export enum ApiKeyTypeEnum {
 }
 export type ApiKeyType = `${ApiKeyTypeEnum}`;
 
-export enum ApiKeyScopeEnum {
-  V1 = 'v1',
-  ADMIN = 'admin',
-  SYSTEM = 'system',
-  MANAGEMENT = 'management',
-  PORTAL = 'portal',
-}
-export type ApiKeyScope = `${ApiKeyScopeEnum}`;
-
 export const apiKeySchema = Type.Object({
   id: Type.String(),
   name: Type.String(),
   type: Type.Unsafe<ApiKeyType>(Type.Enum(ApiKeyTypeEnum)),
-  scopes: Type.Array(Type.Unsafe<ApiKeyScope>(Type.Enum(ApiKeyScopeEnum))),
+  permissions: Type.Array(Type.Unsafe<Permission>(Type.Enum(PermissionEnum))),
   tokenPrefix: Type.String(),
   token: Type.Union([Type.String(), Type.Null()]),
   lastUsedAt: Type.Union([Type.String(), Type.Null()]),
@@ -37,7 +30,7 @@ export const createApiKeySchema = Type.Object(
   {
     name: Type.String({ minLength: 1, maxLength: 100 }),
     type: Type.Unsafe<ApiKeyType>(Type.Enum(ApiKeyTypeEnum)),
-    scopes: Type.Array(Type.Unsafe<ApiKeyScope>(Type.Enum(ApiKeyScopeEnum)), { minItems: 1 }),
+    permissions: Type.Array(Type.Unsafe<Permission>(Type.Enum(PermissionEnum)), { minItems: 1 }),
   },
   { additionalProperties: false },
 );
@@ -58,5 +51,5 @@ export type FindApiKeysQuery = Static<typeof findApiKeysSchema>;
 export interface RequestAuth {
   apiKeyId: string;
   type: ApiKeyType;
-  scopes: readonly ApiKeyScope[];
+  permissions: readonly Permission[];
 }

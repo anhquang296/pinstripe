@@ -7,7 +7,7 @@ import type {
   PaymentMethodResponse,
 } from '@type/contracts.types';
 
-const PORTAL_PAYMENT_METHODS_PATH = '/portal/payment_methods';
+const PORTAL_PAYMENT_METHODS_PATH = '/v1/portal/payment_methods';
 
 export class PortalPaymentMethodsResource {
   private _transport: PinstripeTransport;

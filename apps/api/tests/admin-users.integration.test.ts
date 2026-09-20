@@ -1,20 +1,20 @@
 import type { UserRole } from '@pinstripe/core/contracts';
-import { ApiKeyScopeEnum, UserRoleEnum, UserStatusEnum } from '@pinstripe/core/contracts';
+import { UserRoleEnum, UserStatusEnum } from '@pinstripe/core/contracts';
 import { generateGid, ObjectPrefixEnum } from '@pinstripe/core/utils';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 interface InjectedCookie {
   name: string;
   value: string;
 }
 
-const AUTH_PATH = '/api/v1/auth';
-const USERS_PATH = '/api/v1/admin/users';
-const ACCOUNT_PATH = '/api/v1/admin/account';
+const AUTH_PATH = '/v1/auth';
+const USERS_PATH = '/v1/users';
+const ACCOUNT_PATH = '/v1/account';
 const SESSION_COOKIE_PREFIX = 'pinstripe';
 const PASSWORD = 'correct horse battery staple';
 
@@ -227,7 +227,7 @@ it('answers the account of the signed-in session', async () => {
 });
 
 it('refuses the account route to an api key', async () => {
-  const adminKey = await mintApiKey(fastify, [ApiKeyScopeEnum.ADMIN]);
+  const adminKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   const response = await fastify.inject({
     method: 'GET',

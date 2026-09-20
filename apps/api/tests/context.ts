@@ -1,6 +1,6 @@
 import { buildApp } from '@app';
-import type { ApiKeyScope, ApiKeyType } from '@pinstripe/core/contracts';
-import { ApiKeyScopeEnum, ApiKeyTypeEnum } from '@pinstripe/core/contracts';
+import type { ApiKeyType, Permission } from '@pinstripe/core/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@pinstripe/core/contracts';
 import type { FastifyInstance } from 'fastify';
 
 export interface MintedApiKey {
@@ -18,15 +18,15 @@ export async function buildTestApp(): Promise<FastifyInstance> {
 
 export async function mintApiKey(
   fastify: FastifyInstance,
-  scopes: readonly ApiKeyScope[],
+  permissions: readonly Permission[],
   overrides: { type?: ApiKeyType } = {},
 ): Promise<MintedApiKey> {
   const { type = ApiKeyTypeEnum.SECRET } = overrides;
 
   const apiKey = await fastify.apiKeyService.createApiKey({
-    name: `test ${scopes.join('-')}`,
+    name: `test ${permissions.join('-')}`,
     type,
-    scopes: [...scopes],
+    permissions: [...permissions],
   });
 
   if (apiKey.token) {
@@ -40,9 +40,4 @@ export function buildAuthHeaders(token: string): Record<string, string> {
   return { authorization: `Bearer ${token}` };
 }
 
-export const ALL_SCOPES = [
-  ApiKeyScopeEnum.V1,
-  ApiKeyScopeEnum.ADMIN,
-  ApiKeyScopeEnum.SYSTEM,
-  ApiKeyScopeEnum.MANAGEMENT,
-] as const;
+export const ALL_PERMISSIONS: readonly Permission[] = Object.values(PermissionEnum);

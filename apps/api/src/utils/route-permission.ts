@@ -20,27 +20,23 @@ function isReadOperation(method: string): boolean {
   });
 }
 
-function resolveResourcePermission(operationId: string, resource: string): Permission | null {
-  const operationPermission = _.get(OPERATION_PERMISSIONS, [operationId], null);
-
-  if (operationPermission) {
-    return operationPermission;
-  }
-
-  return _.get(OPERATION_PERMISSIONS, [resource], null);
-}
-
 export function resolveOperationPermission(operationId: string): Permission | null {
   const segments = _.split(operationId, '.');
   const method = _.last(segments);
   const resource = _.join(_.initial(segments), '.');
 
   if (resource && method) {
+    const operationPermission = _.get(OPERATION_PERMISSIONS, [operationId], null);
+
+    if (operationPermission) {
+      return operationPermission;
+    }
+
     if (isReadOperation(method)) {
       return PermissionEnum.BILLING_READ;
     }
 
-    return resolveResourcePermission(operationId, resource);
+    return _.get(OPERATION_PERMISSIONS, [resource], null);
   }
 
   return null;

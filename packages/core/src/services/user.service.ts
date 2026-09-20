@@ -31,7 +31,7 @@ export class UserService {
     );
 
     return {
-      url: '/api/v1/admin/users',
+      url: '/v1/users',
       hasMore: rows.length > limit,
       data: _(rows).take(limit).map(UserService.buildUser).value(),
     };

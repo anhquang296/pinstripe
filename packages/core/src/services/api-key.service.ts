@@ -2,7 +2,6 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import type {
   ApiKeyResponse,
-  ApiKeyScope,
   ApiKeyType,
   CreateApiKeyPayload,
   FindApiKeysQuery,
@@ -11,6 +10,7 @@ import type {
 import { ApiKeyTypeEnum } from '@contracts/api-keys.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
+import type { Permission } from '@contracts/users.types';
 import type { ApiKey } from '@database/schemas';
 import { NotFoundError, UnauthorizedError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
@@ -30,7 +30,7 @@ const TYPE_PREFIXES: Record<ApiKeyType, string> = {
 export interface BootstrapApiKey {
   name: string;
   token: string;
-  scopes: readonly ApiKeyScope[];
+  permissions: readonly Permission[];
   type?: ApiKeyType;
 }
 
@@ -46,7 +46,7 @@ export class ApiKeyService {
       id: generateGid(ObjectPrefixEnum.API_KEY),
       name: payload.name,
       type: payload.type,
-      scopes: [...payload.scopes],
+      permissions: [...payload.permissions],
       tokenPrefix: token.slice(0, TOKEN_PREFIX_LENGTH),
       tokenHash: ApiKeyService.hashToken(token),
       lastUsedAt: null,
@@ -72,7 +72,7 @@ export class ApiKeyService {
     const hasMore = rows.length > limit;
 
     return {
-      url: '/api/v1/admin/api_keys',
+      url: '/v1/api_keys',
       hasMore,
       data: _(rows)
         .take(limit)
@@ -118,7 +118,7 @@ export class ApiKeyService {
       return {
         apiKeyId: apiKey.id,
         type: apiKey.type,
-        scopes: apiKey.scopes,
+        permissions: apiKey.permissions,
       };
     }
 
@@ -133,13 +133,26 @@ export class ApiKeyService {
     for (const bootstrapKey of bootstrapKeys) {
       const { type = ApiKeyTypeEnum.SECRET } = bootstrapKey;
 
+      const tokenHash = ApiKeyService.hashToken(bootstrapKey.token);
+
+      const [existingApiKey] = await this.fastify.apiKeyRepository.findApiKeys({ tokenHash }, 1);
+
+      if (existingApiKey) {
+        await this.fastify.apiKeyRepository.updateApiKey(existingApiKey.id, {
+          permissions: [...bootstrapKey.permissions],
+          updatedAt: createdAt,
+        });
+
+        continue;
+      }
+
       const createdApiKey = await this.fastify.apiKeyRepository.createApiKey({
         id: generateGid(ObjectPrefixEnum.API_KEY),
         name: bootstrapKey.name,
         type,
-        scopes: [...bootstrapKey.scopes],
+        permissions: [...bootstrapKey.permissions],
         tokenPrefix: bootstrapKey.token.slice(0, TOKEN_PREFIX_LENGTH),
-        tokenHash: ApiKeyService.hashToken(bootstrapKey.token),
+        tokenHash,
         lastUsedAt: null,
         revokedAt: null,
         createdAt: createdAt,
@@ -166,8 +179,8 @@ export class ApiKeyService {
     return undefined;
   }
 
-  static hasScope(auth: RequestAuth, scope: ApiKeyScope): boolean {
-    return _.includes(auth.scopes, scope);
+  static hasPermission(auth: RequestAuth, permission: Permission): boolean {
+    return _.includes(auth.permissions, permission);
   }
 
   static hashToken(token: string): string {
@@ -183,7 +196,7 @@ export class ApiKeyService {
       id: apiKey.id,
       name: apiKey.name,
       type: apiKey.type,
-      scopes: apiKey.scopes,
+      permissions: apiKey.permissions,
       tokenPrefix: apiKey.tokenPrefix,
       token,
       lastUsedAt: apiKey.lastUsedAt,

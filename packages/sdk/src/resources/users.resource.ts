@@ -10,7 +10,7 @@ import type {
 } from '@type/contracts.types';
 import { buildPath } from '@utils/build-path';
 
-const USERS_PATH = '/api/v1/admin/users';
+const USERS_PATH = '/v1/users';
 
 export class UsersResource {
   private _transport: PinstripeTransport;

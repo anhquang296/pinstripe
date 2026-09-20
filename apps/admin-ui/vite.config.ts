@@ -11,7 +11,6 @@ export default defineConfig({
   server: {
     port: ADMIN_UI_PORT,
     proxy: {
-      '/api': { target: API_ORIGIN, changeOrigin: true },
       '/v1': { target: API_ORIGIN, changeOrigin: true },
     },
   },

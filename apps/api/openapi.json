@@ -31235,6 +31235,3364 @@
         }
       }
     },
+    "/v1/ledger/accounts": {
+      "get": {
+        "operationId": "ledger.accounts.find",
+        "tags": ["Ledger"],
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "after",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "customerId",
+            "required": false
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["accounts_receivable"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["cash"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["revenue"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["deferred_revenue"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["tax_payable"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["customer_credit_balance"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["rounding_difference"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["psp_receivable"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["psp_fees"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["disputes_held"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["payouts_clearing"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["ticket_offset_clearing"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["partner_wallet_clearing"]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "code",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["url", "hasMore", "data"],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "code",
+                          "type",
+                          "normalBalance",
+                          "currency",
+                          "customerId",
+                          "debits",
+                          "credits",
+                          "balance",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["accounts_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["cash"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["deferred_revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["tax_payable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["customer_credit_balance"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["rounding_difference"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_fees"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["disputes_held"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["payouts_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["ticket_offset_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["partner_wallet_clearing"]
+                              }
+                            ]
+                          },
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["asset"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["liability"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["equity"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["expense"]
+                              }
+                            ]
+                          },
+                          "normalBalance": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["debit"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["credit"]
+                              }
+                            ]
+                          },
+                          "currency": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["vnd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["usd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["eur"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["gbp"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["jpy"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["sgd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["aud"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["thb"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["krw"]
+                              }
+                            ]
+                          },
+                          "customerId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "debits": {
+                            "type": "integer"
+                          },
+                          "credits": {
+                            "type": "integer"
+                          },
+                          "balance": {
+                            "type": "integer"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledger/accounts/{accountId}": {
+      "get": {
+        "operationId": "ledger.accounts.get",
+        "tags": ["Ledger"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "accountId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "code",
+                    "type",
+                    "normalBalance",
+                    "currency",
+                    "customerId",
+                    "debits",
+                    "credits",
+                    "balance",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["accounts_receivable"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["cash"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["revenue"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["deferred_revenue"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["tax_payable"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["customer_credit_balance"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["rounding_difference"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["psp_receivable"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["psp_fees"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["disputes_held"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["payouts_clearing"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["ticket_offset_clearing"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["partner_wallet_clearing"]
+                        }
+                      ]
+                    },
+                    "type": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["asset"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["liability"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["equity"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["revenue"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["expense"]
+                        }
+                      ]
+                    },
+                    "normalBalance": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["debit"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["credit"]
+                        }
+                      ]
+                    },
+                    "currency": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["vnd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["usd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["eur"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["gbp"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["jpy"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["sgd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["aud"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["thb"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["krw"]
+                        }
+                      ]
+                    },
+                    "customerId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "debits": {
+                      "type": "integer"
+                    },
+                    "credits": {
+                      "type": "integer"
+                    },
+                    "balance": {
+                      "type": "integer"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledger/transactions": {
+      "get": {
+        "operationId": "ledger.transactions.find",
+        "tags": ["Ledger"],
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "after",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "accountId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "customerId",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["url", "hasMore", "data"],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "description",
+                          "currency",
+                          "externalId",
+                          "effectiveAt",
+                          "reversesTransactionId",
+                          "reversedByTransactionId",
+                          "metadata",
+                          "postings",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "currency": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["vnd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["usd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["eur"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["gbp"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["jpy"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["sgd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["aud"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["thb"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["krw"]
+                              }
+                            ]
+                          },
+                          "externalId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "effectiveAt": {
+                            "type": "string"
+                          },
+                          "reversesTransactionId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "reversedByTransactionId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          },
+                          "postings": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "id",
+                                "transactionId",
+                                "accountId",
+                                "accountCode",
+                                "direction",
+                                "amount",
+                                "currency",
+                                "createdAt"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "transactionId": {
+                                  "type": "string"
+                                },
+                                "accountId": {
+                                  "type": "string"
+                                },
+                                "accountCode": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": ["accounts_receivable"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["cash"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["revenue"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["deferred_revenue"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["tax_payable"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["customer_credit_balance"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["rounding_difference"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["psp_receivable"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["psp_fees"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["disputes_held"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["payouts_clearing"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["ticket_offset_clearing"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["partner_wallet_clearing"]
+                                    }
+                                  ]
+                                },
+                                "direction": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": ["debit"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["credit"]
+                                    }
+                                  ]
+                                },
+                                "amount": {
+                                  "type": "integer"
+                                },
+                                "currency": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": ["vnd"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["usd"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["eur"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["gbp"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["jpy"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["sgd"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["aud"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["thb"]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "enum": ["krw"]
+                                    }
+                                  ]
+                                },
+                                "createdAt": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "ledger.transactions.create",
+        "tags": ["Ledger"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": ["description", "currency", "entries"],
+                "properties": {
+                  "description": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "currency": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["vnd"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["usd"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["eur"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["gbp"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["jpy"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["sgd"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["aud"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["thb"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["krw"]
+                      }
+                    ]
+                  },
+                  "effectiveAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "externalId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "entries": {
+                    "minItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["direction", "amount"],
+                      "properties": {
+                        "accountId": {
+                          "type": "string"
+                        },
+                        "accountCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["accounts_receivable"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["cash"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["revenue"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["deferred_revenue"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["tax_payable"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["customer_credit_balance"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["rounding_difference"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["psp_receivable"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["psp_fees"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["disputes_held"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["payouts_clearing"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["ticket_offset_clearing"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["partner_wallet_clearing"]
+                            }
+                          ]
+                        },
+                        "customerId": {
+                          "type": "string"
+                        },
+                        "direction": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["debit"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["credit"]
+                            }
+                          ]
+                        },
+                        "amount": {
+                          "minimum": 1,
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "description",
+                    "currency",
+                    "externalId",
+                    "effectiveAt",
+                    "reversesTransactionId",
+                    "reversedByTransactionId",
+                    "metadata",
+                    "postings",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "currency": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["vnd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["usd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["eur"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["gbp"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["jpy"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["sgd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["aud"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["thb"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["krw"]
+                        }
+                      ]
+                    },
+                    "externalId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "effectiveAt": {
+                      "type": "string"
+                    },
+                    "reversesTransactionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "reversedByTransactionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "postings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "transactionId",
+                          "accountId",
+                          "accountCode",
+                          "direction",
+                          "amount",
+                          "currency",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "transactionId": {
+                            "type": "string"
+                          },
+                          "accountId": {
+                            "type": "string"
+                          },
+                          "accountCode": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["accounts_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["cash"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["deferred_revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["tax_payable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["customer_credit_balance"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["rounding_difference"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_fees"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["disputes_held"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["payouts_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["ticket_offset_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["partner_wallet_clearing"]
+                              }
+                            ]
+                          },
+                          "direction": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["debit"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["credit"]
+                              }
+                            ]
+                          },
+                          "amount": {
+                            "type": "integer"
+                          },
+                          "currency": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["vnd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["usd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["eur"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["gbp"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["jpy"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["sgd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["aud"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["thb"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["krw"]
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledger/transactions/{transactionId}": {
+      "get": {
+        "operationId": "ledger.transactions.get",
+        "tags": ["Ledger"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "transactionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "description",
+                    "currency",
+                    "externalId",
+                    "effectiveAt",
+                    "reversesTransactionId",
+                    "reversedByTransactionId",
+                    "metadata",
+                    "postings",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "currency": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["vnd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["usd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["eur"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["gbp"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["jpy"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["sgd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["aud"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["thb"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["krw"]
+                        }
+                      ]
+                    },
+                    "externalId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "effectiveAt": {
+                      "type": "string"
+                    },
+                    "reversesTransactionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "reversedByTransactionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "postings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "transactionId",
+                          "accountId",
+                          "accountCode",
+                          "direction",
+                          "amount",
+                          "currency",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "transactionId": {
+                            "type": "string"
+                          },
+                          "accountId": {
+                            "type": "string"
+                          },
+                          "accountCode": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["accounts_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["cash"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["deferred_revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["tax_payable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["customer_credit_balance"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["rounding_difference"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_fees"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["disputes_held"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["payouts_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["ticket_offset_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["partner_wallet_clearing"]
+                              }
+                            ]
+                          },
+                          "direction": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["debit"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["credit"]
+                              }
+                            ]
+                          },
+                          "amount": {
+                            "type": "integer"
+                          },
+                          "currency": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["vnd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["usd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["eur"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["gbp"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["jpy"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["sgd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["aud"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["thb"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["krw"]
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledger/transactions/{transactionId}/reverse": {
+      "post": {
+        "operationId": "ledger.transactions.reverse",
+        "tags": ["Ledger"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": ["reason"],
+                "properties": {
+                  "reason": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "transactionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "description",
+                    "currency",
+                    "externalId",
+                    "effectiveAt",
+                    "reversesTransactionId",
+                    "reversedByTransactionId",
+                    "metadata",
+                    "postings",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "currency": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["vnd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["usd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["eur"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["gbp"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["jpy"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["sgd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["aud"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["thb"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["krw"]
+                        }
+                      ]
+                    },
+                    "externalId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "effectiveAt": {
+                      "type": "string"
+                    },
+                    "reversesTransactionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "reversedByTransactionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "postings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "transactionId",
+                          "accountId",
+                          "accountCode",
+                          "direction",
+                          "amount",
+                          "currency",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "transactionId": {
+                            "type": "string"
+                          },
+                          "accountId": {
+                            "type": "string"
+                          },
+                          "accountCode": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["accounts_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["cash"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["deferred_revenue"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["tax_payable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["customer_credit_balance"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["rounding_difference"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_receivable"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["psp_fees"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["disputes_held"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["payouts_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["ticket_offset_clearing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["partner_wallet_clearing"]
+                              }
+                            ]
+                          },
+                          "direction": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["debit"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["credit"]
+                              }
+                            ]
+                          },
+                          "amount": {
+                            "type": "integer"
+                          },
+                          "currency": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["vnd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["usd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["eur"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["gbp"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["jpy"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["sgd"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["aud"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["thb"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["krw"]
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reporting/revenue": {
+      "get": {
+        "operationId": "reporting.getRevenueSummary",
+        "tags": ["Reporting"],
+        "parameters": [
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["vnd"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["usd"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["eur"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["gbp"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["jpy"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["sgd"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["aud"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["thb"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["krw"]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "currency",
+            "required": false
+          },
+          {
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "windowStart",
+            "required": false
+          },
+          {
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "windowEnd",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "currency",
+                    "asOf",
+                    "mrr",
+                    "arr",
+                    "activeSubscriptions",
+                    "trialingSubscriptions",
+                    "canceledInWindow",
+                    "churnRate",
+                    "invoicedInWindow",
+                    "collectedInWindow",
+                    "refundedInWindow",
+                    "outstanding",
+                    "windowStart",
+                    "windowEnd"
+                  ],
+                  "properties": {
+                    "currency": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["vnd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["usd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["eur"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["gbp"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["jpy"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["sgd"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["aud"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["thb"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["krw"]
+                        }
+                      ]
+                    },
+                    "asOf": {
+                      "type": "string"
+                    },
+                    "mrr": {
+                      "type": "integer"
+                    },
+                    "arr": {
+                      "type": "integer"
+                    },
+                    "activeSubscriptions": {
+                      "type": "integer"
+                    },
+                    "trialingSubscriptions": {
+                      "type": "integer"
+                    },
+                    "canceledInWindow": {
+                      "type": "integer"
+                    },
+                    "churnRate": {
+                      "type": "number"
+                    },
+                    "invoicedInWindow": {
+                      "type": "integer"
+                    },
+                    "collectedInWindow": {
+                      "type": "integer"
+                    },
+                    "refundedInWindow": {
+                      "type": "integer"
+                    },
+                    "outstanding": {
+                      "type": "integer"
+                    },
+                    "windowStart": {
+                      "type": "string"
+                    },
+                    "windowEnd": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reporting/reconciliation": {
+      "get": {
+        "operationId": "reporting.getReconciliationReport",
+        "tags": ["Reporting"],
+        "parameters": [
+          {
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "windowStart",
+            "required": true
+          },
+          {
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "windowEnd",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "windowStart",
+                    "windowEnd",
+                    "processorTotal",
+                    "ledgerTotal",
+                    "invoiceTotal",
+                    "difference",
+                    "scanned",
+                    "matched",
+                    "exceptions"
+                  ],
+                  "properties": {
+                    "windowStart": {
+                      "type": "string"
+                    },
+                    "windowEnd": {
+                      "type": "string"
+                    },
+                    "processorTotal": {
+                      "type": "integer"
+                    },
+                    "ledgerTotal": {
+                      "type": "integer"
+                    },
+                    "invoiceTotal": {
+                      "type": "integer"
+                    },
+                    "difference": {
+                      "type": "integer"
+                    },
+                    "scanned": {
+                      "type": "integer"
+                    },
+                    "matched": {
+                      "type": "integer"
+                    },
+                    "exceptions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "outcome",
+                          "reference",
+                          "source",
+                          "processorAmount",
+                          "ledgerAmount",
+                          "invoiceAmount"
+                        ],
+                        "properties": {
+                          "outcome": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["matched"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["missing_in_ledger"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["missing_in_processor"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["missing_in_invoices"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["amount_mismatch"]
+                              }
+                            ]
+                          },
+                          "reference": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "processorAmount": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "ledgerAmount": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "invoiceAmount": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "operationId": "users.find",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["admin"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["moderator"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["member"]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "role",
+            "required": false
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["active"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["disabled"]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          },
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "after",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["url", "hasMore", "data"],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "email",
+                          "name",
+                          "role",
+                          "status",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["admin"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["moderator"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["member"]
+                              }
+                            ]
+                          },
+                          "status": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["active"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["disabled"]
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "users.create",
+        "tags": ["Users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": ["email", "name", "role"],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "maxLength": 320,
+                    "type": "string"
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  "role": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["admin"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["moderator"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["member"]
+                      }
+                    ]
+                  },
+                  "password": {
+                    "minLength": 12,
+                    "maxLength": 200,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["id", "email", "name", "role", "status", "createdAt", "updatedAt"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["admin"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["moderator"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["member"]
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["active"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["disabled"]
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{userId}": {
+      "get": {
+        "operationId": "users.get",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "userId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["id", "email", "name", "role", "status", "createdAt", "updatedAt"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["admin"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["moderator"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["member"]
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["active"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["disabled"]
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "users.update",
+        "tags": ["Users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  "role": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["admin"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["moderator"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["member"]
+                      }
+                    ]
+                  },
+                  "status": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["active"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["disabled"]
+                      }
+                    ]
+                  },
+                  "password": {
+                    "minLength": 12,
+                    "maxLength": 200,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "userId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["id", "email", "name", "role", "status", "createdAt", "updatedAt"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["admin"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["moderator"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["member"]
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["active"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["disabled"]
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api_keys": {
+      "post": {
+        "operationId": "apiKeys.create",
+        "tags": ["Api Keys"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": ["name", "type", "permissions"],
+                "properties": {
+                  "name": {
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "type": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["secret"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["restricted"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["publishable"]
+                      }
+                    ]
+                  },
+                  "permissions": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["billing.read"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["customer.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["customer.delete"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["catalog.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["subscription.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["invoice.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["invoice.void"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["credit_note.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["refund.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["ledger.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["integration.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["test_clock.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["api_key.manage"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["user.manage"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["portal.write"]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "type",
+                    "permissions",
+                    "tokenPrefix",
+                    "token",
+                    "lastUsedAt",
+                    "revokedAt",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["secret"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["restricted"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["publishable"]
+                        }
+                      ]
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": ["billing.read"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["customer.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["customer.delete"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["catalog.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["subscription.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["invoice.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["invoice.void"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["credit_note.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["refund.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["ledger.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["integration.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["test_clock.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["api_key.manage"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["user.manage"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["portal.write"]
+                          }
+                        ]
+                      }
+                    },
+                    "tokenPrefix": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "lastUsedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "revokedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "apiKeys.find",
+        "tags": ["Api Keys"],
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "after",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["url", "hasMore", "data"],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "type",
+                          "permissions",
+                          "tokenPrefix",
+                          "token",
+                          "lastUsedAt",
+                          "revokedAt",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["secret"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["restricted"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["publishable"]
+                              }
+                            ]
+                          },
+                          "permissions": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": ["billing.read"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["customer.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["customer.delete"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["catalog.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["subscription.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["invoice.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["invoice.void"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["credit_note.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["refund.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["ledger.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["integration.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["test_clock.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["api_key.manage"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["user.manage"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["portal.write"]
+                                }
+                              ]
+                            }
+                          },
+                          "tokenPrefix": {
+                            "type": "string"
+                          },
+                          "token": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastUsedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "revokedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api_keys/{apiKeyId}": {
+      "delete": {
+        "operationId": "apiKeys.delete",
+        "tags": ["Api Keys"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "apiKeyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "type",
+                    "permissions",
+                    "tokenPrefix",
+                    "token",
+                    "lastUsedAt",
+                    "revokedAt",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["secret"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["restricted"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["publishable"]
+                        }
+                      ]
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": ["billing.read"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["customer.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["customer.delete"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["catalog.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["subscription.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["invoice.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["invoice.void"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["credit_note.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["refund.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["ledger.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["integration.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["test_clock.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["api_key.manage"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["user.manage"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["portal.write"]
+                          }
+                        ]
+                      }
+                    },
+                    "tokenPrefix": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "lastUsedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "revokedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/account": {
+      "get": {
+        "operationId": "account.get",
+        "tags": ["Account"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["user", "permissions"],
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "role",
+                        "status",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["admin"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["moderator"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["member"]
+                            }
+                          ]
+                        },
+                        "status": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["active"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["disabled"]
+                            }
+                          ]
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": ["billing.read"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["customer.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["customer.delete"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["catalog.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["subscription.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["invoice.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["invoice.void"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["credit_note.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["refund.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["ledger.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["integration.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["test_clock.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["api_key.manage"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["user.manage"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["portal.write"]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/test_helpers/test_clocks": {
       "post": {
         "operationId": "testHelpers.testClocks.create",

@@ -58,7 +58,7 @@ export default function InvoiceDetail({
   const overdueDays = resolveOverdueDays(invoice, now);
   const dueLabel = buildOptionalDate(invoice.dueAt);
   const overdueDescription = overdueDays > 0 ? `Đã quá hạn ${overdueDays} ngày.` : undefined;
-  const pdfUrl = `/bff/portal/invoices/${encodeURIComponent(invoice.id)}/pdf`;
+  const pdfUrl = `/bff/v1/portal/invoices/${encodeURIComponent(invoice.id)}/pdf`;
 
   const amount = (value: number) => {
     return formatCurrency(value, currency);

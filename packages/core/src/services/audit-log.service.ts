@@ -40,7 +40,7 @@ export class AuditLogService {
     );
 
     return {
-      url: '/api/v1/admin/audit_logs',
+      url: '/v1/audit_logs',
       hasMore: rows.length > limit,
       data: _.take(rows, limit),
     };

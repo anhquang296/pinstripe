@@ -70,7 +70,7 @@ export default function InvoicesPage({ searchParams }: InvoicesPageProps) {
 
   const invoiceRows = get(invoices, 'data', []);
   const exportSearch = new URLSearchParams(mapValues(activeView.query, toString)).toString();
-  const exportUrl = `/bff/portal/invoice_exports?${exportSearch}`;
+  const exportUrl = `/bff/v1/portal/invoice_exports?${exportSearch}`;
 
   const handleOnViewChange = (key: Key) => {
     resetPage();

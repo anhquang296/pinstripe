@@ -13,7 +13,6 @@ export type FetchImpl = (input: string, init?: RequestInit) => Promise<Response>
 export type PinstripeConfig = {
   baseUrl?: string;
   apiKey?: string;
-  adminApiKey?: string;
   fetch?: FetchImpl;
   maxRetries?: number;
   timeoutMs?: number;

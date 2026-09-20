@@ -9,7 +9,6 @@ function readEnvironmentConfig(): PinstripeConfig {
   const {
     PINSTRIPE_API_URL,
     PINSTRIPE_SECRET_API_KEY,
-    PINSTRIPE_ADMIN_API_KEY,
     PINSTRIPE_MAX_RETRIES,
     PINSTRIPE_TIMEOUT_MS,
   } = process.env;
@@ -17,7 +16,6 @@ function readEnvironmentConfig(): PinstripeConfig {
   return {
     baseUrl: PINSTRIPE_API_URL,
     apiKey: PINSTRIPE_SECRET_API_KEY,
-    adminApiKey: PINSTRIPE_ADMIN_API_KEY,
     maxRetries: readInteger(PINSTRIPE_MAX_RETRIES),
     timeoutMs: readInteger(PINSTRIPE_TIMEOUT_MS),
   };

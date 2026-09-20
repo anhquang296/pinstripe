@@ -2,37 +2,41 @@ import type { RequestOptions } from '@client/pinstripe.types';
 import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type {
-  FindLedgerAccountsQuery,
-  LedgerAccountResponse,
-  ListResponse,
+  AggregateReconciliationReportQuery,
+  AggregateRevenueSummaryQuery,
+  ReconciliationReportResponse,
+  RevenueSummaryResponse,
 } from '@type/contracts.types';
-import { buildPath } from '@utils/build-path';
 
-const LEDGER_ACCOUNTS_PATH = '/api/v1/admin/ledger/accounts';
+const REPORTING_PATH = '/v1/reporting';
 
-export class LedgerAccountsResource {
+export class ReportingResource {
   private _transport: PinstripeTransport;
 
   constructor(transport: PinstripeTransport) {
     this._transport = transport;
   }
 
-  find(
-    query: FindLedgerAccountsQuery = {},
+  getRevenueSummary(
+    query: AggregateRevenueSummaryQuery = {},
     options?: RequestOptions,
-  ): Promise<ListResponse<LedgerAccountResponse>> {
+  ): Promise<RevenueSummaryResponse> {
     return this._transport.request({
-      path: LEDGER_ACCOUNTS_PATH,
+      path: `${REPORTING_PATH}/revenue`,
       method: HttpMethodEnum.GET,
       query,
       options,
     });
   }
 
-  get(accountId: string, options?: RequestOptions): Promise<LedgerAccountResponse> {
+  getReconciliationReport(
+    query: AggregateReconciliationReportQuery,
+    options?: RequestOptions,
+  ): Promise<ReconciliationReportResponse> {
     return this._transport.request({
-      path: buildPath(LEDGER_ACCOUNTS_PATH, accountId),
+      path: `${REPORTING_PATH}/reconciliation`,
       method: HttpMethodEnum.GET,
+      query,
       options,
     });
   }

@@ -3,7 +3,7 @@ import { HttpMethodEnum } from '@client/pinstripe.types';
 import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type { PortalUsageResponse } from '@type/contracts.types';
 
-const PORTAL_USAGE_PATH = '/portal/usage';
+const PORTAL_USAGE_PATH = '/v1/portal/usage';
 
 export class PortalUsageResource {
   private _transport: PinstripeTransport;

@@ -1,12 +1,14 @@
 import type { FetchImpl, PinstripeConfig, TransportConfig } from '@client/pinstripe.types';
 import { PinstripeTransport } from '@client/pinstripe-transport';
 import { DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT_MS } from '@client/retry';
-import { AdminNamespace } from '@namespaces/admin.namespace';
 import { BillingNamespace } from '@namespaces/billing.namespace';
 import { BillingPortalNamespace } from '@namespaces/billing-portal.namespace';
 import { CheckoutNamespace } from '@namespaces/checkout.namespace';
+import { LedgerNamespace } from '@namespaces/ledger.namespace';
 import { PortalNamespace } from '@namespaces/portal.namespace';
 import { TestHelpersNamespace } from '@namespaces/test-helpers.namespace';
+import { AccountResource } from '@resources/account.resource';
+import { ApiKeysResource } from '@resources/api-keys.resource';
 import { CouponsResource } from '@resources/coupons.resource';
 import { CreditNotesResource } from '@resources/credit-notes.resource';
 import { CustomersResource } from '@resources/customers.resource';
@@ -21,10 +23,12 @@ import { PricesResource } from '@resources/prices.resource';
 import { ProductsResource } from '@resources/products.resource';
 import { PromotionCodesResource } from '@resources/promotion-codes.resource';
 import { RefundsResource } from '@resources/refunds.resource';
+import { ReportingResource } from '@resources/reporting.resource';
 import { SubscriptionItemsResource } from '@resources/subscription-items.resource';
 import { SubscriptionsResource } from '@resources/subscriptions.resource';
 import { TaxIdsResource } from '@resources/tax-ids.resource';
 import { TaxRatesResource } from '@resources/tax-rates.resource';
+import { UsersResource } from '@resources/users.resource';
 import { WebhookDeliveriesResource } from '@resources/webhook-deliveries.resource';
 import { WebhookEndpointsResource } from '@resources/webhook-endpoints.resource';
 
@@ -49,21 +53,21 @@ export class PinstripeClient {
   readonly refunds: RefundsResource;
   readonly webhookEndpoints: WebhookEndpointsResource;
   readonly webhookDeliveries: WebhookDeliveriesResource;
+  readonly users: UsersResource;
+  readonly apiKeys: ApiKeysResource;
+  readonly account: AccountResource;
+  readonly reporting: ReportingResource;
   readonly billing: BillingNamespace;
   readonly billingPortal: BillingPortalNamespace;
   readonly checkout: CheckoutNamespace;
+  readonly ledger: LedgerNamespace;
   readonly portal: PortalNamespace;
   readonly testHelpers: TestHelpersNamespace;
-  readonly admin: AdminNamespace;
 
   private _transport: PinstripeTransport;
-  private _adminTransport: PinstripeTransport;
 
   constructor(pinstripeConfig: PinstripeConfig = {}) {
     this._transport = new PinstripeTransport(buildTransportConfig(pinstripeConfig));
-    this._adminTransport = new PinstripeTransport(
-      buildTransportConfig({ ...pinstripeConfig, apiKey: pinstripeConfig.adminApiKey }),
-    );
 
     this.customers = new CustomersResource(this._transport);
     this.products = new ProductsResource(this._transport);
@@ -85,20 +89,20 @@ export class PinstripeClient {
     this.refunds = new RefundsResource(this._transport);
     this.webhookEndpoints = new WebhookEndpointsResource(this._transport);
     this.webhookDeliveries = new WebhookDeliveriesResource(this._transport);
+    this.users = new UsersResource(this._transport);
+    this.apiKeys = new ApiKeysResource(this._transport);
+    this.account = new AccountResource(this._transport);
+    this.reporting = new ReportingResource(this._transport);
     this.billing = new BillingNamespace(this._transport);
     this.billingPortal = new BillingPortalNamespace(this._transport);
     this.checkout = new CheckoutNamespace(this._transport);
+    this.ledger = new LedgerNamespace(this._transport);
     this.portal = new PortalNamespace(this._transport);
     this.testHelpers = new TestHelpersNamespace(this._transport);
-    this.admin = new AdminNamespace(this._adminTransport);
   }
 
   static isConfigured(pinstripeConfig: PinstripeConfig): boolean {
     return Boolean(pinstripeConfig.apiKey);
-  }
-
-  static isAdminConfigured(pinstripeConfig: PinstripeConfig): boolean {
-    return Boolean(pinstripeConfig.adminApiKey);
   }
 }
 

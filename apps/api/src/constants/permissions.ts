@@ -36,4 +36,10 @@ export const OPERATION_PERMISSIONS: Record<string, Permission> = {
   webhookEndpoints: PermissionEnum.INTEGRATION_WRITE,
   'webhookDeliveries.replay': PermissionEnum.INTEGRATION_WRITE,
   'testHelpers.testClocks': PermissionEnum.TEST_CLOCK_WRITE,
+  'ledger.transactions': PermissionEnum.LEDGER_WRITE,
+  users: PermissionEnum.USER_MANAGE,
+  'users.find': PermissionEnum.USER_MANAGE,
+  'users.get': PermissionEnum.USER_MANAGE,
+  apiKeys: PermissionEnum.API_KEY_MANAGE,
+  'apiKeys.find': PermissionEnum.API_KEY_MANAGE,
 };

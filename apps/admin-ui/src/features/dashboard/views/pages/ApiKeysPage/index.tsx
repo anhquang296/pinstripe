@@ -111,7 +111,7 @@ export default function ApiKeysPage() {
   return (
     <PageCard
       title="API keys"
-      description="Khoá của machine caller. Scope quyết định bề mặt gọi được; thu hồi là không quay lại được."
+      description="Khoá của machine caller. Quyền quyết định route gọi được; thu hồi là không quay lại được."
       actions={
         canManage ? (
           <Button
@@ -163,10 +163,12 @@ export default function ApiKeysPage() {
             },
           },
           {
-            key: 'scopes',
-            label: 'Scope',
+            key: 'permissions',
+            label: 'Quyền',
             renderCell: (apiKey) => {
-              return <span className="font-mono text-[11px]">{join(apiKey.scopes, ', ')}</span>;
+              return (
+                <span className="font-mono text-[11px]">{join(apiKey.permissions, ', ')}</span>
+              );
             },
           },
           {

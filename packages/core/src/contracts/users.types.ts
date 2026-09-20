@@ -29,8 +29,26 @@ export enum PermissionEnum {
   TEST_CLOCK_WRITE = 'test_clock.write',
   API_KEY_MANAGE = 'api_key.manage',
   USER_MANAGE = 'user.manage',
+  PORTAL_WRITE = 'portal.write',
 }
 export type Permission = `${PermissionEnum}`;
+
+const ADMIN_PERMISSIONS: readonly Permission[] = [
+  PermissionEnum.BILLING_READ,
+  PermissionEnum.CUSTOMER_WRITE,
+  PermissionEnum.CUSTOMER_DELETE,
+  PermissionEnum.CATALOG_WRITE,
+  PermissionEnum.SUBSCRIPTION_WRITE,
+  PermissionEnum.INVOICE_WRITE,
+  PermissionEnum.INVOICE_VOID,
+  PermissionEnum.CREDIT_NOTE_WRITE,
+  PermissionEnum.REFUND_WRITE,
+  PermissionEnum.LEDGER_WRITE,
+  PermissionEnum.INTEGRATION_WRITE,
+  PermissionEnum.TEST_CLOCK_WRITE,
+  PermissionEnum.API_KEY_MANAGE,
+  PermissionEnum.USER_MANAGE,
+];
 
 const MODERATOR_PERMISSIONS: readonly Permission[] = [
   PermissionEnum.BILLING_READ,
@@ -42,7 +60,7 @@ const MODERATOR_PERMISSIONS: readonly Permission[] = [
 ];
 
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
-  [UserRoleEnum.ADMIN]: Object.values(PermissionEnum),
+  [UserRoleEnum.ADMIN]: ADMIN_PERMISSIONS,
   [UserRoleEnum.MODERATOR]: MODERATOR_PERMISSIONS,
   [UserRoleEnum.MEMBER]: [PermissionEnum.BILLING_READ],
 };

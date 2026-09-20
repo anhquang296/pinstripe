@@ -223,7 +223,7 @@ async function forwardPortalRequest(
   const { apiUrl, portalApiKey } = readPortalBffConfig();
 
   if (portalApiKey) {
-    const url = `${apiUrl}/portal/${portalRoute.path}${request.nextUrl.search}`;
+    const url = `${apiUrl}/v1/portal/${portalRoute.path}${request.nextUrl.search}`;
 
     const headers: Record<string, string> = {
       ...buildCredentialHeaders(request, portalRoute, portalApiKey),

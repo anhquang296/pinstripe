@@ -1,7 +1,7 @@
 import type { UserRole } from '@pinstripe/core/contracts';
 import {
-  ApiKeyScopeEnum,
   LedgerAccountCodeEnum,
+  PermissionEnum,
   PostingDirectionEnum,
   UserRoleEnum,
   UserStatusEnum,
@@ -11,14 +11,14 @@ import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
 interface InjectedCookie {
   name: string;
   value: string;
 }
 
-const AUTH_PATH = '/api/v1/auth';
+const AUTH_PATH = '/v1/auth';
 const SESSION_COOKIE_PREFIX = 'pinstripe';
 const PASSWORD = 'correct horse battery staple';
 
@@ -94,24 +94,37 @@ function buildSessionHeaders(cookie: string): Record<string, string> {
   return { cookie, origin: fastify.betterAuth.baseUrl };
 }
 
-it('still lets an api key call both surfaces', async () => {
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
-  const adminKey = await mintApiKey(fastify, [ApiKeyScopeEnum.ADMIN]);
+it('lets a key carrying every permission reach both resources', async () => {
+  const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
+  const headers = buildAuthHeaders(apiKey.token);
 
-  const v1Response = await fastify.inject({
+  const customersResponse = await fastify.inject({
     method: 'GET',
     url: '/v1/customers',
-    headers: buildAuthHeaders(apiKey.token),
+    headers,
   });
 
-  const adminResponse = await fastify.inject({
+  const ledgerResponse = await fastify.inject({
     method: 'GET',
-    url: '/api/v1/admin/ledger/accounts',
-    headers: buildAuthHeaders(adminKey.token),
+    url: '/v1/ledger/accounts',
+    headers,
   });
 
-  expect(v1Response.statusCode).toBe(200);
-  expect(adminResponse.statusCode).toBe(200);
+  expect(customersResponse.statusCode).toBe(200);
+  expect(ledgerResponse.statusCode).toBe(200);
+});
+
+it('refuses an api key that lacks the permission the route asks for', async () => {
+  const apiKey = await mintApiKey(fastify, [PermissionEnum.BILLING_READ]);
+
+  const response = await fastify.inject({
+    method: 'POST',
+    url: '/v1/ledger/transactions',
+    headers: buildAuthHeaders(apiKey.token),
+    payload: makeLedgerTransactionPayload(),
+  });
+
+  expect(response.statusCode).toBe(403);
 });
 
 it('lets a member session read customers', async () => {
@@ -157,7 +170,7 @@ it('refuses a moderator session that tries to post a ledger transaction', async 
 
   const response = await fastify.inject({
     method: 'POST',
-    url: '/api/v1/admin/ledger/transactions',
+    url: '/v1/ledger/transactions',
     headers: buildSessionHeaders(cookie),
     payload: makeLedgerTransactionPayload(),
   });
@@ -170,7 +183,7 @@ it('lets an admin session post a ledger transaction', async () => {
 
   const response = await fastify.inject({
     method: 'POST',
-    url: '/api/v1/admin/ledger/transactions',
+    url: '/v1/ledger/transactions',
     headers: buildSessionHeaders(cookie),
     payload: makeLedgerTransactionPayload(),
   });
@@ -178,16 +191,28 @@ it('lets an admin session post a ledger transaction', async () => {
   expect(response.statusCode).toBe(201);
 });
 
-it('lets an admin session reach an admin route', async () => {
+it('lets an admin session manage api keys', async () => {
   const { cookie } = await signIn(UserRoleEnum.ADMIN);
 
   const response = await fastify.inject({
     method: 'GET',
-    url: '/api/v1/admin/api_keys',
+    url: '/v1/api_keys',
     headers: buildSessionHeaders(cookie),
   });
 
   expect(response.statusCode).toBe(200);
+});
+
+it('refuses a member session that tries to read api keys', async () => {
+  const { cookie } = await signIn(UserRoleEnum.MEMBER);
+
+  const response = await fastify.inject({
+    method: 'GET',
+    url: '/v1/api_keys',
+    headers: buildSessionHeaders(cookie),
+  });
+
+  expect(response.statusCode).toBe(403);
 });
 
 it('answers 401 when the request carries no session and no api key', async () => {
@@ -223,18 +248,14 @@ it('answers 403 for a session write whose Origin is not the dashboard', async ()
   expect(response.statusCode).toBe(403);
 });
 
-it('refuses a session cookie on the management surface', async () => {
+it('refuses a session cookie on the portal key surface', async () => {
   const { cookie } = await signIn(UserRoleEnum.ADMIN);
 
   const response = await fastify.inject({
     method: 'POST',
-    url: '/api/v1/management/users/bootstrap',
+    url: '/v1/portal/links',
     headers: buildSessionHeaders(cookie),
-    payload: {
-      email: `${generateGid(ObjectPrefixEnum.USER)}@session-authorization.test`,
-      name: 'Smuggled Admin',
-      password: PASSWORD,
-    },
+    payload: { email: 'smuggled@session-authorization.test' },
   });
 
   expect(response.statusCode).toBe(401);

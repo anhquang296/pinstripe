@@ -9,7 +9,7 @@ import type {
 } from '@type/contracts.types';
 import { buildPath } from '@utils/build-path';
 
-const API_KEYS_PATH = '/api/v1/admin/api_keys';
+const API_KEYS_PATH = '/v1/api_keys';
 
 export class ApiKeysResource {
   private _transport: PinstripeTransport;

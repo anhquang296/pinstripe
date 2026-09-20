@@ -7,7 +7,7 @@ export function createAccountQueries(client: PinstripeClient) {
     account: {
       queryKey: null,
       queryFn: () => {
-        return client.admin.account.get();
+        return client.account.get();
       },
     },
   });

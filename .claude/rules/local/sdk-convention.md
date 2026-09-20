@@ -52,16 +52,30 @@ pinstripe.customers.retrieve(customerId);
 
 `lodash/prefer-lodash-method` đọc mọi `.find(` là `Array.prototype.find` và đòi `_.find`. `pinstripe.customers.find(query)` không phải collection method, nên `eslint-config/react.js` liệt `^pinstripe\.` vào `ignoreObjects`. Đó là chỗ duy nhất xử lý va chạm này — đừng rải `eslint-disable` ở call site, và đừng đổi tên method để tránh lint.
 
-Không tự chế method cho route không tồn tại. `entitlements` chỉ có `find`, `products` không có `delete`, `webhookDeliveries` không có `get`, `admin.users` không có `delete`, `admin.apiKeys` không có `get` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
+Không tự chế method cho route không tồn tại. `entitlements` chỉ có `find`, `products` không có `delete`, `webhookDeliveries` không có `get`, `users` không có `delete`, `apiKeys` không có `get` — bề mặt khuyết là hình dạng thật của API, không phải SDK làm dở.
 
-## Resource admin đi qua `admin.*`
+## Một transport, không có namespace `admin`
 
-Route dưới `/api/v1/admin` là resource của `AdminNamespace`, dựng trên `_adminTransport` (key
-`PINSTRIPE_ADMIN_API_KEY`, hoặc cookie session khi không có key): `admin.users`, `admin.account`,
-`admin.apiKeys`, `admin.ledgerAccounts`, `admin.ledgerTransactions`, `admin.reporting`.
+Client có **đúng một** `_transport`. Mọi resource dùng nó; không có `_adminTransport`, không có
+`adminApiKey`, không có `AdminNamespace` — xem ADR 0028.
 
-`admin.account.get()` không nhận id — nó đọc chính session đang gọi, nên route trả `ForbiddenError`
-cho caller đi bằng API key. Quản trị user chỉ có `find` / `get` / `create` / `update`: xoá user không
+Resource từng nằm dưới `/api/v1/admin` nay là resource `/v1` bình thường: `users`, `apiKeys`,
+`account`, `reporting` ở top level, còn sổ cái đi qua `LedgerNamespace` — `ledger.accounts`,
+`ledger.transactions` — cùng hình dạng với `billing.meters`.
+
+```ts
+// CORRECT
+pinstripe.users.find(query);
+pinstripe.apiKeys.create(payload);
+pinstripe.ledger.transactions.reverse(transactionId, payload);
+
+// WRONG — namespace đã bị xoá cùng transport thứ hai
+pinstripe.admin.users.find(query);
+pinstripe.admin.ledgerTransactions.reverse(transactionId, payload);
+```
+
+`account.get()` không nhận id — nó đọc chính session đang gọi, nên route trả `ForbiddenError` cho
+caller đi bằng API key. Quản trị user chỉ có `find` / `get` / `create` / `update`: xoá user không
 phải một route, hạ quyền hay vô hiệu hoá đi qua `update` để `UserService` còn giữ được luật admin
 active cuối cùng — xem `auth-convention.md`.
 
@@ -79,7 +93,7 @@ schema: { operationId: 'getCustomer', ... }
 
 Route chưa có method trong SDK (`events`, `payouts`, `disputes`, …) vẫn khai `operationId` cùng hình dạng — tên method nó **sẽ** có, verb lấy theo method của service (`capturePaymentIntent` → `paymentIntents.capture`). Khai `operationId` không phải lý do để thêm method vào SDK.
 
-Tag không khai tay: `v1.routes.ts` gán tag từ prefix, và route không tag bị ẩn khỏi spec — admin / system / management / portal / hosted không bao giờ lọt vào. Thêm hay đổi route v1 thì chạy lại script và commit `openapi.json` cùng thay đổi.
+Tag không khai tay: `v1.routes.ts` gán tag từ prefix, và route không tag bị ẩn khỏi spec — `portal` / `hosted` / `auth` / `webhooks` đăng ký cạnh `v1Routes` chứ không lồng trong nó, nên không gọi `tagRouteByPrefix` và không bao giờ lọt vào. Thêm hay đổi route v1 thì chạy lại script và commit `openapi.json` cùng thay đổi.
 
 ## Hook, key và toast sống trong SDK
 
@@ -104,9 +118,9 @@ Hook của bề mặt khách hàng (`portal.*`) sống ở entry riêng `@pinstr
 Key của chúng vẫn đăng ký trong `createPinstripeQueries` dưới subject `PinstripeQuerySubjectEnum.PORTAL`,
 nên cả hai entry dùng chung một `PinstripeProvider`.
 
-`useCreatePortalLinkMutation` cũng ở entry portal, không ở barrel chính: `POST /portal/links` chỉ nhận
-API key scope `portal` (`verifyPortalKeyRequest`), mà cookie session của dashboard **không** xác thực
-được surface `portal` — xem [`auth-convention.md`](./auth-convention.md). Admin-ui gọi nó là 404/401,
+`useCreatePortalLinkMutation` cũng ở entry portal, không ở barrel chính: `POST /v1/portal/links` chỉ
+nhận API key mang `portal.write` (`verifyPortalKeyRequest`), mà cookie session của dashboard **không**
+đi qua hook đó — xem [`auth-convention.md`](./auth-convention.md). Admin-ui gọi nó là 404/401,
 không bao giờ chạy. Kế toán Vexere mở link cho một nhà xe bằng `billingPortal.sessions.create`
 (`POST /v1/billing_portal/sessions`, surface `v1`, quyền `customer.write`), trả đúng URL
 `/login/verify?linkKey=…` dùng một lần. Đường gửi email chỉ có ở `portal-ui`, nơi BFF gắn
@@ -143,16 +157,15 @@ SDK chỉ biết một họ tên, và chỉ đọc nó ở `src/node/create-pins
 ```
 PINSTRIPE_API_URL
 PINSTRIPE_SECRET_API_KEY
-PINSTRIPE_ADMIN_API_KEY
 PINSTRIPE_MAX_RETRIES, PINSTRIPE_TIMEOUT_MS
 ```
 
 `PINSTRIPE_PORTAL_API_KEY` không thuộc SDK: nó là key scope `portal` mà lớp BFF của `portal-ui`
-(`apps/portal-ui/src/libs/portal-bff.ts`) gắn vào hai route đăng nhập `/portal/links` và
-`/portal/sessions`. File đó là proxy phía server có allowlist, không phải HTTP client thứ hai — trình
-duyệt vẫn chỉ đi qua `PinstripeClient({ baseUrl: '/bff' })` và hook của SDK. Xem ADR 0026.
+(`apps/portal-ui/src/libs/portal-bff.ts`) gắn vào hai route đăng nhập `/v1/portal/links` và
+`/v1/portal/sessions`. File đó là proxy phía server có allowlist, không phải HTTP client thứ hai —
+trình duyệt vẫn chỉ đi qua `PinstripeClient({ baseUrl: '/bff' })` và hook của SDK. Xem ADR 0026.
 
-`SECRET_API_KEY` / `ADMIN_API_KEY` (không prefix) là env **của server API** — `packages/core/src/config/env.schema.ts` validate chúng để so khớp key đến. Hai họ tên khác vai, đừng gộp và đừng cho SDK một fallback chain.
+`SECRET_API_KEY` / `PORTAL_API_KEY` (không prefix) là env **của server API** — `packages/core/src/config/env.schema.ts` validate chúng để so khớp key đến. Hai họ tên khác vai, đừng gộp và đừng cho SDK một fallback chain.
 
 ## NEVER Do
 
@@ -160,8 +173,8 @@ duyệt vẫn chỉ đi qua `PinstripeClient({ baseUrl: '/bff' })` và hook củ
 - Lặp entity trong method name của một resource SDK (`findCustomers`, `getCustomer`) — receiver đã mang nó; hoặc bỏ entity khỏi tên ở repository / service, nơi kit vẫn bắt buộc có.
 - Dùng `list` hay `retrieve` ở bất kỳ đâu trong repo — hai verb đó không còn là verb của codebase này.
 - Thêm method cho một route không tồn tại chỉ để bề mặt trông đầy đủ.
-- Đặt một resource của `/api/v1/admin` ngoài `admin.*`, hay cho `admin.account.get` nhận một id —
-  nó đọc chính session đang gọi.
+- Dựng lại `AdminNamespace`, `_adminTransport`, `adminApiKey` hay `PINSTRIPE_ADMIN_API_KEY` — SDK có
+  đúng một transport; hay cho `account.get` nhận một id, nó đọc chính session đang gọi.
 - Khai báo domain type trong SDK — chúng đi qua `src/types/contracts.types.ts`, bằng `export type`, từ `@pinstripe/core/contracts`.
 - Import `@pinstripe/core` như value ở bất kỳ đâu trong `packages/sdk/src` — nó sẽ vào bundle và `src/bundle.test.ts` sẽ fail.
 - Import một `node:` builtin ngoài `src/node/**`.

@@ -1,7 +1,7 @@
 import { createAuthClient } from 'better-auth/react';
 import { get, isString } from 'lodash-es';
 
-const AUTH_BASE_PATH = '/api/v1/auth';
+const AUTH_BASE_PATH = '/v1/auth';
 
 export async function resolveAuthErrorResponse(response: Response): Promise<Response> {
   if (response.ok) {

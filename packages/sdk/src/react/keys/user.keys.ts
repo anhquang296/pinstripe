@@ -9,7 +9,7 @@ export function createUserQueries(client: PinstripeClient) {
       return {
         queryKey: [query],
         queryFn: () => {
-          return client.admin.users.find(query);
+          return client.users.find(query);
         },
       };
     },
@@ -17,7 +17,7 @@ export function createUserQueries(client: PinstripeClient) {
       return {
         queryKey: [userId],
         queryFn: () => {
-          return client.admin.users.get(userId);
+          return client.users.get(userId);
         },
       };
     },

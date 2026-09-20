@@ -2,7 +2,7 @@ import { AuthModelNameEnum, BetterAuthClient } from '@clients/better-auth.client
 import { adminSessions, authVerifications, userAccounts, users } from '@database/schemas';
 import fp from 'fastify-plugin';
 
-const AUTH_BASE_PATH = '/api/v1/auth';
+const AUTH_BASE_PATH = '/v1/auth';
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 

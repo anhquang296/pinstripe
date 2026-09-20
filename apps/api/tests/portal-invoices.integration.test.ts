@@ -67,13 +67,13 @@ it('splits open invoices into overdue and not yet due', async () => {
 
   const overdue = await fastify.inject({
     method: 'GET',
-    url: '/portal/invoices?isOverdue=true',
+    url: '/v1/portal/invoices?isOverdue=true',
     headers,
   });
 
   const upcoming = await fastify.inject({
     method: 'GET',
-    url: '/portal/invoices?isOverdue=false',
+    url: '/v1/portal/invoices?isOverdue=false',
     headers,
   });
 
@@ -88,7 +88,7 @@ it('reads one of the customer own invoices together with its due date', async ()
 
   const response = await fastify.inject({
     method: 'GET',
-    url: `/portal/invoices/${openInvoice.id}`,
+    url: `/v1/portal/invoices/${openInvoice.id}`,
     headers,
   });
 
@@ -105,13 +105,13 @@ it('answers 404 for an invoice that belongs to another customer', async () => {
 
   const invoice = await fastify.inject({
     method: 'GET',
-    url: `/portal/invoices/${otherInvoice.id}`,
+    url: `/v1/portal/invoices/${otherInvoice.id}`,
     headers,
   });
 
   const pdf = await fastify.inject({
     method: 'GET',
-    url: `/portal/invoices/${otherInvoice.id}/pdf`,
+    url: `/v1/portal/invoices/${otherInvoice.id}/pdf`,
     headers,
   });
 
@@ -130,7 +130,7 @@ it('answers 404 for a draft invoice of the customer', async () => {
 
   const response = await fastify.inject({
     method: 'GET',
-    url: `/portal/invoices/${draftInvoice.id}`,
+    url: `/v1/portal/invoices/${draftInvoice.id}`,
     headers,
   });
 
@@ -144,7 +144,7 @@ it('serves the pdf of the customer own invoice', async () => {
 
   const response = await fastify.inject({
     method: 'GET',
-    url: `/portal/invoices/${openInvoice.id}/pdf`,
+    url: `/v1/portal/invoices/${openInvoice.id}/pdf`,
     headers,
   });
 
@@ -161,7 +161,11 @@ it('totals the open invoices of the customer and names the next due date', async
 
   await moveDueDateIntoThePast(overdueInvoice.id);
 
-  const response = await fastify.inject({ method: 'GET', url: '/portal/invoice_totals', headers });
+  const response = await fastify.inject({
+    method: 'GET',
+    url: '/v1/portal/invoice_totals',
+    headers,
+  });
 
   const [totals] = response.json().totals;
 
@@ -192,7 +196,11 @@ it('lists the customer subscriptions with the product name of every item', async
     items: [{ priceId: price.id }],
   });
 
-  const response = await fastify.inject({ method: 'GET', url: '/portal/subscriptions', headers });
+  const response = await fastify.inject({
+    method: 'GET',
+    url: '/v1/portal/subscriptions',
+    headers,
+  });
 
   const [subscription] = response.json().data;
 

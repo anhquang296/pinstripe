@@ -18,7 +18,7 @@ export function useCreateUserMutation({ successMessage }: MutationProps<UserResp
 
   return useMutation({
     mutationFn: (payload: CreateUserPayload) => {
-      return client.admin.users.create(payload);
+      return client.users.create(payload);
     },
     onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: queries.user.users._def });
@@ -37,7 +37,7 @@ export function useUpdateUserMutation({ successMessage }: MutationProps<UserResp
 
   return useMutation({
     mutationFn: ({ id, payload }: UpdateUserVariables) => {
-      return client.admin.users.update(id, payload);
+      return client.users.update(id, payload);
     },
     onSuccess: (user, { id }) => {
       queryClient.invalidateQueries({ queryKey: queries.user.user(id).queryKey });

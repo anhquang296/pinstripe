@@ -1,14 +1,20 @@
-import { ApiKeyScopeEnum, PINSTRIPE_API_VERSION } from '@pinstripe/core/contracts';
+import {
+  LedgerAccountCodeEnum,
+  PermissionEnum,
+  PINSTRIPE_API_VERSION,
+  PostingDirectionEnum,
+} from '@pinstripe/core/contracts';
+import { CurrencyEnum } from '@pinstripe/core/utils';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
-const SURFACES = [
-  { scope: ApiKeyScopeEnum.V1, url: '/v1/ping' },
-  { scope: ApiKeyScopeEnum.ADMIN, url: '/api/v1/admin/ping' },
-  { scope: ApiKeyScopeEnum.SYSTEM, url: '/api/v1/system/ping' },
+const READ_ROUTES = [
+  { permission: PermissionEnum.BILLING_READ, url: '/v1/ping' },
+  { permission: PermissionEnum.USER_MANAGE, url: '/v1/users' },
+  { permission: PermissionEnum.API_KEY_MANAGE, url: '/v1/api_keys' },
 ] as const;
 
 let fastify: FastifyInstance;
@@ -22,7 +28,7 @@ afterAll(async () => {
 });
 
 describe('bearer token handling', () => {
-  it.each(SURFACES)('rejects a missing Authorization header on $url', async ({ url }) => {
+  it.each(READ_ROUTES)('rejects a missing Authorization header on $url', async ({ url }) => {
     const response = await fastify.inject({ method: 'GET', url });
 
     expect(response.statusCode).toBe(401);
@@ -50,91 +56,95 @@ describe('bearer token handling', () => {
   });
 });
 
-describe('scope enforcement', () => {
-  it.each(SURFACES)('accepts a key carrying the $scope scope on $url', async ({ scope, url }) => {
-    const apiKey = await mintApiKey(fastify, [scope]);
+describe('permission enforcement', () => {
+  it.each(READ_ROUTES)(
+    'accepts a key carrying $permission on $url',
+    async ({ permission, url }) => {
+      const apiKey = await mintApiKey(fastify, [permission]);
+
+      const response = await fastify.inject({
+        method: 'GET',
+        url,
+        headers: buildAuthHeaders(apiKey.token),
+      });
+
+      expect(response.statusCode).toBe(200);
+    },
+  );
+
+  it('refuses a read-only key on the user routes with 403, not 401', async () => {
+    const apiKey = await mintApiKey(fastify, [PermissionEnum.BILLING_READ]);
 
     const response = await fastify.inject({
       method: 'GET',
-      url,
-      headers: buildAuthHeaders(apiKey.token),
-    });
-
-    expect(response.statusCode).toBe(200);
-  });
-
-  it('refuses a v1 key on the admin surface with 403, not 401', async () => {
-    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
-
-    const response = await fastify.inject({
-      method: 'GET',
-      url: '/api/v1/admin/ping',
-      headers: buildAuthHeaders(apiKey.token),
-    });
-
-    expect(response.statusCode).toBe(403);
-  });
-
-  it('refuses an admin key on the v1 surface with 403', async () => {
-    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.ADMIN]);
-
-    const response = await fastify.inject({
-      method: 'GET',
-      url: '/v1/ping',
+      url: '/v1/users',
       headers: buildAuthHeaders(apiKey.token),
     });
 
     expect(response.statusCode).toBe(403);
   });
 
-  it('accepts a key that carries several scopes on each of them', async () => {
-    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1, ApiKeyScopeEnum.ADMIN]);
+  it('refuses a read-only key on a ledger write with 403', async () => {
+    const apiKey = await mintApiKey(fastify, [PermissionEnum.BILLING_READ]);
+
+    const response = await fastify.inject({
+      method: 'POST',
+      url: '/v1/ledger/transactions',
+      headers: buildAuthHeaders(apiKey.token),
+      payload: {
+        description: 'permission probe',
+        currency: CurrencyEnum.VND,
+        entries: [
+          {
+            accountCode: LedgerAccountCodeEnum.CASH,
+            direction: PostingDirectionEnum.DEBIT,
+            amount: 1000,
+          },
+          {
+            accountCode: LedgerAccountCodeEnum.REVENUE,
+            direction: PostingDirectionEnum.CREDIT,
+            amount: 1000,
+          },
+        ],
+      },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('accepts a key that carries several permissions on each of them', async () => {
+    const apiKey = await mintApiKey(fastify, [
+      PermissionEnum.BILLING_READ,
+      PermissionEnum.USER_MANAGE,
+    ]);
+
     const headers = buildAuthHeaders(apiKey.token);
 
-    const v1Response = await fastify.inject({ method: 'GET', url: '/v1/ping', headers });
+    const pingResponse = await fastify.inject({ method: 'GET', url: '/v1/ping', headers });
+    const usersResponse = await fastify.inject({ method: 'GET', url: '/v1/users', headers });
 
-    const adminResponse = await fastify.inject({
-      method: 'GET',
-      url: '/api/v1/admin/ping',
-      headers,
-    });
-
-    expect(v1Response.statusCode).toBe(200);
-    expect(adminResponse.statusCode).toBe(200);
+    expect(pingResponse.statusCode).toBe(200);
+    expect(usersResponse.statusCode).toBe(200);
   });
 });
 
 describe('bootstrap keys from the environment', () => {
-  it('keeps the four environment keys working on their own surface', async () => {
-    const { SECRET_API_KEY, ADMIN_API_KEY, MANAGEMENT_API_KEY } = fastify.config;
+  it('keeps the secret key working across the product API', async () => {
+    const { SECRET_API_KEY } = fastify.config;
 
-    const v1Response = await fastify.inject({
-      method: 'GET',
-      url: '/v1/ping',
-      headers: buildAuthHeaders(SECRET_API_KEY),
-    });
+    const headers = buildAuthHeaders(SECRET_API_KEY);
 
-    const adminResponse = await fastify.inject({
-      method: 'GET',
-      url: '/api/v1/admin/ping',
-      headers: buildAuthHeaders(ADMIN_API_KEY),
-    });
+    const pingResponse = await fastify.inject({ method: 'GET', url: '/v1/ping', headers });
+    const usersResponse = await fastify.inject({ method: 'GET', url: '/v1/users', headers });
 
-    const crossSurfaceResponse = await fastify.inject({
-      method: 'GET',
-      url: '/api/v1/admin/ping',
-      headers: buildAuthHeaders(MANAGEMENT_API_KEY),
-    });
-
-    expect(v1Response.statusCode).toBe(200);
-    expect(adminResponse.statusCode).toBe(200);
-    expect(crossSurfaceResponse.statusCode).toBe(403);
+    expect(pingResponse.statusCode).toBe(200);
+    expect(usersResponse.statusCode).toBe(200);
   });
 });
 
 describe('platform envelope', () => {
   it('stamps every response with the api version', async () => {
-    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+    const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
     const response = await fastify.inject({
       method: 'GET',
@@ -146,7 +156,7 @@ describe('platform envelope', () => {
   });
 
   it('reports the remaining request budget on every response', async () => {
-    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+    const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
     const first = await fastify.inject({
       method: 'GET',
@@ -168,7 +178,7 @@ describe('platform envelope', () => {
 
 describe('key lifecycle', () => {
   it('stops accepting a key once it is revoked', async () => {
-    const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+    const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
     const headers = buildAuthHeaders(apiKey.token);
 
     const beforeRevoke = await fastify.inject({ method: 'GET', url: '/v1/ping', headers });
@@ -182,7 +192,7 @@ describe('key lifecycle', () => {
   });
 
   it('returns the plaintext token once at creation and never again', async () => {
-    const created = await mintApiKey(fastify, [ApiKeyScopeEnum.ADMIN]);
+    const created = await mintApiKey(fastify, ALL_PERMISSIONS);
     const listed = await fastify.apiKeyService.findApiKeys({ limit: 100 });
     const stored = _.find(listed.data, { id: created.id });
     const storedToken = _.get(stored, 'token');

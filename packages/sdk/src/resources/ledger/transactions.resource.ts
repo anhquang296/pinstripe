@@ -10,7 +10,7 @@ import type {
 } from '@type/contracts.types';
 import { buildPath } from '@utils/build-path';
 
-const LEDGER_TRANSACTIONS_PATH = '/api/v1/admin/ledger/transactions';
+const LEDGER_TRANSACTIONS_PATH = '/v1/ledger/transactions';
 
 export class LedgerTransactionsResource {
   private _transport: PinstripeTransport;

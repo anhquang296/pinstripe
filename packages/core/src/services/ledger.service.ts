@@ -159,7 +159,7 @@ export class LedgerService {
     });
 
     return {
-      url: '/api/v1/admin/ledger/transactions',
+      url: '/v1/ledger/transactions',
       hasMore,
       data: transactions,
     };
@@ -180,7 +180,7 @@ export class LedgerService {
     const hasMore = accountRows.length > limit;
 
     return {
-      url: '/api/v1/admin/ledger/accounts',
+      url: '/v1/ledger/accounts',
       hasMore,
       data: _.take(accountRows, limit),
     };

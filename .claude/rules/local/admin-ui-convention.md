@@ -10,7 +10,7 @@ Does **not** apply to:
 
 - `apps/portal-ui` — bề mặt của khách hàng, `portal.*`, luật riêng.
 - `packages/sdk/**` — hook, key và toast của SDK do [`sdk-convention.md`](./sdk-convention.md) quản.
-- Đường đăng nhập phía server (`/api/v1/auth/*`, authorization) — [`auth-convention.md`](./auth-convention.md).
+- Đường đăng nhập phía server (`/v1/auth/*`, authorization) — [`auth-convention.md`](./auth-convention.md).
 
 ## Cấu trúc thư mục
 
@@ -207,21 +207,21 @@ tab là cùng một màn khác path segment nên href dựng bằng `serializeIn
 
 Form dùng react-hook-form theo [`form-convention.md`](../agentkit/profiles/react/form-convention.md); field render qua `src/common/components/FormField/Render{Text,Select,Number,Date,Checkbox,CheckboxGroup}Field`, mỗi cái bọc `Controller` quanh một control HeroUI. Không `form.register` trên control của HeroUI — nó không nhận `ref` + `onChange` kiểu DOM.
 
-`RenderCheckboxGroupField` là field của một **mảng giá trị đóng** — `enabledEvents` của webhook endpoint, `scopes` của API key. Một tập nhiều lựa chọn không đi qua `Select`: HeroUI v3 `Select` là single-select, và ghép nhiều `RenderCheckboxField` boolean thì form data không còn là mảng mà payload cần.
+`RenderCheckboxGroupField` là field của một **mảng giá trị đóng** — `enabledEvents` của webhook endpoint, `permissions` của API key. Một tập nhiều lựa chọn không đi qua `Select`: HeroUI v3 `Select` là single-select, và ghép nhiều `RenderCheckboxField` boolean thì form data không còn là mảng mà payload cần.
 
 `RenderSelectField` quy đổi giá trị rỗng sang một key nội bộ, vì collection của react-aria không nhận `id=""`. Một select ngoài form thì bỏ hẳn option rỗng và dùng `placeholder` của `Select`.
 
 ## `better-auth` chỉ ở `src/libs/auth-client.ts`
 
-Đúng một file được import `better-auth*`, và `eslint.config.js` chặn phần còn lại bằng `no-restricted-imports`. File đó dựng `createAuthClient` với `basePath: '/api/v1/auth'` và một `customFetchImpl` bóc envelope lỗi của repo (`{ error: { code, message } }`) thành `{ code, message }` — không có nó thì better-auth-ui đọc `error.code` ra `undefined` và mọi lỗi đăng nhập rơi về một thông báo chung chung.
+Đúng một file được import `better-auth*`, và `eslint.config.js` chặn phần còn lại bằng `no-restricted-imports`. File đó dựng `createAuthClient` với `basePath: '/v1/auth'` và một `customFetchImpl` bóc envelope lỗi của repo (`{ error: { code, message } }`) thành `{ code, message }` — không có nó thì better-auth-ui đọc `error.code` ra `undefined` và mọi lỗi đăng nhập rơi về một thông báo chung chung.
 
-`@better-auth-ui/heroui` và `@better-auth-ui/react` **không** bị chặn: chúng là UI, không phải HTTP client thứ hai. Không dùng `adminClient()` hay plugin `admin` — quản trị user đi qua SDK `admin.users`.
+`@better-auth-ui/heroui` và `@better-auth-ui/react` **không** bị chặn: chúng là UI, không phải HTTP client thứ hai. Không dùng `adminClient()` hay plugin `admin` — quản trị user đi qua SDK `users`.
 
 `AuthProvider` được bọc trong `src/providers/AdminAuthProvider.tsx` để lấy `navigate` của react-router; thứ tự provider là `QueryProvider` → `AdminPinstripeProvider` → `RoutesProvider` (router) → `AdminAuthProvider`. `AdminAuthProvider` cần `useNavigate`, nên nó là element của root route trong `RoutesProvider`, bọc `<Outlet />` — không đặt nó trong `ProviderRegistry`. Sign-up không tồn tại ở server, nên link "Sign up" của `SignIn` bị giấu bằng CSS trên `.auth-view` — đừng gỡ khối đó ra khỏi `index.css`.
 
 ## Dữ liệu đi qua hook của SDK
 
-`PinstripeClient` trong `src/providers/AdminPinstripeProvider.tsx` được dựng **không có key**: trình duyệt đi bằng cookie same-origin. `vite.config.ts` chỉ proxy `/api` và `/v1` với `changeOrigin`, không chèn `PINSTRIPE_*_API_KEY` vào header — một bản build ra khỏi `vite dev` phải xác thực được bằng đúng thứ nó có.
+`PinstripeClient` trong `src/providers/AdminPinstripeProvider.tsx` được dựng **không có key**: trình duyệt đi bằng cookie same-origin. `vite.config.ts` chỉ proxy `/v1` với `changeOrigin` — mọi surface của API nay nằm dưới đó, kể cả `/v1/auth` — và không chèn `PINSTRIPE_*_API_KEY` vào header — một bản build ra khỏi `vite dev` phải xác thực được bằng đúng thứ nó có.
 
 Component không gọi thẳng resource: mọi read/write qua hook của `@pinstripe/sdk/react`.
 

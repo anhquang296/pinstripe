@@ -76,16 +76,13 @@ Turbo builds `packages/core` first, then runs the API, the workers, the admin UI
 
 ## 6. Create the first admin
 
-The admin UI signs in with a real session cookie — the Vite proxy forwards `/api` and `/v1` to the API
-and injects nothing, so a build outside `vite dev` authenticates with exactly what it has. Sign-up does
-not exist on the server, so the first admin is created through the management surface. The call is
+The admin UI signs in with a real session cookie — the Vite proxy forwards `/v1` to the API and
+injects nothing, so a build outside `vite dev` authenticates with exactly what it has. Sign-up does
+not exist on the server, so the first admin is created from the command line. The script is
 idempotent:
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/management/users/bootstrap \
-  -H "Authorization: Bearer $MANAGEMENT_API_KEY" \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"admin@pinstripe.test","name":"Admin","password":"<at least 12 characters>"}'
+pnpm --filter @pinstripe/api bootstrap-admin -- --email admin@pinstripe.test --name Admin --password '<at least 12 characters>'
 ```
 
 Sign in at http://localhost:5173 with that email and password. Every other user is created in the

@@ -1,5 +1,4 @@
 import {
-  ApiKeyScopeEnum,
   PaymentIntentStatusEnum,
   PaymentMethodTypeEnum,
   PspEventTypeEnum,
@@ -8,9 +7,9 @@ import { buildWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from '@pinstripe/core
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { buildAuthHeaders, buildTestApp, mintApiKey } from './context';
+import { ALL_PERMISSIONS, buildAuthHeaders, buildTestApp, mintApiKey } from './context';
 
-const CALLBACKS_URL = '/api/v1/system/psp/mock/callbacks';
+const CALLBACKS_URL = '/v1/webhooks/psp/mock/callbacks';
 const APPROVED_TOKEN = 'tok_visa_ok';
 const STANDALONE_AMOUNT = 250_000;
 
@@ -20,7 +19,7 @@ let secretToken: string;
 beforeAll(async () => {
   fastify = await buildTestApp();
 
-  const apiKey = await mintApiKey(fastify, [ApiKeyScopeEnum.V1]);
+  const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
 
   secretToken = apiKey.token;
 });
@@ -117,7 +116,7 @@ async function readPaymentIntent(paymentIntentId: string) {
   return response.json();
 }
 
-describe('POST /api/v1/system/psp/:provider/callbacks signature', () => {
+describe('POST /v1/webhooks/psp/:provider/callbacks signature', () => {
   it('rejects a callback that carries no signature header', async () => {
     const response = await fastify.inject({
       method: 'POST',
@@ -169,7 +168,7 @@ describe('POST /api/v1/system/psp/:provider/callbacks signature', () => {
   });
 });
 
-describe('POST /api/v1/system/psp/:provider/callbacks state machine', () => {
+describe('POST /v1/webhooks/psp/:provider/callbacks state machine', () => {
   it('drives a processing intent to succeeded', async () => {
     const { paymentIntentId, pspReference } = await makeProcessingPaymentIntent();
 

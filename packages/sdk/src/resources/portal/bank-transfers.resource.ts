@@ -4,7 +4,7 @@ import type { PinstripeTransport } from '@client/pinstripe-transport';
 import type { PortalBankTransferResponse } from '@type/contracts.types';
 import { buildPath } from '@utils/build-path';
 
-const PORTAL_INVOICES_PATH = '/portal/invoices';
+const PORTAL_INVOICES_PATH = '/v1/portal/invoices';
 
 export class PortalBankTransfersResource {
   private _transport: PinstripeTransport;
