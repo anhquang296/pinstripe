@@ -1,4 +1,5 @@
 export {
+  useCreatePortalRequestMutation,
   useCreatePortalSessionMutation,
   useDeletePortalSessionMutation,
   useUpdatePortalSessionMutation,
@@ -6,10 +7,13 @@ export {
 export {
   usePortalAccountQuery,
   usePortalBankTransferQuery,
+  usePortalInvoiceComparisonQuery,
   usePortalInvoiceQuery,
+  usePortalInvoiceRemindersQuery,
   usePortalInvoicesQuery,
   usePortalInvoiceTotalsQuery,
   usePortalPaymentMethodsQuery,
   usePortalPaymentsQuery,
   usePortalSubscriptionsQuery,
+  usePortalUsageQuery,
 } from '@react/portal/queries';

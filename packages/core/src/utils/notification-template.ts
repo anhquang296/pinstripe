@@ -16,6 +16,7 @@ export interface NotificationContext {
   nextAttemptAt: Date | null;
   dueAt: Date | null;
   url: string | null;
+  message: string | null;
 }
 
 export interface NotificationEmail {
@@ -63,6 +64,32 @@ function buildUrlLine(url: string | null, prompt: string): string[] {
   }
 
   return [];
+}
+
+function buildMessageLine(message: string | null): string {
+  if (message) {
+    return `Nội dung yêu cầu: ${message}`;
+  }
+
+  return 'Nhà xe không ghi nội dung yêu cầu.';
+}
+
+const INTERNAL_NOTIFICATION_KINDS: readonly NotificationKind[] = [
+  NotificationKindEnum.INVOICE_OVERDUE_INTERNAL,
+  NotificationKindEnum.PORTAL_PLAN_CHANGE_REQUEST,
+  NotificationKindEnum.PORTAL_PROFILE_UPDATE_REQUEST,
+];
+
+function buildGreeting(kind: NotificationKind, customerName: string): string {
+  if (_.includes(INTERNAL_NOTIFICATION_KINDS, kind)) {
+    return 'Kính gửi bộ phận kế toán Vexere,';
+  }
+
+  if (customerName) {
+    return `Kính gửi ${customerName},`;
+  }
+
+  return 'Kính gửi quý khách,';
 }
 
 function buildNotificationBody(
@@ -119,8 +146,30 @@ function buildNotificationBody(
     return {
       subject: `[Nội bộ] ${context.customerName}: ${invoiceLabel} quá hạn`,
       lines: [
-        `Nhà xe ${context.customerName} chưa thanh toán ${invoiceLabel}, quá hạn từ ngày ${dueLabel}.`,
+        `${context.customerName} chưa thanh toán ${invoiceLabel}, quá hạn từ ngày ${dueLabel}.`,
         `Số tiền còn phải thu: ${amountLabel}. Đề nghị kế toán và AM phụ trách liên hệ nhà xe.`,
+      ],
+    };
+  }
+
+  if (kind === NotificationKindEnum.PORTAL_PLAN_CHANGE_REQUEST) {
+    return {
+      subject: `[Cổng nhà xe] ${context.customerName} yêu cầu đổi gói`,
+      lines: [
+        `${context.customerName} vừa gửi yêu cầu đổi gói dịch vụ từ cổng nhà xe.`,
+        buildMessageLine(context.message),
+        'Đề nghị AM phụ trách liên hệ nhà xe để xác nhận trước khi đổi gói.',
+      ],
+    };
+  }
+
+  if (kind === NotificationKindEnum.PORTAL_PROFILE_UPDATE_REQUEST) {
+    return {
+      subject: `[Cổng nhà xe] ${context.customerName} yêu cầu cập nhật hồ sơ`,
+      lines: [
+        `${context.customerName} vừa gửi yêu cầu cập nhật hồ sơ từ cổng nhà xe.`,
+        buildMessageLine(context.message),
+        'Đề nghị kế toán kiểm tra và cập nhật thông tin nhà xe.',
       ],
     };
   }
@@ -188,9 +237,7 @@ export function buildNotificationEmail(
   context: NotificationContext,
 ): NotificationEmail {
   const { subject, lines } = buildNotificationBody(kind, context);
-  const greeting = context.customerName
-    ? `Kính gửi ${context.customerName},`
-    : 'Kính gửi quý khách,';
+  const greeting = buildGreeting(kind, context.customerName);
   const paragraphs = [greeting, ...lines, 'Trân trọng,\nVexere'];
 
   return {

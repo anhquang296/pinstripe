@@ -4,10 +4,27 @@ import type { MutationProps } from '@react/react-query.types';
 import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
+  CreatePortalRequestPayload,
+  PortalRequestResponse,
   PortalSessionResponse,
   RedeemPortalLinkPayload,
   SwitchPortalCustomerPayload,
 } from '@type/contracts.types';
+
+export function useCreatePortalRequestMutation({
+  successMessage,
+}: MutationProps<PortalRequestResponse> = {}) {
+  const { client } = usePinstripeContext();
+  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+
+  return useMutation({
+    mutationFn: (payload: CreatePortalRequestPayload) => {
+      return client.portal.requests.create(payload);
+    },
+    onSuccess: notifySuccess,
+    onError: notifyError,
+  });
+}
 
 export function useCreatePortalSessionMutation({
   successMessage,

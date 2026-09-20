@@ -96,8 +96,9 @@ API /portal/*
   → `POST /bff/portal/sessions/current`); vai trò và email đăng nhập hiện trên topbar và trang Tài khoản.
 - Màn: `/` Tổng quan (`usePortalInvoiceTotalsQuery`, 5 hóa đơn gần nhất, gói đang dùng), `/invoices`
   (tab `?view=all|upcoming|overdue|paid`, phân trang cursor, xuất CSV), `/invoices/[invoiceId]` (chi tiết,
-  tải PDF qua `/bff/portal/invoices/:id/pdf`, thẻ chuyển khoản + VietQR, các lần thanh toán),
-  `/payments`, `/subscriptions`, `/account` (kế toán phụ trách, số dư tín dụng, thẻ đã lưu).
+  tải PDF qua `/bff/portal/invoices/:id/pdf`, thẻ chuyển khoản + VietQR, so với kỳ trước, lịch sử nhắc
+  nợ, các lần thanh toán), `/payments`, `/subscriptions` (kèm form yêu cầu đổi gói), `/usage` (mức dùng
+  kỳ hiện tại), `/account` (kế toán phụ trách, số dư tín dụng, thẻ đã lưu, form yêu cầu cập nhật hồ sơ).
 - Component bảng/thẻ (`DataTable`, `StatItem`, `DetailList`…) là bản riêng trong
   `apps/portal-ui/src/common`, không import từ admin-ui. Số ngày trễ đếm theo ngày lịch giờ Việt Nam.
 - Env của portal: `PINSTRIPE_API_URL`, `PINSTRIPE_PORTAL_API_KEY` trong `apps/portal-ui/.env.local`,
@@ -110,7 +111,9 @@ Phía API, mọi route `/portal/*` lấy `customerId` từ session chứ không 
 - `POST /portal/sessions` đổi `linkKey` lấy `sessionKey`; các route đọc dùng
   `Authorization: Bearer <sessionKey>`: `GET /portal/me`, `/invoices` (lọc `status`, `isOverdue`),
   `/invoices/:invoiceId`, `/invoices/:invoiceId/pdf`, `/invoices/:invoiceId/bank_transfer`,
-  `/invoice_totals`, `/invoice_exports`, `/payments`, `/subscriptions`, `/payment_methods`. Hóa đơn
+  `/invoices/:invoiceId/comparison`, `/invoices/:invoiceId/reminders`, `/invoice_totals`,
+  `/invoice_exports`, `/payments`, `/subscriptions`, `/payment_methods`, `/usage`; ghi duy nhất là
+  `POST /portal/requests` (yêu cầu đổi gói / cập nhật hồ sơ, gửi email cho kế toán Vexere). Hóa đơn
   `draft` và hóa đơn của khách khác luôn là 404.
 - Hai route đăng nhập bị giới hạn tần suất (`PORTAL_RATE_LIMIT` lần / `PORTAL_RATE_WINDOW_SECONDS`)
   theo IP người dùng cuối và theo email. IP đọc từ header `x-pinstripe-client-ip`

@@ -14,6 +14,7 @@ import {
   BillingReasonEnum,
   CreditNoteStatusEnum,
   INVOICE_TRANSITIONS,
+  InvoiceReminderKindEnum,
   InvoiceStatusEnum,
   NumberSequenceEnum,
 } from '@contracts/invoices.types';
@@ -25,6 +26,8 @@ import { RefundStatusEnum } from '@contracts/payments.types';
 import type {
   FindPortalInvoicesQuery,
   FindPortalPaymentsQuery,
+  PortalInvoiceComparisonResponse,
+  PortalInvoiceRemindersResponse,
   PortalInvoiceTotalsResponse,
   PortalPaymentChannel,
   PortalPaymentResponse,
@@ -1206,6 +1209,73 @@ export class InvoiceService {
     return buildInvoicesCsv(exportedInvoices, now);
   }
 
+  async getCustomerInvoiceComparison(
+    customerId: string,
+    invoiceId: string,
+  ): Promise<PortalInvoiceComparisonResponse> {
+    const invoice = await this.getCustomerInvoice(customerId, invoiceId);
+    const PREVIOUS_INVOICE_LOOKUP_LIMIT = 2;
+
+    const earlierInvoices = await this.fastify.invoiceRepository.findInvoices(
+      {
+        customerId,
+        subscriptionId: invoice.subscriptionId ?? undefined,
+        statuses: CUSTOMER_VISIBLE_INVOICE_STATUSES,
+        periodEndBeforeAt: invoice.periodStart,
+      },
+      PREVIOUS_INVOICE_LOOKUP_LIMIT,
+    );
+    const [previousInvoice] = _.reject(earlierInvoices, { id: invoice.id });
+
+    if (previousInvoice) {
+      const previousLineItems = await this.fastify.invoiceRepository.findInvoiceLineItems([
+        previousInvoice.id,
+      ]);
+
+      return {
+        invoiceId: invoice.id,
+        previousInvoiceId: previousInvoice.id,
+        previousInvoiceNumber: previousInvoice.number,
+        currency: invoice.currency,
+        currentTotal: invoice.total,
+        previousTotal: previousInvoice.total,
+        difference: invoice.total - previousInvoice.total,
+        lines: InvoiceService.buildInvoiceLineComparison(invoice.lineItems, previousLineItems),
+      };
+    }
+
+    return {
+      invoiceId: invoice.id,
+      previousInvoiceId: null,
+      previousInvoiceNumber: null,
+      currency: invoice.currency,
+      currentTotal: invoice.total,
+      previousTotal: 0,
+      difference: 0,
+      lines: [],
+    };
+  }
+
+  async findCustomerInvoiceReminders(
+    customerId: string,
+    invoiceId: string,
+  ): Promise<PortalInvoiceRemindersResponse> {
+    const invoice = await this.getCustomerInvoice(customerId, invoiceId);
+    const invoiceReminders = await this.fastify.invoiceRepository.findInvoiceReminders([
+      invoice.id,
+    ]);
+
+    return {
+      reminders: _(invoiceReminders)
+        .reject({ kind: InvoiceReminderKindEnum.OVERDUE_INTERNAL })
+        .sortBy('sentAt')
+        .map((invoiceReminder) => {
+          return { kind: invoiceReminder.kind, sentAt: invoiceReminder.sentAt };
+        })
+        .value(),
+    };
+  }
+
   async aggregateCustomerInvoiceTotals(customerId: string): Promise<PortalInvoiceTotalsResponse> {
     const OPEN_INVOICE_LIMIT = 1000;
     const DUE_SOON_DAYS = 7;
@@ -1571,6 +1641,46 @@ export class InvoiceService {
     ]);
 
     return _.mapValues(_.keyBy(rows, 'invoiceId'), 'refundedAmount');
+  }
+
+  private static buildInvoiceLineComparison(
+    currentLineItems: InvoiceResponse['lineItems'],
+    previousLineItems: readonly InvoiceLineItem[],
+  ): PortalInvoiceComparisonResponse['lines'] {
+    const currentAmountsByDescription = _(currentLineItems)
+      .groupBy('description')
+      .mapValues((lineItems) => {
+        return _.sumBy(lineItems, 'amount');
+      })
+      .value();
+    const previousAmountsByDescription = _(previousLineItems)
+      .groupBy('description')
+      .mapValues((lineItems) => {
+        return _.sumBy(lineItems, 'amount');
+      })
+      .value();
+    const descriptions = _([
+      ..._.keys(currentAmountsByDescription),
+      ..._.keys(previousAmountsByDescription),
+    ])
+      .uniq()
+      .sort()
+      .value();
+
+    return _(descriptions)
+      .map((description) => {
+        const currentAmount = _.get(currentAmountsByDescription, description, 0);
+        const previousAmount = _.get(previousAmountsByDescription, description, 0);
+
+        return {
+          description,
+          currentAmount,
+          previousAmount,
+          difference: currentAmount - previousAmount,
+        };
+      })
+      .reject({ difference: 0 })
+      .value();
   }
 
   private static resolvePaymentChannel(

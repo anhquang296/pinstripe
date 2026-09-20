@@ -8,5 +8,6 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   { to: '/invoices', title: 'Hóa đơn' },
   { to: '/payments', title: 'Thanh toán' },
   { to: '/subscriptions', title: 'Gói dịch vụ' },
+  { to: '/usage', title: 'Mức sử dụng' },
   { to: '/account', title: 'Tài khoản' },
 ];

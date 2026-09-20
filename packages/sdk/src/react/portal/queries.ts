@@ -39,6 +39,30 @@ export function usePortalInvoiceTotalsQuery({ enabled = true }: QueryProps = {})
   return useQuery({ ...queries.portal.invoiceTotals, enabled });
 }
 
+export function usePortalInvoiceComparisonQuery(
+  invoiceId: string,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({ ...queries.portal.invoiceComparison(invoiceId), enabled });
+}
+
+export function usePortalInvoiceRemindersQuery(
+  invoiceId: string,
+  { enabled = true }: QueryProps = {},
+) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({ ...queries.portal.invoiceReminders(invoiceId), enabled });
+}
+
+export function usePortalUsageQuery({ enabled = true }: QueryProps = {}) {
+  const queries = usePinstripeQueries();
+
+  return useQuery({ ...queries.portal.usage, enabled });
+}
+
 export function usePortalBankTransferQuery(invoiceId: string, { enabled = true }: QueryProps = {}) {
   const queries = usePinstripeQueries();
 

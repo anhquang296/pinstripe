@@ -1,4 +1,5 @@
-import { InvoiceStatusEnum } from '@contracts/invoices.types';
+import type { InvoiceReminderKind } from '@contracts/invoices.types';
+import { InvoiceReminderKindEnum, InvoiceStatusEnum } from '@contracts/invoices.types';
 import type { PortalRole } from '@contracts/portal-memberships.types';
 import { PortalRoleEnum } from '@contracts/portal-memberships.types';
 import type { RecurringInterval, UsageType } from '@contracts/prices.types';
@@ -14,6 +15,12 @@ export enum PortalSessionStatusEnum {
   REVOKED = 'revoked',
 }
 export type PortalSessionStatus = `${PortalSessionStatusEnum}`;
+
+export enum PortalRequestKindEnum {
+  PLAN_CHANGE = 'plan_change',
+  PROFILE_UPDATE = 'profile_update',
+}
+export type PortalRequestKind = `${PortalRequestKindEnum}`;
 
 export enum PortalPaymentChannelEnum {
   CARD = 'card',
@@ -69,6 +76,61 @@ export const portalIdentitySchema = Type.Object({
       role: Type.Unsafe<PortalRole>(Type.Enum(PortalRoleEnum)),
     }),
   ),
+});
+
+export const portalUsageSchema = Type.Object({
+  items: Type.Array(
+    Type.Object({
+      subscriptionItemId: Type.String(),
+      subscriptionId: Type.String(),
+      productName: Type.String(),
+      meterName: Type.String(),
+      quantity: Type.Number(),
+      includedQuantity: Type.Union([Type.Integer(), Type.Null()]),
+      periodStart: Type.String(),
+      periodEnd: Type.String(),
+    }),
+  ),
+});
+
+export const portalInvoiceComparisonSchema = Type.Object({
+  invoiceId: Type.String(),
+  previousInvoiceId: Type.Union([Type.String(), Type.Null()]),
+  previousInvoiceNumber: Type.Union([Type.String(), Type.Null()]),
+  currency: Type.String(),
+  currentTotal: Type.Integer(),
+  previousTotal: Type.Integer(),
+  difference: Type.Integer(),
+  lines: Type.Array(
+    Type.Object({
+      description: Type.String(),
+      currentAmount: Type.Integer(),
+      previousAmount: Type.Integer(),
+      difference: Type.Integer(),
+    }),
+  ),
+});
+
+export const portalInvoiceRemindersSchema = Type.Object({
+  reminders: Type.Array(
+    Type.Object({
+      kind: Type.Unsafe<InvoiceReminderKind>(Type.Enum(InvoiceReminderKindEnum)),
+      sentAt: Type.String(),
+    }),
+  ),
+});
+
+export const createPortalRequestSchema = Type.Object(
+  {
+    kind: Type.Unsafe<PortalRequestKind>(Type.Enum(PortalRequestKindEnum)),
+    message: Type.String({ minLength: 1, maxLength: 1000 }),
+  },
+  { additionalProperties: false },
+);
+
+export const portalRequestSchema = Type.Object({
+  kind: Type.Unsafe<PortalRequestKind>(Type.Enum(PortalRequestKindEnum)),
+  submittedAt: Type.String(),
 });
 
 export const switchPortalCustomerSchema = Type.Object(
@@ -219,6 +281,11 @@ export type PortalPaymentResponse = Static<typeof portalPaymentSchema>;
 export type FindPortalPaymentsQuery = Static<typeof findPortalPaymentsSchema>;
 export type PortalBankTransferResponse = Static<typeof portalBankTransferSchema>;
 export type SwitchPortalCustomerPayload = Static<typeof switchPortalCustomerSchema>;
+export type PortalUsageResponse = Static<typeof portalUsageSchema>;
+export type PortalInvoiceComparisonResponse = Static<typeof portalInvoiceComparisonSchema>;
+export type PortalInvoiceRemindersResponse = Static<typeof portalInvoiceRemindersSchema>;
+export type CreatePortalRequestPayload = Static<typeof createPortalRequestSchema>;
+export type PortalRequestResponse = Static<typeof portalRequestSchema>;
 
 export interface PortalAuth {
   portalSessionId: string;

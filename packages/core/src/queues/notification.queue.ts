@@ -10,6 +10,8 @@ export enum NotificationKindEnum {
   INVOICE_DUE_SOON = 'invoice_due_soon',
   INVOICE_OVERDUE = 'invoice_overdue',
   INVOICE_OVERDUE_INTERNAL = 'invoice_overdue_internal',
+  PORTAL_PLAN_CHANGE_REQUEST = 'portal_plan_change_request',
+  PORTAL_PROFILE_UPDATE_REQUEST = 'portal_profile_update_request',
   PAYMENT_SUCCEEDED = 'payment_succeeded',
   PAYMENT_FAILED = 'payment_failed',
   PAYMENT_ABANDONED = 'payment_abandoned',
@@ -25,6 +27,7 @@ export interface NotificationSendJob {
   paymentIntentId: string | null;
   url: string | null;
   recipient: string | null;
+  message: string | null;
   dedupeKey: string;
 }
 
@@ -35,6 +38,7 @@ export interface NotificationReferences {
   paymentIntentId?: string | null;
   url?: string | null;
   recipient?: string | null;
+  message?: string | null;
   dedupeKey?: string;
 }
 
@@ -48,6 +52,7 @@ export function buildNotificationSendJob(
     paymentIntentId = null,
     url = null,
     recipient = null,
+    message = null,
     dedupeKey = invoiceId ?? paymentIntentId ?? customerId,
   } = references;
 
@@ -58,6 +63,7 @@ export function buildNotificationSendJob(
     paymentIntentId,
     url,
     recipient,
+    message,
     dedupeKey,
   };
 }

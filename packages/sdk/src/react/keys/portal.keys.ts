@@ -38,6 +38,28 @@ export function createPortalQueries(client: PinstripeClient) {
         return client.portal.invoiceTotals.get();
       },
     },
+    invoiceComparison: (invoiceId: string) => {
+      return {
+        queryKey: [invoiceId],
+        queryFn: () => {
+          return client.portal.invoiceComparisons.get(invoiceId);
+        },
+      };
+    },
+    invoiceReminders: (invoiceId: string) => {
+      return {
+        queryKey: [invoiceId],
+        queryFn: () => {
+          return client.portal.invoiceReminders.find(invoiceId);
+        },
+      };
+    },
+    usage: {
+      queryKey: null,
+      queryFn: () => {
+        return client.portal.usage.find();
+      },
+    },
     bankTransfer: (invoiceId: string) => {
       return {
         queryKey: [invoiceId],

@@ -176,7 +176,7 @@ export class InvoiceRepository {
 
   async findInvoiceReminders(
     invoiceIds: readonly string[],
-    kind: InvoiceReminderKind,
+    kind?: InvoiceReminderKind,
   ): Promise<InvoiceReminder[]> {
     if (_.isEmpty(invoiceIds)) {
       return [];
@@ -186,7 +186,10 @@ export class InvoiceRepository {
       .select()
       .from(invoiceReminders)
       .where(
-        and(inArray(invoiceReminders.invoiceId, [...invoiceIds]), eq(invoiceReminders.kind, kind)),
+        and(
+          inArray(invoiceReminders.invoiceId, [...invoiceIds]),
+          kind ? eq(invoiceReminders.kind, kind) : undefined,
+        ),
       );
   }
 

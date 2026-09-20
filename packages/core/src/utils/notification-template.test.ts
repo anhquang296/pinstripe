@@ -16,6 +16,7 @@ function makeContext(overrides: Partial<NotificationContext> = {}): Notification
     nextAttemptAt: null,
     dueAt: null,
     url: null,
+    message: null,
     ...overrides,
   };
 }
@@ -114,5 +115,26 @@ describe('buildNotificationEmail', () => {
     );
 
     expect(email.subject).toBe('[Nội bộ] Nhà xe Hà Linh: hóa đơn INV-000001 quá hạn');
+    expect(email.text).toContain('Kính gửi bộ phận kế toán Vexere,');
+  });
+
+  it('carries the operator message into a plan change request', () => {
+    const email = buildNotificationEmail(
+      NotificationKindEnum.PORTAL_PLAN_CHANGE_REQUEST,
+      makeContext({ message: 'Nhà xe muốn lên gói Pro từ tháng sau' }),
+    );
+
+    expect(email.subject).toBe('[Cổng nhà xe] Nhà xe Hà Linh yêu cầu đổi gói');
+    expect(email.text).toContain('Nội dung yêu cầu: Nhà xe muốn lên gói Pro từ tháng sau');
+  });
+
+  it('says the operator left no message when a profile update request is empty', () => {
+    const email = buildNotificationEmail(
+      NotificationKindEnum.PORTAL_PROFILE_UPDATE_REQUEST,
+      makeContext(),
+    );
+
+    expect(email.subject).toBe('[Cổng nhà xe] Nhà xe Hà Linh yêu cầu cập nhật hồ sơ');
+    expect(email.text).toContain('Nhà xe không ghi nội dung yêu cầu.');
   });
 });
