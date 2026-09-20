@@ -17,6 +17,7 @@
     "db:generate": "pnpm --filter @pinstripe/core db:generate",
     "db:migrate": "pnpm --filter @pinstripe/core db:migrate",
     "db:reset": "pnpm --filter @pinstripe/core db:reset",
+    "seed:demo": "pnpm --filter @pinstripe/api seed-demo",
     "docker:up": "docker compose -f docker/compose.yml up -d",
     "docker:down": "docker compose -f docker/compose.yml down",
     "lint:fix": "turbo run lint:fix",

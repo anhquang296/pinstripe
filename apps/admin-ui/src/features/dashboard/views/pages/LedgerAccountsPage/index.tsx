@@ -5,7 +5,7 @@ import PageCard from '@common/components/PageCard';
 import PageTabs from '@common/components/PageTabs';
 import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
-import { PAGE_LIMIT } from '@common/constants/pagination';
+import { OPTION_LIMIT, PAGE_LIMIT } from '@common/constants/pagination';
 import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
@@ -14,8 +14,8 @@ import { toQuery } from '@common/utils/search-params';
 import { LEDGER_TABS } from '@features/dashboard/constants/tabs';
 import type { LedgerAccountResponse } from '@pinstripe/core/contracts';
 import { CurrencyEnum, LedgerAccountCodeEnum } from '@pinstripe/core/contracts';
-import { useLedgerAccountsQuery } from '@pinstripe/sdk/react';
-import { filter, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
+import { useCustomersQuery, useLedgerAccountsQuery } from '@pinstripe/sdk/react';
+import { filter, fromPairs, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
 import { useParams } from 'react-router-dom';
 
@@ -45,9 +45,17 @@ export default function LedgerAccountsPage() {
     { hasPlaceholder: true },
   );
 
+  const { data: customers } = useCustomersQuery({ limit: OPTION_LIMIT });
+
   const rows = get(ledgerAccounts, 'data', []);
   const hasMore = get(ledgerAccounts, 'hasMore', false);
   const currency = get(rows, '0.currency', CurrencyEnum.VND);
+
+  const customerNameById = fromPairs(
+    map(get(customers, 'data', []), (customer) => {
+      return [customer.id, customer.name || customer.email];
+    }),
+  );
 
   const handleOnCodeSelect = (value: string | null) => {
     const code = isNull(value) ? null : ledgerAccountSearchParams.code.parse(value);
@@ -142,7 +150,11 @@ export default function LedgerAccountsPage() {
             key: 'customerId',
             label: 'Khách hàng',
             renderCell: (ledgerAccount) => {
-              return ledgerAccount.customerId ?? '—';
+              if (!ledgerAccount.customerId) {
+                return '—';
+              }
+
+              return get(customerNameById, ledgerAccount.customerId, ledgerAccount.customerId);
             },
           },
           {

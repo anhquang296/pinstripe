@@ -20,12 +20,10 @@ pnpm install
 cp .env.example .env
 ```
 
-Fill in the four API secrets, each at least 16 characters:
+Fill in the two API secrets, each at least 16 characters:
 
-- `SECRET_API_KEY`
-- `ADMIN_API_KEY`
-- `SYSTEM_API_KEY`
-- `MANAGEMENT_API_KEY`
+- `SECRET_API_KEY` — the product API key
+- `PORTAL_API_KEY` — the publishable key the customer portal's server uses
 
 Generate one with:
 
@@ -66,6 +64,10 @@ app's Redis keys:
 pnpm db:reset
 ```
 
+Stop `pnpm dev` before resetting, and start it again afterwards. The reset drops `api_keys`,
+`users` and `admin_sessions`; the API recreates its bootstrap keys only at start-up, so a reset
+against a running stack leaves every `Authorization: Bearer` call failing until you restart.
+
 ## 5. Start everything
 
 ```bash
@@ -101,6 +103,17 @@ PINSTRIPE_PORTAL_API_KEY=<same value as PORTAL_API_KEY>
 ```
 
 Never give it `PINSTRIPE_SECRET_API_KEY`. Sign-in links land in mailpit (http://localhost:58025).
+
+## 8. Optional — load the demo dataset
+
+```bash
+pnpm seed:demo
+```
+
+Five Vietnamese bus operators, three products, four months of paid invoices, live usage and one
+overdue invoice — enough for the walkthroughs in [docs/demo/](docs/demo/README.md). It talks to the
+core services directly, so the API does not need to be running, but the workers do if you want the
+partner-collection scenarios to complete.
 
 ## Local URLs
 

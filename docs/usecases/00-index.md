@@ -6,6 +6,20 @@ Kèm phần tự diễn lại bằng UI hoặc curl, và câu SQL để tự th�
 
 Nếu bạn mới vào project, **đọc ở đây trước** rồi mới sang `flows/`.
 
+> **Cảnh báo: phần "tự chạy thử" của thư mục này đã lạc hậu.**
+>
+> [ADR 0028](../adr/0028-api-surface-consolidation.md) gộp mọi route về một cây `/v1` và xoá ba env
+> key `ADMIN_API_KEY` / `SYSTEM_API_KEY` / `MANAGEMENT_API_KEY`. Mọi lệnh `curl` dưới đây còn dùng
+> prefix `/api/v1/admin`, `/api/v1/management` và các key đó **sẽ trả 404 hoặc 401**. Phần mô tả cơ
+> chế vẫn đúng; chỉ đường dẫn và khoá là sai. Admin đầu tiên nay tạo bằng
+> `pnpm --filter @pinstripe/api bootstrap-admin`, không phải route management.
+>
+> Chỗ nói cổng nhà xe "chưa có đăng nhập" cũng đã sai kể từ
+> [ADR 0026](../adr/0026-customer-portal-auth-and-bff.md) — cổng đăng nhập bằng link một lần gửi
+> qua email.
+>
+> Cần một kịch bản **đọc-và-làm-theo** đã kiểm chứng trên code hiện tại: [`docs/demo/`](../demo/README.md).
+
 ## Năm loại tài liệu, đừng lẫn
 
 | Thư mục                          | Trả lời                                         | Tổ chức theo                   |

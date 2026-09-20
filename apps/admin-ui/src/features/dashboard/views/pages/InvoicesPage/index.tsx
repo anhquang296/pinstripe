@@ -33,7 +33,7 @@ import {
   useInvoicesQuery,
   useSubscriptionsQuery,
 } from '@pinstripe/sdk/react';
-import { get, isEmpty, last, map, size, sumBy, toString } from 'lodash-es';
+import { fromPairs, get, isEmpty, last, map, size, sumBy, toString } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -85,9 +85,17 @@ export default function InvoicesPage() {
   const hasMore = get(invoices, 'hasMore', false);
   const currency = get(rows, '0.currency', CurrencyEnum.VND);
 
+  const customerRows = get(customers, 'data', []);
+
+  const customerNameById = fromPairs(
+    map(customerRows, (customer) => {
+      return [customer.id, customer.name || customer.email];
+    }),
+  );
+
   const customerOptions = [
     { value: '', label: '— không chọn —' },
-    ...map(get(customers, 'data', []), (customer) => {
+    ...map(customerRows, (customer) => {
       return { value: customer.id, label: `${customer.name || customer.email} (${customer.id})` };
     }),
   ];
@@ -201,7 +209,14 @@ export default function InvoicesPage() {
             key: 'customerId',
             label: 'Khách hàng',
             renderCell: (invoice) => {
-              return <span className="font-mono text-[11px]">{invoice.customerId}</span>;
+              const customerName = get(customerNameById, invoice.customerId, '');
+
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{customerName || invoice.customerId}</span>
+                  <span className="text-app-label font-mono text-[11px]">{invoice.customerId}</span>
+                </div>
+              );
             },
           },
           {

@@ -14,8 +14,15 @@ export enum MockVexereSourceEnum {
 }
 export type MockVexereSource = `${MockVexereSourceEnum}`;
 
+export type MockVexereBalance = {
+  source: MockVexereSource;
+  partnerAccountId: string;
+  amount: number;
+};
+
 export type MockVexereConfig = {
   referencePrefix?: string;
+  balances?: readonly MockVexereBalance[];
 };
 
 export class MockVexereClient implements PartnerCollectionProvider {
@@ -25,7 +32,7 @@ export class MockVexereClient implements PartnerCollectionProvider {
   private _collectionsByIdempotencyKey: Map<string, PartnerCollectionResult>;
 
   constructor(mockVexereConfig: MockVexereConfig, logger: Logger) {
-    const { referencePrefix = DEFAULT_REFERENCE_PREFIX } = mockVexereConfig;
+    const { referencePrefix = DEFAULT_REFERENCE_PREFIX, balances = [] } = mockVexereConfig;
 
     this._referencePrefix = referencePrefix;
     this._logger = logger;
@@ -34,6 +41,10 @@ export class MockVexereClient implements PartnerCollectionProvider {
       [MockVexereSourceEnum.WALLET]: new Map(),
     };
     this._collectionsByIdempotencyKey = new Map();
+
+    for (const balance of balances) {
+      this.fundAccount(balance.source, balance.partnerAccountId, balance.amount);
+    }
   }
 
   async offsetTicketSales(payload: PartnerCollectionPayload): Promise<PartnerCollectionResult> {

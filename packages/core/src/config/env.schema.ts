@@ -98,6 +98,7 @@ export const envSchema = Type.Object({
   VEXERE_API_URL: Optional(Type.String({ minLength: 1 })),
   VEXERE_API_KEY: Optional(Type.String({ minLength: 1 })),
   VEXERE_TIMEOUT_MS: Default(Type.Integer({ minimum: 100 }), 10_000),
+  MOCK_VEXERE_BALANCES: Optional(Type.String({ minLength: 1 })),
 
   INVOICE_DUE_DAYS: Default(Type.Integer({ minimum: 0 }), 7),
   INVOICE_FINALIZE_DELAY_MS: Default(Type.Integer({ minimum: 0 }), 3_600_000),
