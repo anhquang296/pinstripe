@@ -6,7 +6,7 @@ agentkit:
   id: lodash/usage-convention
   layer: profile
   profile: lodash
-  requires: [core/nested-access-convention, core/statement-convention, core/brace-style-convention]
+  requires: [core/nested-access-convention, core/statement-convention]
   since: 0.1.0
   generated: true
 ---
@@ -45,7 +45,7 @@ The table is a sample, not the list. When you are about to write a loop or a cha
 
 A container that is certainly present — a `payload`, a `config`, a row already narrowed — needs no accessor: its fields are destructured with defaults, `const { isDefault = false } = payload`, as [nested-access-convention.md § A fallback is a destructure default](../../core/nested-access-convention.md#a-fallback-is-a-destructure-default) states. The one `??` that stays is `?? null` at a boundary, which restates `undefined` rather than supplying a value.
 
-**`_.map` / `_.filter` with the iteratee shorthand** — under [brace-style-convention.md § Arrow functions](../../core/brace-style-convention.md#arrow-functions) a native callback is a braced block with an explicit `return`, so `list.map((x) => { return x.id; })` is three lines to read a field. `_.map(list, 'id')` is the same thing in one, and it does not throw when `list` is `null`.
+**`_.map` / `_.filter` with the iteratee shorthand** — a native callback written out in full is three lines to read one field, and the reader has to run the callback in their head to learn which field. `_.map(list, 'id')` is the same operation in one line, it names the field where a reader sees it, and it does not throw when `list` is `null`.
 
 **`_.reject` over a negated filter** — a negation inside a predicate is the same inversion [statement-convention.md § Happy Path First](../../core/statement-convention.md#happy-path-first-positive-conditions) removes from an `if`. `_.reject(list, 'archived')` states the condition positively and puts the negation in the verb, where it is read once.
 
@@ -61,7 +61,7 @@ const total = _.get(row, 'total', 0);
 // WRONG — one segment is not an exemption
 const total = row?.total ?? 0;
 
-// WRONG — hand-rolled, and longer under this codebase's own brace rule
+// WRONG — hand-rolled, and three lines to read one field
 const productIds = products.map((product) => {
   return product.id;
 });

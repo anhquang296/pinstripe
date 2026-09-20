@@ -4,6 +4,7 @@
   "profiles": [
     "bullmq",
     "drizzle",
+    "eslint",
     "fastify",
     "lodash",
     "monorepo-turborepo",

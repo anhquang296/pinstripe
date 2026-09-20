@@ -1,4 +1,4 @@
-<!-- agentkit:start v0.6.7 -->
+<!-- agentkit:start v0.6.8 -->
 ## Coding conventions
 
 The rules below are the source of truth for how code here is written, and every one of them applies
@@ -10,7 +10,6 @@ They are a floor, not a gate. Read them once and keep working; there is no per-f
 | rule | file |
 |---|---|
 | How an agent creates and changes files — the file tools write, the shell reads, and why a heredoc costs you the formatter. | `.claude/rules/agentkit/core/agent-tooling-convention.md` |
-| Every body is a braced block — control flow and arrow functions alike, however short. | `.claude/rules/agentkit/core/brace-style-convention.md` |
 | No comments in source — why the code has to say it instead, and the tooling directives that are the only exception. | `.claude/rules/agentkit/core/comment-convention.md` |
 | Where a constant lives — the narrowest scope covering its use sites, and when it moves to `constants/`. | `.claude/rules/agentkit/core/constant-convention.md` |
 | Closed string sets as `<Name>Enum` plus a derived template-literal union, never a bare literal union. | `.claude/rules/agentkit/core/enum-convention.md` |
@@ -29,6 +28,8 @@ They are a floor, not a gate. Read them once and keep working; there is no per-f
 | The queue contract shared by producer and consumer, and how a worker process is named, started and shut down. | `.claude/rules/agentkit/profiles/bullmq/queue-convention.md` |
 | The migration journal invariant — what a generated migration consists of, and why discarding one halfway breaks every test run. | `.claude/rules/agentkit/profiles/drizzle/migration-convention.md` |
 | Drizzle schema and query rules — table and column naming, inferred types, read/write split, soft deletes, and building a where from conditional terms. | `.claude/rules/agentkit/profiles/drizzle/query-convention.md` |
+| The shared ESLint flat config — one package of preset factories, a fixed layer order with Prettier before the house rules, and a consumer config that only calls a preset. | `.claude/rules/agentkit/profiles/eslint/config-convention.md` |
+| Encoding the conventions a linter can check as restricted-syntax selectors and import bans, with messages that name the rule, scoped overrides instead of inline disables, and the ones left alone. | `.claude/rules/agentkit/profiles/eslint/rule-enforcement-convention.md` |
 | What a Fastify plugin is allowed to contain — config in, a decorated client out, registered in one ordered list that is the source of truth. | `.claude/rules/agentkit/profiles/fastify/plugin-convention.md` |
 | How routes are grouped and guarded — one submodule per caller with its own prefix and auth hook, a schema on every route, handlers that only wire. | `.claude/rules/agentkit/profiles/fastify/route-convention.md` |
 | Reach for lodash first — `_.get` over optional chaining at any depth, `_.map` / `_.filter` / `_.reject` over the native methods, and a chain when several run in sequence. | `.claude/rules/agentkit/profiles/lodash/usage-convention.md` |
