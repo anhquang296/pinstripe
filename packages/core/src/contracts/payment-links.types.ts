@@ -59,8 +59,8 @@ export const updatePaymentLinkSchema = Type.Object(
 export const findPaymentLinksSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     isActive: Type.Optional(Type.Boolean()),
   },
   { additionalProperties: false },

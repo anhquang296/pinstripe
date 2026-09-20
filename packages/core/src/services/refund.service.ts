@@ -156,8 +156,8 @@ export class RefundService {
 
   async findRefunds(query: FindRefundsQuery): Promise<ListResponse<RefundResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter);
-    const afterAt = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.after);
+    const afterAt = await this.resolveCursor(query.before);
     const statuses = query.status ? [query.status] : undefined;
     const rows = await this.fastify.refundRepository.findRefunds(
       {

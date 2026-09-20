@@ -47,13 +47,13 @@ export default function PaymentLinksPage() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: paymentLinks, isPending } = usePaymentLinksQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       isActive: activeFilter === 'all' ? undefined : activeFilter === 'active',
     },
     { hasPlaceholder: true },

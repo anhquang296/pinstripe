@@ -115,8 +115,8 @@ export const updateCustomerSchema = Type.Object(
 export const findCustomersSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     email: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
@@ -155,8 +155,8 @@ export const createCustomerBalanceTransactionSchema = Type.Object(
 export const findCustomerBalanceTransactionsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
 );

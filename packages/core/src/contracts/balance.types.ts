@@ -62,8 +62,8 @@ export const balanceTransactionParamsSchema = Type.Object({
 export const findBalanceTransactionsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     type: Type.Optional(Type.Unsafe<BalanceTransactionType>(Type.Enum(BalanceTransactionTypeEnum))),
     payoutId: Type.Optional(Type.String()),
   },

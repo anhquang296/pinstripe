@@ -151,7 +151,7 @@ Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/
 
 Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/api-keys`, `/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/test-clocks/:testClockId`, `/admin/users/:userId`).
 
-Phân trang cursor đi qua `src/common/hooks/useCursorPagination.ts`: `startingAfter` cho query, `advancePage(lastId)` / `revertPage()` cho `DataTable`, `resetPage()` mỗi khi filter đổi. Đừng tự giữ mảng cursor trong page.
+Phân trang cursor đi qua `src/common/hooks/useCursorPagination.ts`: `after` cho query, `advancePage(lastId)` / `revertPage()` cho `DataTable`, `resetPage()` mỗi khi filter đổi. Đừng tự giữ mảng cursor trong page.
 
 ## Field đi qua `Controller`
 

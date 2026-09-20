@@ -71,8 +71,8 @@ export const updateWebhookEndpointSchema = Type.Object(
 export const findWebhookEndpointsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     status: Type.Optional(Type.Unsafe<WebhookEndpointStatus>(Type.Enum(WebhookEndpointStatusEnum))),
   },
   { additionalProperties: false },
@@ -85,8 +85,8 @@ export const webhookDeliveryParamsSchema = Type.Object({
 export const findWebhookDeliveriesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     endpointId: Type.Optional(Type.String()),
     status: Type.Optional(Type.Unsafe<WebhookDeliveryStatus>(Type.Enum(WebhookDeliveryStatusEnum))),
   },

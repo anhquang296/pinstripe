@@ -137,7 +137,7 @@ docker compose -f docker/compose.yml down -v && pnpm docker:up && pnpm db:migrat
 | Test clocks       | `POST/GET /v1/test_helpers/test_clocks`, `POST /v1/test_helpers/test_clocks/:id/advance`                                                |
 | Ledger (admin)    | `GET /api/v1/admin/ledger/accounts`, `GET/POST /api/v1/admin/ledger/transactions`, `POST /api/v1/admin/ledger/transactions/:id/reverse` |
 
-Mọi `POST` nhận header `Idempotency-Key`. List dùng cursor `startingAfter` / `endingBefore`.
+Mọi `POST` nhận header `Idempotency-Key`. List dùng cursor `after` / `before`.
 
 ## Route không yêu cầu auth
 

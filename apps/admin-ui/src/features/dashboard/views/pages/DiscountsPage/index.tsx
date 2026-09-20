@@ -50,11 +50,11 @@ export default function DiscountsPage() {
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedDiscountId, setSelectedDiscountId] = useState('');
-  const { startingAfter, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: coupons, isPending } = useCouponsQuery(
-    { limit: PAGE_LIMIT, startingAfter },
+    { limit: PAGE_LIMIT, after },
     { hasPlaceholder: true },
   );
   const { data: discounts } = useDiscountsQuery({ limit: PAGE_LIMIT }, { hasPlaceholder: true });

@@ -16,7 +16,7 @@ kiến trúc thật nằm ở **price**: giá phải bất biến để hợp đ
    ở phase 3.
    `POST /v1/prices/:id` chỉ nhận `active`, `nickname`, `metadata`; mọi field khác bị từ chối ở schema
    (`additionalProperties: false`) **và** service chỉ ghi đúng ba field đó.
-2. **`removeAdditional: false` cho ajv.** Mặc định Fastify *im lặng xoá* field lạ, nghĩa là gửi
+2. **`removeAdditional: false` cho ajv.** Mặc định Fastify _im lặng xoá_ field lạ, nghĩa là gửi
    `unitAmount` vào update price sẽ trả 200 như thể hợp lệ. Với hệ tính tiền, im lặng là sai — giờ
    trả 400 `body must NOT have additional properties`.
 3. **Contract nằm trong `packages/core/src/contracts`, không tách `packages/contracts`.** Schema
@@ -26,13 +26,13 @@ kiến trúc thật nằm ở **price**: giá phải bất biến để hợp đ
 4. **Wire dùng camelCase, không snake_case như Stripe.** Mọi thứ khác bám Stripe (tên resource,
    `object`, list envelope, `metadata`, cursor `startingAfter`/`endingBefore`). Đổi sang snake_case
    là một lần `sed` ở tầng contract nếu sau này cần.
+   _Cursor đã đổi tên thành `after`/`before` — xem [ADR 0027](0027-cursor-param-rename.md)._
 5. **`Type.Unsafe<Union>(Type.Enum(XEnum))` cho mọi enum trên wire.** `Type.Enum` suy ra type là
    chính enum, không phải union — DB row và JSON sẽ không gán được. Bọc `Type.Unsafe` giữ validation
    theo enum nhưng type ra là union, đúng rule "union chỉ dùng ở boundary".
 6. **Soft delete cho customer và product.** `DELETE /v1/customers/:id` trả `{deleted: true}` như
    Stripe; mọi read đều lọc `deleted_at is null`. Unique index email chỉ áp dụng cho row chưa xoá.
-7. **Unique violation → `ConflictError`.** Lỗi driver 23505 được map ở service, không để rò lên thành
-   500.
+7. **Unique violation → `ConflictError`.** Lỗi driver 23505 được map ở service, không để rò lên thành 500.
 
 ## Hệ quả
 

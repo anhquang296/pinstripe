@@ -43,13 +43,13 @@ export default function MetersPage() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: meters, isPending } = useMetersQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       status:
         statusFilter === 'all'
           ? undefined

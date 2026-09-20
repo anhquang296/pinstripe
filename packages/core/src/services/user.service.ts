@@ -21,8 +21,8 @@ export class UserService {
   async findUsers(query: FindUsersQuery): Promise<ListResponse<UserResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT, role, status } = query;
 
-    const beforeAt = await this.resolveCursor(query.startingAfter);
-    const afterAt = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.after);
+    const afterAt = await this.resolveCursor(query.before);
     const banned = status ? status === UserStatusEnum.DISABLED : undefined;
 
     const rows = await this.fastify.userRepository.findUsers(

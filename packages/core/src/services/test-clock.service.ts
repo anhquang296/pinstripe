@@ -56,8 +56,8 @@ export class TestClockService {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
     const rows = await this.fastify.testClockRepository.findTestClocks(
       {
-        beforeAt: await this.resolveCursor(query.startingAfter),
-        afterAt: await this.resolveCursor(query.endingBefore),
+        beforeAt: await this.resolveCursor(query.after),
+        afterAt: await this.resolveCursor(query.before),
       },
       limit + 1,
     );

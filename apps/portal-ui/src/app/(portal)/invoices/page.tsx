@@ -55,10 +55,10 @@ const INVOICE_VIEWS: InvoiceView[] = [
 export default function InvoicesPage({ searchParams }: InvoicesPageProps) {
   const { view } = use(searchParams);
   const router = useRouter();
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const activeView = find(INVOICE_VIEWS, { key: toString(view) }) || ALL_INVOICES_VIEW;
   const { data: invoices, isPending } = usePortalInvoicesQuery(
-    { ...activeView.query, limit: PAGE_LIMIT, startingAfter },
+    { ...activeView.query, limit: PAGE_LIMIT, after },
     { hasPlaceholder: true },
   );
   const invoiceRows = get(invoices, 'data', []);

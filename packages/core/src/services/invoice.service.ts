@@ -1188,20 +1188,20 @@ export class InvoiceService {
 
     const exportedInvoices: InvoiceResponse[] = [];
 
-    let startingAfter: string | undefined;
+    let after: string | undefined;
     let hasMore = true;
 
     while (hasMore && exportedInvoices.length < EXPORT_ROW_LIMIT) {
       const page = await this.findCustomerInvoices(customerId, {
         ...query,
         limit: EXPORT_PAGE_SIZE,
-        startingAfter,
+        after,
       });
       const lastInvoice = _.last(page.data);
 
       exportedInvoices.push(...page.data);
       hasMore = page.hasMore && lastInvoice !== undefined;
-      startingAfter = _.get(lastInvoice, 'id');
+      after = _.get(lastInvoice, 'id');
     }
 
     const now = await this.fastify.clockService.resolveCustomerNow(customerId);
@@ -1305,8 +1305,8 @@ export class InvoiceService {
     filters: Pick<InvoiceFilters, 'statuses' | 'dueBeforeAt' | 'dueAfterAt'> = {},
   ): Promise<ListResponse<InvoiceResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter);
-    const afterAt = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.after);
+    const afterAt = await this.resolveCursor(query.before);
     const rows = await this.fastify.invoiceRepository.findInvoices(
       {
         ...filters,

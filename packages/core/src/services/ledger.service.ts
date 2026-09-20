@@ -130,8 +130,8 @@ export class LedgerService {
     const transactionRows = await this.fastify.ledgerTransactionRepository.findLedgerTransactions(
       {
         accountId,
-        beforeAt: await this.resolveCursor(query.startingAfter),
-        afterAt: await this.resolveCursor(query.endingBefore),
+        beforeAt: await this.resolveCursor(query.after),
+        afterAt: await this.resolveCursor(query.before),
       },
       limit + 1,
     );

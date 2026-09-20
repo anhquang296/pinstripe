@@ -43,13 +43,13 @@ export default function WebhookEndpointsPage() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.INTEGRATION_WRITE);
 
   const { data: webhookEndpoints, isPending } = useWebhookEndpointsQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       status:
         statusFilter === 'all'
           ? undefined

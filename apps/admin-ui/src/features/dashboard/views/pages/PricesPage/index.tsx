@@ -48,13 +48,13 @@ export default function PricesPage() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.CATALOG_WRITE);
 
   const { data: prices, isPending } = usePricesQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       active: activeFilter === 'all' ? undefined : activeFilter === 'active',
     },
     { hasPlaceholder: true },

@@ -31,12 +31,12 @@ export default function LedgerAccountsPage() {
   const navigate = useNavigate();
   const [codeFilter, setCodeFilter] = useState('all');
   const [searchCustomerId, setSearchCustomerId] = useState('');
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
 
   const { data: ledgerAccounts, isPending } = useLedgerAccountsQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       code:
         codeFilter === 'all'
           ? undefined

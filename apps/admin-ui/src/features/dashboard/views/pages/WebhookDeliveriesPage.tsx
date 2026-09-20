@@ -27,12 +27,12 @@ const STATUS_OPTIONS = [
 export default function WebhookDeliveriesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchEndpointId, setSearchEndpointId] = useState('');
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
 
   const { data: webhookDeliveries, isPending } = useWebhookDeliveriesQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       endpointId: searchEndpointId || undefined,
       status:
         statusFilter === 'all'

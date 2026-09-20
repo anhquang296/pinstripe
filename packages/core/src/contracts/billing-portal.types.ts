@@ -80,8 +80,8 @@ export const updateBillingPortalConfigurationSchema = Type.Object(
 export const findBillingPortalConfigurationsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
 );

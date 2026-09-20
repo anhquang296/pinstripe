@@ -42,7 +42,7 @@ export default function InvoicesPage() {
   const navigate = useNavigate();
   const [searchCustomerId, setSearchCustomerId] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.INVOICE_WRITE);
 
   const invoiceStatus = toEnumMember(InvoiceStatusEnum, toString(status), InvoiceStatusEnum.DRAFT);
@@ -51,7 +51,7 @@ export default function InvoicesPage() {
   const { data: invoices, isPending } = useInvoicesQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       status: invoiceStatus,
       customerId: searchCustomerId || undefined,
     },

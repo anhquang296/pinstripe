@@ -32,14 +32,14 @@ export default function TestClocksPage() {
   const { testClockId } = useParams();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.TEST_CLOCK_WRITE);
 
   const {
     data: testClocks,
     isPending,
     error,
-  } = useTestClocksQuery({ limit: PAGE_LIMIT, startingAfter }, { hasPlaceholder: true });
+  } = useTestClocksQuery({ limit: PAGE_LIMIT, after }, { hasPlaceholder: true });
 
   const { mutateAsync: createTestClock, isPending: isSaving } = useCreateTestClockMutation({
     successMessage: 'Đã tạo test clock.',

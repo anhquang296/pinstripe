@@ -131,8 +131,8 @@ export class CustomerBalanceTransactionService {
 
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
-    const beforeAt = await this.resolveCursor(query.startingAfter);
-    const afterAt = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.after);
+    const afterAt = await this.resolveCursor(query.before);
 
     const rows =
       await this.fastify.customerBalanceTransactionRepository.findCustomerBalanceTransactions(

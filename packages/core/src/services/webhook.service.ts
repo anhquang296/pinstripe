@@ -99,8 +99,8 @@ export class WebhookService {
     query: FindWebhookEndpointsQuery,
   ): Promise<ListResponse<WebhookEndpointResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveEndpointCursor(query.startingAfter);
-    const afterAt = await this.resolveEndpointCursor(query.endingBefore);
+    const beforeAt = await this.resolveEndpointCursor(query.after);
+    const afterAt = await this.resolveEndpointCursor(query.before);
     const rows = await this.fastify.webhookRepository.findWebhookEndpoints(
       { status: query.status, beforeAt, afterAt },
       limit + 1,

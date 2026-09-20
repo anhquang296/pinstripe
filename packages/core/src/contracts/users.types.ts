@@ -95,8 +95,8 @@ export const findUsersSchema = Type.Object(
     role: Type.Optional(Type.Unsafe<UserRole>(Type.Enum(UserRoleEnum))),
     status: Type.Optional(Type.Unsafe<UserStatus>(Type.Enum(UserStatusEnum))),
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
 );

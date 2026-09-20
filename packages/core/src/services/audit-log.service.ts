@@ -31,8 +31,8 @@ export class AuditLogService {
   async findAuditLogs(query: FindAuditLogsQuery): Promise<ListResponse<AuditLogResponse>> {
     const { limit = DEFAULT_AUDIT_LOG_LIMIT, actorId, action } = query;
 
-    const beforeAt = await this.resolveCursor(query.startingAfter);
-    const afterAt = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.after);
+    const afterAt = await this.resolveCursor(query.before);
 
     const rows = await this.fastify.auditLogRepository.findAuditLogs(
       { actorId, action, beforeAt, afterAt },

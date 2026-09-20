@@ -32,12 +32,12 @@ export default function PaymentIntentsPage() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchInvoiceId, setSearchInvoiceId] = useState('');
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
 
   const { data: paymentIntents, isPending } = usePaymentIntentsQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       status:
         statusFilter === 'all'
           ? undefined

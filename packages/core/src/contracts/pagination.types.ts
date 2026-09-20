@@ -8,8 +8,8 @@ export const paginationSchema = Type.Object({
   limit: Type.Optional(
     Type.Integer({ minimum: 1, maximum: MAX_PAGE_LIMIT, default: DEFAULT_PAGE_LIMIT }),
   ),
-  startingAfter: Type.Optional(Type.String()),
-  endingBefore: Type.Optional(Type.String()),
+  after: Type.Optional(Type.String()),
+  before: Type.Optional(Type.String()),
 });
 
 export function ListResponseSchema<T extends TSchema>(item: T) {

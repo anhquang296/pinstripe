@@ -307,8 +307,8 @@ export const deletedSubscriptionItemSchema = Type.Object({
 export const findSubscriptionsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     status: Type.Optional(Type.Unsafe<SubscriptionStatus>(Type.Enum(SubscriptionStatusEnum))),
     expand: Type.Optional(Type.Array(Type.String())),

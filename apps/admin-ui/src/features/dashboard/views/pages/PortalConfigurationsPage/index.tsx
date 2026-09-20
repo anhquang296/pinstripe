@@ -37,11 +37,11 @@ export default function PortalConfigurationsPage() {
   const { configurationId } = useParams();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: configurations, isPending } = useBillingPortalConfigurationsQuery(
-    { limit: PAGE_LIMIT, startingAfter },
+    { limit: PAGE_LIMIT, after },
     { hasPlaceholder: true },
   );
 

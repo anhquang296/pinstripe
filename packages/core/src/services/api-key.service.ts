@@ -65,8 +65,8 @@ export class ApiKeyService {
   async findApiKeys(query: FindApiKeysQuery): Promise<ListResponse<ApiKeyResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
-    const beforeAt = await this.resolveCursor(query.startingAfter);
-    const afterAt = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.after);
+    const afterAt = await this.resolveCursor(query.before);
 
     const rows = await this.fastify.apiKeyRepository.findApiKeys({ beforeAt, afterAt }, limit + 1);
     const hasMore = rows.length > limit;

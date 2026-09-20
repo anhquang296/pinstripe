@@ -38,11 +38,11 @@ export default function ApiKeysPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createdToken, setCreatedToken] = useState('');
   const [revokingApiKey, setRevokingApiKey] = useState<ApiKeyResponse | null>(null);
-  const { startingAfter, hasPrevious, advancePage, revertPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage } = useCursorPagination();
   const canManage = useCan(PermissionEnum.API_KEY_MANAGE);
 
   const { data: apiKeys, isPending } = useApiKeysQuery(
-    { limit: PAGE_LIMIT, startingAfter },
+    { limit: PAGE_LIMIT, after },
     { hasPlaceholder: true },
   );
 

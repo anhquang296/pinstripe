@@ -49,13 +49,13 @@ export default function RefundsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchInvoiceId, setSearchInvoiceId] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canRefund = useCan(PermissionEnum.REFUND_WRITE);
 
   const { data: refunds, isPending } = useRefundsQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       status:
         statusFilter === 'all'
           ? undefined

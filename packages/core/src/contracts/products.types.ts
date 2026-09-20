@@ -41,8 +41,8 @@ export const updateProductSchema = Type.Object(
 export const findProductsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     active: Type.Optional(Type.Boolean()),
   },
   { additionalProperties: false },

@@ -32,11 +32,11 @@ export default function CustomersPage() {
   const navigate = useNavigate();
   const [searchEmail, setSearchEmail] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.CUSTOMER_WRITE);
 
   const { data: customers, isPending } = useCustomersQuery(
-    { limit: PAGE_LIMIT, startingAfter, email: searchEmail || undefined },
+    { limit: PAGE_LIMIT, after, email: searchEmail || undefined },
     { hasPlaceholder: true },
   );
 

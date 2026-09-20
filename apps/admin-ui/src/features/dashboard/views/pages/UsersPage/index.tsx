@@ -46,13 +46,13 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canManage = useCan(PermissionEnum.USER_MANAGE);
 
   const { data: users, isPending } = useUsersQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       role:
         roleFilter === 'all'
           ? undefined

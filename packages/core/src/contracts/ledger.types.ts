@@ -187,8 +187,8 @@ export const reverseLedgerTransactionSchema = Type.Object(
 export const findLedgerTransactionsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     accountId: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
   },
@@ -198,8 +198,8 @@ export const findLedgerTransactionsSchema = Type.Object(
 export const findLedgerAccountsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 100 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     code: Type.Optional(Type.Unsafe<LedgerAccountCode>(Type.Enum(LedgerAccountCodeEnum))),
   },

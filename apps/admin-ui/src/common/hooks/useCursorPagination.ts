@@ -2,7 +2,7 @@ import { dropRight, isEmpty, last } from 'lodash-es';
 import { useCallback, useState } from 'react';
 
 export interface CursorPaginationResult {
-  startingAfter: string | undefined;
+  after: string | undefined;
   hasPrevious: boolean;
   advancePage: (lastId: string) => void;
   revertPage: () => void;
@@ -29,7 +29,7 @@ export function useCursorPagination(): CursorPaginationResult {
   }, []);
 
   return {
-    startingAfter: last(cursors),
+    after: last(cursors),
     hasPrevious: !isEmpty(cursors),
     advancePage,
     revertPage,

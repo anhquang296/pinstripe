@@ -35,8 +35,8 @@ export const findAuditLogsSchema = Type.Object(
     actorId: Type.Optional(Type.String()),
     action: Type.Optional(Type.Unsafe<AuditAction>(Type.Enum(AuditActionEnum))),
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 20 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
 );

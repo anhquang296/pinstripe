@@ -230,8 +230,8 @@ export class PaymentService {
     query: FindPaymentIntentsQuery,
   ): Promise<ListResponse<PaymentIntentResponse>> {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
-    const beforeAt = await this.resolveCursor(query.startingAfter);
-    const afterAt = await this.resolveCursor(query.endingBefore);
+    const beforeAt = await this.resolveCursor(query.after);
+    const afterAt = await this.resolveCursor(query.before);
     const rows = await this.fastify.paymentIntentRepository.findPaymentIntents(
       {
         invoiceId: query.invoiceId,

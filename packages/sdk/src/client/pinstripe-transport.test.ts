@@ -51,7 +51,7 @@ it('keeps falsy query values and drops undefined ones', async () => {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ hasMore: false, data: [] }));
   const { client } = setup(fetchImpl);
 
-  await client.customers.find({ limit: 0, email: '', startingAfter: undefined } as never);
+  await client.customers.find({ limit: 0, email: '', after: undefined } as never);
 
   expect(readCall(fetchImpl).url).toBe('/v1/customers?limit=0&email=');
 });

@@ -122,8 +122,8 @@ export const updateCouponSchema = Type.Object(
 export const findCouponsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     expand: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
@@ -155,8 +155,8 @@ export const updatePromotionCodeSchema = Type.Object(
 export const findPromotionCodesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     couponId: Type.Optional(Type.String()),
     code: Type.Optional(Type.String()),
     active: Type.Optional(Type.Boolean()),
@@ -187,8 +187,8 @@ export const updateDiscountSchema = Type.Object(
 export const findDiscountsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     subscriptionId: Type.Optional(Type.String()),
     invoiceId: Type.Optional(Type.String()),

@@ -259,8 +259,8 @@ export const updateInvoiceItemSchema = Type.Object(
 export const findInvoiceItemsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     invoiceId: Type.Optional(Type.String()),
     isPending: Type.Optional(Type.Boolean()),
@@ -321,8 +321,8 @@ export const creditNoteParamsSchema = Type.Object({
 export const findInvoicesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     subscriptionId: Type.Optional(Type.String()),
     status: Type.Optional(Type.Unsafe<InvoiceStatus>(Type.Enum(InvoiceStatusEnum))),
@@ -334,8 +334,8 @@ export const findInvoicesSchema = Type.Object(
 export const findCreditNotesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     invoiceId: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     expand: Type.Optional(Type.Array(Type.String())),

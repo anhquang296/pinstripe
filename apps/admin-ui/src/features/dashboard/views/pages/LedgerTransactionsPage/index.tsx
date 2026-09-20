@@ -37,11 +37,11 @@ export default function LedgerTransactionsPage() {
   const navigate = useNavigate();
   const [searchCustomerId, setSearchCustomerId] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.LEDGER_WRITE);
 
   const { data: ledgerTransactions, isPending } = useLedgerTransactionsQuery(
-    { limit: PAGE_LIMIT, startingAfter, customerId: searchCustomerId || undefined },
+    { limit: PAGE_LIMIT, after, customerId: searchCustomerId || undefined },
     { hasPlaceholder: true },
   );
 

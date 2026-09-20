@@ -1,6 +1,6 @@
 ---
 title: Phân trang
-description: Cursor pagination với limit, startingAfter và endingBefore.
+description: Cursor pagination với limit, after và before.
 sidebar:
   order: 3
 ---
@@ -15,19 +15,19 @@ interface ListResponse<T> {
 }
 ```
 
-| Tham số         | Ý nghĩa                                        |
-| --------------- | ---------------------------------------------- |
-| `limit`         | Số phần tử mỗi trang, `1`–`100`, mặc định `10` |
-| `startingAfter` | Lấy các phần tử **sau** id này                 |
-| `endingBefore`  | Lấy các phần tử **trước** id này               |
+| Tham số  | Ý nghĩa                                        |
+| -------- | ---------------------------------------------- |
+| `limit`  | Số phần tử mỗi trang, `1`–`100`, mặc định `10` |
+| `after`  | Lấy các phần tử **sau** id này                 |
+| `before` | Lấy các phần tử **trước** id này               |
 
 Duyệt hết một collection:
 
 ```ts
-let startingAfter: string | undefined;
+let after: string | undefined;
 
 for (;;) {
-  const page = await pinstripe.customers.find({ limit: 100, startingAfter });
+  const page = await pinstripe.customers.find({ limit: 100, after });
 
   for (const customer of page.data) {
     await syncCustomer(customer);
@@ -36,7 +36,7 @@ for (;;) {
   const lastCustomer = page.data.at(-1);
 
   if (page.hasMore && lastCustomer) {
-    startingAfter = lastCustomer.id;
+    after = lastCustomer.id;
 
     continue;
   }

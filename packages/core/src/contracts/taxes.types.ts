@@ -126,8 +126,8 @@ export const updateTaxRateSchema = Type.Object(
 export const findTaxRatesSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     active: Type.Optional(Type.Boolean()),
     inclusive: Type.Optional(Type.Boolean()),
     country: Type.Optional(Type.String()),
@@ -150,8 +150,8 @@ export const createTaxIdSchema = Type.Object(
 export const findTaxIdsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
-    startingAfter: Type.Optional(Type.String()),
-    endingBefore: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    before: Type.Optional(Type.String()),
     customerId: Type.Optional(Type.String()),
     expand: Type.Optional(Type.Array(Type.String())),
   },

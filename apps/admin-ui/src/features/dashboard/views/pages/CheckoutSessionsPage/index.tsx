@@ -50,13 +50,13 @@ export default function CheckoutSessionsPage() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { startingAfter, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
+  const { after, hasPrevious, advancePage, revertPage, resetPage } = useCursorPagination();
   const canWrite = useCan(PermissionEnum.SUBSCRIPTION_WRITE);
 
   const { data: checkoutSessions, isPending } = useCheckoutSessionsQuery(
     {
       limit: PAGE_LIMIT,
-      startingAfter,
+      after,
       status:
         statusFilter === 'all'
           ? undefined
