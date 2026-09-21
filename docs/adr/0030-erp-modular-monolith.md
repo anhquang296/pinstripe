@@ -101,12 +101,20 @@ có ích.
 Một app nội bộ duy nhất (`apps/erp-ui`), bên trong chỉ có `features/<feature>/`.
 `features/billing` giữ mọi màn billing, `features/admin` giữ bề mặt của platform (user, role, API key,
 webhook, settings). Mỗi feature export một `FeatureDefinition` gồm `routes`, `navigationItems` và
-`reportRangePaths`; `features/auth` — nơi có đăng nhập, `RequireSession`, layout, sidebar, topbar — ghép chúng trong `features.ts` — route thành con của `RequireSession` →
-`AppLayout`, mục menu thành nhóm theo `NavigationGroupEnum`. `features/auth` là feature duy nhất được import feature khác; feature còn lại không import `auth` hay nhau, `common/` không import feature nào; `apps/erp-ui/eslint.config.js` chặn cả ba chiều. URL của mọi
+`reportRangePaths`; `features/auth` — nơi có đăng nhập, `RequireSession`, layout, sidebar, topbar — ghép chúng — route của mỗi feature thành con của `RequireSession` →
+`FeatureLayout` của chính nó, mục menu thành nhóm theo `NavigationGroupEnum`. `features/auth` là feature duy nhất được import feature khác; feature còn lại không import `auth` hay nhau, `common/` không import feature nào; `apps/erp-ui/eslint.config.js` chặn cả ba chiều. URL của mọi
 màn không đổi.
 
 URL của mọi feature trừ `auth` mang prefix bằng tên feature (`/billing/customers`, `/admin/users`,
-`/admin/settings/account`); `/` chuyển hướng về `/billing`. Prefix khai một lần trong `routes/paths.ts`,
+`/admin/settings/account`).
+
+UI có hai tầng, theo kiểu app launcher của Odoo. Sau đăng nhập, `/` là màn chọn ứng dụng: mỗi feature
+là một ô (`title`, `icon`, `tone` trong `FeatureDefinition`), chỉ hiện khi người dùng thấy được ít nhất
+một mục menu của nó. Chọn một ô là vào tầng feature: mỗi feature có `FeatureLayout` riêng, sidebar chỉ
+chứa menu của chính nó — không còn một sidebar gộp mọi module, thứ sẽ phình ra theo số module.
+`features/admin` hiện là ứng dụng "Cài đặt" (tài khoản, người dùng, vai trò, API key, webhook), với lối
+tắt ở top bar; cài đặt riêng của một module nằm trong nhóm "Cài đặt" của chính module đó (ví dụ
+`/crm/settings`). Prefix khai một lần trong `routes/paths.ts`,
 page dựng URL bằng hằng path và `generatePath`, không viết chuỗi.
 
 ### 8. Ranh giới được lint

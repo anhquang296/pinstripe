@@ -2,20 +2,22 @@ import type { Permission } from '@vxrerp/platform/contracts';
 
 export enum NavigationGroupEnum {
   OVERVIEW = 'overview',
-  CRM = 'crm',
   SALES = 'sales',
   FINANCE = 'finance',
+  ACCOUNT = 'account',
+  ACCESS = 'access',
   DEVELOPERS = 'developers',
-  ADMIN = 'admin',
+  SETTINGS = 'settings',
 }
 
 export const NAVIGATION_GROUP_LABELS: Record<NavigationGroupEnum, string> = {
   [NavigationGroupEnum.OVERVIEW]: 'Tổng quan',
-  [NavigationGroupEnum.CRM]: 'CRM',
   [NavigationGroupEnum.SALES]: 'Sales',
   [NavigationGroupEnum.FINANCE]: 'Finance',
+  [NavigationGroupEnum.ACCOUNT]: 'Tài khoản',
+  [NavigationGroupEnum.ACCESS]: 'Người dùng & quyền',
   [NavigationGroupEnum.DEVELOPERS]: 'Developers',
-  [NavigationGroupEnum.ADMIN]: 'Admin',
+  [NavigationGroupEnum.SETTINGS]: 'Cài đặt',
 };
 
 export interface NavigationItem {
@@ -24,7 +26,7 @@ export interface NavigationItem {
   title: string;
   description: string;
   initials: string;
-  permission: Permission;
+  permission: Permission | null;
 }
 
 export interface NavigationGroup {

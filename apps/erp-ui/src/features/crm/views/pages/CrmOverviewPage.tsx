@@ -9,8 +9,9 @@ export default function CrmOverviewPage() {
         <Alert.Content>
           <Alert.Title>Module CRM đang được dựng</Alert.Title>
           <Alert.Description>
-            Module đã cắm vào ERP: có route riêng dưới /crm, nhóm menu riêng, schema dữ liệu riêng
-            và nhận event khách hàng từ Billing. Tính năng sẽ được thêm vào đúng chỗ này.
+            Module đã cắm vào ERP: có ô riêng trên màn chọn ứng dụng, sidebar và route riêng dưới
+            /crm, schema dữ liệu riêng, và nhận event khách hàng từ Billing. Tính năng sẽ được thêm
+            vào đúng chỗ này.
           </Alert.Description>
         </Alert.Content>
       </Alert>
