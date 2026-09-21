@@ -1,6 +1,6 @@
 import type { StatusLabel } from '@features/portal/constants/labels';
 import { INVOICE_STATUS_LABELS, OVERDUE_INVOICE_LABEL } from '@features/portal/constants/labels';
-import { InvoiceStatusEnum } from '@vxrerp/core/contracts';
+import { InvoiceStatusEnum } from '@vxrerp/billing/contracts';
 import type { InvoiceResponse } from '@vxrerp/sdk';
 
 const MILLISECONDS_PER_DAY = 86_400_000;

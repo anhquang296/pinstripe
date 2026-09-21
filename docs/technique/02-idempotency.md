@@ -11,9 +11,9 @@ Tài liệu này nói cơ chế hiện có làm được đến đâu, dùng th�
 Code liên quan:
 
 - [`apps/api/src/plugins/idempotency.plugin.ts`](../../apps/api/src/plugins/idempotency.plugin.ts) — hook vào vòng đời request
-- [`packages/core/src/services/idempotency.service.ts`](../../packages/core/src/services/idempotency.service.ts) — toàn bộ quyết định
-- [`packages/core/src/repositories/idempotency-key.repository.ts`](../../packages/core/src/repositories/idempotency-key.repository.ts) — truy cập bảng
-- [`packages/core/src/database/schemas/idempotency-keys.schema.ts`](../../packages/core/src/database/schemas/idempotency-keys.schema.ts) — schema
+- [`packages/platform/src/services/idempotency.service.ts`](../../packages/platform/src/services/idempotency.service.ts) — toàn bộ quyết định
+- [`packages/platform/src/repositories/idempotency-key.repository.ts`](../../packages/platform/src/repositories/idempotency-key.repository.ts) — truy cập bảng
+- [`packages/platform/src/database/schemas/idempotency-keys.schema.ts`](../../packages/platform/src/database/schemas/idempotency-keys.schema.ts) — schema
 
 Bối cảnh rộng hơn: [flow 01 — vòng đời request](../flows/01-request-lifecycle.md). Những giới hạn
 đã biết được liệt kê cô đọng ở [PITFALLS §5](../PITFALLS.md#5-idempotency-bảo-vệ-đến-đâu); ở đây
@@ -30,15 +30,15 @@ uniqueIndex('idempotency_keys_scope_key_route_idx').on(scope, key, route)
 Ba cột đó là **danh tính** của request; `request_hash` không nằm trong index mà là **chữ ký** để
 kiểm tra sau.
 
-| Cột            | Từ đâu ra                                         | Ghi chú                                                                           |
-| -------------- | ------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `scope`        | hằng `'default'` trong plugin                     | chỗ giữ sẵn cho multi-tenant; hiện **mọi caller dùng chung một scope**            |
-| `key`          | header `Idempotency-Key` của client               | server không sinh, không kiểm tra định dạng                                       |
-| `route`        | `request.routeOptions.url`                        | **route template**, ví dụ `/v1/invoices/:invoiceId/finalize`                      |
-| `request_hash` | `sha256(JSON.stringify({ params, body }))`        | path param + body; không querystring, không header                                |
-| `status`       | `in_progress` → `succeeded` \| `failed`           | [`IdempotencyStatusEnum`](../../packages/core/src/contracts/idempotency.types.ts) |
-| `response_*`   | status code + body đã trả về                      | dùng để replay                                                                    |
-| `expires_at`   | `now + IDEMPOTENCY_RETENTION_HOURS` (mặc định 24) | có index, nhưng xem [§ Dọn dẹp](#dọn-dẹp-hàng-hết-hạn)                            |
+| Cột            | Từ đâu ra                                         | Ghi chú                                                                               |
+| -------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `scope`        | hằng `'default'` trong plugin                     | chỗ giữ sẵn cho multi-tenant; hiện **mọi caller dùng chung một scope**                |
+| `key`          | header `Idempotency-Key` của client               | server không sinh, không kiểm tra định dạng                                           |
+| `route`        | `request.routeOptions.url`                        | **route template**, ví dụ `/v1/invoices/:invoiceId/finalize`                          |
+| `request_hash` | `sha256(JSON.stringify({ params, body }))`        | path param + body; không querystring, không header                                    |
+| `status`       | `in_progress` → `succeeded` \| `failed`           | [`IdempotencyStatusEnum`](../../packages/platform/src/contracts/idempotency.types.ts) |
+| `response_*`   | status code + body đã trả về                      | dùng để replay                                                                        |
+| `expires_at`   | `now + IDEMPOTENCY_RETENTION_HOURS` (mặc định 24) | có index, nhưng xem [§ Dọn dẹp](#dọn-dẹp-hàng-hết-hạn)                                |
 
 Hai điểm quan trọng đọc ra từ bảng trên:
 
@@ -96,7 +96,7 @@ thắng, người thua nhận 0 row và đi nhánh "đã có hàng".
 ## Năm nhánh của `beginRequest`
 
 Đây là toàn bộ logic quyết định, theo đúng thứ tự kiểm tra trong
-[`resolveReplay`](../../packages/core/src/services/idempotency.service.ts):
+[`resolveReplay`](../../packages/platform/src/services/idempotency.service.ts):
 
 | #   | Tình huống                                             | Kết quả                                                     | Client thấy gì                              |
 | --- | ------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------- |
@@ -180,8 +180,8 @@ tự truyền `params` — trường này bắt buộc trong `BeginIdempotentReq
 request nhắm vào hai đối tượng khác nhau lại có chung một hash. Không có `params` thì truyền `{}`.
 
 Tham số vận hành duy nhất là `IDEMPOTENCY_RETENTION_HOURS`
-([`env.schema.ts:56`](../../packages/core/src/config/env.schema.ts), mặc định `24`), nạp vào service
-ở [`service-registry.plugin.ts:27`](../../packages/core/src/plugins/service-registry.plugin.ts).
+([`env.schema.ts:56`](../../packages/platform/src/config/env.schema.ts), mặc định `24`), nạp vào service
+ở [`service-registry.plugin.ts:27`](../../packages/platform/src/plugins/service-registry.plugin.ts).
 
 ## Bốn giới hạn phải biết
 
@@ -220,13 +220,13 @@ vô hạn.
 Cho tới khi có job dọn, dọn tay bằng SQL:
 
 ```sql
-DELETE FROM idempotency_keys WHERE expires_at < now();
+DELETE FROM platform.idempotency_keys WHERE expires_at < now();
 ```
 
 Và để gỡ một key kẹt ở `in_progress`:
 
 ```sql
-DELETE FROM idempotency_keys
+DELETE FROM platform.idempotency_keys
 WHERE scope = 'default' AND key = '<idempotency-key>' AND route = '/v1/...';
 ```
 
@@ -237,12 +237,12 @@ thì giữ lại `request_hash` cũ và request tiếp theo với body khác v�
 
 Header `Idempotency-Key` chỉ bảo vệ **biên HTTP**. Bên trong, mỗi tầng tự chống lặp theo cách riêng:
 
-| Tầng              | Cơ chế                                                                                                      | Ở đâu                                                                                                                                                        |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Cổng thanh toán   | `idempotencyKey` gửi kèm sang PSP, dẫn xuất từ id nội bộ: `charge:${paymentIntentId}`, `refund:${refundId}` | [`payment.service.ts:99`](../../packages/core/src/services/payment.service.ts), [`refund.service.ts:55`](../../packages/core/src/services/refund.service.ts) |
-| Meter event       | `identifier` duy nhất cho mỗi meter, chặn bằng Redis trong cửa sổ `dedupWindowDays`                         | [`meter-event.service.ts`](../../packages/core/src/services/meter-event.service.ts)                                                                          |
-| Sổ cái            | `external_id` có unique index — bút toán cho cùng một sự kiện chỉ ghi một lần                               | [`ledger.service.ts`](../../packages/core/src/services/ledger.service.ts)                                                                                    |
-| Outbox → consumer | **at-least-once**: consumer phải tự idempotent                                                              | [flow 02](../flows/02-event-pipeline.md)                                                                                                                     |
+| Tầng              | Cơ chế                                                                                                      | Ở đâu                                                                                                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cổng thanh toán   | `idempotencyKey` gửi kèm sang PSP, dẫn xuất từ id nội bộ: `charge:${paymentIntentId}`, `refund:${refundId}` | [`payment.service.ts:99`](../../packages/modules/billing/src/services/payment.service.ts), [`refund.service.ts:55`](../../packages/modules/billing/src/services/refund.service.ts) |
+| Meter event       | `identifier` duy nhất cho mỗi meter, chặn bằng Redis trong cửa sổ `dedupWindowDays`                         | [`meter-event.service.ts`](../../packages/modules/billing/src/services/meter-event.service.ts)                                                                                     |
+| Sổ cái            | `external_id` có unique index — bút toán cho cùng một sự kiện chỉ ghi một lần                               | [`ledger.service.ts`](../../packages/modules/billing/src/services/ledger.service.ts)                                                                                               |
+| Outbox → consumer | **at-least-once**: consumer phải tự idempotent                                                              | [flow 02](../flows/02-event-pipeline.md)                                                                                                                                           |
 
 Chỗ chưa kín ở tầng cuối: `webhook_deliveries` **không** có unique index trên `(endpoint_id, event_id)`,
 mà `handleDomainEvent` sinh id delivery mới cho mỗi lần chạy. Job domain-event retry vì thế tạo thêm
@@ -253,13 +253,13 @@ ghi dữ liệu phải tự hỏi "chạy hai lần thì sao", chứ không dự
 
 ## Test
 
-[`tests/idempotency.integration.test.ts`](../../packages/core/tests/idempotency.integration.test.ts)
+[`tests/idempotency.integration.test.ts`](../../packages/platform/tests/idempotency.integration.test.ts)
 phủ sáu trường hợp: lần đầu không replay, lặp lại cùng body thì replay, lặp lại khác body thì `400`,
 lặp lại khi đang chạy thì `409`, và hai case cho `params` — cùng key nhắm vào path param khác thì
 `400`, cùng path param mà không có body thì replay. Chạy bằng:
 
 ```bash
-pnpm --filter @vxrerp/core test:integration
+pnpm --filter @vxrerp/billing test:integration
 ```
 
 Hai nhánh chưa có test và đáng thêm khi động vào khu vực này: đường retry sau `failed` (nhánh 6), và

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PortalRoleEnum } from '@vxrerp/core/contracts';
+import { PortalRoleEnum } from '@vxrerp/billing/contracts';
 import type { CreatePortalMembershipPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

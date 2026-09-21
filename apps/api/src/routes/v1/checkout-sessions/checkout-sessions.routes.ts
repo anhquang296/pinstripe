@@ -5,8 +5,8 @@ import {
   checkoutSessionSchema,
   createCheckoutSessionSchema,
   findCheckoutSessionsSchema,
-  ListResponseSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const checkoutSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

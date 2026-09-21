@@ -123,9 +123,9 @@ Phía API, mọi route `/portal/*` lấy `customerId` từ session chứ không 
 
 ## Contract dùng chung
 
-Cả hai frontend import type thẳng từ `@vxrerp/core/contracts` — cùng nguồn với schema TypeBox mà API dùng để validate. Đổi contract ở core là cả hai app báo lỗi biên dịch ngay, không lệch âm thầm.
+Cả hai frontend import type thẳng từ `@vxrerp/platform/contracts` và `@vxrerp/billing/contracts` — cùng nguồn với schema TypeBox mà API dùng để validate. Đổi contract ở đó là cả hai app báo lỗi biên dịch ngay, không lệch âm thầm.
 
-Hệ quả vận hành: `@vxrerp/core` phải được build trước thì app mới chạy được — xem [shared-package-build](../../.claude/rules/agentkit/profiles/monorepo-turborepo/shared-package-build.md).
+Hệ quả vận hành: `@vxrerp/platform` và `@vxrerp/billing` phải được build trước thì app mới chạy được — xem [shared-package-build](../../.claude/rules/agentkit/profiles/monorepo-turborepo/shared-package-build.md).
 
 ## Đọc tiếp
 

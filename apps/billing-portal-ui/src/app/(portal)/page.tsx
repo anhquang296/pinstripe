@@ -7,7 +7,7 @@ import { formatCurrency, formatDate } from '@common/utils/format';
 import InvoicesTable from '@features/portal/components/InvoicesTable';
 import SubscriptionCard from '@features/portal/components/SubscriptionCard';
 import { Card, Link } from '@heroui/react';
-import { SubscriptionStatusEnum } from '@vxrerp/core/contracts';
+import { SubscriptionStatusEnum } from '@vxrerp/billing/contracts';
 import type { InvoiceResponse } from '@vxrerp/sdk';
 import {
   usePortalAccountQuery,

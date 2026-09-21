@@ -1,10 +1,10 @@
-import type { CheckoutSessionResponse } from '@vxrerp/core/contracts';
+import type { CheckoutSessionResponse } from '@vxrerp/billing/contracts';
 import {
   CheckoutSessionModeEnum,
   CurrencyEnum,
   RecurringIntervalEnum,
-} from '@vxrerp/core/contracts';
-import { HostedResourceEnum } from '@vxrerp/core/utils';
+} from '@vxrerp/billing/contracts';
+import { HostedResourceEnum } from '@vxrerp/billing/utils';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 

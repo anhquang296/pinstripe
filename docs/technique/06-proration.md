@@ -5,11 +5,11 @@ thứ. Ngày 10 của kỳ khách nâng lên gói 1.000.000, và bây giờ kỳ
 nó: mười ngày đầu đáng giá gói cũ, hai mươi ngày sau đáng giá gói mới. Proration là cách hệ thống
 trả lời câu "kỳ này thu bao nhiêu" khi kỳ ấy chứa nhiều hơn một hợp đồng.
 
-Code: [`rating.ts`](../../packages/core/src/utils/rating.ts),
-[`rating.service.ts`](../../packages/core/src/services/rating.service.ts),
-[`subscription.service.ts`](../../packages/core/src/services/subscription.service.ts),
-[`invoice.service.ts`](../../packages/core/src/services/invoice.service.ts),
-migration [`0015_proration_billing_window.sql`](../../packages/core/migrations/0015_proration_billing_window.sql).
+Code: [`rating.ts`](../../packages/modules/billing/src/utils/rating.ts),
+[`rating.service.ts`](../../packages/modules/billing/src/services/rating.service.ts),
+[`subscription.service.ts`](../../packages/modules/billing/src/services/subscription.service.ts),
+[`invoice.service.ts`](../../packages/modules/billing/src/services/invoice.service.ts),
+migration [`0000_baseline.sql`](../../packages/modules/billing/migrations/0000_baseline.sql).
 Quyết định và các phương án bị loại nằm ở [ADR 0013](../adr/0013-arrears-proration.md); tài liệu này
 nói **cơ chế**: một lát tiền được tính ra như thế nào, ba `prorationBehavior` khác nhau ở đúng chỗ
 nào, và một lần đổi gói để lại dấu vết gì trong database.
@@ -60,7 +60,7 @@ một âm một dương, net lại thành chênh lệch.
 | Lát gói mới              | dòng dương — phần còn lại         | dòng dương — phần còn lại         |
 | Tổng một kỳ              | chênh lệch                        | tổng hai lát                      |
 
-`RatingLine.isCredit` ([rating.ts:44](../../packages/core/src/utils/rating.ts)) vẫn còn trong engine
+`RatingLine.isCredit` ([rating.ts:44](../../packages/modules/billing/src/utils/rating.ts)) vẫn còn trong engine
 và vẫn có unit test cho nhánh âm, nhưng **không producer nào trong code sản phẩm set nó**. Nó là chỗ
 cắm sẵn cho chế độ advance sau này, không phải code chết — và cũng có nghĩa là hôm nay
 `rateLines` không bao giờ trả về số âm.
@@ -78,7 +78,7 @@ nhau, và trước migration 0015 chúng bị gộp làm một:
 | `billed_through`   | ngừng phát sinh tiền lúc nào; `NULL` = chưa | rating                       |
 | `invoiced_through` | phần cửa sổ **đã xuất hoá đơn** tới đâu     | rating, để không thu hai lần |
 
-([subscriptions.schema.ts](../../packages/core/src/database/schemas/subscriptions.schema.ts))
+([subscriptions.schema.ts](../../packages/modules/billing/src/database/schemas/subscriptions.schema.ts))
 
 > **Đã đổi ở phase 16.** Ba cột cửa sổ (`billed_from` / `billed_through` / `invoiced_through`) không
 > còn nằm trên `subscription_items` mà ở bảng riêng `subscription_item_changes`, mỗi hàng một cửa sổ
@@ -96,7 +96,7 @@ nói dối về các kỳ trước. Vì sao không dùng một cột enum — xe
 [ADR 0013 §2](../adr/0013-arrears-proration.md).
 
 Hai bất biến được ép ở tầng DB, không phải ở tầng service
-([migration 0015](../../packages/core/migrations/0015_proration_billing_window.sql)):
+([migration 0015](../../packages/modules/billing/migrations/0000_baseline.sql)):
 
 ```sql
 CHECK (("deleted_at" IS NULL) = ("billed_through" IS NULL))
@@ -109,7 +109,7 @@ Câu thứ nhất: item còn sống ⟺ cửa sổ còn mở. Câu thứ hai: ch
 ## Hàm quyết định tất cả: `resolveBillingWindow`
 
 Mọi câu hỏi "item này đóng góp bao nhiêu vào kỳ này" đi qua đúng một hàm thuần
-([rating.ts:71-92](../../packages/core/src/utils/rating.ts)):
+([rating.ts:71-92](../../packages/modules/billing/src/utils/rating.ts)):
 
 ```ts
 const invoicedThroughMs = invoicedThrough ? invoicedThrough.getTime() : periodStart.getTime();
@@ -135,16 +135,16 @@ tính**, và **phần chưa xuất hoá đơn**. `null` nghĩa là item không �
 | lát đã được hoá đơn proration thu                   | `null` — `invoiced_through` đẩy start = end |
 
 `isPartial` là thứ quyết định hai việc ở tầng trên
-([rating.service.ts:125-130](../../packages/core/src/services/rating.service.ts)):
+([rating.service.ts:125-130](../../packages/modules/billing/src/services/rating.service.ts)):
 
 - **loại dòng**: metered → `usage`; partial → `proration`; còn lại → `subscription`
 - **có prorate không**: chỉ dòng partial **và không metered** mới mang `usageStart` / `usageEnd`
 
 Dòng metered cố tình giữ `prorationFactor = 1`. Usage đã được đo đúng trong cửa sổ hẹp rồi
-([`resolveUsage`](../../packages/core/src/services/rating.service.ts) truyền `window.start` /
+([`resolveUsage`](../../packages/modules/billing/src/services/rating.service.ts) truyền `window.start` /
 `window.end` xuống meter); nhân thêm hệ số nữa là chia hai lần cùng một thứ.
 
-Phép nhân cuối ([rating.ts:213-230](../../packages/core/src/utils/rating.ts)):
+Phép nhân cuối ([rating.ts:213-230](../../packages/modules/billing/src/utils/rating.ts)):
 
 ```
 prorationFactor = clamp(usedMs / periodMs, 0, 1)
@@ -157,7 +157,7 @@ Tỷ lệ theo **millisecond**, không theo ngày. Một kỳ tháng 2 và một
 ## Ba behavior là ba mốc `boundary`
 
 Toàn bộ khác biệt giữa ba chế độ nằm gọn trong ba dòng của
-[`updateSubscription`](../../packages/core/src/services/subscription.service.ts):
+[`updateSubscription`](../../packages/modules/billing/src/services/subscription.service.ts):
 
 ```ts
 const prorationBehavior = payload.prorationBehavior ?? ProrationBehaviorEnum.CREATE_PRORATIONS;
@@ -177,7 +177,7 @@ duy nhất, nên không có khe hở và không có chồng lấn.
 Hai ràng buộc ở cùng chỗ:
 
 - `prorationBehavior` **không có `items` là 400**
-  ([subscription.service.ts:174](../../packages/core/src/services/subscription.service.ts)):
+  ([subscription.service.ts:174](../../packages/modules/billing/src/services/subscription.service.ts)):
   `prorationBehavior only applies when items change`. Không có lát nào để cắt khi không có gì đổi.
 - `cancelSubscription` **không nhận** `prorationBehavior`. Huỷ giữa kỳ không sinh credit — xem
   [§ Giới hạn](#giới-hạn-phải-biết).
@@ -231,7 +231,7 @@ ngày 25 — khách sẽ được tính giá rẻ cho cả hai mươi lăm ngày
 ### `always_invoice` — thu ngay phần đã tiêu thụ
 
 Tại mốc swap, trong **cùng transaction** với việc thay item
-([subscription.service.ts:217](../../packages/core/src/services/subscription.service.ts)):
+([subscription.service.ts:217](../../packages/modules/billing/src/services/subscription.service.ts)):
 
 | Lúc           | Hoá đơn                      | `billing_reason`      | Dòng                  | Tổng        |
 | ------------- | ---------------------------- | --------------------- | --------------------- | ----------- |
@@ -249,7 +249,7 @@ Câu hỏi tự nhiên: sao không thu luôn 666.667 của gói mới cho xong m
 Vì tại mốc swap, thứ duy nhất đã thực sự được tiêu thụ là mười ngày vừa trôi qua. Thu trước hai mươi
 ngày chưa dùng **chính là bill in advance**, và nó phá vỡ bất biến `[periodStart, periodEnd]` mà
 `ensureDraftInvoice` và guard của `finalizeInvoice` đang dựa vào. Cho nên
-[`rateProrationInvoice`](../../packages/core/src/services/rating.service.ts) lọc đúng một điều kiện:
+[`rateProrationInvoice`](../../packages/modules/billing/src/services/rating.service.ts) lọc đúng một điều kiện:
 `deletedAtIsNull: false` — chỉ những item đã đóng cửa sổ.
 
 Và nó quét **mọi** cửa sổ đã đóng chưa xuất hoá đơn trong kỳ, không chỉ cửa sổ do lần gọi này đóng.
@@ -257,7 +257,7 @@ Một lần swap `create_prorations` hôm trước cũng để lại một lát 
 `always_invoice` hôm nay dọn cả hai.
 
 Sau khi ghi hoá đơn, `markSubscriptionItemsInvoiced` set `invoiced_through = billed_through`
-([subscription.repository.ts:134-148](../../packages/core/src/repositories/subscription.repository.ts)).
+([subscription.repository.ts:134-148](../../packages/modules/billing/src/repositories/subscription.repository.ts)).
 Đến cuối kỳ, `resolveBillingWindow` của item đó cho `startMs = endMs` → `null` → không lặp lại. Đó là
 toàn bộ cơ chế chống thu hai lần.
 
@@ -265,7 +265,7 @@ toàn bộ cơ chế chống thu hai lần.
 
 Hoá đơn proration mang đúng `periodStart` của kỳ hiện tại, nên nó **trùng kỳ** với hoá đơn cuối kỳ.
 Unique index cũ phải thu hẹp lại
-([invoices.schema.ts:62-64](../../packages/core/src/database/schemas/invoices.schema.ts)):
+([invoices.schema.ts:62-64](../../packages/modules/billing/src/database/schemas/invoices.schema.ts)):
 
 ```sql
 CREATE UNIQUE INDEX invoices_subscription_cycle_period_idx
@@ -275,7 +275,7 @@ CREATE UNIQUE INDEX invoices_subscription_cycle_period_idx
 
 Kéo theo một ràng buộc **bắt buộc** ở tầng service: `findPeriodInvoice` phải lọc
 `billingReason: SUBSCRIPTION_CYCLE`
-([invoice.service.ts:402-413](../../packages/core/src/services/invoice.service.ts)). Không lọc, nó
+([invoice.service.ts:402-413](../../packages/modules/billing/src/services/invoice.service.ts)). Không lọc, nó
 trả về hoá đơn proration như thể đó là draft của kỳ này, `ensureDraftInvoice` báo `isCreated: false`,
 và **billing run âm thầm ngừng draft** — không có gì throw, không có gì trong log. Đây là chế độ hỏng
 tệ nhất của cả tính năng, và nó được pin bằng một test riêng
@@ -284,7 +284,7 @@ tệ nhất của cả tính năng, và nó được pin bằng một test riên
 ## Void một hoá đơn proration phải mở lại cửa sổ
 
 `invoiced_through` là lời khẳng định "đã thu rồi". Void hoá đơn làm lời đó sai, nên void phải rút nó
-lại ([invoice.service.ts:339-341, 392-400](../../packages/core/src/services/invoice.service.ts)):
+lại ([invoice.service.ts:339-341, 392-400](../../packages/modules/billing/src/services/invoice.service.ts)):
 
 ```ts
 if (invoice.billingReason === BillingReasonEnum.SUBSCRIPTION_UPDATE) {
@@ -402,7 +402,7 @@ Vòng đời và cửa sổ cạnh nhau — cột trái nói row còn sống kh�
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select i.id, p.unit_amount, i.created_at, i.deleted_at, i.billed_from, i.billed_through, i.invoiced_through
- from subscription_items i join prices p on p.id = i.price_id
+ from billing.subscription_items i join billing.prices p on p.id = i.price_id
  where i.subscription_id = 'sub_...'
  order by i.created_at"
 ```
@@ -412,7 +412,7 @@ Các lát đã thành dòng hoá đơn, kèm hệ số:
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select v.number, v.billing_reason, l.type, l.proration_factor, l.amount
- from invoice_line_items l join invoices v on v.id = l.invoice_id
+ from billing.invoice_line_items l join billing.invoices v on v.id = l.invoice_id
  where v.subscription_id = 'sub_...'
  order by v.created_at, l.created_at"
 ```
@@ -434,7 +434,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -
   và mint lại. Nên một lần "thêm một add-on" cũng re-anchor `billed_from` của các item không liên
   quan về `boundary`, biến chúng thành dòng partial. Có sẵn từ trước, cố ý để ngoài scope.
 - **Draft mắc kẹt.** Update sau khi kỳ đã roll nhưng trước khi finalize thì guard
-  [invoice.service.ts:126](../../packages/core/src/services/invoice.service.ts) từ chối draft đó vĩnh
+  [invoice.service.ts:126](../../packages/modules/billing/src/services/invoice.service.ts) từ chối draft đó vĩnh
   viễn.
 - **`finalizeInvoice` dùng `clock.now()` thật**, còn đường proration thread `resolveNow(testClockId)`
   đúng. Subscription gắn test clock vì thế nhận `finalizedAt` / `dueAt` lệch — lý do không liên quan
@@ -455,7 +455,7 @@ Danh sách đầy đủ kèm lý do chấp nhận: [ADR 0013 §Giới hạn](../
 - **Backfill `billed_through = deleted_at` là điều kiện sống còn của migration 0015.** Rating không
   còn lọc `deleted_at`, nên một row đã xoá mềm mà cửa sổ còn mở sẽ bị bill trọn kỳ, mãi mãi.
 - **Tiền luôn là số nguyên đơn vị nhỏ nhất**, hệ số là `double` và chỉ sống trong lúc tính —
-  [utils/money.ts](../../packages/core/src/utils/money.ts).
+  [utils/money.ts](../../packages/modules/billing/src/utils/money.ts).
 
 ## Đọc tiếp
 

@@ -25,7 +25,7 @@ flowchart TB
         W6[dunning]
     end
 
-    CORE["packages/core<br/>21 service · 18 repository · composition root"]
+    CORE["packages/platform + packages/modules/billing<br/>platformPlugin + billingPlugin"]
     PG[("Postgres<br/>:55432")]
     RD[("Redis<br/>:56379")]
     EP["Endpoint webhook của khách"]
@@ -40,7 +40,7 @@ flowchart TB
     W5 --> EP
 ```
 
-Điểm đáng nhớ: **API và worker dùng chung một `corePlugin`** ([core.plugin.ts](../../packages/core/src/plugins/core.plugin.ts)), nên cùng service, cùng hành vi. Khác nhau chỉ ở chỗ ai gọi.
+Điểm đáng nhớ: **API và worker đăng ký cùng `platformPlugin` rồi `billingPlugin`** ([platform.plugin.ts](../../packages/platform/src/plugins/platform.plugin.ts), [billing.plugin.ts](../../packages/modules/billing/src/plugins/billing.plugin.ts)), nên cùng service, cùng hành vi. Khác nhau chỉ ở chỗ ai gọi.
 
 ## Thứ tự đọc cho người mới
 

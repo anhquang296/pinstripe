@@ -13,7 +13,7 @@ import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import { WEBHOOK_TABS } from '@features/dashboard/constants/tabs';
-import { WebhookDeliveryStatusEnum } from '@vxrerp/core/contracts';
+import { WebhookDeliveryStatusEnum } from '@vxrerp/platform/contracts';
 import { useWebhookDeliveriesQuery } from '@vxrerp/sdk/react';
 import { filter, get, isEmpty, isNull, last, size } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';

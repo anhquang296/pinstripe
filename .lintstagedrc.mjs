@@ -1,7 +1,8 @@
 import path from 'node:path';
 
 const PACKAGE_ROOTS = [
-  'packages/core',
+  'packages/platform',
+  'packages/modules/billing',
   'packages/sdk',
   'apps/api',
   'apps/worker',

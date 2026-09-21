@@ -3,7 +3,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { LedgerTransactionFormData } from '@common/forms/ledger-transaction-form';
 import { Button, Card } from '@heroui/react';
-import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/core/contracts';
+import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/billing/contracts';
 import { map, values } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
 

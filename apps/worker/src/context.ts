@@ -1,4 +1,5 @@
-import { corePlugin, workerConnectionPlugin } from '@vxrerp/core/plugins';
+import { billingPlugin } from '@vxrerp/billing/plugins';
+import { platformPlugin, workerConnectionPlugin } from '@vxrerp/platform/plugins';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 
@@ -11,7 +12,8 @@ export async function buildContext(): Promise<FastifyInstance> {
   const fastify = Fastify({ logger: { level: LOG_LEVEL } });
   let isDraining = false;
 
-  await fastify.register(corePlugin);
+  await fastify.register(platformPlugin);
+  await fastify.register(billingPlugin);
   await fastify.register(workerConnectionPlugin);
 
   fastify.decorate('startDraining', () => {

@@ -4,7 +4,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { PriceFormData } from '@common/forms/price-form';
 import { Button } from '@heroui/react';
-import { BillingSchemeEnum, PriceTypeEnum, UsageTypeEnum } from '@vxrerp/core/contracts';
+import { BillingSchemeEnum, PriceTypeEnum, UsageTypeEnum } from '@vxrerp/billing/contracts';
 import { get, map } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
 import { useFieldArray } from 'react-hook-form';

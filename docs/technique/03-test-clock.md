@@ -5,9 +5,9 @@ mốc: trial hết hạn, kỳ cũ đóng, kỳ mới mở, hợp đồng "huỷ
 cách nhìn thấy những hành vi đó ngay bây giờ, trên một tập dữ liệu, mà không đụng tới giờ của máy
 hay của những khách khác.
 
-Code: [`clock.ts`](../../packages/core/src/utils/clock.ts),
-[`test-clock.service.ts`](../../packages/core/src/services/test-clock.service.ts),
-`resolveNow` trong [`subscription.service.ts`](../../packages/core/src/services/subscription.service.ts).
+Code: [`clock.ts`](../../packages/platform/src/utils/clock.ts),
+[`test-clock.service.ts`](../../packages/modules/billing/src/services/test-clock.service.ts),
+`resolveNow` trong [`subscription.service.ts`](../../packages/modules/billing/src/services/subscription.service.ts).
 Cơ chế từng bước ở [flow 12](../flows/12-test-clock.md); tài liệu này nói **vì sao** nó có hình dạng
 như vậy và cách dùng.
 
@@ -48,9 +48,9 @@ export class SystemClock implements Clock {
 }
 ```
 
-[`clock.ts:1-9`](../../packages/core/src/utils/clock.ts). Decorate đúng **một lần** ở
-[`config.plugin.ts:34`](../../packages/core/src/plugins/config.plugin.ts), khai báo kiểu trên
-`FastifyInstance` ở [`fastify.augmentation.ts:52`](../../packages/core/src/plugins/fastify.augmentation.ts),
+[`clock.ts:1-9`](../../packages/platform/src/utils/clock.ts). Decorate đúng **một lần** ở
+[`config.plugin.ts:34`](../../packages/platform/src/plugins/config.plugin.ts), khai báo kiểu trên
+`FastifyInstance` ở [`fastify.augmentation.ts:52`](../../packages/platform/src/plugins/fastify.augmentation.ts),
 và từ đó mọi service đọc giờ qua `this.fastify.clock.now()`.
 
 Một service quên quy ước này thì **không lỗi biên dịch, không lỗi test** — chỉ là nhánh đó lặng lẽ
@@ -58,13 +58,13 @@ nằm ngoài tầm với của test clock. Xem [PITFALLS §1](../PITFALLS.md).
 
 `new Date()` còn sót lại đúng năm chỗ, đều là ghi metadata chứ không phải quyết định nghiệp vụ:
 
-| Vị trí                                                                                                      | Vì sao chấp nhận được                                  |
-| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| [`clock.ts:7`](../../packages/core/src/utils/clock.ts)                                                      | chính là nơi được phép                                 |
-| [`idempotency-key.repository.ts:53,60`](../../packages/core/src/repositories/idempotency-key.repository.ts) | `updated_at` của hàng khoá, không ai đọc để quyết định |
-| [`entitlement.repository.ts:63`](../../packages/core/src/repositories/entitlement.repository.ts)            | fallback `updatedAt` khi caller không truyền           |
-| [`ledger.service.ts:464`](../../packages/core/src/services/ledger.service.ts)                               | fallback khi dựng response                             |
-| [`test-clock-form.ts:20`](../../apps/erp-ui/src/forms/test-clock-form.ts)                                   | form erp-ui mặc định mốc "bây giờ"                     |
+| Vị trí                                                                                                          | Vì sao chấp nhận được                                  |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [`clock.ts:7`](../../packages/platform/src/utils/clock.ts)                                                      | chính là nơi được phép                                 |
+| [`idempotency-key.repository.ts:53,60`](../../packages/platform/src/repositories/idempotency-key.repository.ts) | `updated_at` của hàng khoá, không ai đọc để quyết định |
+| [`entitlement.repository.ts:63`](../../packages/modules/billing/src/repositories/entitlement.repository.ts)     | fallback `updatedAt` khi caller không truyền           |
+| [`ledger.service.ts:464`](../../packages/modules/billing/src/services/ledger.service.ts)                        | fallback khi dựng response                             |
+| [`test-clock-form.ts:20`](../../apps/erp-ui/src/forms/test-clock-form.ts)                                       | form erp-ui mặc định mốc "bây giờ"                     |
 
 ## Hai tầng thời gian — đừng lẫn
 
@@ -73,9 +73,9 @@ nằm ngoài tầm với của test clock. Xem [PITFALLS §1](../PITFALLS.md).
 | `Clock` tiêm vào (`SystemClock` / `FrozenClock`) | **cả process**        | `FrozenClock` **chưa được wire vào app**, chỉ unit test của nó dùng |
 | Hàng `test_clocks` + `resolveNow`                | **một nhóm thực thể** | đây là cơ chế đang chạy thật, cả API lẫn erp-ui                     |
 
-`FrozenClock` ([`clock.ts:11-32`](../../packages/core/src/utils/clock.ts)) có `advanceTo` /
+`FrozenClock` ([`clock.ts:11-32`](../../packages/platform/src/utils/clock.ts)) có `advanceTo` /
 `advanceBy` và từ chối đi lùi, nhưng người dùng duy nhất của nó là
-[`clock.test.ts`](../../packages/core/src/utils/clock.test.ts). Đây là chỗ dễ hiểu nhầm nhất: thấy
+[`clock.test.ts`](../../packages/platform/src/utils/clock.test.ts). Đây là chỗ dễ hiểu nhầm nhất: thấy
 `FrozenClock` rồi tưởng đó là test clock của hệ thống.
 
 Vì sao tầng hai mới là cơ chế chính: một database dùng chung, nhiều khách cùng tồn tại, nhiều worker
@@ -100,13 +100,13 @@ private async resolveNow(testClockId: string | null): Promise<Date> {
 }
 ```
 
-[`subscription.service.ts:398-410`](../../packages/core/src/services/subscription.service.ts).
+[`subscription.service.ts:398-410`](../../packages/modules/billing/src/services/subscription.service.ts).
 
 ## Mô hình dữ liệu
 
-Bảng `test_clocks` ([`test-clocks.schema.ts`](../../packages/core/src/database/schemas/test-clocks.schema.ts)):
+Bảng `test_clocks` ([`test-clocks.schema.ts`](../../packages/modules/billing/src/database/schemas/test-clocks.schema.ts)):
 `id` (prefix `clock_`), `name`, `frozen_time`, `status` — hai giá trị `ready` | `advancing`
-([`TestClockStatusEnum`](../../packages/core/src/contracts/test-clocks.types.ts)).
+([`TestClockStatusEnum`](../../packages/modules/billing/src/contracts/test-clocks.types.ts)).
 
 Đồng hồ lan xuống dữ liệu theo một chiều duy nhất:
 
@@ -116,10 +116,10 @@ test_clocks.id
         └── subscriptions.test_clock_id   (kế thừa từ customer lúc tạo subscription, có FK)
 ```
 
-Kế thừa xảy ra ở [`subscription.service.ts:83`](../../packages/core/src/services/subscription.service.ts):
+Kế thừa xảy ra ở [`subscription.service.ts:83`](../../packages/modules/billing/src/services/subscription.service.ts):
 `testClockId: customer.testClockId`. Không có API nào gắn đồng hồ vào một customer đã tồn tại —
 **phải gắn ngay lúc tạo khách**. Migration:
-[`0006_subscriptions_entitlements.sql:44,53,60`](../../packages/core/migrations/0006_subscriptions_entitlements.sql).
+[`0000_baseline.sql`](../../packages/modules/billing/migrations/0000_baseline.sql).
 
 ## Advance làm gì
 
@@ -141,10 +141,10 @@ sequenceDiagram
 `advanceSubscriptions` lấy mọi subscription của đồng hồ có `currentPeriodEnd <= target`, tối đa
 `ADVANCE_BATCH_SIZE = 500`, rồi cuốn từng cái qua `rollPeriod` cho tới khi vượt mốc, tối đa
 `MAX_PERIOD_ROLLS = 120` lần mỗi subscription
-([`subscription.service.ts:31-32,276-311`](../../packages/core/src/services/subscription.service.ts)).
+([`subscription.service.ts:31-32,276-311`](../../packages/modules/billing/src/services/subscription.service.ts)).
 
 Mỗi lần roll đi vào đúng một trong ba nhánh
-([`subscription.service.ts:313-348`](../../packages/core/src/services/subscription.service.ts)):
+([`subscription.service.ts:313-348`](../../packages/modules/billing/src/services/subscription.service.ts)):
 
 | Điều kiện                  | Kết quả                         | Event                      |
 | -------------------------- | ------------------------------- | -------------------------- |
@@ -177,7 +177,7 @@ Viết service mới mà hành vi phụ thuộc thời gian và thực thể có
 ### Khi viết test
 
 Integration test dựng đồng hồ ngay trong `buildScenario()` rồi tua bằng chính API thật —
-[`subscriptions.integration.test.ts:32-52,104-148`](../../packages/core/tests/subscriptions.integration.test.ts).
+[`subscriptions.integration.test.ts:32-52,104-148`](../../packages/modules/billing/tests/subscriptions.integration.test.ts).
 Hai lối đặt mốc bắt đầu, đang tồn tại song song:
 
 | Lối                                         | Dùng khi                                            | Đánh đổi                                                        |
@@ -289,7 +289,7 @@ Chuỗi event sinh ra, đọc từ dưới lên là đúng thứ tự thời gia
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select event_type, occurred_at from outbox_events
+"select event_type, occurred_at from platform.outbox_events
  where aggregate_type in ('subscription','test_clock') order by occurred_at desc limit 10"
 ```
 
@@ -299,7 +299,7 @@ subscription này:
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select current_period_end, now() as real_now, current_period_end > now() as period_in_future
- from subscriptions where test_clock_id is not null"
+ from billing.subscriptions where test_clock_id is not null"
 ```
 
 ## Giới hạn phải biết
@@ -318,13 +318,13 @@ Hệ quả thực tế: đẩy đồng hồ ra tương lai rồi ngồi chờ bi
 quả, vì với giờ thật kỳ đó còn nằm ở tương lai. Muốn thấy hoá đơn thì gọi `POST /v1/invoices` thẳng.
 
 Trạng thái kẹt duy nhất: bước ghi `frozenTime` và gọi `advanceSubscriptions` nằm **ngoài**
-transaction cuối ([`test-clock.service.ts:94-103`](../../packages/core/src/services/test-clock.service.ts)).
+transaction cuối ([`test-clock.service.ts:94-103`](../../packages/modules/billing/src/services/test-clock.service.ts)).
 Tiến trình chết giữa chừng thì `frozenTime` đã nhảy nhưng `status` kẹt ở `advancing`, và mọi lần tua
 sau đó bị 409. Gỡ bằng tay:
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"update test_clocks set status = 'ready' where status = 'advancing'"
+"update billing.test_clocks set status = 'ready' where status = 'advancing'"
 ```
 
 Nhánh `catch` cũng chỉ hoàn nguyên `status`, **không** hoàn nguyên `frozenTime` — đồng hồ vẫn đứng ở

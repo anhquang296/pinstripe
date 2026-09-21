@@ -7,7 +7,7 @@ import {
   SUBSCRIPTION_STATUS_LABELS,
 } from '@features/portal/constants/labels';
 import { Card } from '@heroui/react';
-import { UsageTypeEnum } from '@vxrerp/core/contracts';
+import { UsageTypeEnum } from '@vxrerp/billing/contracts';
 import type { PortalSubscriptionResponse } from '@vxrerp/sdk';
 import { map } from 'lodash-es';
 

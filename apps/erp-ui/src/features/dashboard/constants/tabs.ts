@@ -1,5 +1,5 @@
-import type { InvoiceStatus } from '@vxrerp/core/contracts';
-import { InvoiceStatusEnum } from '@vxrerp/core/contracts';
+import type { InvoiceStatus } from '@vxrerp/billing/contracts';
+import { InvoiceStatusEnum } from '@vxrerp/billing/contracts';
 
 export const CATALOG_TABS = [
   { to: '/catalog/products', label: 'Products' },

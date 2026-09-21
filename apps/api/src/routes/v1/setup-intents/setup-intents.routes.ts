@@ -5,10 +5,10 @@ import {
   confirmSetupIntentSchema,
   createSetupIntentSchema,
   findSetupIntentsSchema,
-  ListResponseSchema,
   setupIntentParamsSchema,
   setupIntentSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const setupIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

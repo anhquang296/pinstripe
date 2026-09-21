@@ -1,4 +1,4 @@
-import { CurrencyEnum } from '@vxrerp/core/contracts';
+import { CurrencyEnum } from '@vxrerp/billing/contracts';
 import type { InvoiceItemResponse } from '@vxrerp/sdk';
 import { describe, expect, it } from 'vitest';
 

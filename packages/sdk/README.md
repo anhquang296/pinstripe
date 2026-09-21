@@ -87,14 +87,14 @@ Retry: transport failure, `408`, `429`, `500`, `502`, `503`, `504`. Không retry
 
 - `pnpm --filter @vxrerp/erp-ui typecheck` **bypass turbo** và check với `packages/sdk/dist` cũ. Luôn chạy qua root script (`pnpm typecheck`).
 - Khi dev, chạy `pnpm --filter @vxrerp/sdk dev` (tsup watch) song song với app, nếu không HMR phục vụ SDK của hôm qua.
-- Đổi contract trong `@vxrerp/core` cần rebuild **core rồi rebuild sdk** — hai hop, không phải một.
+- Đổi contract trong `@vxrerp/platform` / `@vxrerp/billing` cần rebuild **package đó rồi rebuild sdk** — hai hop, không phải một.
 
 `splitting: true` trong `tsup.config.ts` là bắt buộc: không có nó mỗi entry giữ một bản copy `VxrErpError` riêng và `error instanceof VxrErpError` sẽ sai cho error ném ra từ client dựng qua `/node`.
 
 ## Types
 
-Thứ giữ `dist/*.js` sạch runtime reference tới core là **`import type` + `verbatimModuleSyntax: true`** — TypeScript erase hoàn toàn. `src/bundle.test.ts` pin điều đó lại.
+Thứ giữ `dist/*.js` sạch runtime reference tới platform/billing là **`import type` + `verbatimModuleSyntax: true`** — TypeScript erase hoàn toàn. `src/bundle.test.ts` pin điều đó lại.
 
-`src/types/contracts.types.ts` gom mọi `export type` từ `@vxrerp/core/contracts` vào một chỗ vì lý do khác: nó là bản kê bề mặt type công khai của SDK, và là một điểm sửa duy nhất nếu lúc publish phải vendor contract types bằng tay (đường `dts: { resolve: ['@vxrerp/core'] }` thì chạy được dù có funnel hay không). Hiện chưa có lint nào bắt buộc đi qua nó — đó vẫn là quy ước.
+`src/types/contracts.types.ts` gom mọi `export type` từ `@vxrerp/platform/contracts` và `@vxrerp/billing/contracts` vào một chỗ vì lý do khác: nó là bản kê bề mặt type công khai của SDK, và là một điểm sửa duy nhất nếu lúc publish phải vendor contract types bằng tay (đường `dts: { resolve: ['@vxrerp/platform', '@vxrerp/billing'] }` thì chạy được dù có funnel hay không). Hiện chưa có lint nào bắt buộc đi qua nó — đó vẫn là quy ước.
 
-Khi publish ra ngoài: đổi tsup sang `dts: { resolve: ['@vxrerp/core'] }` để inline declaration của core; `@sinclair/typebox` khi đó thành dependency (types-only) thật.
+Khi publish ra ngoài: đổi tsup sang `dts: { resolve: ['@vxrerp/platform', '@vxrerp/billing'] }` để inline declaration của hai package đó; `@sinclair/typebox` khi đó thành dependency (types-only) thật.

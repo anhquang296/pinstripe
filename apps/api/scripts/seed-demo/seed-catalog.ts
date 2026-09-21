@@ -1,5 +1,5 @@
-import type { CouponResponse, PromotionCodeResponse } from '@vxrerp/core/contracts';
-import { CouponDurationEnum, TaxTypeEnum } from '@vxrerp/core/contracts';
+import type { CouponResponse, PromotionCodeResponse } from '@vxrerp/billing/contracts';
+import { CouponDurationEnum, TaxTypeEnum } from '@vxrerp/billing/contracts';
 import type { FastifyInstance } from 'fastify';
 
 import type { DemoMeterKey, DemoPriceKey, DemoProductKey } from './demo-catalog';

@@ -1,5 +1,6 @@
-import type { PortalAuth, RequestAuth } from '@vxrerp/core/contracts';
-import { UnauthorizedError } from '@vxrerp/core/errors';
+import type { PortalAuth } from '@vxrerp/billing/contracts';
+import type { RequestAuth } from '@vxrerp/platform/contracts';
+import { UnauthorizedError } from '@vxrerp/platform/errors';
 import type { FastifyRequest } from 'fastify';
 
 export function readAuth(request: FastifyRequest): RequestAuth {

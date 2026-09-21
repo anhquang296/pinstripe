@@ -1,4 +1,4 @@
-import type { DunningRunShardJob } from '@vxrerp/core/queues';
+import type { DunningRunShardJob } from '@vxrerp/billing/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

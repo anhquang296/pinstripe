@@ -4,7 +4,7 @@ Mọi object trong VXR ERP mang một **GID** (global unique id, mượn cách g
 `prefix_suffix` sinh ở service, không để database sinh. Tài liệu này nói GID là gì, vì sao nó đứng
 trên UUIDv7 chứ không phải UUIDv4 hay ULID, và những gì đã đánh đổi để có nó.
 
-Code: [`packages/core/src/utils/gid-factory.ts`](../../packages/core/src/utils/gid-factory.ts). Nơi
+Code: [`packages/platform/src/utils/gid-factory.ts`](../../packages/platform/src/utils/gid-factory.ts). Nơi
 GID được sinh trong một vòng request: [flow 03](../flows/03-catalog-and-customer.md).
 
 ## Hình dạng
@@ -38,7 +38,7 @@ Bản cũ tự chế: 24 byte ngẫu nhiên từ `node:crypto`, mỗi byte map `
 
 1. **Không sort được theo thời gian.** Đây là vấn đề thật, không phải thẩm mỹ. Mọi repository phân
    trang keyset theo `(created_at, id)` — xem
-   [`customer.repository.ts`](../../packages/core/src/repositories/customer.repository.ts) và 12 file
+   [`customer.repository.ts`](../../packages/modules/billing/src/repositories/customer.repository.ts) và 12 file
    cùng dạng — nên khi hai row trùng `created_at`, `id` là thứ quyết định thứ tự. Với ID ngẫu nhiên,
    thứ tự đó vô nghĩa: hai row tạo cùng một millisecond có thể trả về theo bất kỳ chiều nào.
 2. **Lệch phân phối.** 256 không chia hết cho 58, nên `byte % 58` khiến 24 ký tự đầu bảng xuất hiện

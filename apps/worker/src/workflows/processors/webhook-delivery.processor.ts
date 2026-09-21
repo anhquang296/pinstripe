@@ -1,6 +1,6 @@
 import { WebhookDeliveryFailedError } from '@type/errors';
-import type { WebhookDeliveryJob } from '@vxrerp/core/queues';
-import { WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/core/utils';
+import type { WebhookDeliveryJob } from '@vxrerp/platform/queues';
+import { WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/platform/utils';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

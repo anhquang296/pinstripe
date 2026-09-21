@@ -1,12 +1,8 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
-import {
-  createRefundSchema,
-  findRefundsSchema,
-  ListResponseSchema,
-  refundSchema,
-} from '@vxrerp/core/contracts';
+import { createRefundSchema, findRefundsSchema, refundSchema } from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const refundsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

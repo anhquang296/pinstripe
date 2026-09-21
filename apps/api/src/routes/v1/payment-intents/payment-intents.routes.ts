@@ -6,10 +6,10 @@ import {
   confirmPaymentIntentSchema,
   createPaymentIntentSchema,
   findPaymentIntentsSchema,
-  ListResponseSchema,
   paymentIntentParamsSchema,
   paymentIntentSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

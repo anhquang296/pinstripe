@@ -4,11 +4,11 @@ import {
   createPortalMembershipSchema,
   deletedPortalMembershipSchema,
   findPortalMembershipsSchema,
-  ListResponseSchema,
   portalMembershipParamsSchema,
   portalMembershipSchema,
   updatePortalMembershipSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const portalMembershipsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 
 import { readAuth } from '@utils/request-auth';
-import { PORTAL_CLIENT_IP_HEADER } from '@vxrerp/core/contracts';
-import { TooManyRequestsError } from '@vxrerp/core/errors';
-import { consumeRateLimit, RedisNamespaceEnum } from '@vxrerp/core/utils';
+import { PORTAL_CLIENT_IP_HEADER } from '@vxrerp/billing/contracts';
+import { TooManyRequestsError } from '@vxrerp/platform/errors';
+import { consumeRateLimit, RedisNamespaceEnum } from '@vxrerp/platform/utils';
 import type { FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import _ from 'lodash';
@@ -36,7 +36,7 @@ function buildBucketIds(request: FastifyRequest): string[] {
 
 export const portalRateLimitPlugin = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request, reply) => {
-    const { portalRateLimit, portalRateWindowSeconds } = fastify.workflowSchedules;
+    const { portalRateLimit, portalRateWindowSeconds } = fastify.billingSchedules;
 
     const bucketIds = buildBucketIds(request);
 

@@ -1,5 +1,5 @@
-import { AggregateTypeEnum } from '@vxrerp/core/contracts';
-import type { DomainEventDispatchJob } from '@vxrerp/core/queues';
+import { AggregateTypeEnum } from '@vxrerp/platform/contracts';
+import type { DomainEventDispatchJob } from '@vxrerp/platform/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

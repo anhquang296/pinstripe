@@ -12,7 +12,7 @@ import PaymentMethodList from '@features/portal/components/PaymentMethodList';
 import PortalRequestForm from '@features/portal/components/PortalRequestForm';
 import { PORTAL_ROLE_LABELS } from '@features/portal/constants/labels';
 import { Alert, Card, Link } from '@heroui/react';
-import { PortalRequestKindEnum } from '@vxrerp/core/contracts';
+import { PortalRequestKindEnum } from '@vxrerp/billing/contracts';
 import type { PortalIdentityResponse } from '@vxrerp/sdk';
 import {
   useCreatePortalRequestMutation,

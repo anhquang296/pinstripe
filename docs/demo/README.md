@@ -42,7 +42,7 @@ sách. Đó là bốn điều khác biệt so với một bảng công nợ Exce
 
 ## Dữ liệu demo đến từ đâu
 
-`pnpm seed:demo` → `apps/api/scripts/seed-demo/`. Script gọi thẳng service của `packages/core`, nên
+`pnpm seed:demo` → `apps/api/scripts/seed-demo/`. Script gọi thẳng service của `packages/platform` và `packages/modules/billing`, nên
 dữ liệu đi đúng đường mà hệ thống thật đi: có outbox, có event, có entitlement, có bút toán, số hoá
 đơn do chính hệ thống cấp. Bước cuối lùi ngày các hoá đơn cũ về bốn tháng trước để báo cáo và cổng
 nhà xe trông như một hệ thống đã chạy lâu.

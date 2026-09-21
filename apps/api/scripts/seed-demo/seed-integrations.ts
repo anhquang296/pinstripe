@@ -1,4 +1,4 @@
-import { DomainEventTypeEnum } from '@vxrerp/core/contracts';
+import { DomainEventTypeEnum } from '@vxrerp/platform/contracts';
 import type { FastifyInstance } from 'fastify';
 
 const DEMO_WEBHOOK_URL = 'https://webhook.site/vxrerp-demo';

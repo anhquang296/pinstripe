@@ -3,7 +3,7 @@
 import PageCard from '@common/components/PageCard';
 import InvoiceDetail from '@features/portal/components/InvoiceDetail';
 import { Alert, Link, Spinner } from '@heroui/react';
-import { InvoiceStatusEnum } from '@vxrerp/core/contracts';
+import { InvoiceStatusEnum } from '@vxrerp/billing/contracts';
 import {
   usePortalBankTransferQuery,
   usePortalInvoiceComparisonQuery,

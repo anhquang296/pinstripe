@@ -141,7 +141,7 @@ Bên trong drawer: `DrawerSection` cho mỗi khối, `DetailList` cho lưới nh
 
 Một secret chỉ server trả **một lần** — `apiKey.token`, `webhookEndpoint.secret` — không bao giờ đi vào query cache để đọc lại: nó sống trong state của chính page đã tạo ra nó, hiện kèm nút sao chép, và bị xoá khi drawer đóng. Đừng thêm một hook đọc lại nó; route không có.
 
-Hai bề mặt của nhóm Admin không có nút xoá, vì không có route xoá: user hạ quyền hay vô hiệu hoá qua `useUpdateUserMutation`, và `/admin/roles` chỉ đọc vì `ROLE_PERMISSIONS` là hằng số trong `@vxrerp/core`. Lỗi "admin active cuối cùng" đến từ server và hiện qua toast của provider — đừng đoán trước luật đó ở client.
+Hai bề mặt của nhóm Admin không có nút xoá, vì không có route xoá: user hạ quyền hay vô hiệu hoá qua `useUpdateUserMutation`, và `/admin/roles` chỉ đọc vì `ROLE_PERMISSIONS` là hằng số trong `@vxrerp/platform`. Lỗi "admin active cuối cùng" đến từ server và hiện qua toast của provider — đừng đoán trước luật đó ở client.
 
 ## Tab là route con, drawer là param
 

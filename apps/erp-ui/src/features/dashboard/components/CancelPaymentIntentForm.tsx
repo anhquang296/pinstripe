@@ -1,7 +1,7 @@
 import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import type { CancelPaymentIntentFormData } from '@common/forms/cancel-payment-intent-form';
 import { Button } from '@heroui/react';
-import { PaymentCancellationReasonEnum } from '@vxrerp/core/contracts';
+import { PaymentCancellationReasonEnum } from '@vxrerp/billing/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
 const CANCELLATION_REASON_OPTIONS = [

@@ -1,10 +1,6 @@
-import {
-  LedgerAccountCodeEnum,
-  PermissionEnum,
-  PostingDirectionEnum,
-  VXRERP_API_VERSION,
-} from '@vxrerp/core/contracts';
-import { CurrencyEnum } from '@vxrerp/core/utils';
+import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/billing/contracts';
+import { CurrencyEnum } from '@vxrerp/billing/utils';
+import { PermissionEnum, VXRERP_API_VERSION } from '@vxrerp/platform/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

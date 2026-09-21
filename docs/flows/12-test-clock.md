@@ -10,7 +10,7 @@ Cách duy nhất để thấy hành vi theo thời gian (hết trial, sang kỳ 
 | `GET /v1/test_helpers/test_clocks`, `GET /:testClockId`  | xem                             |
 | `POST /v1/test_helpers/test_clocks/:testClockId/advance` | nhảy tới mốc mới                |
 
-Gắn đồng hồ vào khách bằng `testClockId` lúc tạo customer; subscription kế thừa từ khách — [subscription.service.ts:83](../../packages/core/src/services/subscription.service.ts).
+Gắn đồng hồ vào khách bằng `testClockId` lúc tạo customer; subscription kế thừa từ khách — [subscription.service.ts:83](../../packages/modules/billing/src/services/subscription.service.ts).
 
 ## Hai nguồn thời gian
 
@@ -19,9 +19,9 @@ Gắn đồng hồ vào khách bằng `testClockId` lúc tạo customer; subscri
 | `fastify.clock.now()` — `SystemClock`, giờ thật | mặc định ở mọi service        |
 | `testClock.frozenTime`                          | khi thực thể có `testClockId` |
 
-Chọn giữa hai cái ở `resolveNow` — [subscription.service.ts:398-410](../../packages/core/src/services/subscription.service.ts): không có `testClockId` thì `clock.now()`, có thì đọc `frozenTime` của đồng hồ.
+Chọn giữa hai cái ở `resolveNow` — [subscription.service.ts:398-410](../../packages/modules/billing/src/services/subscription.service.ts): không có `testClockId` thì `clock.now()`, có thì đọc `frozenTime` của đồng hồ.
 
-`SystemClock` được decorate một lần ở [config.plugin.ts:34](../../packages/core/src/plugins/config.plugin.ts). Mọi service lấy giờ qua nó — đó là lý do có thể kiểm soát thời gian mà không phải vá `Date` toàn cục.
+`SystemClock` được decorate một lần ở [config.plugin.ts:34](../../packages/platform/src/plugins/config.plugin.ts). Mọi service lấy giờ qua nó — đó là lý do có thể kiểm soát thời gian mà không phải vá `Date` toàn cục.
 
 Lưu ý: hiện chỉ `SubscriptionService` có `resolveNow`. Các service khác (invoice, payment, dunning) luôn dùng giờ thật ngay cả với thực thể có `testClockId`.
 
@@ -48,14 +48,14 @@ sequenceDiagram
     T->>R: status = ready + outbox(test_clock.advanced)
 ```
 
-| #   | Nơi xảy ra                                                                              | Làm gì                                                            |
-| --- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| 1   | [test-clock.service.ts:76-78](../../packages/core/src/services/test-clock.service.ts)   | đang `advancing` → `ConflictError` (khoá chống chạy chồng)        |
-| 2   | [test-clock.service.ts:82-87](../../packages/core/src/services/test-clock.service.ts)   | đồng hồ chỉ đi tới; lùi hoặc bằng → `BadRequestError`             |
-| 3   | [test-clock.service.ts:89-92](../../packages/core/src/services/test-clock.service.ts)   | `status = advancing`                                              |
-| 4   | [test-clock.service.ts:95-96](../../packages/core/src/services/test-clock.service.ts)   | ghi `frozenTime = target`, rồi `advanceSubscriptions(id, target)` |
-| 5   | [test-clock.service.ts:97-103](../../packages/core/src/services/test-clock.service.ts)  | lỗi → đưa `status` về `ready` rồi ném tiếp                        |
-| 6   | [test-clock.service.ts:105-129](../../packages/core/src/services/test-clock.service.ts) | transaction: `status = ready` + event `test_clock.advanced`       |
+| #   | Nơi xảy ra                                                                                         | Làm gì                                                            |
+| --- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 1   | [test-clock.service.ts:76-78](../../packages/modules/billing/src/services/test-clock.service.ts)   | đang `advancing` → `ConflictError` (khoá chống chạy chồng)        |
+| 2   | [test-clock.service.ts:82-87](../../packages/modules/billing/src/services/test-clock.service.ts)   | đồng hồ chỉ đi tới; lùi hoặc bằng → `BadRequestError`             |
+| 3   | [test-clock.service.ts:89-92](../../packages/modules/billing/src/services/test-clock.service.ts)   | `status = advancing`                                              |
+| 4   | [test-clock.service.ts:95-96](../../packages/modules/billing/src/services/test-clock.service.ts)   | ghi `frozenTime = target`, rồi `advanceSubscriptions(id, target)` |
+| 5   | [test-clock.service.ts:97-103](../../packages/modules/billing/src/services/test-clock.service.ts)  | lỗi → đưa `status` về `ready` rồi ném tiếp                        |
+| 6   | [test-clock.service.ts:105-129](../../packages/modules/billing/src/services/test-clock.service.ts) | transaction: `status = ready` + event `test_clock.advanced`       |
 
 Bước 4 **không** nằm trong transaction. Tiến trình chết giữa bước 4 và 6 thì `frozenTime` đã nhảy nhưng `status` kẹt ở `advancing`, và mọi lần advance sau đó bị 409. Đây là trạng thái kẹt duy nhất trong flow này; gỡ bằng cách sửa `status` về `ready` trong DB.
 

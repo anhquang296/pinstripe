@@ -3,10 +3,10 @@ import { ApiResponse } from '@utils/api-response';
 import {
   createPayoutSchema,
   findPayoutsSchema,
-  ListResponseSchema,
   payoutParamsSchema,
   payoutSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

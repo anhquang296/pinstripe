@@ -6,8 +6,8 @@ Dashboard đăng nhập qua better-auth, còn quyền và audit là code của r
 
 Applies to:
 
-- `packages/core/src/clients/better-auth.client.ts`, `plugins/better-auth.plugin.ts`, `database/schemas/auth.schema.ts`
-- `packages/core/src/services/user.service.ts`
+- `packages/platform/src/clients/better-auth.client.ts`, `plugins/better-auth.plugin.ts`, `database/schemas/auth.schema.ts`
+- `packages/platform/src/services/user.service.ts`
 - `apps/api/src/routes/auth/**` (mount tại `/v1/auth`) và các hook xác thực trong `apps/api/src/hooks/`
 
 Does **not** apply to:
@@ -65,7 +65,7 @@ fastify.all('/*', async (request, reply) => {
 Allowlist trên là đóng. `/list-sessions` và `/revoke-session` **không** được mở: cả hai cần token session thô, mà token cố tình không ra khỏi server — nên card `ActiveSessions` của better-auth-ui bị bỏ, thay bằng nút "đăng xuất thiết bị khác" trên `/revoke-other-sessions`.
 
 Admin đầu tiên được tạo bằng CLI `pnpm --filter @vxrerp/api bootstrap-admin -- --email … --name …`
-(`apps/api/scripts/bootstrap-admin.ts`, dựng Fastify headless với `corePlugin`, gọi
+(`apps/api/scripts/bootstrap-admin.ts`, dựng Fastify headless chỉ với `platformPlugin`, gọi
 `UserService.ensureUser`, role `admin`, idempotent) — không phải bằng một route HTTP, và không phải
 bằng `/sign-up/*`, thứ vẫn 404 với mọi caller.
 

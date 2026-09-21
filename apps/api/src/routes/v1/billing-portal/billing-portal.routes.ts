@@ -8,9 +8,9 @@ import {
   createBillingPortalConfigurationSchema,
   createBillingPortalSessionSchema,
   findBillingPortalConfigurationsSchema,
-  ListResponseSchema,
   updateBillingPortalConfigurationSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

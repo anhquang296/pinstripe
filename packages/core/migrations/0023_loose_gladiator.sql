@@ -1,1 +1,0 @@
-ALTER TABLE "subscriptions" ADD COLUMN "billing_mode" text DEFAULT 'advance' NOT NULL;

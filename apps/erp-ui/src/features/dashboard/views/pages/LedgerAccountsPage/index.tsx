@@ -13,8 +13,8 @@ import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNa
 import { formatCurrency } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import { LEDGER_TABS } from '@features/dashboard/constants/tabs';
-import type { LedgerAccountResponse } from '@vxrerp/core/contracts';
-import { CurrencyEnum, LedgerAccountCodeEnum } from '@vxrerp/core/contracts';
+import type { LedgerAccountResponse } from '@vxrerp/billing/contracts';
+import { CurrencyEnum, LedgerAccountCodeEnum } from '@vxrerp/billing/contracts';
 import { useCustomersQuery, useLedgerAccountsQuery } from '@vxrerp/sdk/react';
 import { filter, fromPairs, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';

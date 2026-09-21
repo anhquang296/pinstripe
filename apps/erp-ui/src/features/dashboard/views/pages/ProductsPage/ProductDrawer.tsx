@@ -23,7 +23,8 @@ import PriceForm from '@features/dashboard/components/PriceForm';
 import ProductForm from '@features/dashboard/components/ProductForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { MeterStatusEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import { MeterStatusEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCreatePriceMutation,
   useMetersQuery,

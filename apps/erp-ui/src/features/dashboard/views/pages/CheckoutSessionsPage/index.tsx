@@ -25,8 +25,9 @@ import CheckoutSessionForm from '@features/dashboard/components/CheckoutSessionF
 import { CHECKOUT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { CheckoutSessionResponse } from '@vxrerp/core/contracts';
-import { CheckoutSessionStatusEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import type { CheckoutSessionResponse } from '@vxrerp/billing/contracts';
+import { CheckoutSessionStatusEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCheckoutSessionsQuery,
   useCreateCheckoutSessionMutation,

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TaxIdTypeEnum } from '@vxrerp/core/contracts';
+import { TaxIdTypeEnum } from '@vxrerp/billing/contracts';
 import type { CreateTaxIdPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

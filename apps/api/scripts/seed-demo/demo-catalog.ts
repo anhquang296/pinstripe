@@ -1,4 +1,4 @@
-import type { MeterAggregation, TaxIdType } from '@vxrerp/core/contracts';
+import type { MeterAggregation, TaxIdType } from '@vxrerp/billing/contracts';
 import {
   BillingSchemeEnum,
   CurrencyEnum,
@@ -8,7 +8,7 @@ import {
   TaxIdTypeEnum,
   TiersModeEnum,
   UsageTypeEnum,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 
 export const DEMO_CURRENCY = CurrencyEnum.VND;
 export const DEMO_COUNTRY = 'VN';

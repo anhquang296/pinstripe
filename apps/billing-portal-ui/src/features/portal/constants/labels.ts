@@ -7,7 +7,7 @@ import type {
   PortalRole,
   RecurringInterval,
   SubscriptionStatus,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 import {
   CollectionMethodEnum,
   InvoiceReminderKindEnum,
@@ -17,7 +17,7 @@ import {
   PortalRoleEnum,
   RecurringIntervalEnum,
   SubscriptionStatusEnum,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 
 export type StatusTone = 'success' | 'warning' | 'danger' | 'default';
 

@@ -5,7 +5,7 @@ import {
   portalLinkSchema,
   portalSessionSchema,
   redeemPortalLinkSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 
 export const portalSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

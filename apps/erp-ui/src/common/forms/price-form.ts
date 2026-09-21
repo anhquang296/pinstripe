@@ -6,7 +6,7 @@ import {
   RecurringIntervalEnum,
   TiersModeEnum,
   UsageTypeEnum,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 import type { CreatePricePayload } from '@vxrerp/sdk';
 import { last, map, size } from 'lodash-es';
 import { z } from 'zod';

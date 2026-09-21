@@ -1,6 +1,6 @@
 import { OPTION_LIMIT } from '@common/constants/pagination';
-import type { InvoiceStatus } from '@vxrerp/core/contracts';
-import { InvoiceStatusEnum } from '@vxrerp/core/contracts';
+import type { InvoiceStatus } from '@vxrerp/billing/contracts';
+import { InvoiceStatusEnum } from '@vxrerp/billing/contracts';
 import type { InvoiceResponse, ListResponse } from '@vxrerp/sdk';
 import { useInvoicesQuery } from '@vxrerp/sdk/react';
 import { get, size } from 'lodash-es';

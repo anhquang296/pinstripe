@@ -6,9 +6,9 @@ import {
   findInvoiceItemsSchema,
   invoiceItemParamsSchema,
   invoiceItemSchema,
-  ListResponseSchema,
   updateInvoiceItemSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const invoiceItemsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

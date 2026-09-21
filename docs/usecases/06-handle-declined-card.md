@@ -51,16 +51,16 @@ sequenceDiagram
 
 ## Kịch bản chính — cú click
 
-| #   | Ở đâu                                                                                           | Chuyện gì xảy ra                                                                                                                                                | Quan sát được gì                            |
-| --- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| 1   | UI [InvoicesPage.tsx:80-85](../../apps/erp-ui/src/pages/InvoicesPage.tsx)                       | `handleOnDecline` — **cùng** mutation với "Thu tiền", chỉ khác `paymentMethod: 'pm_card_declined'`                                                              | hai nút, một đường code                     |
-| 2   | Client [mock-psp.client.ts:15-19](../../packages/core/src/clients/mock-psp.client.ts)           | PSP giả lập tra `paymentMethod` trong bảng lỗi → `card_declined`                                                                                                | —                                           |
-| 3   | Service [payment.service.ts:103-108](../../packages/core/src/services/payment.service.ts)       | `charge.isApproved` false → `recordDeclinedAttempt`                                                                                                             | —                                           |
-| 4   | Service [recordDeclinedAttempt:222-268](../../packages/core/src/services/payment.service.ts)    | transaction: intent về `requires_payment_method` + `failureCode`/`failureMessage`, INSERT `payment_attempts` outcome `declined`, outbox `payment_intent.failed` | —                                           |
-| 5   | HTTP                                                                                            | trả **200** với `status: requires_payment_method`                                                                                                               | không có mã lỗi HTTP nào                    |
-| 6   | Hook [mutations.ts:29-41](../../apps/erp-ui/src/reactquery/payments/mutations.ts)               | `onSuccess` kiểm `paymentIntent.failureMessage` → toast **đỏ**, `return` sớm để không toast thành công                                                          | toast "The card was declined by the issuer" |
-| 7   | UI [InvoiceItem.tsx:90-104](../../apps/erp-ui/src/components/InvoiceItem.tsx)                   | hoá đơn vẫn `open` → ba nút vẫn đó                                                                                                                              | bấm lại được ngay                           |
-| 8   | UI [PaymentIntentItem.tsx:40-42, 48-56](../../apps/erp-ui/src/components/PaymentIntentItem.tsx) | trang `/payments`: `failureCode` in đỏ dưới status; cột "Các lần thử" hiện chip cho từng attempt                                                                | mỗi lần bấm thêm một chip `declined`        |
+| #   | Ở đâu                                                                                                   | Chuyện gì xảy ra                                                                                                                                                | Quan sát được gì                            |
+| --- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 1   | UI [InvoicesPage.tsx:80-85](../../apps/erp-ui/src/pages/InvoicesPage.tsx)                               | `handleOnDecline` — **cùng** mutation với "Thu tiền", chỉ khác `paymentMethod: 'pm_card_declined'`                                                              | hai nút, một đường code                     |
+| 2   | Client [mock-psp.client.ts:15-19](../../packages/modules/billing/src/clients/mock-psp.client.ts)        | PSP giả lập tra `paymentMethod` trong bảng lỗi → `card_declined`                                                                                                | —                                           |
+| 3   | Service [payment.service.ts:103-108](../../packages/modules/billing/src/services/payment.service.ts)    | `charge.isApproved` false → `recordDeclinedAttempt`                                                                                                             | —                                           |
+| 4   | Service [recordDeclinedAttempt:222-268](../../packages/modules/billing/src/services/payment.service.ts) | transaction: intent về `requires_payment_method` + `failureCode`/`failureMessage`, INSERT `payment_attempts` outcome `declined`, outbox `payment_intent.failed` | —                                           |
+| 5   | HTTP                                                                                                    | trả **200** với `status: requires_payment_method`                                                                                                               | không có mã lỗi HTTP nào                    |
+| 6   | Hook [mutations.ts:29-41](../../apps/erp-ui/src/reactquery/payments/mutations.ts)                       | `onSuccess` kiểm `paymentIntent.failureMessage` → toast **đỏ**, `return` sớm để không toast thành công                                                          | toast "The card was declined by the issuer" |
+| 7   | UI [InvoiceItem.tsx:90-104](../../apps/erp-ui/src/components/InvoiceItem.tsx)                           | hoá đơn vẫn `open` → ba nút vẫn đó                                                                                                                              | bấm lại được ngay                           |
+| 8   | UI [PaymentIntentItem.tsx:40-42, 48-56](../../apps/erp-ui/src/components/PaymentIntentItem.tsx)         | trang `/payments`: `failureCode` in đỏ dưới status; cột "Các lần thử" hiện chip cho từng attempt                                                                | mỗi lần bấm thêm một chip `declined`        |
 
 ### Thất bại nghiệp vụ ≠ lỗi kỹ thuật
 
@@ -79,24 +79,24 @@ payment intent.
 
 Mọi hoá đơn `open` đều có `next_attempt_at` đặt từ lúc finalize (`= due_at`, tức
 `now + INVOICE_DUE_DAYS`, mặc định **7 ngày** —
-[env.schema.ts:64](../../packages/core/src/config/env.schema.ts)). Đó là đồng hồ duy nhất của dunning.
+[env.schema.ts:64](../../packages/platform/src/config/env.schema.ts)). Đó là đồng hồ duy nhất của dunning.
 
-| #   | Ở đâu                                                                                       | Chuyện gì xảy ra                                                                                                |
-| --- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| 9   | Worker [dunning.workflow.ts:47-57](../../apps/worker/src/workflows/dunning.workflow.ts)     | scheduler `dunning-run-scheduler`, chu kỳ `DUNNING_INTERVAL_MS` (mặc định 60s)                                  |
-| 10  | Worker [dunning.workflow.ts:59-77](../../apps/worker/src/workflows/dunning.workflow.ts)     | quạt ra N shard, mỗi shard delay ngẫu nhiên tới `DUNNING_JITTER_MS`                                             |
-| 11  | Service [dunning.service.ts:34-42](../../packages/core/src/services/dunning.service.ts)     | tìm invoice `open`, `next_attempt_at <= runAt`, băm shard theo **`customerId`**                                 |
-| 12  | Service [dunning.service.ts:70-79](../../packages/core/src/services/dunning.service.ts)     | `amountRemaining <= 0` → `next_attempt_at = null`, kết quả `settled` (đã trả ở đường khác)                      |
-| 13  | Service [resolvePaymentMethod:120-124](../../packages/core/src/services/dunning.service.ts) | đọc `customer.metadata.defaultPaymentMethod`, không có thì `pm_card_ok`                                         |
-| 14  | Service [dunning.service.ts:82-86](../../packages/core/src/services/dunning.service.ts)     | gọi **đúng** `createPaymentIntent` + `confirmPaymentIntent` như UI — [UC-05](./05-issue-and-collect-invoice.md) |
-| 15  | Service [dunning.service.ts:88-95](../../packages/core/src/services/dunning.service.ts)     | duyệt → `next_attempt_at = null`, `collected`                                                                   |
-| 16  | Service [dunning.service.ts:97-110](../../packages/core/src/services/dunning.service.ts)    | còn lượt → `attempt_count += 1`, `next_attempt_at = runAt + delay ngày`, `retried`                              |
-| 17  | Service [abandonInvoice:126-160](../../packages/core/src/services/dunning.service.ts)       | hết lượt → `uncollectible`, outbox `invoice.marked_uncollectible`, log `warn`                                   |
+| #   | Ở đâu                                                                                                  | Chuyện gì xảy ra                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| 9   | Worker [dunning.workflow.ts:47-57](../../apps/worker/src/workflows/dunning.workflow.ts)                | scheduler `dunning-run-scheduler`, chu kỳ `DUNNING_INTERVAL_MS` (mặc định 60s)                                  |
+| 10  | Worker [dunning.workflow.ts:59-77](../../apps/worker/src/workflows/dunning.workflow.ts)                | quạt ra N shard, mỗi shard delay ngẫu nhiên tới `DUNNING_JITTER_MS`                                             |
+| 11  | Service [dunning.service.ts:34-42](../../packages/modules/billing/src/services/dunning.service.ts)     | tìm invoice `open`, `next_attempt_at <= runAt`, băm shard theo **`customerId`**                                 |
+| 12  | Service [dunning.service.ts:70-79](../../packages/modules/billing/src/services/dunning.service.ts)     | `amountRemaining <= 0` → `next_attempt_at = null`, kết quả `settled` (đã trả ở đường khác)                      |
+| 13  | Service [resolvePaymentMethod:120-124](../../packages/modules/billing/src/services/dunning.service.ts) | đọc `customer.metadata.defaultPaymentMethod`, không có thì `pm_card_ok`                                         |
+| 14  | Service [dunning.service.ts:82-86](../../packages/modules/billing/src/services/dunning.service.ts)     | gọi **đúng** `createPaymentIntent` + `confirmPaymentIntent` như UI — [UC-05](./05-issue-and-collect-invoice.md) |
+| 15  | Service [dunning.service.ts:88-95](../../packages/modules/billing/src/services/dunning.service.ts)     | duyệt → `next_attempt_at = null`, `collected`                                                                   |
+| 16  | Service [dunning.service.ts:97-110](../../packages/modules/billing/src/services/dunning.service.ts)    | còn lượt → `attempt_count += 1`, `next_attempt_at = runAt + delay ngày`, `retried`                              |
+| 17  | Service [abandonInvoice:126-160](../../packages/modules/billing/src/services/dunning.service.ts)       | hết lượt → `uncollectible`, outbox `invoice.marked_uncollectible`, log `warn`                                   |
 
 ### Lịch retry
 
 `DUNNING_RETRY_DELAY_DAYS` mặc định `'1,3,5,7'` —
-[env.schema.ts:68](../../packages/core/src/config/env.schema.ts). Tra bằng
+[env.schema.ts:68](../../packages/platform/src/config/env.schema.ts). Tra bằng
 `retryDelayDays[attemptCount]` với `attemptCount` là số lần đã thử **sau** lần này:
 
 | Lần thử | `attemptCount` | Tra `[attemptCount]` | Kết quả                       |
@@ -200,7 +200,7 @@ jq '{status, failureCode, failureMessage, attempts: [.attempts[].outcome]}' /tmp
 
 In ra `HTTP 200` kèm `failureCode: "card_declined"`. Đúng điều mục trên nói.
 
-Ba mã thẻ giả lập — [mock-psp.client.ts:15-19](../../packages/core/src/clients/mock-psp.client.ts):
+Ba mã thẻ giả lập — [mock-psp.client.ts:15-19](../../packages/modules/billing/src/clients/mock-psp.client.ts):
 
 | `paymentMethod`              | `failureCode`        |
 | ---------------------------- | -------------------- |
@@ -214,14 +214,14 @@ Mặc định phải chờ 7 ngày. Đẩy `next_attempt_at` về quá khứ:
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"update invoices set next_attempt_at = now() - interval '1 day' where status = 'open'"
+"update billing.invoices set next_attempt_at = now() - interval '1 day' where status = 'open'"
 ```
 
 Cho khách luôn bị từ chối, để thấy nhánh retry thay vì `collected`:
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"update customers set metadata = '{\"defaultPaymentMethod\":\"pm_card_declined\"}'::jsonb where id = 'cus_...'"
+"update billing.customers set metadata = '{\"defaultPaymentMethod\":\"pm_card_declined\"}'::jsonb where id = 'cus_...'"
 ```
 
 Trong vòng `DUNNING_INTERVAL_MS` (60s), log của worker `dunning` in
@@ -236,7 +236,7 @@ Lặp lại lệnh đẩy `next_attempt_at` bốn lần là đi hết lịch ret
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select number, status, attempt_count, due_at, next_attempt_at from invoices order by created_at desc limit 5"
+"select number, status, attempt_count, due_at, next_attempt_at from billing.invoices order by created_at desc limit 5"
 ```
 
 Lịch sử mọi lần quẹt thẻ:
@@ -244,7 +244,7 @@ Lịch sử mọi lần quẹt thẻ:
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select a.outcome, a.failure_code, a.payment_method, i.status as intent_status
- from payment_attempts a join payment_intents i on i.id = a.payment_intent_id
+ from payment_attempts a join billing.payment_intents i on i.id = a.payment_intent_id
  order by a.created_at desc limit 10"
 ```
 
@@ -252,14 +252,14 @@ Xác nhận **không** có bút toán nào sinh ra từ các lần thất bại:
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select count(*) from ledger_transactions where external_id like 'payment_intent:%'"
+"select count(*) from billing.ledger_transactions where external_id like 'payment_intent:%'"
 ```
 
 Số này chỉ tăng khi có lần thu **thành công**.
 
 ### Test tự động phủ kịch bản này
 
-`packages/core/tests/dunning.integration.test.ts` (13 test) đi hết lịch retry, kể cả nhánh
+`packages/modules/billing/tests/dunning.integration.test.ts` (13 test) đi hết lịch retry, kể cả nhánh
 `abandoned` và `settled`, mà không cần chờ ngày thật.
 
 ## Đọc sâu hơn

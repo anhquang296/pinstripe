@@ -2,7 +2,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { MeterFormData } from '@common/forms/meter-form';
 import { Button } from '@heroui/react';
-import { MeterAggregationEnum } from '@vxrerp/core/contracts';
+import { MeterAggregationEnum } from '@vxrerp/billing/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
 const AGGREGATION_OPTIONS = [

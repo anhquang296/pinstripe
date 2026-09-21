@@ -3,11 +3,11 @@ import { ApiResponse } from '@utils/api-response';
 import {
   createPriceSchema,
   findPricesSchema,
-  ListResponseSchema,
   priceParamsSchema,
   priceSchema,
   updatePriceSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

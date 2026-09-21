@@ -1,6 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MeterAggregationEnum } from '@vxrerp/core/contracts';
+import { MeterAggregationEnum } from '@vxrerp/billing/contracts';
 import type { CreateMeterPayload, MeterResponse, UpdateMeterPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

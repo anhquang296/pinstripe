@@ -1,11 +1,11 @@
-import type { BillingRunShardJob } from '@vxrerp/core/queues';
+import type { BillingRunShardJob } from '@vxrerp/billing/queues';
 import {
   BILLING_QUEUE,
   BILLING_RUN_DISPATCH_JOB,
   BILLING_RUN_SHARD_JOB,
   buildBillingRunShardJob,
-  QueueNameEnum,
-} from '@vxrerp/core/queues';
+} from '@vxrerp/billing/queues';
+import { QueueNameEnum } from '@vxrerp/platform/queues';
 import { BillingRunShardProcessor } from '@workflows/processors/billing-run-shard.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';
@@ -45,7 +45,7 @@ export class BillingWorkflow implements Workflow {
   }
 
   private async dispatchBillingSchedule(): Promise<void> {
-    const { billingRunIntervalMs } = this.fastify.workflowSchedules;
+    const { billingRunIntervalMs } = this.fastify.billingSchedules;
 
     await this.fastify.queues
       .resolve(QueueNameEnum.BILLING)
@@ -57,7 +57,7 @@ export class BillingWorkflow implements Workflow {
   }
 
   private async dispatchShards(): Promise<void> {
-    const { billingRunShardCount, billingRunJitterMs } = this.fastify.workflowSchedules;
+    const { billingRunShardCount, billingRunJitterMs } = this.fastify.billingSchedules;
 
     const runAt = this.fastify.clock.now();
     const queue = this.fastify.queues.resolve(QueueNameEnum.BILLING);

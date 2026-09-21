@@ -5,14 +5,14 @@ import {
   findPortalInvoicesSchema,
   findPortalPaymentsSchema,
   invoiceSchema,
-  ListResponseSchema,
   portalBankTransferSchema,
   portalInvoiceComparisonSchema,
   portalInvoiceParamsSchema,
   portalInvoiceRemindersSchema,
   portalInvoiceTotalsSchema,
   portalPaymentSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

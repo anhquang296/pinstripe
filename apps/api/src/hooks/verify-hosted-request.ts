@@ -1,4 +1,4 @@
-import { UnauthorizedError } from '@vxrerp/core/errors';
+import { UnauthorizedError } from '@vxrerp/platform/errors';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 

@@ -1,5 +1,5 @@
-import type { CollectionMethod, PortalRole } from '@vxrerp/core/contracts';
-import { CollectionMethodEnum, PortalRoleEnum } from '@vxrerp/core/contracts';
+import type { CollectionMethod, PortalRole } from '@vxrerp/billing/contracts';
+import { CollectionMethodEnum, PortalRoleEnum } from '@vxrerp/billing/contracts';
 
 import type { DemoPriceKey } from './demo-catalog';
 import { DemoPriceKeyEnum } from './demo-catalog';

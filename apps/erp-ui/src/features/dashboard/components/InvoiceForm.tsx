@@ -4,7 +4,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import { COLLECTION_METHOD_LABELS } from '@common/constants/collection-method';
 import type { InvoiceFormData } from '@common/forms/invoice-form';
 import { Button } from '@heroui/react';
-import { CollectionMethodEnum, CurrencyEnum } from '@vxrerp/core/contracts';
+import { CollectionMethodEnum, CurrencyEnum } from '@vxrerp/billing/contracts';
 import { map, values } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
 

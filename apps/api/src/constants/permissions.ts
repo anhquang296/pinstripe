@@ -1,5 +1,5 @@
-import type { Permission } from '@vxrerp/core/contracts';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import type { Permission } from '@vxrerp/platform/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 
 export const READ_OPERATION_PREFIXES = ['find', 'get'];
 

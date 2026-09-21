@@ -7,7 +7,6 @@ import {
   CUSTOMER_ACCOUNTANT_NAME_KEY,
   findPortalPaymentMethodsSchema,
   findPortalSubscriptionsSchema,
-  ListResponseSchema,
   paymentMethodSchema,
   portalIdentitySchema,
   portalRequestSchema,
@@ -15,7 +14,8 @@ import {
   portalSubscriptionSchema,
   portalUsageSchema,
   switchPortalCustomerSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const portalAccountRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

@@ -14,7 +14,7 @@ Two kit rules want the same name for two different things, and this file records
 
 `drizzle/query-convention.md` says a Drizzle select type is `{Entity}` and the insert type is
 `New{Entity}`. `node-backend/schema-type-convention.md` says the type derived from an entity schema
-is `{Noun}`. In `@vxrerp/core` both live in the same package — `customers.schema.ts` infers the
+is `{Noun}`. In a module package such as `@vxrerp/billing` both live in the same package — `customers.schema.ts` infers the
 row and `contracts/customers.types.ts` derives the wire shape — so one of them has to move.
 
 ## The split

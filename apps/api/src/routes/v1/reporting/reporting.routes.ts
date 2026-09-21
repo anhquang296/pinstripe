@@ -5,7 +5,7 @@ import {
   aggregateRevenueSummarySchema,
   reconciliationReportSchema,
   revenueSummarySchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 
 export const reportingRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

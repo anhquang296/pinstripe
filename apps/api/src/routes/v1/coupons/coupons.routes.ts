@@ -6,9 +6,9 @@ import {
   createCouponSchema,
   deletedCouponSchema,
   findCouponsSchema,
-  ListResponseSchema,
   updateCouponSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const couponsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

@@ -2,7 +2,7 @@ import {
   resolveInvoiceStatusLabel,
   resolveOverdueDays,
 } from '@features/portal/utils/invoice-state';
-import { InvoiceStatusEnum } from '@vxrerp/core/contracts';
+import { InvoiceStatusEnum } from '@vxrerp/billing/contracts';
 import { expect, it } from 'vitest';
 
 const NOW = new Date('2026-09-19T08:00:00.000Z');

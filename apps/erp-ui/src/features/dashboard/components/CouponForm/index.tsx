@@ -3,7 +3,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { CouponFormData } from '@common/forms/coupon-form';
 import { Button } from '@heroui/react';
-import { CouponDurationEnum } from '@vxrerp/core/contracts';
+import { CouponDurationEnum } from '@vxrerp/billing/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
 const KIND_OPTIONS = [

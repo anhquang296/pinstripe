@@ -2,7 +2,7 @@ import {
   CheckoutSessionModeEnum,
   CurrencyEnum,
   RecurringIntervalEnum,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 

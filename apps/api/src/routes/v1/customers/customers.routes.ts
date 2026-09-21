@@ -9,9 +9,9 @@ import {
   deletedCustomerSchema,
   findCustomerBalanceTransactionsSchema,
   findCustomersSchema,
-  ListResponseSchema,
   updateCustomerSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const customersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

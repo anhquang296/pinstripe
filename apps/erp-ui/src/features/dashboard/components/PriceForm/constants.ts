@@ -5,7 +5,7 @@ import {
   RecurringIntervalEnum,
   TiersModeEnum,
   UsageTypeEnum,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 import { map, toUpper } from 'lodash-es';
 
 export const CURRENCY_OPTIONS = map(CurrencyEnum, (currency) => {

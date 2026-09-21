@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { Currency } from '@vxrerp/core/contracts';
+import type { Currency } from '@vxrerp/billing/contracts';
 import type { CreateCustomerBalanceTransactionPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

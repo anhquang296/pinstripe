@@ -13,7 +13,7 @@ import { formatDate } from '@common/utils/format';
 import UserPasswordForm from '@features/dashboard/components/UserPasswordForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum, ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum, ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/platform/contracts';
 import { useUpdateUserMutation, useUserQuery } from '@vxrerp/sdk/react';
 import { get, join, size } from 'lodash-es';
 import { useForm } from 'react-hook-form';

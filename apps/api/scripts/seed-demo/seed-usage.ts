@@ -1,4 +1,4 @@
-import type { CreateMeterEventPayload } from '@vxrerp/core/contracts';
+import type { CreateMeterEventPayload } from '@vxrerp/billing/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 

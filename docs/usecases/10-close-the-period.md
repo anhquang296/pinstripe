@@ -69,13 +69,13 @@ một nơi là làm hỏng đối chiếu ở nơi kia, và không test nào b�
 
 ### Hai giới hạn phải biết
 
-**`SCAN_LIMIT = 1000`** — [reconciliation.service.ts:11](../../packages/core/src/services/reconciliation.service.ts).
+**`SCAN_LIMIT = 1000`** — [reconciliation.service.ts:11](../../packages/modules/billing/src/services/reconciliation.service.ts).
 Nó lấy 1000 hàng **mới nhất rồi mới lọc theo cửa sổ**, không phân trang. Với cửa sổ cũ hoặc dữ liệu
 nhiều thì **có thể sót mà không báo gì**. Đừng dùng con số này làm bằng chứng kế toán khi dữ liệu đã
 lớn.
 
 **"Phía PSP" thực ra là bảng nội bộ.** `resolveProcessorMovements`
-([reconciliation.service.ts:99-139](../../packages/core/src/services/reconciliation.service.ts)) đọc
+([reconciliation.service.ts:99-139](../../packages/modules/billing/src/services/reconciliation.service.ts)) đọc
 `payment_intents` và `refunds` của chính hệ thống, **không** gọi ra PSP thật. Nó bắt được lệch giữa
 _tầng thanh toán và sổ cái_, chưa bắt được lệch giữa _hệ thống và nhà cung cấp_.
 
@@ -90,33 +90,33 @@ cái.
 ### Số dư không được lưu
 
 `ledger_account_balances` là một **view**, cộng từ `ledger_postings` mỗi lần đọc
-([migration 0003](../../packages/core/migrations/0003_ledger_immutability.sql)). Không có cột số dư,
+([migration 0003](../../packages/modules/billing/migrations/0001_triggers_view_seed.sql)). Không có cột số dư,
 nên không bao giờ lệch với các posting. Đổi lại: phải tính mỗi lần truy vấn.
 
 ### Đảo bút toán — thao tác hai bước
 
 Đây là hành động duy nhất trong erp-ui cần **hai lần bấm có chủ ý**:
 
-| #   | Ở đâu                                                                                            | Chuyện gì xảy ra                                                                     | Quan sát được gì                           |
-| --- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------ |
-| 1   | UI [LedgerTransactionItem.tsx:36-39](../../apps/erp-ui/src/components/LedgerTransactionItem.tsx) | bấm **Đảo bút toán** trên một giao dịch                                              | nút đổi sang `primary`                     |
-| 2   | UI [LedgerPage.tsx:39-43](../../apps/erp-ui/src/pages/LedgerPage.tsx)                            | `handleOnTransactionSelect` toggle — bấm lại chính nó là bỏ chọn                     | —                                          |
-| 3   | UI [LedgerPage.tsx:99-106](../../apps/erp-ui/src/pages/LedgerPage.tsx)                           | form lý do **chỉ mount khi đã chọn**                                                 | form xuất hiện phía trên danh sách         |
-| 4   | UI [reverse-transaction-form.ts:5-7](../../apps/erp-ui/src/forms/reverse-transaction-form.ts)    | zod: `reason` **bắt buộc**, không được rỗng                                          | không có lý do thì không đảo được          |
-| 5   | UI [LedgerPage.tsx:45-57](../../apps/erp-ui/src/pages/LedgerPage.tsx)                            | `handleOnSave` guard `selectedTransactionId` rồi gọi mutation, xong thì clear cả hai | —                                          |
-| 6   | API [request.ts:41-50](../../apps/erp-ui/src/api/ledger/request.ts)                              | `POST /api/v1/admin/ledger/transactions/:id/reverse`                                 | —                                          |
-| 7   | Service [ledger.service.ts:195-199](../../packages/core/src/services/ledger.service.ts)          | đã bị đảo → 409                                                                      | —                                          |
-| 8   | Service [ledger.service.ts:206-219](../../packages/core/src/services/ledger.service.ts)          | sinh posting **đảo hướng** từng dòng gốc, cùng số tiền                               | —                                          |
-| 9   | Service [ledger.service.ts:226](../../packages/core/src/services/ledger.service.ts)              | bản đảo có `externalId = null`                                                       | nếu không sẽ đụng unique index với bản gốc |
-| 10  | Service [ledger.service.ts:270-276](../../packages/core/src/services/ledger.service.ts)          | `linkLedgerReversal` ghi `reversed_by_transaction_id` lên bản gốc                    | —                                          |
-| 11  | UI [LedgerTransactionItem.tsx:31-34](../../apps/erp-ui/src/components/LedgerTransactionItem.tsx) | bản gốc hiện chip vàng "đã bị đảo", **mất** nút                                      | không đảo được hai lần                     |
+| #   | Ở đâu                                                                                              | Chuyện gì xảy ra                                                                     | Quan sát được gì                           |
+| --- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------ |
+| 1   | UI [LedgerTransactionItem.tsx:36-39](../../apps/erp-ui/src/components/LedgerTransactionItem.tsx)   | bấm **Đảo bút toán** trên một giao dịch                                              | nút đổi sang `primary`                     |
+| 2   | UI [LedgerPage.tsx:39-43](../../apps/erp-ui/src/pages/LedgerPage.tsx)                              | `handleOnTransactionSelect` toggle — bấm lại chính nó là bỏ chọn                     | —                                          |
+| 3   | UI [LedgerPage.tsx:99-106](../../apps/erp-ui/src/pages/LedgerPage.tsx)                             | form lý do **chỉ mount khi đã chọn**                                                 | form xuất hiện phía trên danh sách         |
+| 4   | UI [reverse-transaction-form.ts:5-7](../../apps/erp-ui/src/forms/reverse-transaction-form.ts)      | zod: `reason` **bắt buộc**, không được rỗng                                          | không có lý do thì không đảo được          |
+| 5   | UI [LedgerPage.tsx:45-57](../../apps/erp-ui/src/pages/LedgerPage.tsx)                              | `handleOnSave` guard `selectedTransactionId` rồi gọi mutation, xong thì clear cả hai | —                                          |
+| 6   | API [request.ts:41-50](../../apps/erp-ui/src/api/ledger/request.ts)                                | `POST /api/v1/admin/ledger/transactions/:id/reverse`                                 | —                                          |
+| 7   | Service [ledger.service.ts:195-199](../../packages/modules/billing/src/services/ledger.service.ts) | đã bị đảo → 409                                                                      | —                                          |
+| 8   | Service [ledger.service.ts:206-219](../../packages/modules/billing/src/services/ledger.service.ts) | sinh posting **đảo hướng** từng dòng gốc, cùng số tiền                               | —                                          |
+| 9   | Service [ledger.service.ts:226](../../packages/modules/billing/src/services/ledger.service.ts)     | bản đảo có `externalId = null`                                                       | nếu không sẽ đụng unique index với bản gốc |
+| 10  | Service [ledger.service.ts:270-276](../../packages/modules/billing/src/services/ledger.service.ts) | `linkLedgerReversal` ghi `reversed_by_transaction_id` lên bản gốc                    | —                                          |
+| 11  | UI [LedgerTransactionItem.tsx:31-34](../../apps/erp-ui/src/components/LedgerTransactionItem.tsx)   | bản gốc hiện chip vàng "đã bị đảo", **mất** nút                                      | không đảo được hai lần                     |
 
 Bước 8–10 là cách duy nhất "sửa" sổ: **không** UPDATE, không DELETE, mà thêm một giao dịch ngược
 hướng. Sau khi đảo, cả hai giao dịch còn nguyên và nối với nhau qua
 `reverses_transaction_id` / `reversed_by_transaction_id`.
 
 `reversed_by_transaction_id` là **cột duy nhất** mà một giao dịch đã ghi được phép nhận thêm giá trị
-— trigger trong [migration 0003](../../packages/core/migrations/0003_ledger_immutability.sql) cho
+— trigger trong [migration 0003](../../packages/modules/billing/migrations/0001_triggers_view_seed.sql) cho
 phép riêng nó và chặn mọi cột khác.
 
 ## Mốc thời gian
@@ -231,7 +231,7 @@ Sổ có cân không — câu quan trọng nhất, phải trả về **rỗng**:
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select transaction_id, sum(case when direction = 'debit' then amount else -amount end) as imbalance
- from ledger_postings group by transaction_id having sum(case when direction = 'debit' then amount else -amount end) <> 0"
+ from billing.ledger_postings group by transaction_id having sum(case when direction = 'debit' then amount else -amount end) <> 0"
 ```
 
 Số dư từng tài khoản, đúng như view mà UI đọc:
@@ -239,7 +239,7 @@ Số dư từng tài khoản, đúng như view mà UI đọc:
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select a.code, a.customer_id, b.debits, b.credits, b.balance
- from ledger_accounts a join ledger_account_balances b on b.account_id = a.id order by a.code"
+ from billing.ledger_accounts a join billing.ledger_account_balances b on b.account_id = a.id order by a.code"
 ```
 
 Cặp gốc ↔ đảo:
@@ -247,7 +247,7 @@ Cặp gốc ↔ đảo:
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select id, description, external_id, reverses_transaction_id, reversed_by_transaction_id
- from ledger_transactions order by created_at desc limit 6"
+ from billing.ledger_transactions order by created_at desc limit 6"
 ```
 
 Tự làm đối chiếu bằng SQL, so với con số API trả về:
@@ -256,9 +256,9 @@ Tự làm đối chiếu bằng SQL, so với con số API trả về:
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select t.external_id,
         sum(case when p.direction = 'debit' then p.amount else -p.amount end) as ledger_cash
- from ledger_postings p
- join ledger_transactions t on t.id = p.transaction_id
- join ledger_accounts a on a.id = p.account_id
+ from billing.ledger_postings p
+ join billing.ledger_transactions t on t.id = p.transaction_id
+ join billing.ledger_accounts a on a.id = p.account_id
  where a.code = 'cash'
  group by t.external_id order by t.external_id"
 ```
@@ -267,7 +267,7 @@ Thử sửa sổ để thấy trigger chặn:
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"delete from ledger_postings"
+"delete from billing.ledger_postings"
 ```
 
 Postgres trả `ledger rows are append-only: DELETE on ledger_postings is not allowed, post a
@@ -275,7 +275,7 @@ reversing transaction instead`.
 
 ### Test tự động phủ phần này
 
-`packages/core/tests/ledger.integration.test.ts` (9 test) — có một test dựng **một nghìn** giao dịch
+`packages/modules/billing/tests/ledger.integration.test.ts` (9 test) — có một test dựng **một nghìn** giao dịch
 ngẫu nhiên và kiểm mọi posting cộng về 0. `reporting.integration.test.ts` (10 test) phủ MRR, churn
 và cả ba loại ngoại lệ đối chiếu.
 

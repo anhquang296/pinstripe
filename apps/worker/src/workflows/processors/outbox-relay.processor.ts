@@ -1,4 +1,4 @@
-import type { OutboxRelayJob } from '@vxrerp/core/queues';
+import type { OutboxRelayJob } from '@vxrerp/platform/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

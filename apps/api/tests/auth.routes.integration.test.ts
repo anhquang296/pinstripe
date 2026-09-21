@@ -1,6 +1,6 @@
-import { UserRoleEnum } from '@vxrerp/core/contracts';
-import { adminSessions } from '@vxrerp/core/database';
-import { generateGid, ObjectPrefixEnum } from '@vxrerp/core/utils';
+import { UserRoleEnum } from '@vxrerp/platform/contracts';
+import { adminSessions } from '@vxrerp/platform/database';
+import { generateGid, ObjectPrefixEnum } from '@vxrerp/platform/utils';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';

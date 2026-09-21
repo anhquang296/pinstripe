@@ -5,9 +5,9 @@ dùng tính năng kia không". Câu hỏi mà hệ tính tiền trả lời là 
 đã thu được tiền chưa". Hai câu nghe giống nhau nhưng không phải một, và `entitlements` là bảng giữ
 câu trả lời cho câu thứ nhất để phía tiêu thụ không bao giờ phải tự suy ra từ câu thứ hai.
 
-Code: [`entitlement.service.ts`](../../packages/core/src/services/entitlement.service.ts),
-[`entitlement.repository.ts`](../../packages/core/src/repositories/entitlement.repository.ts),
-[`entitlements.schema.ts`](../../packages/core/src/database/schemas/entitlements.schema.ts),
+Code: [`entitlement.service.ts`](../../packages/modules/billing/src/services/entitlement.service.ts),
+[`entitlement.repository.ts`](../../packages/modules/billing/src/repositories/entitlement.repository.ts),
+[`entitlements.schema.ts`](../../packages/modules/billing/src/database/schemas/entitlements.schema.ts),
 [`domain-event-dispatch.processor.ts`](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts).
 Cơ chế từng bước ở [flow 04](../flows/04-subscription-entitlement.md); tài liệu này nói **vì sao** nó
 tồn tại, mang ý nghĩa gì và dùng ra sao.
@@ -28,9 +28,9 @@ Bỏ bảng này đi, mỗi lần app tiêu thụ cần gate một tính năng n
 
 ```sql
 select p.product_id
-  from subscriptions s
-  join subscription_items i on i.subscription_id = s.id and i.deleted_at is null
-  join prices p on p.id = i.price_id
+  from billing.subscriptions s
+  join billing.subscription_items i on i.subscription_id = s.id and i.deleted_at is null
+  join billing.prices p on p.id = i.price_id
  where s.customer_id = $1
    and s.status in (???)
 ```
@@ -48,7 +48,7 @@ Bốn bảng cho một câu hỏi thuộc hot path đã đủ tệ, nhưng chỗ
 | `canceled`            | `revoked`     | kết thúc hẳn                                                                      |
 
 Bảng này khai báo ở
-[`entitlement.service.ts:18-25`](../../packages/core/src/services/entitlement.service.ts) dưới dạng
+[`entitlement.service.ts:18-25`](../../packages/modules/billing/src/services/entitlement.service.ts) dưới dạng
 `Record<SubscriptionStatus, EntitlementStatus>`, nên thêm một trạng thái subscription mà quên ánh xạ
 là lỗi biên dịch.
 
@@ -59,12 +59,12 @@ chưa.
 
 ## Bốn lý do cần một bảng riêng
 
-| Lý do                       | Nội dung                                                                                                                                                                                                                                              |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chính sách nằm một chỗ      | Ánh xạ trạng thái là một bảng duy nhất trong một file duy nhất. Phía tiêu thụ không cần biết `dunning`, `trial`, `proration` là gì                                                                                                                    |
-| Hot path đọc được cache     | Khoá phẳng `(customer, product)` cache được trong Redis với TTL 300 giây và xoá đúng key khi đổi ([`entitlement.service.ts:115-129`](../../packages/core/src/services/entitlement.service.ts)). Một câu JOIN bốn bảng thì không biết khi nào phải xoá |
-| Quyền không chỉ đến từ tiền | Admin cấp tay, đền bù sau sự cố, gói dùng thử không gắn subscription, mua lẻ một lần — tất cả chỉ cần ghi thêm hàng, không phải giả vờ tạo một hợp đồng                                                                                               |
-| Có dấu vết                  | `granted_at` / `revoked_at` trả lời "mất quyền lúc nào". `subscriptions.status` chỉ nói _bây giờ_                                                                                                                                                     |
+| Lý do                       | Nội dung                                                                                                                                                                                                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chính sách nằm một chỗ      | Ánh xạ trạng thái là một bảng duy nhất trong một file duy nhất. Phía tiêu thụ không cần biết `dunning`, `trial`, `proration` là gì                                                                                                                               |
+| Hot path đọc được cache     | Khoá phẳng `(customer, product)` cache được trong Redis với TTL 300 giây và xoá đúng key khi đổi ([`entitlement.service.ts:115-129`](../../packages/modules/billing/src/services/entitlement.service.ts)). Một câu JOIN bốn bảng thì không biết khi nào phải xoá |
+| Quyền không chỉ đến từ tiền | Admin cấp tay, đền bù sau sự cố, gói dùng thử không gắn subscription, mua lẻ một lần — tất cả chỉ cần ghi thêm hàng, không phải giả vờ tạo một hợp đồng                                                                                                          |
+| Có dấu vết                  | `granted_at` / `revoked_at` trả lời "mất quyền lúc nào". `subscriptions.status` chỉ nói _bây giờ_                                                                                                                                                                |
 
 Đây là công thức của Kill Bill, ghi trong [RESEARCH §1.3](../RESEARCH.md): _"Subscription =
 Entitlement + Billing Information"_. Người dùng có thể được cấp quyền **trước** khi bị tính tiền, và
@@ -74,7 +74,7 @@ tài liệu nói đúng một câu: phải tách billing engine khỏi entitleme
 
 ## Mô hình dữ liệu
 
-Bảng [`entitlements`](../../packages/core/src/database/schemas/entitlements.schema.ts), id mang
+Bảng [`entitlements`](../../packages/modules/billing/src/database/schemas/entitlements.schema.ts), id mang
 prefix `ent_`:
 
 | Cột                         | Ý nghĩa                                                              |
@@ -86,7 +86,7 @@ prefix `ent_`:
 | `revoked_at`                | `null` khi còn quyền — một trạng thái thật, không phải giá trị thiếu |
 
 Unique index đặt trên `(subscription_id, product_id)`
-([`entitlements.schema.ts:34-37`](../../packages/core/src/database/schemas/entitlements.schema.ts)),
+([`entitlements.schema.ts:34-37`](../../packages/modules/billing/src/database/schemas/entitlements.schema.ts)),
 không phải trên `(customer_id, product_id)`. Nghĩa là **một khách có thể có hai hàng cho cùng một
 product** nếu quyền đến từ hai subscription khác nhau — cố ý, vì huỷ một hợp đồng không được làm mất
 quyền do hợp đồng kia cấp.
@@ -128,16 +128,16 @@ sequenceDiagram
 [`domain-event-dispatch.processor.ts:21-30`](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts):
 mọi event có `aggregateType = subscription` — `created`, `updated`, `canceled`, `trial_ended`,
 `renewed` — đều gọi cùng một hàm. `handleSubscriptionChanged`
-([`entitlement.service.ts:30-73`](../../packages/core/src/services/entitlement.service.ts)) không
+([`entitlement.service.ts:30-73`](../../packages/modules/billing/src/services/entitlement.service.ts)) không
 quan tâm event nào; nó đọc lại trạng thái hiện tại và đồng bộ. Nhờ vậy handler **idempotent**: chạy
 lại hai lần cho cùng một event ra cùng kết quả, đúng yêu cầu của một persistent bus có thể giao trùng.
 
 Hàm rẽ hai nhánh:
 
-| Trạng thái ánh xạ được | Việc làm                                                                                                                                                                                         |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `revoked`              | `revokeEntitlements(subscriptionId, …)` — một câu UPDATE cho **mọi** hàng của subscription ([`entitlement.repository.ts:71-83`](../../packages/core/src/repositories/entitlement.repository.ts)) |
-| `active` / `blocked`   | upsert từng product của các price hiện có, `onConflictDoUpdate` theo unique index ([`entitlement.repository.ts:50-69`](../../packages/core/src/repositories/entitlement.repository.ts))          |
+| Trạng thái ánh xạ được | Việc làm                                                                                                                                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `revoked`              | `revokeEntitlements(subscriptionId, …)` — một câu UPDATE cho **mọi** hàng của subscription ([`entitlement.repository.ts:71-83`](../../packages/modules/billing/src/repositories/entitlement.repository.ts)) |
+| `active` / `blocked`   | upsert từng product của các price hiện có, `onConflictDoUpdate` theo unique index ([`entitlement.repository.ts:50-69`](../../packages/modules/billing/src/repositories/entitlement.repository.ts))          |
 
 Cái giá của thiết kế này là **eventual consistency**: giữa lúc API trả 201 và lúc hàng entitlement
 xuất hiện có một khoảng trễ bằng `OUTBOX_RELAY_INTERVAL_MS` (mặc định 5000ms) cộng thời gian xử lý.
@@ -154,7 +154,7 @@ một hàm duy nhất, và không service nào cần join từ subscription sang
 | `getEntitlementStatus(customerId, productId)` | đúng một `EntitlementStatus` | Redis, TTL 300s         | **chưa route nào gọi**        |
 
 `getEntitlementStatus`
-([`entitlement.service.ts:76-97`](../../packages/core/src/services/entitlement.service.ts)) là hàm
+([`entitlement.service.ts:76-97`](../../packages/modules/billing/src/services/entitlement.service.ts)) là hàm
 đúng cho hot path: một khách, một product, có cache, không tìm thấy hàng `active` thì trả `revoked`
 và cache luôn kết quả phủ định. Nhưng route duy nhất của module là `GET /` dạng list
 ([`entitlements.routes.ts`](../../apps/api/src/routes/v1/entitlements/entitlements.routes.ts)), nên
@@ -278,7 +278,7 @@ Ba mốc của chuỗi bất đồng bộ trong một câu:
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select event_type, status, occurred_at, published_at from outbox_events
+"select event_type, status, occurred_at, published_at from platform.outbox_events
  where aggregate_type = 'subscription' order by occurred_at desc limit 5"
 ```
 
@@ -287,7 +287,7 @@ Quyền và hợp đồng cạnh nhau — hai cột trạng thái, hai ý nghĩa
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select e.product_id, e.status as entitlement, s.status as subscription, e.granted_at, e.revoked_at
- from entitlements e join subscriptions s on s.id = e.subscription_id
+ from billing.entitlements e join billing.subscriptions s on s.id = e.subscription_id
  order by e.created_at desc limit 5"
 ```
 
@@ -295,7 +295,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -
 
 - **Bỏ một sản phẩm khỏi subscription không thu hồi quyền của nó.** `handleSubscriptionChanged` chỉ
   upsert theo các price **hiện tại**; nhánh revoke chỉ chạy khi cả subscription mất quyền
-  ([`entitlement.service.ts:40-50`](../../packages/core/src/services/entitlement.service.ts)). Mà
+  ([`entitlement.service.ts:40-50`](../../packages/modules/billing/src/services/entitlement.service.ts)). Mà
   `replaceSubscriptionItems` thay trọn bộ item, nên nâng gói Starter → Premium để lại một hàng
   Starter `active` mồ côi. Với mô hình các gói loại trừ nhau, đây là lỗ hổng thật —
   [PITFALLS §6](../PITFALLS.md).

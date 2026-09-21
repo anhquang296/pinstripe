@@ -1,0 +1,29 @@
+{
+  "extends": "@vxrerp/tsconfig/node.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "paths": {
+      "@clients/*": ["./src/clients/*"],
+      "@config/*": ["./src/config/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@contracts/*": ["./src/contracts/*"],
+      "@database/*": ["./src/database/*"],
+      "@errors/*": ["./src/errors/*"],
+      "@plugins/*": ["./src/plugins/*"],
+      "@queues/*": ["./src/queues/*"],
+      "@repositories/*": ["./src/repositories/*"],
+      "@services/*": ["./src/services/*"],
+      "@testing/*": ["./src/testing/*"],
+      "@type/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "tsup.config.ts",
+    "drizzle.config.ts",
+    "vitest.config.ts",
+    "vitest.integration.config.ts"
+  ]
+}

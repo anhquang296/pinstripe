@@ -1,7 +1,7 @@
 import { parseArgs } from 'node:util';
 
-import { UserRoleEnum } from '@vxrerp/core/contracts';
-import { corePlugin } from '@vxrerp/core/plugins';
+import { UserRoleEnum } from '@vxrerp/platform/contracts';
+import { platformPlugin } from '@vxrerp/platform/plugins';
 import Fastify from 'fastify';
 
 const USAGE = 'usage: bootstrap-admin --email <email> --name <name> [--password <password>]';
@@ -34,7 +34,7 @@ async function runScript(): Promise<void> {
 
   const fastify = Fastify({ logger: { level: 'warn' } });
 
-  await fastify.register(corePlugin);
+  await fastify.register(platformPlugin);
   await fastify.ready();
 
   try {

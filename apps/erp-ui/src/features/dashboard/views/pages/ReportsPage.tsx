@@ -7,7 +7,7 @@ import StatItem from '@common/components/StatItem';
 import StatusChip from '@common/components/StatusChip';
 import { useReportRangeLabel, useReportWindow } from '@common/hooks/useReportWindow';
 import { formatCurrency, formatDate } from '@common/utils/format';
-import { CurrencyEnum } from '@vxrerp/core/contracts';
+import { CurrencyEnum } from '@vxrerp/billing/contracts';
 import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@vxrerp/sdk/react';
 import { get, isNil, map, size } from 'lodash-es';
 

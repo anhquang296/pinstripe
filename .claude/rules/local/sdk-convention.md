@@ -8,7 +8,7 @@ Applies to `packages/sdk/**`, và tới cách hai frontend tiêu thụ nó.
 
 Does **not** apply to:
 
-- `apps/api`, `apps/worker`, `packages/core` — verb, layering và naming của kit đứng nguyên ở đó.
+- `apps/api`, `apps/worker`, `packages/platform`, `packages/modules/*` — verb, layering và naming của kit đứng nguyên ở đó.
 - Bất kỳ `api/` folder nào còn sót lại trong một app. Chừng nào nó còn tồn tại, `api-client-convention.md` vẫn quản nó.
 
 ## Frontend không còn `api/` folder
@@ -118,6 +118,11 @@ Hook của bề mặt khách hàng (`portal.*`) sống ở entry riêng `@vxrerp
 Key của chúng vẫn đăng ký trong `createVxrErpQueries` dưới subject `VxrErpQuerySubjectEnum.PORTAL`,
 nên cả hai entry dùng chung một `VxrErpProvider`.
 
+`portal` trần là bề mặt của **billing portal** (`apps/billing-portal-ui`) và chỉ của nó — tên có trước
+quy tắc portal thuộc về module (ADR 0029). Portal của một module khác mang tiền tố module ở mọi lớp:
+resource `<m>Portal.*`, entry `@vxrerp/sdk/react/<m>-portal`, route `/v1/<m>_portal/**`, subject riêng.
+Không thêm method của module khác vào `portal.*`.
+
 `useCreatePortalLinkMutation` cũng ở entry portal, không ở barrel chính: `POST /v1/portal/links` chỉ
 nhận API key mang `portal.write` (`verifyPortalKeyRequest`), mà cookie session của dashboard **không**
 đi qua hook đó — xem [`auth-convention.md`](./auth-convention.md). Admin-ui gọi nó là 404/401,
@@ -165,7 +170,7 @@ VXRERP_MAX_RETRIES, VXRERP_TIMEOUT_MS
 `/v1/portal/sessions`. File đó là proxy phía server có allowlist, không phải HTTP client thứ hai —
 trình duyệt vẫn chỉ đi qua `VxrErpClient({ baseUrl: '/bff' })` và hook của SDK. Xem ADR 0026.
 
-`SECRET_API_KEY` / `PORTAL_API_KEY` (không prefix) là env **của server API** — `packages/core/src/config/env.schema.ts` validate chúng để so khớp key đến. Hai họ tên khác vai, đừng gộp và đừng cho SDK một fallback chain.
+`SECRET_API_KEY` / `PORTAL_API_KEY` (không prefix) là env **của server API** — `packages/platform/src/config/env.schema.ts` validate chúng để so khớp key đến. Hai họ tên khác vai, đừng gộp và đừng cho SDK một fallback chain.
 
 ## NEVER Do
 
@@ -175,9 +180,10 @@ trình duyệt vẫn chỉ đi qua `VxrErpClient({ baseUrl: '/bff' })` và hook 
 - Thêm method cho một route không tồn tại chỉ để bề mặt trông đầy đủ.
 - Dựng lại `AdminNamespace`, `_adminTransport`, `adminApiKey` hay `VXRERP_ADMIN_API_KEY` — SDK có
   đúng một transport; hay cho `account.get` nhận một id, nó đọc chính session đang gọi.
-- Khai báo domain type trong SDK — chúng đi qua `src/types/contracts.types.ts`, bằng `export type`, từ `@vxrerp/core/contracts`.
-- Import `@vxrerp/core` như value ở bất kỳ đâu trong `packages/sdk/src` — nó sẽ vào bundle và `src/bundle.test.ts` sẽ fail.
+- Khai báo domain type trong SDK — chúng đi qua `src/types/contracts.types.ts`, bằng `export type`, từ `@vxrerp/platform/contracts` và `@vxrerp/<module>/contracts`.
+- Import `@vxrerp/platform` hay một module (`@vxrerp/billing`…) như value ở bất kỳ đâu trong `packages/sdk/src` — nó sẽ vào bundle và `src/bundle.test.ts` sẽ fail.
 - Import một `node:` builtin ngoài `src/node/**`.
 - Import `sonner` hay bất kỳ toast library nào vào SDK — dùng `onMutationError` / `onMutationSuccess` của provider.
 - Đọc `process.env` ngoài `src/node/create-vxr-erp-client.ts`.
 - Đặt `splitting: false` trong `tsup.config.ts` — `instanceof VxrErpError` sẽ sai giữa các entry.
+- Đặt method của một module khác billing vào `portal.*`, hay đặt tên portal mới không mang tiền tố module.

@@ -1,4 +1,4 @@
-import { VXRERP_API_VERSION } from '@vxrerp/core/contracts';
+import { VXRERP_API_VERSION } from '@vxrerp/platform/contracts';
 import fp from 'fastify-plugin';
 
 const API_VERSION_HEADER = 'vxrerp-version';

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import _ from 'lodash';
 import { describe, expect, it } from 'vitest';
 

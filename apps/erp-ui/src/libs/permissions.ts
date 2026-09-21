@@ -1,4 +1,4 @@
-import type { Permission } from '@vxrerp/core/contracts';
+import type { Permission } from '@vxrerp/platform/contracts';
 import { useAccountQuery } from '@vxrerp/sdk/react';
 import { get, includes } from 'lodash-es';
 

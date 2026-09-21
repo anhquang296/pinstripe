@@ -29,14 +29,14 @@ import { TrashBin } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import { toast } from '@libs/toast';
-import type { PaymentIntentResponse } from '@vxrerp/core/contracts';
+import type { PaymentIntentResponse } from '@vxrerp/billing/contracts';
 import {
   CollectionMethodEnum,
   CreditNoteStatusEnum,
   CurrencyEnum,
   InvoiceStatusEnum,
-  PermissionEnum,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useChargeInvoiceMutation,
   useCreateCreditNoteMutation,

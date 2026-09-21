@@ -7,7 +7,7 @@ import {
   updateWebhookEndpointSchema,
   webhookEndpointParamsSchema,
   webhookEndpointSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/platform/contracts';
 
 export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

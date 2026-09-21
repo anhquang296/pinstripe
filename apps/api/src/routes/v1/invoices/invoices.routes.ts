@@ -6,11 +6,11 @@ import {
   getUpcomingInvoiceSchema,
   invoiceParamsSchema,
   invoiceSchema,
-  ListResponseSchema,
   payInvoiceSchema,
   ratedInvoiceSchema,
   voidInvoiceSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const invoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

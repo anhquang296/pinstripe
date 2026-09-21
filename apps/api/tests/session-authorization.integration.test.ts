@@ -1,12 +1,8 @@
-import type { UserRole } from '@vxrerp/core/contracts';
-import {
-  LedgerAccountCodeEnum,
-  PermissionEnum,
-  PostingDirectionEnum,
-  UserRoleEnum,
-  UserStatusEnum,
-} from '@vxrerp/core/contracts';
-import { CurrencyEnum, generateGid, ObjectPrefixEnum } from '@vxrerp/core/utils';
+import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/billing/contracts';
+import { CurrencyEnum } from '@vxrerp/billing/utils';
+import type { UserRole } from '@vxrerp/platform/contracts';
+import { PermissionEnum, UserRoleEnum, UserStatusEnum } from '@vxrerp/platform/contracts';
+import { generateGid, ObjectPrefixEnum } from '@vxrerp/platform/utils';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';

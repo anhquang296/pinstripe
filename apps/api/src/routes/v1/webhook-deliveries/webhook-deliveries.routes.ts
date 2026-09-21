@@ -5,7 +5,7 @@ import {
   ListResponseSchema,
   webhookDeliveryParamsSchema,
   webhookDeliverySchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/platform/contracts';
 
 export const webhookDeliveriesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

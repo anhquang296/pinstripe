@@ -6,7 +6,7 @@ import {
   createApiKeySchema,
   findApiKeysSchema,
   ListResponseSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/platform/contracts';
 
 export const apiKeysRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

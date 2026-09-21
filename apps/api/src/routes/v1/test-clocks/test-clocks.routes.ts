@@ -4,10 +4,10 @@ import {
   advanceTestClockSchema,
   createTestClockSchema,
   findTestClocksSchema,
-  ListResponseSchema,
   testClockParamsSchema,
   testClockSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

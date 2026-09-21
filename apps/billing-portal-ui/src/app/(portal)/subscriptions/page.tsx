@@ -9,7 +9,7 @@ import {
 import PortalRequestForm from '@features/portal/components/PortalRequestForm';
 import SubscriptionCard from '@features/portal/components/SubscriptionCard';
 import { Card, Spinner } from '@heroui/react';
-import { PortalRequestKindEnum } from '@vxrerp/core/contracts';
+import { PortalRequestKindEnum } from '@vxrerp/billing/contracts';
 import {
   useCreatePortalRequestMutation,
   usePortalSubscriptionsQuery,

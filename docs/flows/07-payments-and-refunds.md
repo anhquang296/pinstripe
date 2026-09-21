@@ -64,7 +64,7 @@ sequenceDiagram
 
 ## Máy trạng thái
 
-[payments.types.ts](../../packages/core/src/contracts/payments.types.ts):
+[payments.types.ts](../../packages/modules/billing/src/contracts/payments.types.ts):
 
 ```mermaid
 stateDiagram-v2
@@ -101,7 +101,7 @@ Bị từ chối **không** phải trạng thái cuối — intent quay về `re
 
 ## Payment method
 
-[payment-method.service.ts](../../packages/core/src/services/payment-method.service.ts):
+[payment-method.service.ts](../../packages/modules/billing/src/services/payment-method.service.ts):
 
 - `createPaymentMethod` nhận `{ type, token }`. Không nhận số thẻ — xem [ADR 0019](../adr/0019-payment-model.md).
 - `attachPaymentMethod` từ chối chuyển sang customer thứ hai, và từ chối gắn lại thứ đã detach.
@@ -120,7 +120,7 @@ Không có `payment_intents` nào được tạo trong luồng này — đó ch�
 
 ## Tạo intent
 
-[payment.service.ts](../../packages/core/src/services/payment.service.ts):
+[payment.service.ts](../../packages/modules/billing/src/services/payment.service.ts):
 
 | Kiểm tra                               | Lỗi                                                                           |
 | -------------------------------------- | ----------------------------------------------------------------------------- |
@@ -154,7 +154,7 @@ mới với key mới.
 
 ## Callback
 
-`handleProviderEvent(provider, payload)` — [payment.service.ts](../../packages/core/src/services/payment.service.ts):
+`handleProviderEvent(provider, payload)` — [payment.service.ts](../../packages/modules/billing/src/services/payment.service.ts):
 
 1. INSERT `psp_events(provider, event_id)` với `ON CONFLICT DO NOTHING`. Không insert được nghĩa là
    event này đã áp rồi → trả `isDuplicate: true` và **không làm gì nữa**.
@@ -186,7 +186,7 @@ không giữ API key của chúng ta, chữ ký là credential.
 
 ## PSP giả lập
 
-[mock-psp.client.ts](../../packages/core/src/clients/mock-psp.client.ts) — toàn bộ trạng thái nằm trong `Map` trong bộ nhớ, **khởi động lại là mất**, và **không chia sẻ giữa các tiến trình**.
+[mock-psp.client.ts](../../packages/modules/billing/src/clients/mock-psp.client.ts) — toàn bộ trạng thái nằm trong `Map` trong bộ nhớ, **khởi động lại là mất**, và **không chia sẻ giữa các tiến trình**.
 
 Kích hành vi bằng **token**, không bằng id của payment method:
 
@@ -210,7 +210,7 @@ Client tự khai báo lỗi riêng (`MockPspUnknownTokenError`, `MockPspChargeNo
 
 ## Refund
 
-[refund.service.ts](../../packages/core/src/services/refund.service.ts):
+[refund.service.ts](../../packages/modules/billing/src/services/refund.service.ts):
 
 | Kiểm tra                                    | Lỗi                                              |
 | ------------------------------------------- | ------------------------------------------------ |

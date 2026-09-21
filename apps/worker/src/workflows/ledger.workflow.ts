@@ -1,10 +1,10 @@
-import type { LedgerIntegrityCheckJob } from '@vxrerp/core/queues';
+import type { LedgerIntegrityCheckJob } from '@vxrerp/billing/queues';
 import {
   buildLedgerIntegrityCheckJob,
   LEDGER_INTEGRITY_CHECK_JOB,
   LEDGER_QUEUE,
-  QueueNameEnum,
-} from '@vxrerp/core/queues';
+} from '@vxrerp/billing/queues';
+import { QueueNameEnum } from '@vxrerp/platform/queues';
 import { LedgerIntegrityCheckProcessor } from '@workflows/processors/ledger-integrity-check.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';
@@ -37,7 +37,7 @@ export class LedgerWorkflow implements Workflow {
   }
 
   private async dispatchIntegritySchedule(): Promise<void> {
-    const { ledgerIntegrityIntervalMs, ledgerIntegrityBatchSize } = this.fastify.workflowSchedules;
+    const { ledgerIntegrityIntervalMs, ledgerIntegrityBatchSize } = this.fastify.billingSchedules;
 
     await this.fastify.queues.resolve(QueueNameEnum.LEDGER).upsertJobScheduler(
       INTEGRITY_SCHEDULER_ID,

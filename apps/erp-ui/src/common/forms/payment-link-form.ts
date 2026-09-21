@@ -1,6 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckoutSessionModeEnum } from '@vxrerp/core/contracts';
+import { CheckoutSessionModeEnum } from '@vxrerp/billing/contracts';
 import type {
   CreatePaymentLinkPayload,
   PaymentLinkResponse,

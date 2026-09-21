@@ -3,11 +3,11 @@ import { ApiResponse } from '@utils/api-response';
 import {
   createProductSchema,
   findProductsSchema,
-  ListResponseSchema,
   productParamsSchema,
   productSchema,
   updateProductSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const productsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

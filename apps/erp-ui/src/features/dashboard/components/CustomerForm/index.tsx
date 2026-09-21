@@ -2,7 +2,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { CustomerFormData } from '@common/forms/customer-form';
 import { Button } from '@heroui/react';
-import { PartnerPlatformEnum } from '@vxrerp/core/contracts';
+import { PartnerPlatformEnum } from '@vxrerp/billing/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
 interface CustomerFormProps {

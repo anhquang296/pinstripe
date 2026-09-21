@@ -3,11 +3,11 @@ import { ApiResponse } from '@utils/api-response';
 import {
   createPaymentLinkSchema,
   findPaymentLinksSchema,
-  ListResponseSchema,
   paymentLinkParamsSchema,
   paymentLinkSchema,
   updatePaymentLinkSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const paymentLinksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

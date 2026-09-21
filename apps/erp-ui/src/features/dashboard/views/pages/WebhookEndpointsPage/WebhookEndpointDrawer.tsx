@@ -15,7 +15,7 @@ import { formatDate } from '@common/utils/format';
 import WebhookEndpointForm from '@features/dashboard/components/WebhookEndpointForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useUpdateWebhookEndpointMutation,
   useWebhookDeliveriesQuery,

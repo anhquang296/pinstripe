@@ -43,7 +43,7 @@ import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import { tagRouteByPrefix } from '@utils/openapi-tag';
 import { buildRouteConfig } from '@utils/route-permission';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import type { FastifyInstance } from 'fastify';
 
 export async function v1Routes(fastify: FastifyInstance): Promise<void> {

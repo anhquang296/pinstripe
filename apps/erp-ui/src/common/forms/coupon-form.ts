@@ -1,6 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CouponDurationEnum, CurrencyEnum } from '@vxrerp/core/contracts';
+import { CouponDurationEnum, CurrencyEnum } from '@vxrerp/billing/contracts';
 import type { CouponResponse, CreateCouponPayload, UpdateCouponPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

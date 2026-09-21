@@ -1,6 +1,6 @@
 import { PORTAL_SESSION_COOKIE } from '@common/constants/portal-session';
-import { PORTAL_CLIENT_IP_HEADER } from '@vxrerp/core/contracts';
-import { ErrorTypeEnum } from '@vxrerp/core/errors';
+import { PORTAL_CLIENT_IP_HEADER } from '@vxrerp/billing/contracts';
+import { ErrorTypeEnum } from '@vxrerp/platform/errors';
 import type { ErrorType, HttpMethod, PortalSessionResponse } from '@vxrerp/sdk';
 import { HttpMethodEnum } from '@vxrerp/sdk';
 import { find, first, forEach, join, split, trim } from 'lodash-es';

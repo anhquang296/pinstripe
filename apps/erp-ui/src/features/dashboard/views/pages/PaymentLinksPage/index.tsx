@@ -25,8 +25,9 @@ import PaymentLinkForm from '@features/dashboard/components/PaymentLinkForm';
 import { CHECKOUT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { PaymentLinkResponse } from '@vxrerp/core/contracts';
-import { CheckoutSessionModeEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import type { PaymentLinkResponse } from '@vxrerp/billing/contracts';
+import { CheckoutSessionModeEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCreatePaymentLinkMutation,
   usePaymentLinksQuery,

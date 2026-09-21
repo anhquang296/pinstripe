@@ -4,8 +4,8 @@ import {
   balanceTransactionParamsSchema,
   balanceTransactionSchema,
   findBalanceTransactionsSchema,
-  ListResponseSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const balanceTransactionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

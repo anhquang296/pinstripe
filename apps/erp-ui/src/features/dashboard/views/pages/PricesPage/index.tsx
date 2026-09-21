@@ -25,8 +25,9 @@ import PriceForm from '@features/dashboard/components/PriceForm';
 import { CATALOG_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { PriceResponse } from '@vxrerp/core/contracts';
-import { BillingSchemeEnum, MeterStatusEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import type { PriceResponse } from '@vxrerp/billing/contracts';
+import { BillingSchemeEnum, MeterStatusEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCreatePriceMutation,
   useMetersQuery,

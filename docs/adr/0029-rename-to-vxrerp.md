@@ -38,10 +38,31 @@ biến camelCase `vxrErp`, chữ hiển thị "VXR ERP".
 Những thứ **không** đổi:
 
 - API surface, `operationId` và `openapi.json`: không một operation nào đổi, spec sinh lại giống hệt.
-- `/v1/portal/**` và `portal.*` của SDK. `portal` từ nay được đọc là **cổng nhà xe**; nhóm người dùng
-  bên ngoài thứ hai, nếu có, mang tiền tố của chính nhóm đó (`/v1/vendor_portal`, `vendorPortal.*`).
+- `/v1/portal/**` và `portal.*` của SDK. `portal` từ nay được đọc là **billing portal**, bề mặt của
+  `apps/billing-portal-ui`.
 - `ADMIN_UI_ORIGIN`: env của server API, nói về origin chứ không về tên app.
 - Thư mục repo và remote Git.
+
+### Portal thuộc về module
+
+Cổng nhà xe đổi tên thành `billing-portal-ui`, không phải một tên theo nhóm người dùng, vì portal được
+sở hữu bởi **module** chứ không bởi đối tượng dùng nó. Một module khác cần bề mặt cho người ngoài thì
+dựng portal của riêng mình, cùng một hình dạng:
+
+| Phần           | Billing                                | Module `<m>` về sau                           |
+| -------------- | -------------------------------------- | --------------------------------------------- |
+| App            | `apps/billing-portal-ui`               | `apps/<m>-portal-ui`                          |
+| API surface    | `/v1/portal/**`                        | `/v1/<m>_portal/**`                           |
+| SDK            | `portal.*`, `@vxrerp/sdk/react/portal` | `<m>Portal.*`, `@vxrerp/sdk/react/<m>-portal` |
+| Link đăng nhập | `billingPortal.sessions.create`        | `<m>Portal.sessions.create`                   |
+
+`/v1/portal` và `portal.*` không mang tiền tố `billing` chỉ vì chúng có trước quy tắc này. Portal thứ
+hai **bắt buộc** mang tiền tố module của nó; không portal nào khác được dùng chữ `portal` trần.
+
+Identity của người ngoài thì **không** thuộc về module: nhà xe dùng hai portal vẫn là một tài khoản.
+`portal_users` / `portal_memberships` / `portal_sessions` chuyển sang `@vxrerp/platform` khi tách
+package, và mỗi portal kiểm tra session đó cộng quyền riêng của module mình. Code UI chung giữa các
+portal chỉ tách thành package khi portal thứ hai thật sự xuất hiện.
 
 ## Hệ quả
 

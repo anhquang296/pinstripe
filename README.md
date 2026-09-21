@@ -74,7 +74,7 @@ against a running stack leaves every `Authorization: Bearer` call failing until 
 pnpm dev
 ```
 
-Turbo builds `packages/core` first, then runs the API, the workers, the ERP UI and the billing portal UI.
+Turbo builds `packages/platform` and then `packages/modules/billing` first, then runs the API, the workers, the ERP UI and the billing portal UI.
 
 ## 6. Create the first admin
 

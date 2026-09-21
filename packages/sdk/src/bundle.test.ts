@@ -14,7 +14,7 @@ function readIsomorphicBundle(): string | null {
   }
 }
 
-it('keeps the isomorphic entry free of node builtins and of a runtime core import', () => {
+it('keeps the isomorphic entry free of node builtins and of a runtime server package import', () => {
   const bundle = readIsomorphicBundle();
 
   if (!bundle) {
@@ -22,5 +22,6 @@ it('keeps the isomorphic entry free of node builtins and of a runtime core impor
   }
 
   expect(bundle).not.toContain('node:');
-  expect(bundle).not.toContain('@vxrerp/core');
+  expect(bundle).not.toContain('@vxrerp/platform');
+  expect(bundle).not.toContain('@vxrerp/billing');
 });

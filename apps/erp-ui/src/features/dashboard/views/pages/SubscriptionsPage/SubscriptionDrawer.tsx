@@ -29,7 +29,7 @@ import SubscriptionUpdateForm from '@features/dashboard/components/SubscriptionU
 import { Pencil, TrashBin } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCancelSubscriptionMutation,
   useCreateSubscriptionItemMutation,

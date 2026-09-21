@@ -25,7 +25,7 @@ import PromotionCodeForm from '@features/dashboard/components/PromotionCodeForm'
 import { Power } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCouponQuery,
   useCreatePromotionCodeMutation,

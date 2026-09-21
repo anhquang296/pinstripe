@@ -5,7 +5,7 @@ import EntityDrawer from '@common/components/EntityDrawer';
 import { PAGE_LIMIT } from '@common/constants/pagination';
 import { formatCurrency, formatDate } from '@common/utils/format';
 import { Button } from '@heroui/react';
-import { CurrencyEnum, LedgerAccountCodeEnum } from '@vxrerp/core/contracts';
+import { CurrencyEnum, LedgerAccountCodeEnum } from '@vxrerp/billing/contracts';
 import { useLedgerAccountQuery, useLedgerTransactionsQuery } from '@vxrerp/sdk/react';
 import { get, size } from 'lodash-es';
 

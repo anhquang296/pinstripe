@@ -1,6 +1,6 @@
 import { readRateLimitId } from '@utils/request-auth';
-import { TooManyRequestsError } from '@vxrerp/core/errors';
-import { consumeRateLimit, RedisNamespaceEnum } from '@vxrerp/core/utils';
+import { TooManyRequestsError } from '@vxrerp/platform/errors';
+import { consumeRateLimit, RedisNamespaceEnum } from '@vxrerp/platform/utils';
 import fp from 'fastify-plugin';
 
 export const rateLimitPlugin = fp(async (fastify) => {

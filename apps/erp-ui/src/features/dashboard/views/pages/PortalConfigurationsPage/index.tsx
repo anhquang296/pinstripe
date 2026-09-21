@@ -23,8 +23,8 @@ import PortalConfigurationForm from '@features/dashboard/components/PortalConfig
 import { CHECKOUT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { BillingPortalConfigurationResponse } from '@vxrerp/core/contracts';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import type { BillingPortalConfigurationResponse } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useBillingPortalConfigurationsQuery,
   useCreateBillingPortalConfigurationMutation,

@@ -1,5 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CurrencyEnum, LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/core/contracts';
+import {
+  CurrencyEnum,
+  LedgerAccountCodeEnum,
+  PostingDirectionEnum,
+} from '@vxrerp/billing/contracts';
 import type { PostLedgerTransactionPayload } from '@vxrerp/sdk';
 import { filter, map, sumBy } from 'lodash-es';
 import { z } from 'zod';

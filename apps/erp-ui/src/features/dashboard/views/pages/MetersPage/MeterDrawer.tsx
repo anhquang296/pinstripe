@@ -32,7 +32,8 @@ import MeterEventForm from '@features/dashboard/components/MeterEventForm';
 import MeterForm from '@features/dashboard/components/MeterForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { MeterStatusEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import { MeterStatusEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCreateMeterEventBatchMutation,
   useCreateMeterEventMutation,

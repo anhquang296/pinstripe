@@ -65,7 +65,7 @@ pnpm test
 ```
 
 ```bash
-pnpm --filter @vxrerp/core test:integration
+pnpm --filter @vxrerp/billing test:integration
 ```
 
 ```bash
@@ -168,6 +168,6 @@ curl -s -H "Authorization: Bearer $SECRET_API_KEY" localhost:3000/v1/ping
 
 ## Lưu ý
 
-- `packages/core` được build (`exports` trỏ `dist`). Sửa core xong phải rebuild — `pnpm dev` và
+- `packages/platform` và `packages/modules/*` được build (`exports` trỏ `dist`). Sửa chúng xong phải rebuild — `pnpm dev` và
   `turbo` tự lo thứ tự, nhưng chạy một package lẻ thì không.
 - Migration là journal: không xoá file đã generate, luôn tạo migration mới.

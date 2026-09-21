@@ -2,14 +2,14 @@
 
 Hai đường đọc thuần tuý dưới `/api/v1/admin`, cần `ADMIN_API_KEY`. Không ghi gì, không phát event.
 
-| Route                                        | Service                                                                                 |
-| -------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `GET /api/v1/admin/reporting/revenue`        | [reporting.service.ts](../../packages/core/src/services/reporting.service.ts)           |
-| `GET /api/v1/admin/reporting/reconciliation` | [reconciliation.service.ts](../../packages/core/src/services/reconciliation.service.ts) |
+| Route                                        | Service                                                                                            |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/admin/reporting/revenue`        | [reporting.service.ts](../../packages/modules/billing/src/services/reporting.service.ts)           |
+| `GET /api/v1/admin/reporting/reconciliation` | [reconciliation.service.ts](../../packages/modules/billing/src/services/reconciliation.service.ts) |
 
 ## Revenue summary
 
-`getRevenueSummary` — [reporting.service.ts:15-71](../../packages/core/src/services/reporting.service.ts). Cửa sổ mặc định là 30 ngày lùi từ `windowEnd` (mặc định `clock.now()`); currency mặc định `VND`.
+`getRevenueSummary` — [reporting.service.ts:15-71](../../packages/modules/billing/src/services/reporting.service.ts). Cửa sổ mặc định là 30 ngày lùi từ `windowEnd` (mặc định `clock.now()`); currency mặc định `VND`.
 
 Sáu truy vấn độc lập rồi ghép lại:
 
@@ -24,7 +24,7 @@ Sáu truy vấn độc lập rồi ghép lại:
 | `refundedInWindow`                             | `aggregateRefundTotal`       | từ bảng `refunds`                                                                                                                                                 |
 | `collectedInWindow`                            | `aggregateCashMovement`      | **từ sổ cái**, không từ `payment_intents`                                                                                                                         |
 
-MRR chỉ quy đổi giá `per_unit` — [buildMonthlyAmount](../../packages/core/src/utils/recurring-amount.ts) cần một `unitAmount` cụ thể, nên giá theo bậc và giá metered không có đóng góp ổn định để đưa vào. Đây là giới hạn cần biết khi đọc con số.
+MRR chỉ quy đổi giá `per_unit` — [buildMonthlyAmount](../../packages/modules/billing/src/utils/recurring-amount.ts) cần một `unitAmount` cụ thể, nên giá theo bậc và giá metered không có đóng góp ổn định để đưa vào. Đây là giới hạn cần biết khi đọc con số.
 
 `churnRate` dùng mẫu số `canceled + active` chứ không phải số đầu kỳ — một xấp xỉ, không phải churn kế toán chuẩn.
 

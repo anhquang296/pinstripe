@@ -3,7 +3,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import { COLLECTION_METHOD_LABELS } from '@common/constants/collection-method';
 import type { SubscriptionUpdateFormData } from '@common/forms/subscription-update-form';
 import { Button } from '@heroui/react';
-import { ProrationBehaviorEnum } from '@vxrerp/core/contracts';
+import { ProrationBehaviorEnum } from '@vxrerp/billing/contracts';
 import { map } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
 

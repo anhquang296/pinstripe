@@ -1,5 +1,5 @@
 import { cursorSearchParams } from '@common/hooks/useCursorPagination';
-import { PaymentIntentStatusEnum } from '@vxrerp/core/contracts';
+import { PaymentIntentStatusEnum } from '@vxrerp/billing/contracts';
 import { values } from 'lodash-es';
 import { parseAsString, parseAsStringEnum } from 'nuqs';
 

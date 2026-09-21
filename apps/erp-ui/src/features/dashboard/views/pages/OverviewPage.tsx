@@ -6,7 +6,7 @@ import StatItem from '@common/components/StatItem';
 import { useReportRangeLabel, useReportWindow } from '@common/hooks/useReportWindow';
 import { formatCurrency } from '@common/utils/format';
 import { Button } from '@heroui/react';
-import { CurrencyEnum } from '@vxrerp/core/contracts';
+import { CurrencyEnum } from '@vxrerp/billing/contracts';
 import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@vxrerp/sdk/react';
 import { get, size } from 'lodash-es';
 import { useNavigate } from 'react-router-dom';

@@ -8,13 +8,13 @@ Tiến trình `WORKFLOW_NAME=dunning`, chu kỳ `DUNNING_INTERVAL_MS`, scheduler
 
 ## Khác gì billing run
 
-|                | Billing                                          | Dunning                                                                                                             |
-| -------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Quét bảng      | `subscriptions`                                  | `invoices`                                                                                                          |
-| Điều kiện      | `active`/`past_due`, `currentPeriodEnd <= runAt` | `open`, `nextAttemptAt <= runAt`                                                                                    |
-| Băm shard theo | `subscriptions.id`                               | `invoices.customerId` — [invoice.repository.ts:120-121](../../packages/core/src/repositories/invoice.repository.ts) |
-| Số shard       | `BILLING_RUN_SHARD_COUNT`                        | **cũng** `BILLING_RUN_SHARD_COUNT` — [dunning.workflow.ts:60](../../apps/worker/src/workflows/dunning.workflow.ts)  |
-| Jitter         | `BILLING_RUN_JITTER_MS`                          | `DUNNING_JITTER_MS`                                                                                                 |
+|                | Billing                                          | Dunning                                                                                                                        |
+| -------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Quét bảng      | `subscriptions`                                  | `invoices`                                                                                                                     |
+| Điều kiện      | `active`/`past_due`, `currentPeriodEnd <= runAt` | `open`, `nextAttemptAt <= runAt`                                                                                               |
+| Băm shard theo | `subscriptions.id`                               | `invoices.customerId` — [invoice.repository.ts:120-121](../../packages/modules/billing/src/repositories/invoice.repository.ts) |
+| Số shard       | `BILLING_RUN_SHARD_COUNT`                        | **cũng** `BILLING_RUN_SHARD_COUNT` — [dunning.workflow.ts:60](../../apps/worker/src/workflows/dunning.workflow.ts)             |
+| Jitter         | `BILLING_RUN_JITTER_MS`                          | `DUNNING_JITTER_MS`                                                                                                            |
 
 Băm theo `customerId` là chủ ý: mọi hoá đơn của một khách rơi vào cùng shard, nên không có hai shard cùng quẹt thẻ của một khách tại cùng thời điểm.
 
@@ -32,11 +32,11 @@ stateDiagram-v2
     chờ --> abandoned: PSP từ chối, hết lượt → uncollectible
 ```
 
-`nextAttemptAt` là "đồng hồ" duy nhất: `null` nghĩa là không thử nữa. Nó được đặt lần đầu ở bước finalize (`= dueAt` — [invoice.service.ts:169](../../packages/core/src/services/invoice.service.ts)).
+`nextAttemptAt` là "đồng hồ" duy nhất: `null` nghĩa là không thử nữa. Nó được đặt lần đầu ở bước finalize (`= dueAt` — [invoice.service.ts:169](../../packages/modules/billing/src/services/invoice.service.ts)).
 
 ## Từng bước
 
-`collectInvoice` — [dunning.service.ts:66-118](../../packages/core/src/services/dunning.service.ts):
+`collectInvoice` — [dunning.service.ts:66-118](../../packages/modules/billing/src/services/dunning.service.ts):
 
 | #   | Điều kiện                                    | Làm gì                                                                                   | Kết quả     |
 | --- | -------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------- |
@@ -63,7 +63,7 @@ Sau bước 1, hoá đơn có collection method thu qua nền tảng đối tác
 
 ## Lịch retry
 
-`DUNNING_RETRY_DELAY_DAYS` là chuỗi phân tách bằng dấu phẩy, parse ở [config.plugin.ts:50](../../packages/core/src/plugins/config.plugin.ts). Tra bằng `retryDelayDays[attemptCount]` với `attemptCount` là số lần đã thử **sau** lần này — nên với `"0,3,5,7"`:
+`DUNNING_RETRY_DELAY_DAYS` là chuỗi phân tách bằng dấu phẩy, parse ở [config.plugin.ts:50](../../packages/platform/src/plugins/config.plugin.ts). Tra bằng `retryDelayDays[attemptCount]` với `attemptCount` là số lần đã thử **sau** lần này — nên với `"0,3,5,7"`:
 
 | Lần thử | `attemptCount` | Tra `retryDelayDays[attemptCount]` | Kết quả        |
 | ------- | -------------- | ---------------------------------- | -------------- |
@@ -76,13 +76,13 @@ Phần tử `[0]` không bao giờ được đọc ở đây — lịch hẹn đ
 
 ## Phương thức thanh toán
 
-`resolvePaymentMethod` — [dunning.service.ts:120-124](../../packages/core/src/services/dunning.service.ts) — đọc `customer.metadata.defaultPaymentMethod`, không có thì `pm_card_ok`.
+`resolvePaymentMethod` — [dunning.service.ts:120-124](../../packages/modules/billing/src/services/dunning.service.ts) — đọc `customer.metadata.defaultPaymentMethod`, không có thì `pm_card_ok`.
 
 Nghĩa là **chưa có bảng payment method thật**: nó là một khoá metadata. Muốn giả lập khách bị từ chối thẻ, đặt `metadata.defaultPaymentMethod = 'pm_card_declined'` ([flow 07](./07-payments-and-refunds.md) có bảng mã).
 
 ## Bỏ cuộc
 
-`abandonInvoice` — [dunning.service.ts:126-160](../../packages/core/src/services/dunning.service.ts) — trong một transaction: `status = uncollectible`, `nextAttemptAt = null`, event `invoice.marked_uncollectible`, kèm một dòng log mức `warn`.
+`abandonInvoice` — [dunning.service.ts:126-160](../../packages/modules/billing/src/services/dunning.service.ts) — trong một transaction: `status = uncollectible`, `nextAttemptAt = null`, event `invoice.marked_uncollectible`, kèm một dòng log mức `warn`.
 
 `uncollectible` **không** phải trạng thái cuối — khách trả muộn thì vẫn chuyển sang `paid` được ([flow 06](./06-invoicing.md)).
 

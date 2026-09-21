@@ -6,8 +6,8 @@ export default defineConfig({
   test: {
     globals: false,
     include: ['tests/**/*.integration.test.ts'],
-    globalSetup: ['../../packages/core/tests/global-setup.ts'],
-    setupFiles: ['../../packages/core/tests/setup.ts'],
+    globalSetup: ['tests/global-setup.ts'],
+    setupFiles: ['tests/setup.ts'],
     env: { TEST_SUITE_NAME: 'api' },
     fileParallelism: false,
     hookTimeout: 30_000,

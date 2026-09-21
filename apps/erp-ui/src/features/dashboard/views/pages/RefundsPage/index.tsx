@@ -25,8 +25,9 @@ import RefundForm from '@features/dashboard/components/RefundForm';
 import { PAYMENT_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { RefundResponse } from '@vxrerp/core/contracts';
-import { CurrencyEnum, PermissionEnum, RefundStatusEnum } from '@vxrerp/core/contracts';
+import type { RefundResponse } from '@vxrerp/billing/contracts';
+import { CurrencyEnum, RefundStatusEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCreateRefundMutation,
   usePaymentIntentsQuery,

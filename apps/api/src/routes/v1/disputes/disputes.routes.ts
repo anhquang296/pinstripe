@@ -4,9 +4,9 @@ import {
   disputeParamsSchema,
   disputeSchema,
   findDisputesSchema,
-  ListResponseSchema,
   submitDisputeEvidenceSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const disputesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

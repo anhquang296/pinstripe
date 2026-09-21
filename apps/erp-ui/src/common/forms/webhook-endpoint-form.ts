@@ -1,6 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/core/contracts';
+import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/platform/contracts';
 import type {
   CreateWebhookEndpointPayload,
   UpdateWebhookEndpointPayload,

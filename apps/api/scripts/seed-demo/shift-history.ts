@@ -1,4 +1,4 @@
-import { NodeEnvEnum } from '@vxrerp/core/config';
+import { NodeEnvEnum } from '@vxrerp/platform/config';
 import { sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -62,7 +62,7 @@ async function shiftCurrentPeriods(fastify: FastifyInstance): Promise<void> {
   const interval = `${CURRENT_PERIOD_ELAPSED_DAYS} days`;
 
   await fastify.database.master.execute(
-    sql`UPDATE subscriptions
+    sql`UPDATE billing.subscriptions
         SET current_period_start = current_period_start - ${interval}::interval,
             current_period_end = current_period_end - ${interval}::interval,
             billing_cycle_anchor = billing_cycle_anchor - ${interval}::interval,
@@ -72,10 +72,10 @@ async function shiftCurrentPeriods(fastify: FastifyInstance): Promise<void> {
   );
 
   await fastify.database.master.execute(
-    sql`UPDATE subscription_item_changes
+    sql`UPDATE billing.subscription_item_changes
         SET billed_from = billed_from - ${interval}::interval,
             created_at = created_at - ${interval}::interval
-        WHERE subscription_id IN (SELECT id FROM subscriptions WHERE trial_end IS NULL)`,
+        WHERE subscription_id IN (SELECT id FROM billing.subscriptions WHERE trial_end IS NULL)`,
   );
 }
 
@@ -83,7 +83,9 @@ async function setAppendOnlyTriggers(fastify: FastifyInstance, isEnabled: boolea
   const action = isEnabled ? 'ENABLE' : 'DISABLE';
 
   for (const table of APPEND_ONLY_TABLES) {
-    await fastify.database.master.execute(sql.raw(`ALTER TABLE ${table} ${action} TRIGGER USER`));
+    await fastify.database.master.execute(
+      sql.raw(`ALTER TABLE billing.${table} ${action} TRIGGER USER`),
+    );
   }
 }
 
@@ -98,7 +100,7 @@ async function shiftInvoice(fastify: FastifyInstance, invoice: BackdatedInvoice)
   }).join(', ');
 
   await database.execute(
-    sql`UPDATE invoices
+    sql`UPDATE billing.invoices
         SET ${sql.raw(invoiceAssignments)},
             period_start = ${periodStart}::timestamptz,
             period_end = ${periodEnd}::timestamptz
@@ -106,44 +108,44 @@ async function shiftInvoice(fastify: FastifyInstance, invoice: BackdatedInvoice)
   );
 
   await database.execute(
-    sql`UPDATE invoice_line_items
+    sql`UPDATE billing.invoice_line_items
         SET created_at = created_at - ${interval}::interval
         WHERE invoice_id = ${invoiceId}`,
   );
 
   await database.execute(
-    sql`UPDATE invoice_payments
+    sql`UPDATE billing.invoice_payments
         SET created_at = created_at - ${interval}::interval,
             paid_at = paid_at - ${interval}::interval
         WHERE invoice_id = ${invoiceId}`,
   );
 
   await database.execute(
-    sql`UPDATE payment_intents
+    sql`UPDATE billing.payment_intents
         SET created_at = created_at - ${interval}::interval,
             updated_at = updated_at - ${interval}::interval
         WHERE invoice_id = ${invoiceId}`,
   );
 
   await database.execute(
-    sql`UPDATE charges
+    sql`UPDATE billing.charges
         SET created_at = created_at - ${interval}::interval,
             updated_at = updated_at - ${interval}::interval
         WHERE payment_intent_id IN (
-          SELECT id FROM payment_intents WHERE invoice_id = ${invoiceId}
+          SELECT id FROM billing.payment_intents WHERE invoice_id = ${invoiceId}
         )`,
   );
 
   await database.execute(
-    sql`UPDATE ledger_postings
+    sql`UPDATE billing.ledger_postings
         SET created_at = created_at - ${interval}::interval
         WHERE transaction_id IN (
-          SELECT id FROM ledger_transactions WHERE ${buildLedgerPredicate(invoiceId)}
+          SELECT id FROM billing.ledger_transactions WHERE ${buildLedgerPredicate(invoiceId)}
         )`,
   );
 
   await database.execute(
-    sql`UPDATE ledger_transactions
+    sql`UPDATE billing.ledger_transactions
         SET effective_at = effective_at - ${interval}::interval,
             created_at = created_at - ${interval}::interval
         WHERE ${buildLedgerPredicate(invoiceId)}`,
@@ -154,8 +156,8 @@ function buildLedgerPredicate(invoiceId: string) {
   return sql`external_id LIKE ${`%${invoiceId}%`}
     OR external_id IN (
       SELECT 'charge:' || charges.id
-      FROM charges
-      JOIN payment_intents ON payment_intents.id = charges.payment_intent_id
+      FROM billing.charges
+      JOIN billing.payment_intents ON payment_intents.id = charges.payment_intent_id
       WHERE payment_intents.invoice_id = ${invoiceId}
     )`;
 }

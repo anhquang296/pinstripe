@@ -1,5 +1,5 @@
 import { cursorSearchParams } from '@common/hooks/useCursorPagination';
-import { RefundStatusEnum } from '@vxrerp/core/contracts';
+import { RefundStatusEnum } from '@vxrerp/billing/contracts';
 import { values } from 'lodash-es';
 import { parseAsString, parseAsStringEnum } from 'nuqs';
 

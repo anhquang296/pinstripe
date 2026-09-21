@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { ApiResponse } from '@utils/api-response';
-import { balanceSchema } from '@vxrerp/core/contracts';
+import { balanceSchema } from '@vxrerp/billing/contracts';
 
 export const balanceRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

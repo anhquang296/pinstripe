@@ -1,6 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CurrencyEnum, PartnerPlatformEnum } from '@vxrerp/core/contracts';
+import { CurrencyEnum, PartnerPlatformEnum } from '@vxrerp/billing/contracts';
 import type { CreateCustomerPayload, CustomerResponse, UpdateCustomerPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

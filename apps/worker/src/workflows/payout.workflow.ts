@@ -1,4 +1,5 @@
-import { PAYOUT_QUEUE, PAYOUT_SETTLE_POLL_JOB, QueueNameEnum } from '@vxrerp/core/queues';
+import { PAYOUT_QUEUE, PAYOUT_SETTLE_POLL_JOB } from '@vxrerp/billing/queues';
+import { QueueNameEnum } from '@vxrerp/platform/queues';
 import { PayoutSettlePollProcessor } from '@workflows/processors/payout-settle-poll.processor';
 import type { Workflow } from '@workflows/workflow';
 import { Worker } from 'bullmq';
@@ -30,7 +31,7 @@ export class PayoutWorkflow implements Workflow {
   }
 
   private async dispatchSettleSchedule(): Promise<void> {
-    const { payoutSettlePollIntervalMs } = this.fastify.workflowSchedules;
+    const { payoutSettlePollIntervalMs } = this.fastify.billingSchedules;
 
     await this.fastify.queues
       .resolve(QueueNameEnum.PAYOUT)

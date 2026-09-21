@@ -5,7 +5,7 @@ import {
   pspCallbackParamsSchema,
   pspCallbackResponseSchema,
   pspCallbackSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 
 declare module 'fastify' {
   interface FastifyRequest {

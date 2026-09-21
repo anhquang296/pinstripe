@@ -24,8 +24,8 @@ import WebhookEndpointForm from '@features/dashboard/components/WebhookEndpointF
 import { WEBHOOK_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { WebhookEndpointResponse } from '@vxrerp/core/contracts';
-import { PermissionEnum, WebhookEndpointStatusEnum } from '@vxrerp/core/contracts';
+import type { WebhookEndpointResponse } from '@vxrerp/platform/contracts';
+import { PermissionEnum, WebhookEndpointStatusEnum } from '@vxrerp/platform/contracts';
 import { useCreateWebhookEndpointMutation, useWebhookEndpointsQuery } from '@vxrerp/sdk/react';
 import { filter, get, isNull, last, size, sumBy } from 'lodash-es';
 import { useQueryStates } from 'nuqs';

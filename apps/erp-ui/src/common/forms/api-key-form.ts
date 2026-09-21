@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
 import type { CreateApiKeyPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

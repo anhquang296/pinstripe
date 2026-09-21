@@ -34,7 +34,8 @@ import CustomerPortalUsersTab from '@features/dashboard/views/pages/CustomersPag
 import { TrashBin } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { CurrencyEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import { CurrencyEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useBillingPortalSessionQuery,
   useCreateBillingPortalSessionMutation,

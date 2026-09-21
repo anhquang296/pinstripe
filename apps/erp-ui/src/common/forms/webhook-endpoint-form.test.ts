@@ -1,4 +1,4 @@
-import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/core/contracts';
+import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/platform/contracts';
 import type { WebhookEndpointResponse } from '@vxrerp/sdk';
 import { describe, expect, it } from 'vitest';
 

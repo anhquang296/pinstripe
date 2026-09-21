@@ -1,4 +1,4 @@
-import { UserRoleEnum } from '@vxrerp/core/contracts';
+import { UserRoleEnum } from '@vxrerp/platform/contracts';
 
 export const ROLE_OPTIONS = [
   { value: UserRoleEnum.ADMIN, label: 'admin — toàn quyền' },

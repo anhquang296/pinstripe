@@ -1,6 +1,6 @@
-import type { UserRole } from '@vxrerp/core/contracts';
-import { UserRoleEnum, UserStatusEnum } from '@vxrerp/core/contracts';
-import { generateGid, ObjectPrefixEnum } from '@vxrerp/core/utils';
+import type { UserRole } from '@vxrerp/platform/contracts';
+import { UserRoleEnum, UserStatusEnum } from '@vxrerp/platform/contracts';
+import { generateGid, ObjectPrefixEnum } from '@vxrerp/platform/utils';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';

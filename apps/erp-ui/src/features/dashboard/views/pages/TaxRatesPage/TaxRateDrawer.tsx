@@ -13,7 +13,7 @@ import { formatDate } from '@common/utils/format';
 import TaxRateForm from '@features/dashboard/components/TaxRateForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import { useTaxRateQuery, useUpdateTaxRateMutation } from '@vxrerp/sdk/react';
 import { get } from 'lodash-es';
 import { useEffect } from 'react';

@@ -4,11 +4,11 @@ import {
   cancelSubscriptionSchema,
   createSubscriptionSchema,
   findSubscriptionsSchema,
-  ListResponseSchema,
   subscriptionParamsSchema,
   subscriptionSchema,
   updateSubscriptionSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

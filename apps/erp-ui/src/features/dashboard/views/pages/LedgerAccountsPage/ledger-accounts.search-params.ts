@@ -1,5 +1,5 @@
 import { cursorSearchParams } from '@common/hooks/useCursorPagination';
-import { LedgerAccountCodeEnum } from '@vxrerp/core/contracts';
+import { LedgerAccountCodeEnum } from '@vxrerp/billing/contracts';
 import { values } from 'lodash-es';
 import { parseAsString, parseAsStringEnum } from 'nuqs';
 

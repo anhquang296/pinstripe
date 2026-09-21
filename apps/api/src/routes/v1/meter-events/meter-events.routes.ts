@@ -5,7 +5,7 @@ import {
   createMeterEventBatchSchema,
   createMeterEventSchema,
   meterEventSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
 
 export const meterEventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

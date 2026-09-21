@@ -26,8 +26,9 @@ import InvoiceForm from '@features/dashboard/components/InvoiceForm';
 import { INVOICE_STATUS_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { InvoiceResponse } from '@vxrerp/core/contracts';
-import { CurrencyEnum, InvoiceStatusEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import type { InvoiceResponse } from '@vxrerp/billing/contracts';
+import { CurrencyEnum, InvoiceStatusEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCreateInvoiceMutation,
   useCustomersQuery,

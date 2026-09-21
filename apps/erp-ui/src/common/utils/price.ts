@@ -1,5 +1,5 @@
-import type { PriceResponse } from '@vxrerp/core/contracts';
-import { BillingSchemeEnum } from '@vxrerp/core/contracts';
+import type { PriceResponse } from '@vxrerp/billing/contracts';
+import { BillingSchemeEnum } from '@vxrerp/billing/contracts';
 import { size, toUpper } from 'lodash-es';
 
 export function formatPriceAmount(price: PriceResponse): string {

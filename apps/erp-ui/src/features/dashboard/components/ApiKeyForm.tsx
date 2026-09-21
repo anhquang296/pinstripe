@@ -3,7 +3,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { ApiKeyFormData } from '@common/forms/api-key-form';
 import { Button } from '@heroui/react';
-import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
 const TYPE_OPTIONS = [

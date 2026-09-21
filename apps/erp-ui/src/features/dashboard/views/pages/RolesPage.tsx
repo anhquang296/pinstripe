@@ -4,8 +4,8 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import { OPTION_LIMIT } from '@common/constants/pagination';
 import { ROLE_DESCRIPTIONS, ROLE_OPTIONS } from '@common/constants/roles';
-import type { Permission, UserRole } from '@vxrerp/core/contracts';
-import { PermissionEnum, ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/core/contracts';
+import type { Permission, UserRole } from '@vxrerp/platform/contracts';
+import { PermissionEnum, ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/platform/contracts';
 import { useUsersQuery } from '@vxrerp/sdk/react';
 import { filter, get, includes, map, size, values } from 'lodash-es';
 
@@ -45,7 +45,7 @@ export default function RolesPage() {
   return (
     <PageCard
       title="Roles"
-      description="Ma trận quyền là hằng số của repo: ROLE_PERMISSIONS trong @vxrerp/core. Đổi quyền là đổi code, không phải đổi dữ liệu — màn này chỉ đọc."
+      description="Ma trận quyền là hằng số của repo: ROLE_PERMISSIONS trong @vxrerp/platform. Đổi quyền là đổi code, không phải đổi dữ liệu — màn này chỉ đọc."
     >
       <StatGrid>
         <StatItem label="Vai trò" value={size(ROLE_OPTIONS)} />

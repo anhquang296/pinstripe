@@ -1,5 +1,5 @@
 import swagger from '@fastify/swagger';
-import { VXRERP_API_VERSION } from '@vxrerp/core/contracts';
+import { VXRERP_API_VERSION } from '@vxrerp/platform/contracts';
 import fp from 'fastify-plugin';
 import _ from 'lodash';
 

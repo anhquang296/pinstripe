@@ -13,7 +13,7 @@ import { formatDate } from '@common/utils/format';
 import PortalConfigurationForm from '@features/dashboard/components/PortalConfigurationForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useBillingPortalConfigurationQuery,
   useUpdateBillingPortalConfigurationMutation,

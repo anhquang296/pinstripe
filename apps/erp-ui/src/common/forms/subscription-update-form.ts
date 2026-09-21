@@ -1,6 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CollectionMethodEnum, ProrationBehaviorEnum } from '@vxrerp/core/contracts';
+import { CollectionMethodEnum, ProrationBehaviorEnum } from '@vxrerp/billing/contracts';
 import type { SubscriptionResponse, UpdateSubscriptionPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

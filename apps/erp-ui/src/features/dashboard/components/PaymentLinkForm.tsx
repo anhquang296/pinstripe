@@ -4,7 +4,7 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { PaymentLinkFormData } from '@common/forms/payment-link-form';
 import { Button } from '@heroui/react';
-import { CheckoutSessionModeEnum } from '@vxrerp/core/contracts';
+import { CheckoutSessionModeEnum } from '@vxrerp/billing/contracts';
 import type { UseFormReturn } from 'react-hook-form';
 
 const MODE_OPTIONS = [

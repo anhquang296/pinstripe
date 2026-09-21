@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
-import type { Permission } from '@vxrerp/core/contracts';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import type { Permission } from '@vxrerp/platform/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
 import { useCan } from './permissions';

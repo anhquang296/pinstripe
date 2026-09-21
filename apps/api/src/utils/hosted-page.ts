@@ -1,5 +1,5 @@
-import type { CheckoutSessionResponse, InvoiceResponse } from '@vxrerp/core/contracts';
-import { CheckoutSessionStatusEnum } from '@vxrerp/core/contracts';
+import type { CheckoutSessionResponse, InvoiceResponse } from '@vxrerp/billing/contracts';
+import { CheckoutSessionStatusEnum } from '@vxrerp/billing/contracts';
 import _ from 'lodash';
 
 const DEFAULT_TEST_CARD_TOKEN = 'tok_visa_ok';

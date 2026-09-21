@@ -55,18 +55,18 @@ sequenceDiagram
 
 ## Kịch bản chính — đăng ký endpoint
 
-| #   | Ở đâu                                                                                   | Chuyện gì xảy ra                                                                            | Quan sát được gì                               |
-| --- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 1   | UI [WebhooksPage.tsx:40-44](../../apps/erp-ui/src/pages/WebhooksPage.tsx)               | dropdown liệt kê **toàn bộ** `DomainEventTypeEnum` — 25 loại                                | `values(DomainEventTypeEnum)`, không hard-code |
-| 2   | UI [WebhooksPage.tsx:54-56](../../apps/erp-ui/src/pages/WebhooksPage.tsx)               | `handleOnCreate` gửi `{ url, enabledEvents: [selectedEvent], description: 'Tạo từ admin' }` | **một** event mỗi lần đăng ký từ UI            |
-| 3   | UI [WebhooksPage.tsx:26](../../apps/erp-ui/src/pages/WebhooksPage.tsx)                  | URL mặc định `http://localhost:4100/hooks`                                                  | port 4100 không có gì chạy sẵn — phải tự dựng  |
-| 4   | Service [webhook.service.ts:45-55](../../packages/core/src/services/webhook.service.ts) | INSERT, secret sinh bằng `randomBytes(24)` với tiền tố `whsec_`                             | —                                              |
-| 5   | Service [webhook.service.ts:61](../../packages/core/src/services/webhook.service.ts)    | `buildEndpoint(..., { hasSecret: true })` — **chỉ** response này chứa secret                | mọi lần đọc sau đều trả `secret: null`         |
-| 6   | Hook [mutations.ts:24](../../apps/erp-ui/src/reactquery/webhooks/mutations.ts)          | toast in thẳng secret: `Secret chỉ hiện một lần: whsec_...`                                 | **toast là load-bearing** — bỏ qua là mất      |
+| #   | Ở đâu                                                                                       | Chuyện gì xảy ra                                                                            | Quan sát được gì                               |
+| --- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1   | UI [WebhooksPage.tsx:40-44](../../apps/erp-ui/src/pages/WebhooksPage.tsx)                   | dropdown liệt kê **toàn bộ** `DomainEventTypeEnum` — 25 loại                                | `values(DomainEventTypeEnum)`, không hard-code |
+| 2   | UI [WebhooksPage.tsx:54-56](../../apps/erp-ui/src/pages/WebhooksPage.tsx)                   | `handleOnCreate` gửi `{ url, enabledEvents: [selectedEvent], description: 'Tạo từ admin' }` | **một** event mỗi lần đăng ký từ UI            |
+| 3   | UI [WebhooksPage.tsx:26](../../apps/erp-ui/src/pages/WebhooksPage.tsx)                      | URL mặc định `http://localhost:4100/hooks`                                                  | port 4100 không có gì chạy sẵn — phải tự dựng  |
+| 4   | Service [webhook.service.ts:45-55](../../packages/platform/src/services/webhook.service.ts) | INSERT, secret sinh bằng `randomBytes(24)` với tiền tố `whsec_`                             | —                                              |
+| 5   | Service [webhook.service.ts:61](../../packages/platform/src/services/webhook.service.ts)    | `buildEndpoint(..., { hasSecret: true })` — **chỉ** response này chứa secret                | mọi lần đọc sau đều trả `secret: null`         |
+| 6   | Hook [mutations.ts:24](../../apps/erp-ui/src/reactquery/webhooks/mutations.ts)              | toast in thẳng secret: `Secret chỉ hiện một lần: whsec_...`                                 | **toast là load-bearing** — bỏ qua là mất      |
 
 Bước 5–6 là điều quan trọng nhất của màn hình này: secret chỉ trả về đúng một lần, lúc tạo. Đóng
 toast mà chưa copy thì phải tạo endpoint mới. Không có đường nào đọc lại
-([webhook.service.ts:82, 88, 107](../../packages/core/src/services/webhook.service.ts) đều
+([webhook.service.ts:82, 88, 107](../../packages/platform/src/services/webhook.service.ts) đều
 `hasSecret: false`).
 
 ## Kịch bản chính — một event đi ra
@@ -75,13 +75,13 @@ toast mà chưa copy thì phải tạo endpoint mới. Không có đường nào
 | --- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | 7   | bất kỳ service                                                                                                            | ghi `outbox_events` trong cùng transaction với nghiệp vụ — [flow 02](../flows/02-event-pipeline.md)            |
 | 8   | Worker `outbox`                                                                                                           | claim bằng `FOR UPDATE SKIP LOCKED`, đẩy `DomainEventQueue` với `jobId = event.id`                             |
-| 9   | Service [webhook.service.ts:130-136](../../packages/core/src/services/webhook.service.ts)                                 | lấy tối đa **200** endpoint `enabled`, lọc `enabledEvents` chứa `eventType`                                    |
-| 10  | Service [webhook.service.ts:142-166](../../packages/core/src/services/webhook.service.ts)                                 | payload `{ id, type, createdAt, data: { object } }`; INSERT một `webhook_deliveries` cho **mỗi** endpoint khớp |
-| 11  | Service [webhook.service.ts:177-188](../../packages/core/src/services/webhook.service.ts)                                 | đẩy job với `attempts: WEBHOOK_MAX_ATTEMPTS` (5), backoff mũ từ `WEBHOOK_BACKOFF_MS` (2s)                      |
-| 12  | Service [webhook.service.ts:203](../../packages/core/src/services/webhook.service.ts)                                     | ký **tại thời điểm gửi**, bằng secret hiện tại của endpoint                                                    |
-| 13  | Util [webhook-signature.ts:10-15](../../packages/core/src/utils/webhook-signature.ts)                                     | HMAC-SHA256 trên `<unix timestamp>.<body>`, header dạng `t=…,v1=<hex>`                                         |
+| 9   | Service [webhook.service.ts:130-136](../../packages/platform/src/services/webhook.service.ts)                             | lấy tối đa **200** endpoint `enabled`, lọc `enabledEvents` chứa `eventType`                                    |
+| 10  | Service [webhook.service.ts:142-166](../../packages/platform/src/services/webhook.service.ts)                             | payload `{ id, type, createdAt, data: { object } }`; INSERT một `webhook_deliveries` cho **mỗi** endpoint khớp |
+| 11  | Service [webhook.service.ts:177-188](../../packages/platform/src/services/webhook.service.ts)                             | đẩy job với `attempts: WEBHOOK_MAX_ATTEMPTS` (5), backoff mũ từ `WEBHOOK_BACKOFF_MS` (2s)                      |
+| 12  | Service [webhook.service.ts:203](../../packages/platform/src/services/webhook.service.ts)                                 | ký **tại thời điểm gửi**, bằng secret hiện tại của endpoint                                                    |
+| 13  | Util [webhook-signature.ts:10-15](../../packages/platform/src/utils/webhook-signature.ts)                                 | HMAC-SHA256 trên `<unix timestamp>.<body>`, header dạng `t=…,v1=<hex>`                                         |
 | 14  | Processor [webhook-delivery.processor.ts:45-53](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts) | `fetch` POST, timeout `WEBHOOK_TIMEOUT_MS` (5s)                                                                |
-| 15  | Service [webhook.service.ts:207-220](../../packages/core/src/services/webhook.service.ts)                                 | chỉ `response.ok` (2xx) là `succeeded` + `delivered_at`; còn lại `failed` + `last_error`                       |
+| 15  | Service [webhook.service.ts:207-220](../../packages/platform/src/services/webhook.service.ts)                             | chỉ `response.ok` (2xx) là `succeeded` + `delivered_at`; còn lại `failed` + `last_error`                       |
 | 16  | Processor [webhook-delivery.processor.ts:36](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts)    | thất bại thì `throw` để BullMQ retry                                                                           |
 
 `attemptCount` lấy từ `job.attemptsMade + 1`, nên cột "Số lần thử" trên UI phản ánh đúng lần thứ mấy.
@@ -92,14 +92,14 @@ Ba việc, theo đúng thứ tự:
 
 **1. Xác thực chữ ký.** Header `vxrerp-signature` có dạng `t=1736956800,v1=abc123…`. Tính lại
 HMAC-SHA256 của `<t>.<raw body>` bằng secret, so bằng hàm chống timing attack. Logic tham chiếu:
-[isWebhookSignatureValid:17-41](../../packages/core/src/utils/webhook-signature.ts).
+[isWebhookSignatureValid:17-41](../../packages/platform/src/utils/webhook-signature.ts).
 
 Phải dùng **raw body**, không phải JSON đã parse rồi serialize lại — thứ tự khoá và khoảng trắng đổi
 là chữ ký sai.
 
 **2. Chống trùng bằng `payload.id`.** Event id (`evt_...`) **giữ nguyên qua mọi lần thử** — nó là
 `event.eventId` từ outbox, không sinh lại mỗi lần gửi
-([webhook.service.ts:144](../../packages/core/src/services/webhook.service.ts)). Bên nhận lưu id đã
+([webhook.service.ts:144](../../packages/platform/src/services/webhook.service.ts)). Bên nhận lưu id đã
 xử lý và bỏ qua id trùng. Đúng như chú thích trên trang:
 _"Mỗi event mang một `id` cố định qua mọi lần thử, nên bên nhận tự chặn trùng được"_
 ([WebhooksPage.tsx:70-71](../../apps/erp-ui/src/pages/WebhooksPage.tsx)).
@@ -131,15 +131,15 @@ hành động đã xảy ra **trước** đó — `handleDomainEvent` chỉ nhì
 
 ## Nhánh phụ và thất bại
 
-| Tình huống                                  | Hệ quả                                                                                                                          |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Endpoint trả 500                            | `failed`, BullMQ retry tới 5 lần, backoff mũ 2s → 4s → 8s…                                                                      |
-| Endpoint không trả lời trong 5s             | `AbortSignal.timeout` cắt, `last_error` là chuỗi lỗi fetch                                                                      |
-| Hết 5 lần                                   | job nằm ở failed set của queue, delivery đứng ở `failed` — **không có cơ chế gửi lại bằng tay**                                 |
-| Endpoint `disabled`                         | bị lọc ra ngay ở bước 9, **không** sinh delivery                                                                                |
-| Endpoint đăng ký event không bao giờ xảy ra | không có delivery nào, không lỗi                                                                                                |
-| Hơn 200 endpoint `enabled`                  | các endpoint ngoài 200 đầu **bị bỏ qua âm thầm** ([webhook.service.ts:29](../../packages/core/src/services/webhook.service.ts)) |
-| Một đợt relay lớn                           | dội thẳng vào endpoint khách — **chưa có rate limit theo endpoint**, mục chặn production trong [ROADMAP](../ROADMAP.md)         |
+| Tình huống                                  | Hệ quả                                                                                                                              |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Endpoint trả 500                            | `failed`, BullMQ retry tới 5 lần, backoff mũ 2s → 4s → 8s…                                                                          |
+| Endpoint không trả lời trong 5s             | `AbortSignal.timeout` cắt, `last_error` là chuỗi lỗi fetch                                                                          |
+| Hết 5 lần                                   | job nằm ở failed set của queue, delivery đứng ở `failed` — **không có cơ chế gửi lại bằng tay**                                     |
+| Endpoint `disabled`                         | bị lọc ra ngay ở bước 9, **không** sinh delivery                                                                                    |
+| Endpoint đăng ký event không bao giờ xảy ra | không có delivery nào, không lỗi                                                                                                    |
+| Hơn 200 endpoint `enabled`                  | các endpoint ngoài 200 đầu **bị bỏ qua âm thầm** ([webhook.service.ts:29](../../packages/platform/src/services/webhook.service.ts)) |
+| Một đợt relay lớn                           | dội thẳng vào endpoint khách — **chưa có rate limit theo endpoint**, mục chặn production trong [ROADMAP](../ROADMAP.md)             |
 
 Hàng "hết 5 lần" là hạn chế đáng biết nhất: bảng deliveries cho **thấy** đã thất bại nhưng không có
 nút gửi lại. Cách duy nhất là tạo lại event từ phía nghiệp vụ.
@@ -251,8 +251,8 @@ Theo dõi một event đi qua ba chặng — outbox, delivery, kết quả:
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select o.event_type, o.status as outbox_status, o.published_at,
         d.status as delivery_status, d.attempt_count, d.response_status, d.delivered_at
- from outbox_events o
- left join webhook_deliveries d on d.event_id = o.id
+ from platform.outbox_events o
+ left join platform.webhook_deliveries d on d.event_id = o.id
  order by o.occurred_at desc limit 10"
 ```
 
@@ -260,21 +260,21 @@ docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select jsonb_pretty(payload) from webhook_deliveries order by created_at desc limit 1"
+"select jsonb_pretty(payload) from platform.webhook_deliveries order by created_at desc limit 1"
 ```
 
 Xem `event_id` giữ nguyên qua các lần thử (một delivery, `attempt_count` tăng, `event_id` không đổi):
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select event_id, event_type, status, attempt_count, last_error from webhook_deliveries
+"select event_id, event_type, status, attempt_count, last_error from platform.webhook_deliveries
  where status = 'failed' order by created_at desc limit 5"
 ```
 
 ### Test tự động phủ phần này
 
-`packages/core/src/utils/webhook-signature.test.ts` (10 test) phủ ký và verify;
-`packages/core/tests/outbox.integration.test.ts` phủ chặng relay.
+`packages/platform/src/utils/webhook-signature.test.ts` (10 test) phủ ký và verify;
+`packages/platform/tests/outbox.integration.test.ts` phủ chặng relay.
 
 ## Đọc sâu hơn
 

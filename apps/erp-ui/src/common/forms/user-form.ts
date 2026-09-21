@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UserRoleEnum } from '@vxrerp/core/contracts';
+import { UserRoleEnum } from '@vxrerp/platform/contracts';
 import type { CreateUserPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

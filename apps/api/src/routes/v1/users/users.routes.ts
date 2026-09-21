@@ -7,7 +7,7 @@ import {
   updateUserSchema,
   userParamsSchema,
   userSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/platform/contracts';
 
 export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

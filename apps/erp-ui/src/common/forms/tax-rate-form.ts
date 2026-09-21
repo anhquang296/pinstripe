@@ -1,6 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TaxTypeEnum } from '@vxrerp/core/contracts';
+import { TaxTypeEnum } from '@vxrerp/billing/contracts';
 import type { CreateTaxRatePayload, TaxRateResponse, UpdateTaxRatePayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

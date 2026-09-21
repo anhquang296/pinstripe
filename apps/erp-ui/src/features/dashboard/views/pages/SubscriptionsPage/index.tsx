@@ -25,8 +25,9 @@ import SubscriptionForm from '@features/dashboard/components/SubscriptionForm';
 import { SUBSCRIPTION_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { SubscriptionResponse } from '@vxrerp/core/contracts';
-import { PermissionEnum, PriceTypeEnum, SubscriptionStatusEnum } from '@vxrerp/core/contracts';
+import type { SubscriptionResponse } from '@vxrerp/billing/contracts';
+import { PriceTypeEnum, SubscriptionStatusEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCreateSubscriptionMutation,
   useCustomersQuery,

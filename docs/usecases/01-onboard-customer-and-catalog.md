@@ -43,19 +43,19 @@ sequenceDiagram
 
 ## Kịch bản chính — tạo customer
 
-| #   | Ở đâu                                                                                      | Chuyện gì xảy ra                                                             | Quan sát được gì                    |
-| --- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ----------------------------------- |
-| 1   | UI [CustomerForm/index.tsx:16-35](../../apps/erp-ui/src/components/CustomerForm/index.tsx) | `<form onSubmit={onSave}>` với đúng **hai** input: email và tên              | —                                   |
-| 2   | UI [CustomersPage.tsx:27](../../apps/erp-ui/src/pages/CustomersPage.tsx)                   | `form.handleSubmit` chạy zod resolver; lỗi thì dừng tại đây, hiện dưới input | không có request nào đi ra          |
-| 3   | UI [customer-form.ts:22-28](../../apps/erp-ui/src/forms/customer-form.ts)                  | `customerFormDataToPayload` gom `{ email, name, currency }`                  | —                                   |
-| 4   | Hook [mutations.ts:12](../../apps/erp-ui/src/reactquery/customers/mutations.ts)            | `mutationFn` gọi `createCustomer(payload)`                                   | nút chuyển `disabled` (`isSaving`)  |
-| 5   | API [request.ts:30](../../apps/erp-ui/src/api/customers/request.ts)                        | `Request(Endpoint('/v1/customers'), Method('POST'), Payload(payload))`       | —                                   |
-| 6   | API [client.ts:88-126](../../apps/erp-ui/src/api/client.ts)                                | dựng `fetch`, ném `VxrErpApiError` nếu không 2xx                             | —                                   |
-| 7   | Backend                                                                                    | Chuỗi hook + validate schema — [flow 01](../flows/01-request-lifecycle.md)   | —                                   |
-| 8   | Service [customer.service.ts:42-78](../../packages/core/src/services/customer.service.ts)  | một transaction: INSERT `customers` + `customer.created` vào `outbox_events` | hai hàng trong DB                   |
-| 9   | Hook [mutations.ts:16](../../apps/erp-ui/src/reactquery/customers/mutations.ts)            | `invalidateQueries(queries.customer.customers._def)`                         | bảng tự nạp lại, hàng mới xuất hiện |
-| 10  | Hook [mutations.ts:19](../../apps/erp-ui/src/reactquery/customers/mutations.ts)            | `toast.show('Đã tạo customer.')`                                             | toast xanh góc phải                 |
-| 11  | UI [CustomersPage.tsx:29](../../apps/erp-ui/src/pages/CustomersPage.tsx)                   | `form.reset(...)` sau khi `mutateAsync` resolve                              | form trống, sẵn cho lần sau         |
+| #   | Ở đâu                                                                                                | Chuyện gì xảy ra                                                             | Quan sát được gì                    |
+| --- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------- |
+| 1   | UI [CustomerForm/index.tsx:16-35](../../apps/erp-ui/src/components/CustomerForm/index.tsx)           | `<form onSubmit={onSave}>` với đúng **hai** input: email và tên              | —                                   |
+| 2   | UI [CustomersPage.tsx:27](../../apps/erp-ui/src/pages/CustomersPage.tsx)                             | `form.handleSubmit` chạy zod resolver; lỗi thì dừng tại đây, hiện dưới input | không có request nào đi ra          |
+| 3   | UI [customer-form.ts:22-28](../../apps/erp-ui/src/forms/customer-form.ts)                            | `customerFormDataToPayload` gom `{ email, name, currency }`                  | —                                   |
+| 4   | Hook [mutations.ts:12](../../apps/erp-ui/src/reactquery/customers/mutations.ts)                      | `mutationFn` gọi `createCustomer(payload)`                                   | nút chuyển `disabled` (`isSaving`)  |
+| 5   | API [request.ts:30](../../apps/erp-ui/src/api/customers/request.ts)                                  | `Request(Endpoint('/v1/customers'), Method('POST'), Payload(payload))`       | —                                   |
+| 6   | API [client.ts:88-126](../../apps/erp-ui/src/api/client.ts)                                          | dựng `fetch`, ném `VxrErpApiError` nếu không 2xx                             | —                                   |
+| 7   | Backend                                                                                              | Chuỗi hook + validate schema — [flow 01](../flows/01-request-lifecycle.md)   | —                                   |
+| 8   | Service [customer.service.ts:42-78](../../packages/modules/billing/src/services/customer.service.ts) | một transaction: INSERT `customers` + `customer.created` vào `outbox_events` | hai hàng trong DB                   |
+| 9   | Hook [mutations.ts:16](../../apps/erp-ui/src/reactquery/customers/mutations.ts)                      | `invalidateQueries(queries.customer.customers._def)`                         | bảng tự nạp lại, hàng mới xuất hiện |
+| 10  | Hook [mutations.ts:19](../../apps/erp-ui/src/reactquery/customers/mutations.ts)                      | `toast.show('Đã tạo customer.')`                                             | toast xanh góc phải                 |
+| 11  | UI [CustomersPage.tsx:29](../../apps/erp-ui/src/pages/CustomersPage.tsx)                             | `form.reset(...)` sau khi `mutateAsync` resolve                              | form trống, sẵn cho lần sau         |
 
 Bước 9 dùng `._def` chứ không phải một key cụ thể: đó là prefix của **mọi** biến thể danh sách, nên
 mọi trang và bộ lọc đang cache đều bị làm mới cùng lúc — [flow 13](../flows/13-frontend-data-flow.md).
@@ -79,12 +79,12 @@ Không có gì nghiệp vụ phụ thuộc vào phần bất đồng bộ ở us
 
 ## Nhánh phụ và thất bại
 
-| Tình huống                         | Hệ quả                                                                                                                                            |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Email trùng một khách chưa xoá     | `ConflictError` với `param: 'email'` → toast đỏ, không ghi gì — [customer.service.ts:79-88](../../packages/core/src/services/customer.service.ts) |
-| Email của một khách **đã xoá mềm** | tạo được — unique index chỉ áp khi `deleted_at is null`                                                                                           |
-| Email sai định dạng                | zod chặn ở client, không có request                                                                                                               |
-| Thiếu `Authorization`              | 401, toast hiện message của server                                                                                                                |
+| Tình huống                         | Hệ quả                                                                                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Email trùng một khách chưa xoá     | `ConflictError` với `param: 'email'` → toast đỏ, không ghi gì — [customer.service.ts:79-88](../../packages/modules/billing/src/services/customer.service.ts) |
+| Email của một khách **đã xoá mềm** | tạo được — unique index chỉ áp khi `deleted_at is null`                                                                                                      |
+| Email sai định dạng                | zod chặn ở client, không có request                                                                                                                          |
+| Thiếu `Authorization`              | 401, toast hiện message của server                                                                                                                           |
 
 ## Hai chỗ hổng của màn hình này
 
@@ -162,12 +162,12 @@ response cũ kèm header `idempotent-replayed: true`, không tạo bản ghi th�
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select id, email, currency, balance from customers order by created_at desc limit 3"
+"select id, email, currency, balance from billing.customers order by created_at desc limit 3"
 ```
 
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
-"select event_type, status, published_at from outbox_events order by occurred_at desc limit 5"
+"select event_type, status, published_at from platform.outbox_events order by occurred_at desc limit 5"
 ```
 
 Câu thứ hai là chỗ thấy rõ chuỗi bất đồng bộ: ngay sau khi tạo, `status` là `pending`; sau

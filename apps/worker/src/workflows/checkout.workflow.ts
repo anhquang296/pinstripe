@@ -1,4 +1,5 @@
-import { CHECKOUT_EXPIRE_POLL_JOB, CHECKOUT_QUEUE, QueueNameEnum } from '@vxrerp/core/queues';
+import { CHECKOUT_EXPIRE_POLL_JOB, CHECKOUT_QUEUE } from '@vxrerp/billing/queues';
+import { QueueNameEnum } from '@vxrerp/platform/queues';
 import { CheckoutExpirePollProcessor } from '@workflows/processors/checkout-expire-poll.processor';
 import type { Workflow } from '@workflows/workflow';
 import { Worker } from 'bullmq';
@@ -30,7 +31,7 @@ export class CheckoutWorkflow implements Workflow {
   }
 
   private async dispatchExpireSchedule(): Promise<void> {
-    const { checkoutExpirePollIntervalMs } = this.fastify.workflowSchedules;
+    const { checkoutExpirePollIntervalMs } = this.fastify.billingSchedules;
 
     await this.fastify.queues
       .resolve(QueueNameEnum.CHECKOUT)

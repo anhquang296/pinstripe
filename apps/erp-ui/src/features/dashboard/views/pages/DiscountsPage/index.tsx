@@ -30,8 +30,8 @@ import DiscountForm from '@features/dashboard/components/DiscountForm';
 import { SUBSCRIPTION_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { CouponResponse } from '@vxrerp/core/contracts';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import type { CouponResponse } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useCouponsQuery,
   useCreateCouponMutation,

@@ -1,11 +1,11 @@
-import type { Permission } from '@vxrerp/core/contracts';
+import type { Permission } from '@vxrerp/platform/contracts';
 import {
   ApiKeyTypeEnum,
   PermissionEnum,
   ROLE_PERMISSIONS,
   UserRoleEnum,
-} from '@vxrerp/core/contracts';
-import { ForbiddenError } from '@vxrerp/core/errors';
+} from '@vxrerp/platform/contracts';
+import { ForbiddenError } from '@vxrerp/platform/errors';
 import type { FastifyRequest } from 'fastify';
 import { expect, it } from 'vitest';
 

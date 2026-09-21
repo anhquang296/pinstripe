@@ -7,10 +7,10 @@ import {
   ledgerAccountSchema,
   ledgerTransactionParamsSchema,
   ledgerTransactionSchema,
-  ListResponseSchema,
   postLedgerTransactionSchema,
   reverseLedgerTransactionSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const ledgerRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

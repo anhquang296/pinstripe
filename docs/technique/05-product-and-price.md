@@ -5,9 +5,9 @@ Bảng giá của một app SaaS trông như một thứ duy nhất: "Go 99k, Pl
 theo chu kỳ tháng/năm và theo từng loại tiền tệ. Gộp hai thứ đó vào một hàng nghĩa là mỗi lần đổi giá
 là một sản phẩm mới — và mọi hoá đơn đã phát hành đổi số theo.
 
-Code: [`products.schema.ts`](../../packages/core/src/database/schemas/products.schema.ts),
-[`prices.schema.ts`](../../packages/core/src/database/schemas/prices.schema.ts),
-[`price.service.ts`](../../packages/core/src/services/price.service.ts).
+Code: [`products.schema.ts`](../../packages/modules/billing/src/database/schemas/products.schema.ts),
+[`prices.schema.ts`](../../packages/modules/billing/src/database/schemas/prices.schema.ts),
+[`price.service.ts`](../../packages/modules/billing/src/services/price.service.ts).
 Cơ chế CRUD từng bước ở [flow 03](../flows/03-catalog-and-customer.md); tài liệu này nói **vì sao**
 tách, tách ra thì giải quyết được việc gì, và một catalog thật trông như thế nào khi đã đổ vào hai
 bảng.
@@ -72,7 +72,7 @@ không còn cách nào biết ai là Pro. Làm quá tay — sáu product cho sá
 ### Mapping sang cột
 
 Một hàng `prices` của ví dụ trên, đọc theo từng cột
-([`prices.schema.ts`](../../packages/core/src/database/schemas/prices.schema.ts)):
+([`prices.schema.ts`](../../packages/modules/billing/src/database/schemas/prices.schema.ts)):
 
 | Cột                    | `pro_monthly_vnd` | `ai_credits_vnd`  | Ý nghĩa                                                        |
 | ---------------------- | ----------------- | ----------------- | -------------------------------------------------------------- |
@@ -98,7 +98,7 @@ Còn `products` chỉ giữ thứ không liên quan tới tiền: `name`, `descr
 ### 1. Tăng giá Pro mà không đụng khách cũ
 
 Không sửa hàng cũ. Tạo price mới cùng `lookup_key`, service tự đặt `version + 1`
-([`price.service.ts:208-216`](../../packages/core/src/services/price.service.ts)):
+([`price.service.ts:208-216`](../../packages/modules/billing/src/services/price.service.ts)):
 
 ```
 pro_monthly_vnd  version 1  799.000  effective_at 2026-01-01   ← hợp đồng ký năm ngoái vẫn trỏ vào đây
@@ -123,7 +123,7 @@ theo sản phẩm không đổi, code gate tính năng không đổi. Khách đ�
 
 Thêm `pro_monthly_usd`, `pro_yearly_usd`… cùng trỏ `prod_pro`. Ràng buộc duy nhất phải nhớ: khách
 bill bằng đồng nào thì chỉ đăng ký được price đồng đó — kiểm tra ở
-[`subscription.service.ts:467-510`](../../packages/core/src/services/subscription.service.ts), sai
+[`subscription.service.ts:467-510`](../../packages/modules/billing/src/services/subscription.service.ts), sai
 thì 400 `Price ... is in X but the customer bills in Y`.
 
 ### 4. Add-on tính theo lượng dùng
@@ -133,9 +133,9 @@ sự kiện ra tiền. Add-on nằm chung subscription với gói chính, miễn
 subscription không được trộn price tháng với price năm.
 
 Sáu quy tắc hình dạng chặn mọi cấu hình vô nghĩa ngay tại `POST /v1/prices`
-([`assertPriceShape:232-272`](../../packages/core/src/services/price.service.ts)), và năm `CHECK`
+([`assertPriceShape:232-272`](../../packages/modules/billing/src/services/price.service.ts)), và năm `CHECK`
 constraint lặp lại đúng các quy tắc đó ở tầng DB
-([`prices.schema.ts:65-84`](../../packages/core/src/database/schemas/prices.schema.ts)):
+([`prices.schema.ts:65-84`](../../packages/modules/billing/src/database/schemas/prices.schema.ts)):
 
 | Điều kiện                  | Bắt buộc                                           |
 | -------------------------- | -------------------------------------------------- |
@@ -249,7 +249,7 @@ Cả catalog trong một câu — product bên trái, các version giá bên ph�
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select pr.name, p.lookup_key, p.version, p.unit_amount, p.recurring_interval, p.active
- from prices p join products pr on pr.id = p.product_id
+ from billing.prices p join billing.products pr on pr.id = p.product_id
  order by pr.name, p.lookup_key, p.version"
 ```
 
@@ -258,15 +258,15 @@ Hoá đơn trỏ vào version nào — bằng chứng của tính bất biến:
 ```bash
 docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select l.invoice_id, p.lookup_key, p.version, l.amount
- from invoice_line_items l join prices p on p.id = l.price_id
+ from billing.invoice_line_items l join billing.prices p on p.id = l.price_id
  order by l.created_at desc limit 10"
 ```
 
 ## Giới hạn phải biết
 
 - **Effective dating khai báo rồi nhưng chưa ai dùng.** `resolvePrice(lookupKey, at)` và
-  `findEffectivePrice` ([`price.service.ts:172-182`](../../packages/core/src/services/price.service.ts),
-  [`price.repository.ts:63-74`](../../packages/core/src/repositories/price.repository.ts)) không có
+  `findEffectivePrice` ([`price.service.ts:172-182`](../../packages/modules/billing/src/services/price.service.ts),
+  [`price.repository.ts:63-74`](../../packages/modules/billing/src/repositories/price.repository.ts)) không có
   route và không service nào gọi. Subscription và rating đều resolve theo `price_id`. Nghĩa là
   grandfathering hiện hoạt động **nhờ việc hợp đồng trỏ id cũ**, không phải nhờ `effective_at`; còn
   "chọn giá đang có hiệu lực tại thời điểm T" thì phía gọi phải tự làm.
@@ -288,7 +288,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -
 - **Không xoá price, không xoá product đang được trỏ tới.** Ngừng bán bằng `active: false`.
 - **App hard-code `lookup_key`, không hard-code `price_...`.** Id đổi mỗi lần đổi giá; khoá thì không.
 - **Tiền luôn là số nguyên đơn vị nhỏ nhất.** 799.000 đồng ghi là `799000`, không bao giờ là float —
-  [utils/money.ts](../../packages/core/src/utils/money.ts).
+  [utils/money.ts](../../packages/modules/billing/src/utils/money.ts).
 - **Thêm chu kỳ hoặc tiền tệ là thêm price, không thêm product.**
 
 ## Đọc tiếp

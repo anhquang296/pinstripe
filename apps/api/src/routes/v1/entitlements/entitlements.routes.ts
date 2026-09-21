@@ -1,10 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { ApiResponse } from '@utils/api-response';
-import {
-  entitlementSchema,
-  findEntitlementsSchema,
-  ListResponseSchema,
-} from '@vxrerp/core/contracts';
+import { entitlementSchema, findEntitlementsSchema } from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const entitlementsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

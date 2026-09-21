@@ -4,7 +4,7 @@ import PageCard from '@common/components/PageCard';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import InvoicesTable from '@features/portal/components/InvoicesTable';
 import { buttonVariants, Tabs } from '@heroui/react';
-import { InvoiceStatusEnum } from '@vxrerp/core/contracts';
+import { InvoiceStatusEnum } from '@vxrerp/billing/contracts';
 import type { FindPortalInvoicesQuery, InvoiceResponse } from '@vxrerp/sdk';
 import { usePortalInvoicesQuery } from '@vxrerp/sdk/react/portal';
 import { find, get, last, map, mapValues, toString } from 'lodash-es';

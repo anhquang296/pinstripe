@@ -14,7 +14,7 @@ import { formatDate } from '@common/utils/format';
 import PaymentLinkForm from '@features/dashboard/components/PaymentLinkForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import { usePaymentLinkQuery, useUpdatePaymentLinkMutation } from '@vxrerp/sdk/react';
 import { get, toUpper } from 'lodash-es';
 import { useEffect } from 'react';

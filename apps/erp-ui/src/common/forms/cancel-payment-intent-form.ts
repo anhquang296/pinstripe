@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PaymentCancellationReasonEnum } from '@vxrerp/core/contracts';
+import { PaymentCancellationReasonEnum } from '@vxrerp/billing/contracts';
 import type { CancelPaymentIntentPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

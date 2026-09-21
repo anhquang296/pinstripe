@@ -1,6 +1,6 @@
-import type { Permission, RequestAuth, UserAuth } from '@vxrerp/core/contracts';
-import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/core/contracts';
-import type { BootstrapApiKey } from '@vxrerp/core/services';
+import type { Permission, RequestAuth, UserAuth } from '@vxrerp/platform/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
+import type { BootstrapApiKey } from '@vxrerp/platform/services';
 import fp from 'fastify-plugin';
 
 declare module 'fastify' {

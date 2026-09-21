@@ -6,9 +6,9 @@ import {
   discountParamsSchema,
   discountSchema,
   findDiscountsSchema,
-  ListResponseSchema,
   updateDiscountSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const discountsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

@@ -1,5 +1,5 @@
-import { InternalError, UnauthorizedError } from '@vxrerp/core/errors';
-import { isWebhookSignatureValid, WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/core/utils';
+import { InternalError, UnauthorizedError } from '@vxrerp/platform/errors';
+import { isWebhookSignatureValid, WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/platform/utils';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 
@@ -7,7 +7,7 @@ export async function verifyPspCallbackRequest(
   request: FastifyRequest,
   _reply: FastifyReply,
 ): Promise<void> {
-  const { PSP_WEBHOOK_SECRET, PSP_CALLBACK_TOLERANCE_SECONDS } = request.server.config;
+  const { PSP_WEBHOOK_SECRET, PSP_CALLBACK_TOLERANCE_SECONDS } = request.server.billingConfig;
 
   if (!PSP_WEBHOOK_SECRET) {
     throw new InternalError('PSP callbacks are not accepted until a callback secret is configured');

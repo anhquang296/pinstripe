@@ -1,7 +1,7 @@
 import { VxrErpSignatureVerificationError } from '@errors/vxr-erp.error';
 import { isWebhookSignatureValid } from '@node/webhook-signature';
 import { webhooks } from '@node/webhooks.resource';
-import { buildWebhookSignature } from '@vxrerp/core/utils';
+import { buildWebhookSignature } from '@vxrerp/platform/utils';
 import { expect, it } from 'vitest';
 
 const SECRET = 'whsec_test_secret';

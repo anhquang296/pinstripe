@@ -36,7 +36,7 @@ lại không có gì chặn.
 
 Quy tắc số 2 có một cái bẫy cụ thể đáng gọi tên. `recordEvents(events, executor)` nhận `executor`
 tuỳ chọn, và repository fallback về connection chính khi không có —
-[outbox-event.repository.ts:44](../packages/core/src/repositories/outbox-event.repository.ts):
+[outbox-event.repository.ts:44](../packages/platform/src/repositories/outbox-event.repository.ts):
 
 ```ts
 const db: Database | DatabaseTransaction = executor ?? this._db.master;
@@ -49,15 +49,15 @@ tìm trong toàn bộ codebase.
 ## 2. Tiền và làm tròn
 
 - `Money.multiply` và `Money.fromMajorUnit` **bắt buộc** truyền `RoundingPolicy` —
-  [money.ts](../packages/core/src/utils/money.ts). Chọn bừa là đổi số tiền khách trả.
+  [money.ts](../packages/modules/billing/src/utils/money.ts). Chọn bừa là đổi số tiền khách trả.
 - Rating làm tròn **một lần mỗi dòng** rồi mới cộng (`HALF_UP` —
-  [rating.ts:14](../packages/core/src/utils/rating.ts)). Đổi thứ tự thành cộng-trước-làm-tròn-sau thì
+  [rating.ts:14](../packages/modules/billing/src/utils/rating.ts)). Đổi thứ tự thành cộng-trước-làm-tròn-sau thì
   tổng hoá đơn không còn bằng tổng các dòng hiển thị.
 - Chia tiền ra nhiều phần phải dùng `Money.allocate` (largest-remainder). Tự `Math.round` từng phần
   là mất hoặc thừa đồng lẻ.
 - Cột tiền là `bigint` trong Postgres nhưng `number` trong JS. Trần thật là `Number.MAX_SAFE_INTEGER`
   (~9.0e15), và `Money.of` ném `BadRequestError` khi vượt.
-- VND, JPY, KRW có exponent **0** — [currency.ts](../packages/core/src/utils/currency.ts). Đừng nhân
+- VND, JPY, KRW có exponent **0** — [currency.ts](../packages/modules/billing/src/utils/currency.ts). Đừng nhân
   chia 100 theo phản xạ.
 - `meter_events.value` là `double precision` — đó là **lượng dùng**, không phải tiền.
 - Không có chuyển đổi tỷ giá ở bất kỳ đâu. Reporting mặc định `VND` và lặng lẽ chỉ báo cáo đúng
@@ -68,7 +68,7 @@ tìm trong toàn bộ codebase.
   `billed_through = deleted_at` và có `CHECK` ép hai cột đi cùng nhau.
 - Void một hoá đơn `billing_reason = subscription_update` **phải** clear `invoiced_through` của các
   item nó phủ. Thiếu bước đó là mất vĩnh viễn khoản ấy: lát đã đóng dấu đã xuất hoá đơn và không gì
-  bill lại — [invoice.service.ts](../packages/core/src/services/invoice.service.ts),
+  bill lại — [invoice.service.ts](../packages/modules/billing/src/services/invoice.service.ts),
   [ADR 0013](./adr/0013-arrears-proration.md).
 - `prorationBehavior: none` trên một item **metered** bỏ hẳn usage của kỳ khi item thay thế trỏ
   **meter khác**. Cùng meter thì không mất gì. Đây là đánh đổi có chủ ý, không phải lỗi.
@@ -85,22 +85,22 @@ tìm trong toàn bộ codebase.
 Sổ cái được bảo vệ rất chặt ở tầng DB: trigger `0003_ledger_immutability` chặn UPDATE/DELETE, số dư
 là **view** chứ không phải cột, `assertBalanced` chặn bút toán lệch. Sửa sai **chỉ** bằng
 `reverseTransaction`, và bản đảo phải `externalId = null`
-([ledger.service.ts:226](../packages/core/src/services/ledger.service.ts)) nếu không đụng unique
+([ledger.service.ts:226](../packages/modules/billing/src/services/ledger.service.ts)) nếu không đụng unique
 index bản gốc.
 
 Chỗ yếu không nằm ở đó. Chống ghi sổ hai lần dựa **hoàn toàn** vào unique index trên `external_id`,
 mà định dạng chuỗi đó là một hợp đồng ngầm giữa bốn nơi:
 
-| Chuỗi                               | Sinh ở                                                                                     |
-| ----------------------------------- | ------------------------------------------------------------------------------------------ |
-| `invoice:<id>`                      | [invoice.service.ts](../packages/core/src/services/invoice.service.ts) `postReceivable`    |
-| `invoice_payment:<id>:<amountPaid>` | [invoice.service.ts](../packages/core/src/services/invoice.service.ts) `postCashReceipt`   |
-| `invoice_void:<id>`                 | [invoice.service.ts](../packages/core/src/services/invoice.service.ts) `reverseReceivable` |
-| `payment_intent:<id>`               | [payment.service.ts](../packages/core/src/services/payment.service.ts)                     |
-| `refund:<id>`                       | [refund.service.ts](../packages/core/src/services/refund.service.ts)                       |
+| Chuỗi                               | Sinh ở                                                                                                |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `invoice:<id>`                      | [invoice.service.ts](../packages/modules/billing/src/services/invoice.service.ts) `postReceivable`    |
+| `invoice_payment:<id>:<amountPaid>` | [invoice.service.ts](../packages/modules/billing/src/services/invoice.service.ts) `postCashReceipt`   |
+| `invoice_void:<id>`                 | [invoice.service.ts](../packages/modules/billing/src/services/invoice.service.ts) `reverseReceivable` |
+| `payment_intent:<id>`               | [payment.service.ts](../packages/modules/billing/src/services/payment.service.ts)                     |
+| `refund:<id>`                       | [refund.service.ts](../packages/modules/billing/src/services/refund.service.ts)                       |
 
 và được **đọc lại** bởi
-[reconciliation.service.ts](../packages/core/src/services/reconciliation.service.ts) để so khớp.
+[reconciliation.service.ts](../packages/modules/billing/src/services/reconciliation.service.ts) để so khớp.
 
 > Đổi định dạng ở một nơi là làm hỏng đối chiếu ở nơi kia — **và không có test nào bắt được.**
 
@@ -135,7 +135,7 @@ Ba giới hạn cần biết trước khi tin vào nó:
    payload rồi thử lại với cùng key sẽ nhận `IdempotencyConflictError` mãi mãi, không bao giờ chạy
    được lệnh đã sửa.
 3. **Hàng không bao giờ hết hạn.** `deleteExpiredRequests` tồn tại ở
-   [idempotency.service.ts:90](../packages/core/src/services/idempotency.service.ts) nhưng **không có
+   [idempotency.service.ts:90](../packages/platform/src/services/idempotency.service.ts) nhưng **không có
    caller nào** trong toàn repo. Tiến trình chết giữa request để lại hàng `in_progress` vĩnh viễn, và
    key đó nhiễm độc từ đó trở đi — không có đường reclaim theo `lockedAt`.
 
@@ -144,7 +144,7 @@ sẽ nhận **response đã cache của nhau**. ADR 0001 §8 ghi nhận đây l�
 
 Ở tầng sau, mọi thứ downstream outbox là **at-least-once**. Consumer phải tự idempotent, và có chỗ
 chưa: `handleDomainEvent` sinh id mới cho mỗi hàng delivery rồi mới enqueue —
-[webhook.service.ts:150-172](../packages/core/src/services/webhook.service.ts). `webhook_deliveries`
+[webhook.service.ts:150-172](../packages/platform/src/services/webhook.service.ts). `webhook_deliveries`
 không có unique index trên `(endpoint_id, event_id)`, nên job domain-event retry là **tạo thêm một bộ
 delivery mới** cho cùng event. Khách nhận webhook trùng.
 
@@ -152,17 +152,17 @@ delivery mới** cho cùng event. Khách nhận webhook trùng.
 
 Những thứ sau đã khai báo nhưng chưa ai gọi. Sửa một cái là phải sửa cả cụm, không vá lẻ.
 
-| Thứ                                       | Tình trạng                                                                                                                                                                                          |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `advanceSubscriptions`                    | chỉ được gọi từ [test-clock.service.ts:96](../packages/core/src/services/test-clock.service.ts) — **subscription không gắn test clock không bao giờ được roll kỳ tự động**                          |
-| `WEBHOOK_SIGNING_SECRET`                  | `Type.String({ minLength: 16 })` ở [env.schema.ts](../packages/core/src/config/env.schema.ts), thiếu là không boot — nhưng **không code nào đọc**. Webhook đi ra ký bằng `secret` của từng endpoint |
-| `isWebhookSignatureValid`                 | chỉ dùng trong test. Chưa route nào verify chữ ký vào, vì `/api/v1/system/*` mới có `/ping`                                                                                                         |
-| `deleteExpiredRequests`                   | không caller — xem [mục 5](#5-idempotency-bảo-vệ-đến-đâu)                                                                                                                                           |
-| `RedisNamespaceEnum.BILLING_RUN_LOCK`     | khai báo, không dùng                                                                                                                                                                                |
-| `NotificationQueue`                       | một cái tên. Dunning thử thu lại nhưng không báo gì cho khách                                                                                                                                       |
-| `deferred_revenue`, `rounding_difference` | tài khoản đã khai, chưa bút toán nào dùng (`tax_payable` có bút toán từ phase 15)                                                                                                                   |
-| `taxBehavior` trên price                  | phase 15 đọc nó ở bước ráp tổng: inclusive/exclusive của price thắng cờ `inclusive` của tax rate                                                                                                    |
-| `resolvePrice` / `findEffectivePrice`     | không route, không caller. Subscription và rating resolve theo `price_id`, nên `effective_at` chưa quyết định gì — [technique 05](technique/05-product-and-price.md)                                |
+| Thứ                                       | Tình trạng                                                                                                                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `advanceSubscriptions`                    | chỉ được gọi từ [test-clock.service.ts:96](../packages/modules/billing/src/services/test-clock.service.ts) — **subscription không gắn test clock không bao giờ được roll kỳ tự động**                   |
+| `WEBHOOK_SIGNING_SECRET`                  | `Type.String({ minLength: 16 })` ở [env.schema.ts](../packages/platform/src/config/env.schema.ts), thiếu là không boot — nhưng **không code nào đọc**. Webhook đi ra ký bằng `secret` của từng endpoint |
+| `isWebhookSignatureValid`                 | chỉ dùng trong test. Chưa route nào verify chữ ký vào, vì `/api/v1/system/*` mới có `/ping`                                                                                                             |
+| `deleteExpiredRequests`                   | không caller — xem [mục 5](#5-idempotency-bảo-vệ-đến-đâu)                                                                                                                                               |
+| `RedisNamespaceEnum.BILLING_RUN_LOCK`     | khai báo, không dùng                                                                                                                                                                                    |
+| `NotificationQueue`                       | một cái tên. Dunning thử thu lại nhưng không báo gì cho khách                                                                                                                                           |
+| `deferred_revenue`, `rounding_difference` | tài khoản đã khai, chưa bút toán nào dùng (`tax_payable` có bút toán từ phase 15)                                                                                                                       |
+| `taxBehavior` trên price                  | phase 15 đọc nó ở bước ráp tổng: inclusive/exclusive của price thắng cờ `inclusive` của tax rate                                                                                                        |
+| `resolvePrice` / `findEffectivePrice`     | không route, không caller. Subscription và rating resolve theo `price_id`, nên `effective_at` chưa quyết định gì — [technique 05](technique/05-product-and-price.md)                                    |
 
 Hai khoảng trống về hành vi:
 
@@ -171,7 +171,7 @@ Hai khoảng trống về hành vi:
   chết — [flows/09](flows/09-dunning.md).
 - **Entitlement không bao giờ bị thu hồi khi bỏ bớt sản phẩm.** `handleSubscriptionChanged` upsert
   theo các price **hiện tại**, không đụng tới entitlement của sản phẩm đã gỡ khỏi subscription —
-  [entitlement.service.ts:59-70](../packages/core/src/services/entitlement.service.ts).
+  [entitlement.service.ts:59-70](../packages/modules/billing/src/services/entitlement.service.ts).
   `replaceSubscriptionItems` thay cả bộ item, nên gỡ một item là để lại entitlement `active` mồ côi.
   Khái niệm và vì sao bảng này tồn tại: [technique 04](technique/04-entitlement.md).
 
@@ -202,20 +202,20 @@ bắt unique violation rồi đọc lại; unique index là lớp chốt cuối 
 Những chỗ **chưa** an toàn:
 
 - **`payInvoice` là read-modify-write không khoá hàng** —
-  [invoice.service.ts:188-239](../packages/core/src/services/invoice.service.ts). Đọc `amountPaid`
+  [invoice.service.ts:188-239](../packages/modules/billing/src/services/invoice.service.ts). Đọc `amountPaid`
   **ngoài** transaction, cộng thêm, rồi UPDATE giá trị tuyệt đối **trong** transaction. Hai lần trả
   một phần chạy song song là mất một lần. Nếu hai số tiền bằng nhau thì unique index trên
   `invoice_payment:<id>:<amountPaid>` tình cờ cứu được; số tiền khác nhau thì cả hai cùng vào sổ mà
   `amountPaid` chỉ ghi nhận một — sổ cái và hoá đơn lệch nhau.
 
 - **Dunning có thể quẹt thẻ hai lần khi job retry.** `collectInvoice` tạo **payment intent mới** mỗi
-  lần thử ([dunning.service.ts:81-86](../packages/core/src/services/dunning.service.ts)), mà
+  lần thử ([dunning.service.ts:81-86](../packages/modules/billing/src/services/dunning.service.ts)), mà
   idempotency key gửi cho PSP là `charge:<paymentIntentId>`. Nên bảo vệ ở tầng PSP **không** bắc qua
   được các lần retry: charge thành công rồi lỗi trước khi cập nhật hoá đơn → BullMQ retry → intent
   mới, key mới, trừ tiền lần nữa.
 
   Vòng lặp shard cũng **không** bọc `try/catch` từng hoá đơn
-  ([dunning.service.ts:52-56](../packages/core/src/services/dunning.service.ts)) — một hoá đơn ném lỗi
+  ([dunning.service.ts:52-56](../packages/modules/billing/src/services/dunning.service.ts)) — một hoá đơn ném lỗi
   là cả job retry.
 
   (Lưu ý: [flows/07](flows/07-payments-and-refunds.md) viết rằng dunning dùng lại cùng một intent.
@@ -223,7 +223,7 @@ Những chỗ **chưa** an toàn:
 
 - **`claimNumberSequence` xếp hàng mọi lần finalize.** Là `UPDATE ... RETURNING` trên **một hàng**
   `number_sequences` bên trong transaction finalize —
-  [invoice.repository.ts:97-108](../packages/core/src/repositories/invoice.repository.ts). Dãy số
+  [invoice.repository.ts:97-108](../packages/modules/billing/src/repositories/invoice.repository.ts). Dãy số
   liên tục là yêu cầu kế toán, nhưng đây là điểm nghẽn phải biết trước khi đo tải. Rollback thì trả
   lại số, nên không có lỗ hổng số.
 
@@ -235,25 +235,25 @@ Những chỗ **chưa** an toàn:
 - **Reconciliation đã phân trang từ phase 19** (`PAGE_SIZE = 200`, con trỏ `(createdAt, id)`), nên
   `SCAN_LIMIT = 1000` cắt cụt âm thầm không còn. Đổi lại, phía sổ cái chỉ đọc `psp_receivable` +
   `psp_fees`: một bút toán tiền mặt ngoài luồng (`payInvoice` không qua charge) **không** xuất hiện
-  trong báo cáo đối chiếu — [reconciliation.service.ts](../packages/core/src/services/reconciliation.service.ts).
+  trong báo cáo đối chiếu — [reconciliation.service.ts](../packages/modules/billing/src/services/reconciliation.service.ts).
 
 ## 9. Bẫy môi trường phát triển
 
-| Bẫy                                                                 | Triệu chứng                                                                                                                      |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/core` chạy từ `dist`, và `tsup` có `clean: true`          | sửa core rồi chạy một package lẻ → vẫn là code cũ. `pnpm dev` / `turbo` lo thứ tự, chạy tay thì không                            |
-| `pnpm db:migrate` / `pnpm db:reset` nạp `.env` qua `tsx --env-file` | chạy `tsx src/database/migrate.ts` trần thì thiếu biến — dùng script pnpm                                                        |
-| Compose nằm ở `docker/compose.yml`                                  | `docker compose up` trần không tìm thấy — dùng `pnpm docker:up`                                                                  |
-| billing-portal-ui không đọc `.env` gốc                              | cần `apps/billing-portal-ui/.env.local` riêng                                                                                    |
-| Migration là journal                                                | **không xoá file đã generate** — nhiều migration là SQL viết tay (trigger, view, seed `number_sequences`)                        |
-| Năm secret, mỗi cái ≥ 16 ký tự                                      | thiếu một cái là app không boot — kể cả `WEBHOOK_SIGNING_SECRET` vốn không ai đọc                                                |
-| `.env.example` thiếu mọi biến tinh chỉnh                            | `OUTBOX_*`, `BILLING_RUN_*`, `DUNNING_*`, `WEBHOOK_*`, `INVOICE_DUE_DAYS`, `METER_DEDUP_WINDOW_DAYS` chỉ có default trong schema |
-| Cổng cố định 55432 / 56379                                          | checkout thứ hai của repo là đụng cổng                                                                                           |
-| Worker cần `WORKFLOW_NAME`                                          | giá trị lạ → `UnknownWorkflowError`                                                                                              |
-| File viết bằng heredoc / `sed -i`                                   | không load rule nào, không được format, và không có gì báo — xem [CLAUDE.md](../CLAUDE.md)                                       |
+| Bẫy                                                                                   | Triệu chứng                                                                                                                      |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/platform` / `packages/modules/*` chạy từ `dist`, và `tsup` có `clean: true` | sửa package rồi chạy một package lẻ → vẫn là code cũ. `pnpm dev` / `turbo` lo thứ tự, chạy tay thì không                         |
+| `pnpm db:migrate` / `pnpm db:reset` nạp `.env` qua `tsx --env-file`                   | chạy `tsx apps/api/scripts/migrate-database.ts` trần thì thiếu biến — dùng script pnpm                                           |
+| Compose nằm ở `docker/compose.yml`                                                    | `docker compose up` trần không tìm thấy — dùng `pnpm docker:up`                                                                  |
+| billing-portal-ui không đọc `.env` gốc                                                | cần `apps/billing-portal-ui/.env.local` riêng                                                                                    |
+| Migration là journal                                                                  | **không xoá file đã generate** — nhiều migration là SQL viết tay (trigger, view, seed `number_sequences`)                        |
+| Năm secret, mỗi cái ≥ 16 ký tự                                                        | thiếu một cái là app không boot — kể cả `WEBHOOK_SIGNING_SECRET` vốn không ai đọc                                                |
+| `.env.example` thiếu mọi biến tinh chỉnh                                              | `OUTBOX_*`, `BILLING_RUN_*`, `DUNNING_*`, `WEBHOOK_*`, `INVOICE_DUE_DAYS`, `METER_DEDUP_WINDOW_DAYS` chỉ có default trong schema |
+| Cổng cố định 55432 / 56379                                                            | checkout thứ hai của repo là đụng cổng                                                                                           |
+| Worker cần `WORKFLOW_NAME`                                                            | giá trị lạ → `UnknownWorkflowError`                                                                                              |
+| File viết bằng heredoc / `sed -i`                                                     | không load rule nào, không được format, và không có gì báo — xem [CLAUDE.md](../CLAUDE.md)                                       |
 
 `MockPspClient` giữ toàn bộ state trong `Map` **trong bộ nhớ của từng tiến trình**
-([mock-psp.client.ts](../packages/core/src/clients/mock-psp.client.ts)). Hệ quả:
+([mock-psp.client.ts](../packages/modules/billing/src/clients/mock-psp.client.ts)). Hệ quả:
 
 - restart là mất sạch charge; refund sau đó ném `MockPspChargeNotFoundError`;
 - charge do **worker dunning** tạo thì **API** không thấy → refund qua API ra lỗi;
@@ -268,17 +268,17 @@ Những chỗ **chưa** an toàn:
 
 ```
 pnpm test → turbo run test
-  ├─ @vxrerp/core   → vitest run              ← CHỈ unit test trong src/utils/
+  ├─ @vxrerp/platform, @vxrerp/billing → vitest run   ← CHỈ unit test trong src/utils/
   ├─ @vxrerp/api    → vitest run --passWithNoTests   (0 test)
   ├─ @vxrerp/worker → vitest run --passWithNoTests   (0 test)
   └─ erp-ui, billing-portal-ui → không có script test, bị bỏ qua
 ```
 
 `test:integration` **không phải turbo task và không được chain từ `test`**. Toàn bộ integration suite
-trong `packages/core/tests/` chỉ chạy khi gõ tay:
+trong `packages/platform/tests/`, `packages/modules/billing/tests/` và `apps/api/tests/` chỉ chạy khi gõ tay:
 
 ```bash
-pnpm --filter @vxrerp/core test:integration
+pnpm test:integration
 ```
 
 CI chạy `pnpm test` sẽ báo xanh mà không hề chạm database.
@@ -290,7 +290,7 @@ quả bị cache. Với database ngoài, một lần "pass" đã cache có thể
 
 `tests/setup.ts` parse `.env` ở gốc repo và nhồi vào `process.env` — **ghi đè** biến shell, nên không
 trỏ sang DB test bằng env bên ngoài được. `tests/context.ts` chỉ dựng Fastify headless với
-`corePlugin`, không `listen()`.
+`platformPlugin` (và `billingPlugin` ở billing), không `listen()`.
 
 **Không truncate, không migrate step, không testcontainers.** Cô lập chỉ nhờ sinh ID và email mới mỗi
 test; dữ liệu tích tụ vĩnh viễn. `ledger.integration.test.ts` ghi 1000 transaction mỗi lần chạy và cố
@@ -317,7 +317,7 @@ Reset thật sự chỉ có `pnpm docker:down` + xoá volume, rồi migrate lạ
 ### 10.4 Test clock chỉ kiểm soát một service
 
 `resolveNow` hiện **chỉ** có ở `SubscriptionService`
-([subscription.service.ts:398-410](../packages/core/src/services/subscription.service.ts)). Invoice,
+([subscription.service.ts:398-410](../packages/modules/billing/src/services/subscription.service.ts)). Invoice,
 payment, dunning, billing run và metering luôn dùng giờ thật, kể cả với thực thể có `testClockId`.
 
 | Muốn test                                  | Dùng được test clock?                                           |

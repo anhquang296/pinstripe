@@ -4,11 +4,11 @@ import {
   attachPaymentMethodSchema,
   createPaymentMethodSchema,
   findPaymentMethodsSchema,
-  ListResponseSchema,
   paymentMethodParamsSchema,
   paymentMethodSchema,
   updatePaymentMethodSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

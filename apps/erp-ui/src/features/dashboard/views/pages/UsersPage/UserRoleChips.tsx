@@ -1,6 +1,6 @@
 import { ROLE_OPTIONS } from '@common/constants/roles';
 import { Chip, ToggleButton, ToggleButtonGroup } from '@heroui/react';
-import type { UserRole } from '@vxrerp/core/contracts';
+import type { UserRole } from '@vxrerp/platform/contracts';
 import { find, map } from 'lodash-es';
 
 interface UserRoleChipsProps {

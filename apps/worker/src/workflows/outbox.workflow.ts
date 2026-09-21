@@ -1,10 +1,10 @@
-import type { OutboxRelayJob } from '@vxrerp/core/queues';
+import type { OutboxRelayJob } from '@vxrerp/platform/queues';
 import {
   buildOutboxRelayJob,
   OUTBOX_QUEUE,
   OUTBOX_RELAY_JOB,
   QueueNameEnum,
-} from '@vxrerp/core/queues';
+} from '@vxrerp/platform/queues';
 import { OutboxRelayProcessor } from '@workflows/processors/outbox-relay.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

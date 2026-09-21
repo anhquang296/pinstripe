@@ -13,7 +13,7 @@ import { formatDate } from '@common/utils/format';
 import DiscountNoteForm from '@features/dashboard/components/DiscountNoteForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useDeleteDiscountMutation,
   useDiscountQuery,

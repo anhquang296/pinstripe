@@ -14,8 +14,8 @@ import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNa
 import { formatCurrency, formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import { PAYMENT_TABS } from '@features/dashboard/constants/tabs';
-import type { PaymentIntentResponse } from '@vxrerp/core/contracts';
-import { CurrencyEnum, PaymentIntentStatusEnum } from '@vxrerp/core/contracts';
+import type { PaymentIntentResponse } from '@vxrerp/billing/contracts';
+import { CurrencyEnum, PaymentIntentStatusEnum } from '@vxrerp/billing/contracts';
 import { usePaymentIntentsQuery } from '@vxrerp/sdk/react';
 import { filter, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';

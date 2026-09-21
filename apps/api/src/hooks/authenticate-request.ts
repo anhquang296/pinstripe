@@ -1,6 +1,6 @@
-import type { UserAuth, UserRole } from '@vxrerp/core/contracts';
-import { ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/core/contracts';
-import { ForbiddenError, UnauthorizedError } from '@vxrerp/core/errors';
+import type { UserAuth, UserRole } from '@vxrerp/platform/contracts';
+import { ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/platform/contracts';
+import { ForbiddenError, UnauthorizedError } from '@vxrerp/platform/errors';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 

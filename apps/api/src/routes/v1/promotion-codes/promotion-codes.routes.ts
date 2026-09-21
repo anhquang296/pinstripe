@@ -3,11 +3,11 @@ import { ApiResponse } from '@utils/api-response';
 import {
   createPromotionCodeSchema,
   findPromotionCodesSchema,
-  ListResponseSchema,
   promotionCodeParamsSchema,
   promotionCodeSchema,
   updatePromotionCodeSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

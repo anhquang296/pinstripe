@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CollectionMethodEnum, CurrencyEnum } from '@vxrerp/core/contracts';
+import { CollectionMethodEnum, CurrencyEnum } from '@vxrerp/billing/contracts';
 import type { CreateInvoicePayload } from '@vxrerp/sdk';
 import { z } from 'zod';
 

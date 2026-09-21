@@ -1,4 +1,4 @@
-import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/core/contracts';
+import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/platform/contracts';
 import { map, values } from 'lodash-es';
 
 export const EVENT_OPTIONS = map(values(DomainEventTypeEnum), (eventType) => {

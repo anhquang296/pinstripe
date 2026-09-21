@@ -4,7 +4,7 @@ import EntityDrawer from '@common/components/EntityDrawer';
 import StatusChip from '@common/components/StatusChip';
 import { formatCurrency, formatDate } from '@common/utils/format';
 import { Button } from '@heroui/react';
-import { CurrencyEnum, RefundStatusEnum } from '@vxrerp/core/contracts';
+import { CurrencyEnum, RefundStatusEnum } from '@vxrerp/billing/contracts';
 import { useRefundQuery } from '@vxrerp/sdk/react';
 import { get } from 'lodash-es';
 

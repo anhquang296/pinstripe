@@ -1,4 +1,8 @@
-import { CurrencyEnum, LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/core/contracts';
+import {
+  CurrencyEnum,
+  LedgerAccountCodeEnum,
+  PostingDirectionEnum,
+} from '@vxrerp/billing/contracts';
 import { describe, expect, it } from 'vitest';
 
 import type { LedgerTransactionFormData } from './ledger-transaction-form';

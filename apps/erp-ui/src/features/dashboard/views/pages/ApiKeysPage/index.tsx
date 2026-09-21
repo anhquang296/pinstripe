@@ -23,8 +23,8 @@ import ApiKeyForm from '@features/dashboard/components/ApiKeyForm';
 import { Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { ApiKeyResponse } from '@vxrerp/core/contracts';
-import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/core/contracts';
+import type { ApiKeyResponse } from '@vxrerp/platform/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useApiKeysQuery,
   useCreateApiKeyMutation,

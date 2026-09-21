@@ -23,8 +23,8 @@ import LedgerTransactionForm from '@features/dashboard/components/LedgerTransact
 import { LEDGER_TABS } from '@features/dashboard/constants/tabs';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
-import type { LedgerTransactionResponse } from '@vxrerp/core/contracts';
-import { PermissionEnum } from '@vxrerp/core/contracts';
+import type { LedgerTransactionResponse } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import { useCreateLedgerTransactionMutation, useLedgerTransactionsQuery } from '@vxrerp/sdk/react';
 import { filter, get, isEmpty, last, size, sumBy } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';

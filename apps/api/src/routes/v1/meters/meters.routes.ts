@@ -4,12 +4,12 @@ import {
   createMeterSchema,
   findMetersSchema,
   getMeterEventSummarySchema,
-  ListResponseSchema,
   meterEventSummarySchema,
   meterParamsSchema,
   meterSchema,
   updateMeterSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const metersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

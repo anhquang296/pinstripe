@@ -6,9 +6,9 @@ import {
   creditNoteParamsSchema,
   creditNoteSchema,
   findCreditNotesSchema,
-  ListResponseSchema,
   voidCreditNoteSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

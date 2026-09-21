@@ -3,11 +3,11 @@ import { ApiResponse } from '@utils/api-response';
 import {
   createTaxRateSchema,
   findTaxRatesSchema,
-  ListResponseSchema,
   taxRateParamsSchema,
   taxRateSchema,
   updateTaxRateSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const taxRatesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

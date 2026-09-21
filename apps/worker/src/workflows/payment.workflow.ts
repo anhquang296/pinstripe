@@ -1,4 +1,5 @@
-import { PAYMENT_QUEUE, PSP_CALLBACK_POLL_JOB, QueueNameEnum } from '@vxrerp/core/queues';
+import { PAYMENT_QUEUE, PSP_CALLBACK_POLL_JOB } from '@vxrerp/billing/queues';
+import { QueueNameEnum } from '@vxrerp/platform/queues';
 import { PspCallbackPollProcessor } from '@workflows/processors/psp-callback-poll.processor';
 import type { Workflow } from '@workflows/workflow';
 import { Worker } from 'bullmq';
@@ -30,7 +31,7 @@ export class PaymentWorkflow implements Workflow {
   }
 
   private async dispatchCallbackPollSchedule(): Promise<void> {
-    const { pspCallbackPollIntervalMs } = this.fastify.workflowSchedules;
+    const { pspCallbackPollIntervalMs } = this.fastify.billingSchedules;
 
     await this.fastify.queues
       .resolve(QueueNameEnum.PAYMENT)

@@ -2,7 +2,11 @@ import RenderSelectField from '@common/components/FormField/RenderSelectField';
 import RenderTextField from '@common/components/FormField/RenderTextField';
 import type { LedgerTransactionFormData } from '@common/forms/ledger-transaction-form';
 import { Button } from '@heroui/react';
-import { CurrencyEnum, LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/core/contracts';
+import {
+  CurrencyEnum,
+  LedgerAccountCodeEnum,
+  PostingDirectionEnum,
+} from '@vxrerp/billing/contracts';
 import { get, map, values } from 'lodash-es';
 import type { UseFormReturn } from 'react-hook-form';
 import { useFieldArray } from 'react-hook-form';

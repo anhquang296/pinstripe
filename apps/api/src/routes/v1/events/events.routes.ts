@@ -5,7 +5,7 @@ import {
   eventSchema,
   findEventsSchema,
   ListResponseSchema,
-} from '@vxrerp/core/contracts';
+} from '@vxrerp/platform/contracts';
 
 export const eventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

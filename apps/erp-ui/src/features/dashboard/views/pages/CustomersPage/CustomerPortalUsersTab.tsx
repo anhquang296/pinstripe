@@ -13,7 +13,8 @@ import PortalMembershipForm from '@features/dashboard/components/PortalMembershi
 import { PORTAL_ROLE_LABELS } from '@features/dashboard/constants/portal-roles';
 import { ArrowsRotateRight, TrashBin } from '@gravity-ui/icons';
 import { useCan } from '@libs/permissions';
-import { PermissionEnum, PortalRoleEnum } from '@vxrerp/core/contracts';
+import { PortalRoleEnum } from '@vxrerp/billing/contracts';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
 import type { PortalMembershipResponse } from '@vxrerp/sdk';
 import {
   useCreatePortalMembershipMutation,
