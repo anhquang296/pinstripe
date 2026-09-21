@@ -2,8 +2,8 @@ import {
   PaymentIntentStatusEnum,
   PaymentMethodTypeEnum,
   PspEventTypeEnum,
-} from '@pinstripe/core/contracts';
-import { buildWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from '@pinstripe/core/utils';
+} from '@vxrerp/core/contracts';
+import { buildWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/core/utils';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 

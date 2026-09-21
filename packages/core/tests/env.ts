@@ -74,7 +74,7 @@ export function loadTestEnv(): void {
   const suiteName = readRequiredEnv('TEST_SUITE_NAME');
 
   process.env.DATABASE_URL = resolveTestDatabaseUrl(readRequiredEnv('DATABASE_URL'), suiteName);
-  process.env.REDIS_KEY_PREFIX = `pinstripe_${suiteName}_test`;
+  process.env.REDIS_KEY_PREFIX = `vxrerp_${suiteName}_test`;
   process.env.NODE_ENV = TEST_NODE_ENV;
   process.env.LOG_LEVEL = TEST_LOG_LEVEL;
   process.env.TEST_CLOCKS_ENABLED = 'true';

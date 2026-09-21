@@ -1,6 +1,6 @@
 # KB-02 — Nhận một nhà xe mới và ký gói
 
-**Thời lượng** ~5 phút · **Màn hình** admin-ui
+**Thời lượng** ~5 phút · **Màn hình** erp-ui
 
 ## Kể gì
 
@@ -50,6 +50,6 @@ nợ — [KB-06](./06-portal-nha-xe.md). Đường tự đăng ký sẽ là API 
 bán hàng gọi.
 
 **"`demo-new` là gì?"** Là mã tài khoản của nhà xe đó bên hệ thống Vexere — chỗ giữ doanh thu vé và
-số dư ví. Pinstripe không giữ bản sao hai con số đó, nó hỏi sang khi cần thu tiền.
+số dư ví. VXR ERP không giữ bản sao hai con số đó, nó hỏi sang khi cần thu tiền.
 
 Tiếp theo: [KB-03 — Ghi nhận lượng dùng](./03-usage-va-xem-truoc.md)

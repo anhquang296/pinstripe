@@ -1,5 +1,5 @@
-import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
+import { useVxrErpQueries } from '@react/vxr-erp.provider';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type {
   FindCouponsQuery,
@@ -11,7 +11,7 @@ export function useCouponsQuery(
   query?: FindCouponsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.discount.coupons(query),
@@ -21,7 +21,7 @@ export function useCouponsQuery(
 }
 
 export function useCouponQuery(couponId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.discount.coupon(couponId), enabled: enabled && Boolean(couponId) });
 }
@@ -30,7 +30,7 @@ export function usePromotionCodesQuery(
   query?: FindPromotionCodesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.discount.promotionCodes(query),
@@ -43,7 +43,7 @@ export function useDiscountsQuery(
   query?: FindDiscountsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.discount.discounts(query),
@@ -56,7 +56,7 @@ export function usePromotionCodeQuery(
   promotionCodeId: string,
   { enabled = true }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.discount.promotionCode(promotionCodeId),
@@ -65,7 +65,7 @@ export function usePromotionCodeQuery(
 }
 
 export function useDiscountQuery(discountId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.discount.discount(discountId),

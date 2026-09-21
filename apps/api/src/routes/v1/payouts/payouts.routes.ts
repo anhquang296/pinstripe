@@ -1,12 +1,12 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createPayoutSchema,
   findPayoutsSchema,
   ListResponseSchema,
   payoutParamsSchema,
   payoutSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 export const payoutsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

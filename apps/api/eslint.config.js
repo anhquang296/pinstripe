@@ -1,4 +1,4 @@
-import { node } from '@pinstripe/eslint-config/node';
+import { node } from '@vxrerp/eslint-config/node';
 
 export default node({
   tsconfigRootDir: import.meta.dirname,

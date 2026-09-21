@@ -1,7 +1,7 @@
 import { parseArgs } from 'node:util';
 
-import { UserRoleEnum } from '@pinstripe/core/contracts';
-import { corePlugin } from '@pinstripe/core/plugins';
+import { UserRoleEnum } from '@vxrerp/core/contracts';
+import { corePlugin } from '@vxrerp/core/plugins';
 import Fastify from 'fastify';
 
 const USAGE = 'usage: bootstrap-admin --email <email> --name <name> [--password <password>]';

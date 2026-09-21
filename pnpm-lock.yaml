@@ -8,12 +8,12 @@ importers:
 
   .:
     devDependencies:
-      '@pinstripe/prettier-config':
-        specifier: workspace:*
-        version: link:packages/prettier-config
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.2
+      '@vxrerp/prettier-config':
+        specifier: workspace:*
+        version: link:packages/prettier-config
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)
@@ -36,7 +36,92 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
 
-  apps/admin-ui:
+  apps/api:
+    dependencies:
+      '@fastify/swagger':
+        specifier: ^9.8.1
+        version: 9.8.1
+      '@fastify/swagger-ui':
+        specifier: ^6.1.1
+        version: 6.1.1
+      '@fastify/type-provider-typebox':
+        specifier: ^5.1.0
+        version: 5.2.0(@sinclair/typebox@0.34.52)
+      '@sinclair/typebox':
+        specifier: ^0.34.13
+        version: 0.34.52
+      '@vxrerp/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      better-auth:
+        specifier: ^1.7.5
+        version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
+      fastify:
+        specifier: ^5.2.0
+        version: 5.12.4
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.1.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.18.1
+    devDependencies:
+      '@types/lodash':
+        specifier: ^4.17.13
+        version: 4.17.25
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.2
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.5(jiti@2.7.0)
+      ioredis:
+        specifier: ^5.11.1
+        version: 5.11.1
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
+
+  apps/docs:
+    dependencies:
+      '@astrojs/starlight':
+        specifier: ^0.42.2
+        version: 0.42.2(astro@7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))(typescript@5.9.3)
+      '@vxrerp/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      astro:
+        specifier: ^7.3.3
+        version: 7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
+      sharp:
+        specifier: ^0.35.4
+        version: 0.35.4(@types/node@24.13.5)
+
+  apps/erp-ui:
     dependencies:
       '@better-auth-ui/heroui':
         specifier: ^1.7.26
@@ -62,12 +147,6 @@ importers:
       '@lukemorales/query-key-factory':
         specifier: ^1.3.4
         version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@pinstripe/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
       '@tanstack/react-form':
         specifier: ^1.33.5
         version: 1.33.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -83,6 +162,12 @@ importers:
       '@tanstack/react-table':
         specifier: ^9.2.4
         version: 9.2.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@vxrerp/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@vxrerp/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       better-auth:
         specifier: 1.7.5
         version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
@@ -123,12 +208,6 @@ importers:
         specifier: ^5.0.8
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
     devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
       '@tailwindcss/vite':
         specifier: ^4.0.0
         version: 4.3.3(vite@6.4.3(@types/node@24.13.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1))
@@ -150,6 +229,12 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.7.0(vite@6.4.3(@types/node@24.13.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1))
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)
@@ -172,92 +257,7 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
 
-  apps/api:
-    dependencies:
-      '@fastify/swagger':
-        specifier: ^9.8.1
-        version: 9.8.1
-      '@fastify/swagger-ui':
-        specifier: ^6.1.1
-        version: 6.1.1
-      '@fastify/type-provider-typebox':
-        specifier: ^5.1.0
-        version: 5.2.0(@sinclair/typebox@0.34.52)
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@sinclair/typebox':
-        specifier: ^0.34.13
-        version: 0.34.52
-      better-auth:
-        specifier: ^1.7.5
-        version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
-      fastify:
-        specifier: ^5.2.0
-        version: 5.12.4
-      fastify-plugin:
-        specifier: ^5.0.1
-        version: 5.1.0
-      lodash:
-        specifier: ^4.17.21
-        version: 4.18.1
-    devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
-      '@types/lodash':
-        specifier: ^4.17.13
-        version: 4.17.25
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.20.2
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
-      eslint:
-        specifier: ^9.39.4
-        version: 9.39.5(jiti@2.7.0)
-      ioredis:
-        specifier: ^5.11.1
-        version: 5.11.1
-      postgres:
-        specifier: ^3.4.9
-        version: 3.4.9
-      tsup:
-        specifier: ^8.3.5
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
-      tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vite-tsconfig-paths:
-        specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
-      vitest:
-        specifier: ^2.1.8
-        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
-
-  apps/docs:
-    dependencies:
-      '@astrojs/starlight':
-        specifier: ^0.42.2
-        version: 0.42.2(astro@7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))(typescript@5.9.3)
-      '@pinstripe/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
-      astro:
-        specifier: ^7.3.3
-        version: 7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
-      sharp:
-        specifier: ^0.35.4
-        version: 0.35.4(@types/node@24.13.5)
-
-  apps/portal-ui:
+  apps/operator-portal:
     dependencies:
       '@heroui/react':
         specifier: ^3.2.6
@@ -271,18 +271,18 @@ importers:
       '@lukemorales/query-key-factory':
         specifier: ^1.3.4
         version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@pinstripe/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
       '@tanstack/react-query':
         specifier: ^5.62.7
         version: 5.102.8(react@19.3.0)
       '@tanstack/react-table':
         specifier: ^9.2.4
         version: 9.2.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@vxrerp/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@vxrerp/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -314,12 +314,6 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
       '@tailwindcss/postcss':
         specifier: ^4.0.0
         version: 4.3.3
@@ -338,6 +332,12 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.2
         version: 19.3.0(@types/react@19.3.0)
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)
@@ -356,12 +356,12 @@ importers:
 
   apps/worker:
     dependencies:
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@sinclair/typebox':
         specifier: ^0.34.13
         version: 0.34.52
+      '@vxrerp/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       bullmq:
         specifier: ^5.34.6
         version: 5.81.5
@@ -375,18 +375,18 @@ importers:
         specifier: ^4.17.21
         version: 4.18.1
     devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
       '@types/lodash':
         specifier: ^4.17.13
         version: 4.17.25
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.2
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       concurrently:
         specifier: ^9.1.2
         version: 9.2.4
@@ -451,12 +451,6 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
     devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
       '@types/lodash':
         specifier: ^4.17.13
         version: 4.17.25
@@ -466,6 +460,12 @@ importers:
       '@types/pdfkit':
         specifier: ^0.17.6
         version: 0.17.6
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
@@ -541,15 +541,6 @@ importers:
       '@lukemorales/query-key-factory':
         specifier: ^1.3.4
         version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../core
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
       '@tanstack/react-query':
         specifier: ^5.62.7
         version: 5.102.8(react@19.3.0)
@@ -559,6 +550,15 @@ importers:
       '@types/react':
         specifier: ^19.0.2
         version: 19.3.0
+      '@vxrerp/core':
+        specifier: workspace:*
+        version: link:../core
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)

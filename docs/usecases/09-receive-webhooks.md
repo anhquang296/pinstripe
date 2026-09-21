@@ -2,7 +2,7 @@
 
 ## Ai, muốn gì
 
-Một hệ thống khác (CRM, kho, app của khách) cần biết khi có chuyện xảy ra trong Pinstripe. Người vận
+Một hệ thống khác (CRM, kho, app của khách) cần biết khi có chuyện xảy ra trong VXR ERP. Người vận
 hành đăng ký một URL, chọn loại event, rồi bên kia xác thực chữ ký và xử lý.
 
 Đây là use case cho thấy **toàn bộ chuỗi bất đồng bộ** từ đầu đến cuối: một hành động nghiệp vụ →
@@ -42,7 +42,7 @@ sequenceDiagram
     W2->>W3: đẩy WebhookDelivery
     W3->>DB: đọc delivery + secret của endpoint
     W3->>W3: ký HMAC-SHA256 trên "<timestamp>.<body>"
-    W3->>EP: POST + header pinstripe-signature
+    W3->>EP: POST + header vxrerp-signature
     alt 2xx
         EP-->>W3: 200
         W3->>DB: delivery = succeeded, delivered_at
@@ -57,12 +57,12 @@ sequenceDiagram
 
 | #   | Ở đâu                                                                                   | Chuyện gì xảy ra                                                                            | Quan sát được gì                               |
 | --- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 1   | UI [WebhooksPage.tsx:40-44](../../apps/admin-ui/src/pages/WebhooksPage.tsx)             | dropdown liệt kê **toàn bộ** `DomainEventTypeEnum` — 25 loại                                | `values(DomainEventTypeEnum)`, không hard-code |
-| 2   | UI [WebhooksPage.tsx:54-56](../../apps/admin-ui/src/pages/WebhooksPage.tsx)             | `handleOnCreate` gửi `{ url, enabledEvents: [selectedEvent], description: 'Tạo từ admin' }` | **một** event mỗi lần đăng ký từ UI            |
-| 3   | UI [WebhooksPage.tsx:26](../../apps/admin-ui/src/pages/WebhooksPage.tsx)                | URL mặc định `http://localhost:4100/hooks`                                                  | port 4100 không có gì chạy sẵn — phải tự dựng  |
+| 1   | UI [WebhooksPage.tsx:40-44](../../apps/erp-ui/src/pages/WebhooksPage.tsx)               | dropdown liệt kê **toàn bộ** `DomainEventTypeEnum` — 25 loại                                | `values(DomainEventTypeEnum)`, không hard-code |
+| 2   | UI [WebhooksPage.tsx:54-56](../../apps/erp-ui/src/pages/WebhooksPage.tsx)               | `handleOnCreate` gửi `{ url, enabledEvents: [selectedEvent], description: 'Tạo từ admin' }` | **một** event mỗi lần đăng ký từ UI            |
+| 3   | UI [WebhooksPage.tsx:26](../../apps/erp-ui/src/pages/WebhooksPage.tsx)                  | URL mặc định `http://localhost:4100/hooks`                                                  | port 4100 không có gì chạy sẵn — phải tự dựng  |
 | 4   | Service [webhook.service.ts:45-55](../../packages/core/src/services/webhook.service.ts) | INSERT, secret sinh bằng `randomBytes(24)` với tiền tố `whsec_`                             | —                                              |
 | 5   | Service [webhook.service.ts:61](../../packages/core/src/services/webhook.service.ts)    | `buildEndpoint(..., { hasSecret: true })` — **chỉ** response này chứa secret                | mọi lần đọc sau đều trả `secret: null`         |
-| 6   | Hook [mutations.ts:24](../../apps/admin-ui/src/reactquery/webhooks/mutations.ts)        | toast in thẳng secret: `Secret chỉ hiện một lần: whsec_...`                                 | **toast là load-bearing** — bỏ qua là mất      |
+| 6   | Hook [mutations.ts:24](../../apps/erp-ui/src/reactquery/webhooks/mutations.ts)          | toast in thẳng secret: `Secret chỉ hiện một lần: whsec_...`                                 | **toast là load-bearing** — bỏ qua là mất      |
 
 Bước 5–6 là điều quan trọng nhất của màn hình này: secret chỉ trả về đúng một lần, lúc tạo. Đóng
 toast mà chưa copy thì phải tạo endpoint mới. Không có đường nào đọc lại
@@ -90,7 +90,7 @@ toast mà chưa copy thì phải tạo endpoint mới. Không có đường nào
 
 Ba việc, theo đúng thứ tự:
 
-**1. Xác thực chữ ký.** Header `pinstripe-signature` có dạng `t=1736956800,v1=abc123…`. Tính lại
+**1. Xác thực chữ ký.** Header `vxrerp-signature` có dạng `t=1736956800,v1=abc123…`. Tính lại
 HMAC-SHA256 của `<t>.<raw body>` bằng secret, so bằng hàm chống timing attack. Logic tham chiếu:
 [isWebhookSignatureValid:17-41](../../packages/core/src/utils/webhook-signature.ts).
 
@@ -102,7 +102,7 @@ là chữ ký sai.
 ([webhook.service.ts:144](../../packages/core/src/services/webhook.service.ts)). Bên nhận lưu id đã
 xử lý và bỏ qua id trùng. Đúng như chú thích trên trang:
 _"Mỗi event mang một `id` cố định qua mọi lần thử, nên bên nhận tự chặn trùng được"_
-([WebhooksPage.tsx:70-71](../../apps/admin-ui/src/pages/WebhooksPage.tsx)).
+([WebhooksPage.tsx:70-71](../../apps/erp-ui/src/pages/WebhooksPage.tsx)).
 
 **3. Trả 2xx nhanh.** Timeout là 5 giây. Xử lý nặng thì nhận rồi đưa vào queue của mình, đừng làm
 xong mới trả lời.
@@ -158,7 +158,7 @@ import json
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         body = self.rfile.read(int(self.headers.get('content-length', 0)))
-        print('signature:', self.headers.get('pinstripe-signature'))
+        print('signature:', self.headers.get('vxrerp-signature'))
         print('body:', json.dumps(json.loads(body), indent=2, ensure_ascii=False))
         self.send_response(200)
         self.end_headers()
@@ -248,7 +248,7 @@ curl -s "$API/v1/webhook_deliveries?limit=10" -H "$AUTH" \
 Theo dõi một event đi qua ba chặng — outbox, delivery, kết quả:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select o.event_type, o.status as outbox_status, o.published_at,
         d.status as delivery_status, d.attempt_count, d.response_status, d.delivered_at
  from outbox_events o
@@ -259,14 +259,14 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Đọc đúng payload đã gửi ra ngoài:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select jsonb_pretty(payload) from webhook_deliveries order by created_at desc limit 1"
 ```
 
 Xem `event_id` giữ nguyên qua các lần thử (một delivery, `attempt_count` tăng, `event_id` không đổi):
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select event_id, event_type, status, attempt_count, last_error from webhook_deliveries
  where status = 'failed' order by created_at desc limit 5"
 ```

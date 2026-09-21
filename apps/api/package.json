@@ -1,5 +1,5 @@
 {
-  "name": "@pinstripe/api",
+  "name": "@vxrerp/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "@fastify/swagger": "^9.8.1",
     "@fastify/swagger-ui": "^6.1.1",
     "@fastify/type-provider-typebox": "^5.1.0",
-    "@pinstripe/core": "workspace:*",
+    "@vxrerp/core": "workspace:*",
     "@sinclair/typebox": "^0.34.13",
     "better-auth": "^1.7.5",
     "fastify": "^5.2.0",
@@ -28,8 +28,8 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@pinstripe/eslint-config": "workspace:*",
-    "@pinstripe/tsconfig": "workspace:*",
+    "@vxrerp/eslint-config": "workspace:*",
+    "@vxrerp/tsconfig": "workspace:*",
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.2",
     "drizzle-orm": "^0.45.2",

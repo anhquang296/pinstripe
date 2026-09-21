@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   billingPortalConfigurationParamsSchema,
   billingPortalConfigurationSchema,
@@ -9,8 +10,7 @@ import {
   findBillingPortalConfigurationsSchema,
   ListResponseSchema,
   updateBillingPortalConfigurationSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 export const billingPortalRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

@@ -1,4 +1,4 @@
-# Flow của Pinstripe
+# Flow của VXR ERP
 
 Mỗi file trong thư mục này mô tả **một luồng chạy hết một vòng**: bắt đầu từ đâu, đi qua file nào, chạm bảng nào, phát event gì, hỏng thì ra sao. Mỗi bước trỏ thẳng vào `file:line` để vừa đọc vừa mở code.
 
@@ -9,8 +9,8 @@ Tài liệu này trả lời câu hỏi **"cơ chế chạy thế nào"**, tổ 
 ```mermaid
 flowchart TB
     subgraph clients [Client]
-        AU["admin-ui<br/>React SPA :5173"]
-        PU["portal-ui<br/>Next.js :3100"]
+        AU["erp-ui<br/>React SPA :5173"]
+        PU["operator-portal<br/>Next.js :3100"]
         EXT["Tích hợp bên ngoài"]
     end
 
@@ -67,7 +67,7 @@ Bốn file đó là đủ để đọc hiểu phần còn lại theo nhu cầu.
 | Bút toán kép, bất biến, đảo bút toán, số dư                        | [10](./10-ledger.md)                   |
 | MRR, churn; đối chiếu PSP với sổ cái                               | [11](./11-reporting-reconciliation.md) |
 | Nhảy thời gian để thử hành vi theo kỳ                              | [12](./12-test-clock.md)               |
-| React Query, query key, form; portal-ui đọc dữ liệu thế nào        | [13](./13-frontend-data-flow.md)       |
+| React Query, query key, form; operator-portal đọc dữ liệu thế nào  | [13](./13-frontend-data-flow.md)       |
 | Chỗ nào dễ tự bắn vào chân; cần biết gì trước khi viết test        | [PITFALLS](../PITFALLS.md)             |
 | Bấm nút này thì chuyện gì xảy ra, cái gì xong ngay cái gì phải chờ | [usecases](../usecases/00-index.md)    |
 

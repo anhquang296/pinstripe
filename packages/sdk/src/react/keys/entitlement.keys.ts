@@ -1,10 +1,10 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type { FindEntitlementsQuery } from '@type/contracts.types';
 
-export function createEntitlementQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.ENTITLEMENT, {
+export function createEntitlementQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.ENTITLEMENT, {
     entitlements: (query?: FindEntitlementsQuery) => {
       return {
         queryKey: [query],

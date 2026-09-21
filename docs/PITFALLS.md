@@ -181,10 +181,10 @@ mở route callback PSP thật.
 
 ## 7. Bảo mật — ba thứ chặn production
 
-1. **portal-ui không xác thực.** `app/customers/[customerId]/page.tsx` không kiểm tra người xem là ai;
+1. **operator-portal không xác thực.** `app/customers/[customerId]/page.tsx` không kiểm tra người xem là ai;
    biết `customerId` là đọc được hoá đơn và subscription của khách đó. **Không được đưa ra internet ở
    dạng hiện tại** — [flows/13](flows/13-frontend-data-flow.md), [ADR 0012](adr/0012-phase-9-portal-reporting.md).
-2. **admin-ui không có đường xác thực thật.** API key được vite dev proxy gắn vào; build production
+2. **erp-ui không có đường xác thực thật.** API key được vite dev proxy gắn vào; build production
    không có proxy.
 3. **Webhook chưa rate limit theo endpoint.** Một đợt relay lớn dội thẳng vào endpoint của khách —
    [ADR 0011](adr/0011-phase-8-dunning-webhooks.md).
@@ -244,7 +244,7 @@ Những chỗ **chưa** an toàn:
 | `packages/core` chạy từ `dist`, và `tsup` có `clean: true`          | sửa core rồi chạy một package lẻ → vẫn là code cũ. `pnpm dev` / `turbo` lo thứ tự, chạy tay thì không                            |
 | `pnpm db:migrate` / `pnpm db:reset` nạp `.env` qua `tsx --env-file` | chạy `tsx src/database/migrate.ts` trần thì thiếu biến — dùng script pnpm                                                        |
 | Compose nằm ở `docker/compose.yml`                                  | `docker compose up` trần không tìm thấy — dùng `pnpm docker:up`                                                                  |
-| portal-ui không đọc `.env` gốc                                      | cần `apps/portal-ui/.env.local` riêng                                                                                            |
+| operator-portal không đọc `.env` gốc                                | cần `apps/operator-portal/.env.local` riêng                                                                                      |
 | Migration là journal                                                | **không xoá file đã generate** — nhiều migration là SQL viết tay (trigger, view, seed `number_sequences`)                        |
 | Năm secret, mỗi cái ≥ 16 ký tự                                      | thiếu một cái là app không boot — kể cả `WEBHOOK_SIGNING_SECRET` vốn không ai đọc                                                |
 | `.env.example` thiếu mọi biến tinh chỉnh                            | `OUTBOX_*`, `BILLING_RUN_*`, `DUNNING_*`, `WEBHOOK_*`, `INVOICE_DUE_DAYS`, `METER_DEDUP_WINDOW_DAYS` chỉ có default trong schema |
@@ -268,17 +268,17 @@ Những chỗ **chưa** an toàn:
 
 ```
 pnpm test → turbo run test
-  ├─ @pinstripe/core   → vitest run              ← CHỈ unit test trong src/utils/
-  ├─ @pinstripe/api    → vitest run --passWithNoTests   (0 test)
-  ├─ @pinstripe/worker → vitest run --passWithNoTests   (0 test)
-  └─ admin-ui, portal-ui → không có script test, bị bỏ qua
+  ├─ @vxrerp/core   → vitest run              ← CHỈ unit test trong src/utils/
+  ├─ @vxrerp/api    → vitest run --passWithNoTests   (0 test)
+  ├─ @vxrerp/worker → vitest run --passWithNoTests   (0 test)
+  └─ erp-ui, operator-portal → không có script test, bị bỏ qua
 ```
 
 `test:integration` **không phải turbo task và không được chain từ `test`**. Toàn bộ integration suite
 trong `packages/core/tests/` chỉ chạy khi gõ tay:
 
 ```bash
-pnpm --filter @pinstripe/core test:integration
+pnpm --filter @vxrerp/core test:integration
 ```
 
 CI chạy `pnpm test` sẽ báo xanh mà không hề chạm database.
@@ -299,7 +299,7 @@ test; dữ liệu tích tụ vĩnh viễn. `ledger.integration.test.ts` ghi 1000
 Hai hệ quả phải nhớ:
 
 - Mọi assert kiểu **tổng toàn bảng** (`reporting.`, `ledger.`) phụ thuộc lịch sử DB. Chạy sau một buổi
-  nghịch tay bằng admin-ui là có thể đỏ.
+  nghịch tay bằng erp-ui là có thể đỏ.
 - Test ghi vào **cùng namespace Redis** mà API dev đang dùng (`meter-dedup`, `entitlement`). Chạy
   `pnpm dev` song song với test là nhiễm chéo.
 
@@ -361,7 +361,7 @@ Không có gì ngoài lời gọi service là đồng bộ. Entitlement chỉ c�
 | **Meter ingestion**           | đúng 1 test, dù là hot path — các giới hạn khác của tầng này ở [technique 07](technique/07-metering.md)                                 |
 | **Logic thuần trong service** | `assertTransition`, `assertPricesUsable`, `resolveInterval`, `resolveTrialEnd`, `assertPriceShape`, `resolveReplay` — chưa có unit test |
 | **Repository**                | không test trực tiếp. `cursor.ts` là logic thuần, chưa có unit test                                                                     |
-| **UI**                        | admin-ui và portal-ui không có test runner, 0 test                                                                                      |
+| **UI**                        | erp-ui và operator-portal không có test runner, 0 test                                                                                  |
 
 Ngoài `src/utils/`, **mọi service chỉ được test qua database thật**.
 

@@ -9,10 +9,10 @@ Mọi request tới `/v1` phải mang secret key trong header `Authorization`:
 
 ```bash
 curl https://billing.example.com/v1/customers \
-  -H "Authorization: Bearer $PINSTRIPE_SECRET_API_KEY"
+  -H "Authorization: Bearer $VXRERP_SECRET_API_KEY"
 ```
 
-SDK tự thêm header này từ `apiKey` (hoặc `PINSTRIPE_SECRET_API_KEY` khi dùng `createPinstripeClient()`).
+SDK tự thêm header này từ `apiKey` (hoặc `VXRERP_SECRET_API_KEY` khi dùng `createVxrErpClient()`).
 
 | Status | Khi nào                                        | `error.type`            |
 | ------ | ---------------------------------------------- | ----------------------- |

@@ -1,6 +1,6 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type {
   FindCreditNotesQuery,
   FindInvoiceItemsQuery,
@@ -8,8 +8,8 @@ import type {
   GetUpcomingInvoiceQuery,
 } from '@type/contracts.types';
 
-export function createInvoiceQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.INVOICE, {
+export function createInvoiceQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.INVOICE, {
     upcoming: (query: GetUpcomingInvoiceQuery) => {
       return {
         queryKey: [query],

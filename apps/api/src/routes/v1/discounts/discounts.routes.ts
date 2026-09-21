@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createDiscountSchema,
   deletedDiscountSchema,
@@ -7,8 +8,7 @@ import {
   findDiscountsSchema,
   ListResponseSchema,
   updateDiscountSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 export const discountsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

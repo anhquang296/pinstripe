@@ -1,5 +1,5 @@
-import { PinstripeClient } from '@client/pinstripe.client';
-import type { FetchImpl } from '@client/pinstripe.types';
+import { VxrErpClient } from '@client/vxr-erp.client';
+import type { FetchImpl } from '@client/vxr-erp.types';
 import { expect, it, vi } from 'vitest';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -12,7 +12,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 function setup(body: unknown, status = 200) {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(body, status));
 
-  const client = new PinstripeClient({
+  const client = new VxrErpClient({
     baseUrl: '',
     fetch: fetchImpl as FetchImpl,
     maxRetries: 0,
@@ -48,7 +48,7 @@ it('creates a user with a POST body', async () => {
   const { client, fetchImpl } = setup({ id: 'usr_1' }, 201);
 
   await client.users.create({
-    email: 'operator@pinstripe.test',
+    email: 'operator@vxrerp.test',
     name: 'Operator',
     role: 'member',
   });
@@ -58,7 +58,7 @@ it('creates a user with a POST body', async () => {
   expect(url).toBe('/v1/users');
   expect(method).toBe('POST');
   expect(body).toBe(
-    JSON.stringify({ email: 'operator@pinstripe.test', name: 'Operator', role: 'member' }),
+    JSON.stringify({ email: 'operator@vxrerp.test', name: 'Operator', role: 'member' }),
   );
 });
 

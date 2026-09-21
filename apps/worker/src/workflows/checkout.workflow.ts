@@ -1,4 +1,4 @@
-import { CHECKOUT_EXPIRE_POLL_JOB, CHECKOUT_QUEUE, QueueNameEnum } from '@pinstripe/core/queues';
+import { CHECKOUT_EXPIRE_POLL_JOB, CHECKOUT_QUEUE, QueueNameEnum } from '@vxrerp/core/queues';
 import { CheckoutExpirePollProcessor } from '@workflows/processors/checkout-expire-poll.processor';
 import type { Workflow } from '@workflows/workflow';
 import { Worker } from 'bullmq';

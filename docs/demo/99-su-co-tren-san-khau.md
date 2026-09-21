@@ -33,7 +33,7 @@ Cùng lý do đó, `db:reset` cũng xoá phiên đăng nhập dashboard — ph�
 pnpm dev:stop
 pnpm db:reset
 pnpm dev                      # đợi API trả lời /healthz
-pnpm --filter @pinstripe/api bootstrap-admin -- --email admin@pinstripe.test --name Admin --password 'demo-pinstripe-2026'
+pnpm --filter @vxrerp/api bootstrap-admin -- --email admin@vxrerp.test --name Admin --password 'demo-vxrerp-2026'
 pnpm seed:demo
 ```
 
@@ -47,7 +47,7 @@ pnpm seed:demo
 | Hoá đơn nháp hiện **0 ₫**                  | đúng như thiết kế — số tiền đóng băng lúc phát hành                   | nói ra, đó là một điểm hay                               |
 | Phát hành xong 90 giây vẫn `open`          | worker `dunning` chưa chạy vòng nào                                   | chờ thêm một phút, hoặc xem mục 1                        |
 | Bảng trắng, không lỗi                      | phiên dashboard hết hạn (12 giờ) hoặc vừa bị reset                    | đăng nhập lại                                            |
-| Email không tới Mailpit                    | `apps/portal-ui/.env.local` thiếu `PINSTRIPE_PORTAL_API_KEY`          | thêm vào rồi khởi động lại portal                        |
+| Email không tới Mailpit                    | `apps/operator-portal/.env.local` thiếu `VXRERP_PORTAL_API_KEY`       | thêm vào rồi khởi động lại portal                        |
 | Link đăng nhập cổng báo hết hạn            | link dùng một lần, sống 15 phút                                       | xin link mới từ `/login`                                 |
 | Không có mã VietQR trên hoá đơn            | bốn biến `BANK_TRANSFER_*` đang trống                                 | điền vào `.env`, restart                                 |
 | Refund trả lỗi 500                         | cổng thanh toán giả giữ giao dịch trong RAM, `pnpm dev` reload là mất | tránh demo refund sau khi vừa sửa code                   |
@@ -61,7 +61,7 @@ pnpm seed:demo
 Mở một terminal riêng, dán thẳng:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c "<câu SQL>"
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c "<câu SQL>"
 ```
 
 | Cần gì                      | Câu SQL                                                                                                                                                                                            |

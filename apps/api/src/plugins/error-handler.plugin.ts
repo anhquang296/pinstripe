@@ -1,6 +1,6 @@
-import type { ApiErrorResponse } from '@pinstripe/core/contracts';
-import type { ErrorType } from '@pinstripe/core/errors';
-import { AppError, ErrorTypeEnum } from '@pinstripe/core/errors';
+import type { ApiErrorResponse } from '@vxrerp/core/contracts';
+import type { ErrorType } from '@vxrerp/core/errors';
+import { AppError, ErrorTypeEnum } from '@vxrerp/core/errors';
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 

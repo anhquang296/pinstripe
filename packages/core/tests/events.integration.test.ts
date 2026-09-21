@@ -1,4 +1,4 @@
-import { PINSTRIPE_API_VERSION } from '@constants/api-version';
+import { VXRERP_API_VERSION } from '@constants/api-version';
 import { AggregateTypeEnum, DomainEventTypeEnum } from '@contracts/events.types';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
@@ -47,7 +47,7 @@ it('materialises a public event when the outbox relays a domain event', async ()
   expect(event.id).toMatch(/^evt_/);
   expect(event).not.toHaveProperty('object');
   expect(event.type).toBe(DomainEventTypeEnum.CUSTOMER_CREATED);
-  expect(event.apiVersion).toBe(PINSTRIPE_API_VERSION);
+  expect(event.apiVersion).toBe(VXRERP_API_VERSION);
   expect(event.data.object).toMatchObject({ id: expect.stringMatching(/^cus_/) });
 });
 

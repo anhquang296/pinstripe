@@ -1,4 +1,4 @@
-import { NodeEnvEnum } from '@pinstripe/core/config';
+import { NodeEnvEnum } from '@vxrerp/core/config';
 import { sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';

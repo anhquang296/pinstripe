@@ -1,4 +1,4 @@
-import { BillingModeEnum } from '@pinstripe/core/contracts';
+import { BillingModeEnum } from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 

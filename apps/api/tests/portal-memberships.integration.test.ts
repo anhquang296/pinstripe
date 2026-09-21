@@ -1,4 +1,4 @@
-import { CurrencyEnum, PortalRoleEnum } from '@pinstripe/core/contracts';
+import { CurrencyEnum, PortalRoleEnum } from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';

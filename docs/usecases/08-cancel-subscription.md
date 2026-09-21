@@ -6,7 +6,7 @@ Khách xin dừng dịch vụ. Người vận hành phải chọn giữa hai cá
 duy nhất mà khách quan tâm: **còn được dùng tới hết kỳ đã trả tiền hay mất quyền ngay.**
 
 Đúng như dòng chú thích trên trang: _"Quyền dùng tách khỏi chu kỳ tính tiền: hủy cuối kỳ thì khách
-vẫn dùng tới hết kỳ"_ — [SubscriptionsPage.tsx:85-87](../../apps/admin-ui/src/pages/SubscriptionsPage.tsx).
+vẫn dùng tới hết kỳ"_ — [SubscriptionsPage.tsx:85-87](../../apps/erp-ui/src/pages/SubscriptionsPage.tsx).
 
 ## Điều kiện trước
 
@@ -18,7 +18,7 @@ vẫn dùng tới hết kỳ"_ — [SubscriptionsPage.tsx:85-87](../../apps/admi
 ## Hai nút, một request
 
 Cả hai nút gọi **cùng một** `DELETE /v1/subscriptions/:id`, chỉ khác một boolean trong body —
-[SubscriptionItem.tsx:20-26](../../apps/admin-ui/src/components/SubscriptionItem.tsx):
+[SubscriptionItem.tsx:20-26](../../apps/erp-ui/src/components/SubscriptionItem.tsx):
 
 | Nút             | Body                           | Status sau đó                       | Khách còn dùng được        |
 | --------------- | ------------------------------ | ----------------------------------- | -------------------------- |
@@ -26,7 +26,7 @@ Cả hai nút gọi **cùng một** `DELETE /v1/subscriptions/:id`, chỉ khác 
 | **Hủy ngay**    | `{ cancelAtPeriodEnd: false }` | `canceled`                          | không                      |
 
 Hai nút biến mất khi status là `canceled` —
-[SubscriptionItem.tsx:52-53](../../apps/admin-ui/src/components/SubscriptionItem.tsx).
+[SubscriptionItem.tsx:52-53](../../apps/erp-ui/src/components/SubscriptionItem.tsx).
 
 ## Sơ đồ
 
@@ -64,14 +64,14 @@ sequenceDiagram
 
 | #   | Ở đâu                                                                                               | Chuyện gì xảy ra                                                                                                                   | Quan sát được gì                                         |
 | --- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| 1   | UI [SubscriptionsPage.tsx:74-79](../../apps/admin-ui/src/pages/SubscriptionsPage.tsx)               | `handleOnCancel(subscriptionId, cancelAtPeriodEnd)`                                                                                | một handler cho cả hai nút                               |
-| 2   | API [request.ts:52-61](../../apps/admin-ui/src/api/subscriptions/request.ts)                        | `DELETE` **có body** — hiếm, nhưng hợp lệ                                                                                          | —                                                        |
+| 1   | UI [SubscriptionsPage.tsx:74-79](../../apps/erp-ui/src/pages/SubscriptionsPage.tsx)                 | `handleOnCancel(subscriptionId, cancelAtPeriodEnd)`                                                                                | một handler cho cả hai nút                               |
+| 2   | API [request.ts:52-61](../../apps/erp-ui/src/api/subscriptions/request.ts)                          | `DELETE` **có body** — hiếm, nhưng hợp lệ                                                                                          | —                                                        |
 | 3   | Service [subscription.service.ts:223-225](../../packages/core/src/services/subscription.service.ts) | đã `canceled` → 409 `is already canceled`                                                                                          | —                                                        |
 | 4   | Service [subscription.service.ts:227](../../packages/core/src/services/subscription.service.ts)     | `resolveNow(testClockId)` — mốc thời gian theo test clock nếu có                                                                   | [UC-11](./11-simulate-a-billing-cycle.md)                |
 | 5a  | Service [subscription.service.ts:229-247](../../packages/core/src/services/subscription.service.ts) | **cuối kỳ**: chỉ set `cancelAtPeriodEnd = true` + `canceledAt`, event `subscription.updated`                                       | status không đổi                                         |
 | 5b  | Service [subscription.service.ts:249-271](../../packages/core/src/services/subscription.service.ts) | **ngay**: `assertTransition`, rồi `status = canceled`, `endedAt = now`, `cancelAtPeriodEnd = false`, event `subscription.canceled` | —                                                        |
-| 6   | Hook [mutations.ts:39-46](../../apps/admin-ui/src/reactquery/subscriptions/mutations.ts)            | invalidate 3 nhóm, toast "Đã hủy subscription."                                                                                    | toast **giống nhau** cho cả hai nhánh                    |
-| 7   | UI [SubscriptionItem.tsx:37-41](../../apps/admin-ui/src/components/SubscriptionItem.tsx)            | nhánh cuối kỳ hiện thêm chip vàng "hủy cuối kỳ" bên cạnh status                                                                    | đây là **cách duy nhất** trên UI để phân biệt hai nhánh  |
+| 6   | Hook [mutations.ts:39-46](../../apps/erp-ui/src/reactquery/subscriptions/mutations.ts)              | invalidate 3 nhóm, toast "Đã hủy subscription."                                                                                    | toast **giống nhau** cho cả hai nhánh                    |
+| 7   | UI [SubscriptionItem.tsx:37-41](../../apps/erp-ui/src/components/SubscriptionItem.tsx)              | nhánh cuối kỳ hiện thêm chip vàng "hủy cuối kỳ" bên cạnh status                                                                    | đây là **cách duy nhất** trên UI để phân biệt hai nhánh  |
 | 8   | Worker [entitlement.service.ts:40-50](../../packages/core/src/services/entitlement.service.ts)      | `canceled` → `revokeEntitlements` cho cả subscription, xoá cache                                                                   | bảng Entitlements đổi sang `revoked` **sau khi tải lại** |
 
 Bước 6 đáng lưu ý: toast không nói rõ đã huỷ kiểu nào. Muốn chắc thì xem có chip "hủy cuối kỳ" hay
@@ -124,8 +124,8 @@ Không hàng nào bị xoá. `subscription_items` vẫn còn để hoá đơn c�
 
 ## Khách thấy gì trên portal
 
-`/customers/<customerId>` của portal-ui đọc trực tiếp từ API và render trên server —
-[page.tsx:27-31](../../apps/portal-ui/src/app/customers/[customerId]/page.tsx), ba GET song song,
+`/customers/<customerId>` của operator-portal đọc trực tiếp từ API và render trên server —
+[page.tsx:27-31](../../apps/operator-portal/src/app/customers/[customerId]/page.tsx), ba GET song song,
 `cache: 'no-store'`.
 
 | Sau khi huỷ | Bảng "Gói đang dùng"                                                             |
@@ -134,7 +134,7 @@ Không hàng nào bị xoá. `subscription_items` vẫn còn để hoá đơn c�
 | ngay        | status `canceled` màu xám                                                        |
 
 Cột `cancelAtPeriodEnd` **không** được portal render
-([page.tsx:48-54](../../apps/portal-ui/src/app/customers/[customerId]/page.tsx) chỉ có 4 cột: Mã,
+([page.tsx:48-54](../../apps/operator-portal/src/app/customers/[customerId]/page.tsx) chỉ có 4 cột: Mã,
 Trạng thái, Kỳ hiện tại, Hết trial). Nên một khách đã xin huỷ cuối kỳ vào portal vẫn thấy gói
 "active" bình thường. Đáng sửa nếu portal ra thật.
 
@@ -213,7 +213,7 @@ Gọi ngay sau khi huỷ thì vẫn `active`; gọi lại sau vài giây thì `r
 Bốn cột phân biệt hai nhánh, nhìn cạnh nhau:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select id, status, cancel_at_period_end, canceled_at is not null as has_canceled_at,
         ended_at is not null as has_ended_at, current_period_end
  from subscriptions order by updated_at desc limit 5"
@@ -225,7 +225,7 @@ Một subscription "hủy cuối kỳ" có `cancel_at_period_end = t`, `has_canc
 Entitlement theo từng subscription:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select s.id, s.status as sub_status, e.status as ent_status, e.revoked_at
  from subscriptions s left join entitlements e on e.subscription_id = s.id
  order by s.updated_at desc limit 5"
@@ -234,7 +234,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Tìm những subscription đã quá kỳ mà chưa tự huỷ — chính là khoảng trống nói ở trên:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select id, status, cancel_at_period_end, current_period_end
  from subscriptions
  where cancel_at_period_end = true and current_period_end < now() and status <> 'canceled'"

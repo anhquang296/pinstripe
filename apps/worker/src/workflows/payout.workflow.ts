@@ -1,4 +1,4 @@
-import { PAYOUT_QUEUE, PAYOUT_SETTLE_POLL_JOB, QueueNameEnum } from '@pinstripe/core/queues';
+import { PAYOUT_QUEUE, PAYOUT_SETTLE_POLL_JOB, QueueNameEnum } from '@vxrerp/core/queues';
 import { PayoutSettlePollProcessor } from '@workflows/processors/payout-settle-poll.processor';
 import type { Workflow } from '@workflows/workflow';
 import { Worker } from 'bullmq';

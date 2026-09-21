@@ -1,8 +1,8 @@
 {
-  "name": "@pinstripe/prettier-config",
+  "name": "@vxrerp/prettier-config",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared Prettier configuration for the Pinstripe workspace",
+  "description": "Shared Prettier configuration for the VXR ERP workspace",
   "type": "module",
   "main": "./index.js",
   "exports": {

@@ -1,6 +1,6 @@
 ---
 title: Xử lý lỗi
-description: PinstripeError, PinstripeConnectionError và envelope lỗi của API.
+description: VxrErpError, VxrErpConnectionError và envelope lỗi của API.
 sidebar:
   order: 2
 ---
@@ -17,7 +17,7 @@ API trả lỗi trong một envelope cố định:
 }
 ```
 
-`code` và `param` chỉ có mặt khi lỗi gắn với một mã hoặc một tham số cụ thể. SDK chuyển envelope này thành `PinstripeError`, với các field `statusCode`, `type`, `code`, `param`, `requestId` (`code` / `param` là `null` khi vắng).
+`code` và `param` chỉ có mặt khi lỗi gắn với một mã hoặc một tham số cụ thể. SDK chuyển envelope này thành `VxrErpError`, với các field `statusCode`, `type`, `code`, `param`, `requestId` (`code` / `param` là `null` khi vắng).
 
 | `type`                  | Ý nghĩa                                          |
 | ----------------------- | ------------------------------------------------ |
@@ -28,15 +28,15 @@ API trả lỗi trong một envelope cố định:
 | `card_error`            | Phương thức thanh toán bị từ chối                |
 | `api_error`             | Lỗi phía server                                  |
 
-Không nhận được response nào (mất mạng, timeout, bị abort) thì SDK ném `PinstripeConnectionError`.
+Không nhận được response nào (mất mạng, timeout, bị abort) thì SDK ném `VxrErpConnectionError`.
 
 ```ts
-import { PinstripeConnectionError, PinstripeError } from '@pinstripe/sdk';
+import { VxrErpConnectionError, VxrErpError } from '@vxrerp/sdk';
 
 try {
-  await pinstripe.invoices.pay(invoiceId);
+  await vxrErp.invoices.pay(invoiceId);
 } catch (error) {
-  if (error instanceof PinstripeError) {
+  if (error instanceof VxrErpError) {
     logger.error({ error, requestId: error.requestId }, 'payInvoice() error');
   }
 

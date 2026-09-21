@@ -1,8 +1,8 @@
 # Flow 13 — Luồng dữ liệu ở frontend
 
-Hai app đọc cùng một API nhưng qua hai bề mặt khác nhau: admin-ui là SPA đi bằng cookie session vào `/v1` và `/api/v1/admin`, portal-ui chỉ được đi vào `/portal/*` bằng session của khách hàng.
+Hai app đọc cùng một API nhưng qua hai bề mặt khác nhau: erp-ui là SPA đi bằng cookie session vào `/v1` và `/api/v1/admin`, operator-portal chỉ được đi vào `/portal/*` bằng session của khách hàng.
 
-## admin-ui
+## erp-ui
 
 React 19 + Vite + TanStack Query. Bốn tầng, mỗi tầng một việc:
 
@@ -18,30 +18,30 @@ flowchart TD
 
 ### Tầng client
 
-[api/client.ts](../../apps/admin-ui/src/api/client.ts) — request ghép từ các setter thay vì một object cấu hình:
+[api/client.ts](../../apps/erp-ui/src/api/client.ts) — request ghép từ các setter thay vì một object cấu hình:
 
 ```ts
 Request<CustomerResponse>(Endpoint('/v1/customers'), Method('POST'), Payload(payload));
 ```
 
-- `set(field, value)` bỏ qua giá trị `nil` — [client.ts:36-44](../../apps/admin-ui/src/api/client.ts) — nên truyền `Params(undefined)` là vô hại.
-- `buildUrl` loại mọi query param `nil` — [client.ts:72-86](../../apps/admin-ui/src/api/client.ts).
-- Lỗi: đọc vỏ `{ error: {...} }` của API ([flow 01](./01-request-lifecycle.md)) và ném `PinstripeApiError` giữ nguyên `statusCode`, `type`, `code`, `param`, `requestId` — [client.ts:108-123](../../apps/admin-ui/src/api/client.ts). Nhờ đó toast hiển thị đúng message server trả.
+- `set(field, value)` bỏ qua giá trị `nil` — [client.ts:36-44](../../apps/erp-ui/src/api/client.ts) — nên truyền `Params(undefined)` là vô hại.
+- `buildUrl` loại mọi query param `nil` — [client.ts:72-86](../../apps/erp-ui/src/api/client.ts).
+- Lỗi: đọc vỏ `{ error: {...} }` của API ([flow 01](./01-request-lifecycle.md)) và ném `VxrErpApiError` giữ nguyên `statusCode`, `type`, `code`, `param`, `requestId` — [client.ts:108-123](../../apps/erp-ui/src/api/client.ts). Nhờ đó toast hiển thị đúng message server trả.
 
 ### Xác thực
 
-Client **không** giữ API key. Vite proxy gắn header — [vite.config.ts:16-27](../../apps/admin-ui/vite.config.ts):
+Client **không** giữ API key. Vite proxy gắn header — [vite.config.ts:16-27](../../apps/erp-ui/vite.config.ts):
 
 | Đường dẫn | Header gắn thêm            |
 | --------- | -------------------------- |
 | `/v1/*`   | `Bearer ${SECRET_API_KEY}` |
 | `/api/*`  | `Bearer ${ADMIN_API_KEY}`  |
 
-Đây là cơ chế **chỉ dùng cho dev**. Build production không có proxy, nên admin-ui hiện chưa có đường xác thực thật — một trong các mục chặn production ở [ROADMAP.md](../ROADMAP.md).
+Đây là cơ chế **chỉ dùng cho dev**. Build production không có proxy, nên erp-ui hiện chưa có đường xác thực thật — một trong các mục chặn production ở [ROADMAP.md](../ROADMAP.md).
 
 ### Query key
 
-Dùng `@lukemorales/query-key-factory`. Mỗi domain một file khai báo cả key lẫn `queryFn` — [customer.keys.ts](../../apps/admin-ui/src/react-query-keys/customer.keys.ts) — rồi `mergeQueryKeys` gom thành một object `queries` — [index.ts:15-28](../../apps/admin-ui/src/react-query-keys/index.ts).
+Dùng `@lukemorales/query-key-factory`. Mỗi domain một file khai báo cả key lẫn `queryFn` — [customer.keys.ts](../../apps/erp-ui/src/react-query-keys/customer.keys.ts) — rồi `mergeQueryKeys` gom thành một object `queries` — [index.ts:15-28](../../apps/erp-ui/src/react-query-keys/index.ts).
 
 Hook chỉ việc trải ra:
 
@@ -53,33 +53,33 @@ Lợi ích thật nằm ở phía invalidate: `queries.customer.customers._def` 
 
 ### Mutation
 
-Khuôn giống nhau ở mọi file — [mutations.ts](../../apps/admin-ui/src/reactquery/customers/mutations.ts):
+Khuôn giống nhau ở mọi file — [mutations.ts](../../apps/erp-ui/src/reactquery/customers/mutations.ts):
 
 1. `mutationFn` gọi request function, tham số tên `payload`.
 2. `onSuccess`: invalidate **trước**, toast **sau**.
-3. `onError`: `toast.show(error.message, { isError: true })` — message lấy thẳng từ `PinstripeApiError`.
+3. `onError`: `toast.show(error.message, { isError: true })` — message lấy thẳng từ `VxrErpApiError`.
 4. `shouldBeSuccessToast` cho phép tắt toast khi mutation là một bước trong chuỗi dài hơn.
 
-Update một bản ghi thì invalidate cả key chi tiết lẫn `_def` của danh sách — [mutations.ts:36-37](../../apps/admin-ui/src/reactquery/customers/mutations.ts).
+Update một bản ghi thì invalidate cả key chi tiết lẫn `_def` của danh sách — [mutations.ts:36-37](../../apps/erp-ui/src/reactquery/customers/mutations.ts).
 
 ### Cấu hình chung
 
-[QueryProvider.tsx](../../apps/admin-ui/src/providers/QueryProvider.tsx): `retry: 1`, `refetchOnWindowFocus: false`. Provider ghép trong [ProviderRegistry.tsx](../../apps/admin-ui/src/providers/ProviderRegistry.tsx): `QueryProvider` → `AdminPinstripeProvider` → `RoutesProvider`, cộng `<Toaster>` của sonner.
+[QueryProvider.tsx](../../apps/erp-ui/src/providers/QueryProvider.tsx): `retry: 1`, `refetchOnWindowFocus: false`. Provider ghép trong [ProviderRegistry.tsx](../../apps/erp-ui/src/providers/ProviderRegistry.tsx): `QueryProvider` → `AdminVxrErpProvider` → `RoutesProvider`, cộng `<Toaster>` của sonner.
 
-Route khai trong [routes/def.tsx](../../apps/admin-ui/src/features/dashboard/routes/def.tsx) bằng path của [routes/paths.ts](../../apps/admin-ui/src/features/dashboard/routes/paths.ts). Mọi màn nằm sau `RequireSession`, trong layout chung `AppLayout`.
+Route khai trong [routes/def.tsx](../../apps/erp-ui/src/features/dashboard/routes/def.tsx) bằng path của [routes/paths.ts](../../apps/erp-ui/src/features/dashboard/routes/paths.ts). Mọi màn nằm sau `RequireSession`, trong layout chung `AppLayout`.
 
 ### Form
 
 React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/common/forms/` (`customer-form.ts`, `product-form.ts`, `meter-form.ts`, `subscription-form.ts`, `test-clock-form.ts`, `reverse-transaction-form.ts`…), ghép với component tương ứng dưới `src/features/dashboard/components/<X>Form/`.
 
-## portal-ui
+## operator-portal
 
-Next.js 15 App Router, port 3100, HeroUI v3 như admin-ui. Quyết định đầy đủ ở
+Next.js 15 App Router, port 3100, HeroUI v3 như erp-ui. Quyết định đầy đủ ở
 [ADR 0026](../adr/0026-customer-portal-auth-and-bff.md).
 
 ```
-trình duyệt ── PinstripeClient({ baseUrl: '/bff' }) + hook @pinstripe/sdk/react/portal
-   │  cookie pinstripe_portal_session (httpOnly)
+trình duyệt ── VxrErpClient({ baseUrl: '/bff' }) + hook @vxrerp/sdk/react/portal
+   │  cookie vxrerp_portal_session (httpOnly)
    ▼
 app/bff/portal/[...path] ── allowlist · Origin check · cookie ↔ Bearer · portal key cho links/sessions
    ▼
@@ -100,8 +100,8 @@ API /portal/*
   nợ, các lần thanh toán), `/payments`, `/subscriptions` (kèm form yêu cầu đổi gói), `/usage` (mức dùng
   kỳ hiện tại), `/account` (kế toán phụ trách, số dư tín dụng, thẻ đã lưu, form yêu cầu cập nhật hồ sơ).
 - Component bảng/thẻ (`DataTable`, `StatItem`, `DetailList`…) là bản riêng trong
-  `apps/portal-ui/src/common`, không import từ admin-ui. Số ngày trễ đếm theo ngày lịch giờ Việt Nam.
-- Env của portal: `PINSTRIPE_API_URL`, `PINSTRIPE_PORTAL_API_KEY` trong `apps/portal-ui/.env.local`,
+  `apps/operator-portal/src/common`, không import từ erp-ui. Số ngày trễ đếm theo ngày lịch giờ Việt Nam.
+- Env của portal: `VXRERP_API_URL`, `VXRERP_PORTAL_API_KEY` trong `apps/operator-portal/.env.local`,
   chỉ đọc ở `src/libs/portal-bff.ts`.
 
 Phía API, mọi route `/portal/*` lấy `customerId` từ session chứ không từ tham số:
@@ -116,16 +116,16 @@ Phía API, mọi route `/portal/*` lấy `customerId` từ session chứ không 
   `POST /portal/requests` (yêu cầu đổi gói / cập nhật hồ sơ, gửi email cho kế toán Vexere). Hóa đơn
   `draft` và hóa đơn của khách khác luôn là 404.
 - Hai route đăng nhập bị giới hạn tần suất (`PORTAL_RATE_LIMIT` lần / `PORTAL_RATE_WINDOW_SECONDS`)
-  theo IP người dùng cuối và theo email. IP đọc từ header `x-pinstripe-client-ip`
+  theo IP người dùng cuối và theo email. IP đọc từ header `x-vxrerp-client-ip`
   (`PORTAL_CLIENT_IP_HEADER`), chỉ được tin vì request đó đã xác thực bằng portal key.
 - `POST /v1/billing_portal/sessions` trả cùng loại link dùng một lần — không bao giờ đặt `sessionKey`
   vào URL.
 
 ## Contract dùng chung
 
-Cả hai frontend import type thẳng từ `@pinstripe/core/contracts` — cùng nguồn với schema TypeBox mà API dùng để validate. Đổi contract ở core là cả hai app báo lỗi biên dịch ngay, không lệch âm thầm.
+Cả hai frontend import type thẳng từ `@vxrerp/core/contracts` — cùng nguồn với schema TypeBox mà API dùng để validate. Đổi contract ở core là cả hai app báo lỗi biên dịch ngay, không lệch âm thầm.
 
-Hệ quả vận hành: `@pinstripe/core` phải được build trước thì app mới chạy được — xem [shared-package-build](../../.claude/rules/agentkit/profiles/monorepo-turborepo/shared-package-build.md).
+Hệ quả vận hành: `@vxrerp/core` phải được build trước thì app mới chạy được — xem [shared-package-build](../../.claude/rules/agentkit/profiles/monorepo-turborepo/shared-package-build.md).
 
 ## Đọc tiếp
 

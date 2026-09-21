@@ -1,34 +1,34 @@
 ---
 title: React
-description: PinstripeProvider và các hook React Query dựng sẵn.
+description: VxrErpProvider và các hook React Query dựng sẵn.
 sidebar:
   order: 7
 ---
 
-`@pinstripe/sdk/react` cung cấp hook cho từng resource, dựng trên TanStack Query. Cần cài thêm `@tanstack/react-query` và `@lukemorales/query-key-factory`.
+`@vxrerp/sdk/react` cung cấp hook cho từng resource, dựng trên TanStack Query. Cần cài thêm `@tanstack/react-query` và `@lukemorales/query-key-factory`.
 
 ## Provider
 
 Bọc app một lần. `onMutationError` / `onMutationSuccess` là nơi duy nhất nối toast của app vào SDK:
 
 ```tsx
-import { PinstripeClient } from '@pinstripe/sdk';
-import { PinstripeProvider } from '@pinstripe/sdk/react';
+import { VxrErpClient } from '@vxrerp/sdk';
+import { VxrErpProvider } from '@vxrerp/sdk/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const pinstripe = new PinstripeClient({ baseUrl: '/api' });
+const vxrErp = new VxrErpClient({ baseUrl: '/api' });
 const queryClient = new QueryClient();
 
 export default function AppProvider({ children }: AppProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <PinstripeProvider
-        client={pinstripe}
+      <VxrErpProvider
+        client={vxrErp}
         onMutationError={handleOnMutationError}
         onMutationSuccess={handleOnMutationSuccess}
       >
         {children}
-      </PinstripeProvider>
+      </VxrErpProvider>
     </QueryClientProvider>
   );
 }
@@ -63,13 +63,13 @@ useFinalizeInvoiceMutation({
 });
 ```
 
-Không truyền `successMessage` thì không toast. Lỗi luôn đi qua `onMutationError` với một `PinstripeError`.
+Không truyền `successMessage` thì không toast. Lỗi luôn đi qua `onMutationError` với một `VxrErpError`.
 
 ## Tự dựng query
 
 Cần query chưa có hook sẵn, dùng key factory từ provider:
 
 ```tsx
-const queries = usePinstripeQueries();
+const queries = useVxrErpQueries();
 const { data: invoice } = useQuery({ ...queries.invoice.invoice(invoiceId) });
 ```

@@ -1,10 +1,10 @@
-import type { OutboxRelayJob } from '@pinstripe/core/queues';
+import type { OutboxRelayJob } from '@vxrerp/core/queues';
 import {
   buildOutboxRelayJob,
   OUTBOX_QUEUE,
   OUTBOX_RELAY_JOB,
   QueueNameEnum,
-} from '@pinstripe/core/queues';
+} from '@vxrerp/core/queues';
 import { OutboxRelayProcessor } from '@workflows/processors/outbox-relay.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

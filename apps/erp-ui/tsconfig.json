@@ -1,0 +1,13 @@
+{
+  "extends": "@vxrerp/tsconfig/react.json",
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "paths": {
+      "@common/*": ["./src/common/*"],
+      "@features/*": ["./src/features/*"],
+      "@providers/*": ["./src/providers/*"],
+      "@libs/*": ["./src/libs/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
+}

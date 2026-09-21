@@ -5,8 +5,8 @@ const PACKAGE_ROOTS = [
   'packages/sdk',
   'apps/api',
   'apps/worker',
-  'apps/admin-ui',
-  'apps/portal-ui',
+  'apps/erp-ui',
+  'apps/operator-portal',
 ];
 
 const GENERATED_PATHS = [

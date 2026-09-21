@@ -1,4 +1,4 @@
-import { PartnerPlatformEnum } from '@pinstripe/core/contracts';
+import { PartnerPlatformEnum } from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 
 import { DEMO_COUNTRY, DEMO_CURRENCY, DEMO_TAX_ID_TYPE } from './demo-catalog';

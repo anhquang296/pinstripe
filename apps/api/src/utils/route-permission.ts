@@ -1,6 +1,6 @@
 import { OPERATION_PERMISSIONS, READ_OPERATION_PREFIXES } from '@constants/permissions';
-import type { Permission } from '@pinstripe/core/contracts';
-import { PermissionEnum } from '@pinstripe/core/contracts';
+import type { Permission } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/core/contracts';
 import type { FastifyContextConfig, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 

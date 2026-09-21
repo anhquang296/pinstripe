@@ -1,10 +1,10 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type { FindBillingPortalConfigurationsQuery } from '@type/contracts.types';
 
-export function createBillingPortalQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.BILLING_PORTAL, {
+export function createBillingPortalQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.BILLING_PORTAL, {
     configurations: (query?: FindBillingPortalConfigurationsQuery) => {
       return {
         queryKey: [query],

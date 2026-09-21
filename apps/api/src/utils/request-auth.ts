@@ -1,5 +1,5 @@
-import type { PortalAuth, RequestAuth } from '@pinstripe/core/contracts';
-import { UnauthorizedError } from '@pinstripe/core/errors';
+import type { PortalAuth, RequestAuth } from '@vxrerp/core/contracts';
+import { UnauthorizedError } from '@vxrerp/core/errors';
 import type { FastifyRequest } from 'fastify';
 
 export function readAuth(request: FastifyRequest): RequestAuth {

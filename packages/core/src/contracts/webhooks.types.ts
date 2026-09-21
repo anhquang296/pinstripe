@@ -93,7 +93,7 @@ export const findWebhookDeliveriesSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export type PinstripeEvent<T = unknown> = {
+export type VxrErpEvent<T = unknown> = {
   id: string;
   type: DomainEventType;
   createdAt: string;

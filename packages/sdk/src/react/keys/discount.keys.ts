@@ -1,14 +1,14 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type {
   FindCouponsQuery,
   FindDiscountsQuery,
   FindPromotionCodesQuery,
 } from '@type/contracts.types';
 
-export function createDiscountQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.DISCOUNT, {
+export function createDiscountQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.DISCOUNT, {
     coupons: (query?: FindCouponsQuery) => {
       return {
         queryKey: [query],

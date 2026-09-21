@@ -1,4 +1,4 @@
-import { PINSTRIPE_API_VERSION } from '@constants/api-version';
+import { VXRERP_API_VERSION } from '@constants/api-version';
 import type { DomainEventType, EventResponse, FindEventsQuery } from '@contracts/events.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
@@ -20,7 +20,7 @@ export class EventService {
     await this.fastify.eventRepository.createEvent({
       id: payload.id,
       type: payload.type,
-      apiVersion: PINSTRIPE_API_VERSION,
+      apiVersion: VXRERP_API_VERSION,
       data: { object: payload.data },
       requestId: null,
       createdAt: payload.occurredAt,

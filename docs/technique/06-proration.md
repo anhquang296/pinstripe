@@ -53,7 +53,7 @@ một âm một dương, net lại thành chênh lệch.
 Ở arrears, tại thời điểm swap **chưa ai trả đồng nào**. Không có gì để hoàn. Đúng nghiệp vụ là thu
 **cả hai lát**, và cả hai đều dương.
 
-|                          | Stripe (advance)                  | Pinstripe (arrears)               |
+|                          | Stripe (advance)                  | VXR ERP (arrears)                 |
 | ------------------------ | --------------------------------- | --------------------------------- |
 | Lúc swap khách đã trả gì | trọn kỳ theo giá cũ               | chưa gì cả                        |
 | Lát gói cũ               | dòng **âm** — hoàn phần chưa dùng | dòng **dương** — thu phần đã dùng |
@@ -400,7 +400,7 @@ lát gói cũ. Rồi `GET /v1/invoices/upcoming` chỉ còn **một** dòng — 
 Vòng đời và cửa sổ cạnh nhau — cột trái nói row còn sống không, cột phải nói nó thu tiền quãng nào:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select i.id, p.unit_amount, i.created_at, i.deleted_at, i.billed_from, i.billed_through, i.invoiced_through
  from subscription_items i join prices p on p.id = i.price_id
  where i.subscription_id = 'sub_...'
@@ -410,7 +410,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Các lát đã thành dòng hoá đơn, kèm hệ số:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select v.number, v.billing_reason, l.type, l.proration_factor, l.amount
  from invoice_line_items l join invoices v on v.id = l.invoice_id
  where v.subscription_id = 'sub_...'

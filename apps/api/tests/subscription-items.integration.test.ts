@@ -1,5 +1,5 @@
-import type { PriceResponse, SubscriptionResponse } from '@pinstripe/core/contracts';
-import { CurrencyEnum, RecurringIntervalEnum } from '@pinstripe/core/contracts';
+import type { PriceResponse, SubscriptionResponse } from '@vxrerp/core/contracts';
+import { CurrencyEnum, RecurringIntervalEnum } from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';

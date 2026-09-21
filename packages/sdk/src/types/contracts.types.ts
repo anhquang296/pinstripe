@@ -111,7 +111,6 @@ export type {
   PaymentIntentResponse,
   PaymentLinkResponse,
   PaymentMethodResponse,
-  PinstripeEvent,
   PortalBankTransferResponse,
   PortalIdentityResponse,
   PortalInvoiceComparisonResponse,
@@ -167,6 +166,7 @@ export type {
   UserResponse,
   VoidCreditNotePayload,
   VoidInvoicePayload,
+  VxrErpEvent,
   WebhookDeliveryResponse,
   WebhookEndpointResponse,
-} from '@pinstripe/core/contracts';
+} from '@vxrerp/core/contracts';

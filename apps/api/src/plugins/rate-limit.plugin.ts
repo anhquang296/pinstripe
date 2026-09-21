@@ -1,6 +1,6 @@
-import { TooManyRequestsError } from '@pinstripe/core/errors';
-import { consumeRateLimit, RedisNamespaceEnum } from '@pinstripe/core/utils';
 import { readRateLimitId } from '@utils/request-auth';
+import { TooManyRequestsError } from '@vxrerp/core/errors';
+import { consumeRateLimit, RedisNamespaceEnum } from '@vxrerp/core/utils';
 import fp from 'fastify-plugin';
 
 export const rateLimitPlugin = fp(async (fastify) => {

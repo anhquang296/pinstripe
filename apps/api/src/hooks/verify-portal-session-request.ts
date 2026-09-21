@@ -1,5 +1,5 @@
 import { readBearerToken } from '@hooks/authenticate-request';
-import type { PortalAuth } from '@pinstripe/core/contracts';
+import type { PortalAuth } from '@vxrerp/core/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 declare module 'fastify' {

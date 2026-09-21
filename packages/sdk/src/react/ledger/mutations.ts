@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   LedgerTransactionResponse,
@@ -11,7 +11,7 @@ import type {
 function useLedgerInvalidation() {
   const queryClient = useQueryClient();
 
-  const { queries } = usePinstripeContext();
+  const { queries } = useVxrErpContext();
 
   return (transactionId?: string) => {
     if (transactionId) {
@@ -29,11 +29,11 @@ function useLedgerInvalidation() {
 export function useCreateLedgerTransactionMutation({
   successMessage,
 }: MutationProps<LedgerTransactionResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useLedgerInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: PostLedgerTransactionPayload) => {
@@ -50,11 +50,11 @@ export function useCreateLedgerTransactionMutation({
 export function useReverseLedgerTransactionMutation({
   successMessage,
 }: MutationProps<LedgerTransactionResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useLedgerInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: ReverseLedgerTransactionPayload }) => {

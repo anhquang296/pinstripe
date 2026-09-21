@@ -1,5 +1,5 @@
 {
-  "name": "@pinstripe/worker",
+  "name": "@vxrerp/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@pinstripe/core": "workspace:*",
+    "@vxrerp/core": "workspace:*",
     "@sinclair/typebox": "^0.34.13",
     "bullmq": "^5.34.6",
     "fastify": "^5.2.0",
@@ -21,14 +21,14 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@pinstripe/tsconfig": "workspace:*",
+    "@vxrerp/tsconfig": "workspace:*",
     "@types/node": "^22.10.2",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "concurrently": "^9.1.2",
-    "@pinstripe/eslint-config": "workspace:*",
+    "@vxrerp/eslint-config": "workspace:*",
     "eslint": "^9.39.4",
     "@types/lodash": "^4.17.13"
   }

@@ -1,4 +1,4 @@
-import type { BillingRunShardJob } from '@pinstripe/core/queues';
+import type { BillingRunShardJob } from '@vxrerp/core/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@pinstripe/core",
+  "name": "@vxrerp/core",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -77,8 +77,8 @@
     "typeid-js": "^1.2.0"
   },
   "devDependencies": {
-    "@pinstripe/eslint-config": "workspace:*",
-    "@pinstripe/tsconfig": "workspace:*",
+    "@vxrerp/eslint-config": "workspace:*",
+    "@vxrerp/tsconfig": "workspace:*",
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.2",
     "@types/pdfkit": "^0.17.6",

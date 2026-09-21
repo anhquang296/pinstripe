@@ -1,5 +1,5 @@
-import { InternalError, UnauthorizedError } from '@pinstripe/core/errors';
-import { isWebhookSignatureValid, WEBHOOK_SIGNATURE_HEADER } from '@pinstripe/core/utils';
+import { InternalError, UnauthorizedError } from '@vxrerp/core/errors';
+import { isWebhookSignatureValid, WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/core/utils';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 

@@ -1,5 +1,5 @@
-import { NodeEnvEnum } from '@pinstripe/core/config';
-import { corePlugin } from '@pinstripe/core/plugins';
+import { NodeEnvEnum } from '@vxrerp/core/config';
+import { corePlugin } from '@vxrerp/core/plugins';
 import Fastify from 'fastify';
 
 import { seedCatalog } from './seed-catalog';

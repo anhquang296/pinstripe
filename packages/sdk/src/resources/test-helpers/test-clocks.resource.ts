@@ -1,6 +1,6 @@
-import type { RequestOptions } from '@client/pinstripe.types';
-import { HttpMethodEnum } from '@client/pinstripe.types';
-import type { PinstripeTransport } from '@client/pinstripe-transport';
+import type { RequestOptions } from '@client/vxr-erp.types';
+import { HttpMethodEnum } from '@client/vxr-erp.types';
+import type { VxrErpTransport } from '@client/vxr-erp-transport';
 import type {
   AdvanceTestClockPayload,
   CreateTestClockPayload,
@@ -13,9 +13,9 @@ import { buildPath } from '@utils/build-path';
 const TEST_CLOCKS_PATH = '/v1/test_helpers/test_clocks';
 
 export class TestClocksResource {
-  private _transport: PinstripeTransport;
+  private _transport: VxrErpTransport;
 
-  constructor(transport: PinstripeTransport) {
+  constructor(transport: VxrErpTransport) {
     this._transport = transport;
   }
 

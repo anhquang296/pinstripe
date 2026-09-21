@@ -1,6 +1,6 @@
 # KB-01 — Toàn cảnh: Vexere đang thu tiền 5 nhà xe
 
-**Thời lượng** ~4 phút · **Màn hình** admin-ui (http://localhost:5173)
+**Thời lượng** ~4 phút · **Màn hình** erp-ui (http://localhost:5173)
 
 ## Kể gì
 

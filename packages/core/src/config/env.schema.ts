@@ -34,12 +34,12 @@ export const envSchema = Type.Object({
   REDIS_HOST: Default(Type.String({ minLength: 1 }), 'localhost'),
   REDIS_PORT: Default(Type.Integer({ minimum: 1, maximum: 65535 }), 6379),
   REDIS_PASSWORD: Optional(Type.String({ minLength: 1 })),
-  REDIS_KEY_PREFIX: Default(Type.String({ minLength: 1 }), 'pinstripe'),
+  REDIS_KEY_PREFIX: Default(Type.String({ minLength: 1 }), 'vxrerp'),
 
   SMTP_HOST: Optional(Type.String({ minLength: 1 })),
   SMTP_PORT: Optional(Type.Integer({ minimum: 1, maximum: 65535 })),
-  SMTP_FROM_NAME: Default(Type.String({ minLength: 1 }), 'Pinstripe Billing'),
-  SMTP_FROM_EMAIL: Default(Type.String({ minLength: 1 }), 'billing@pinstripe.test'),
+  SMTP_FROM_NAME: Default(Type.String({ minLength: 1 }), 'VXR ERP Billing'),
+  SMTP_FROM_EMAIL: Default(Type.String({ minLength: 1 }), 'billing@vxrerp.test'),
 
   SECRET_API_KEY: Type.String({ minLength: 16 }),
   PORTAL_API_KEY: Optional(Type.String({ minLength: 16 })),
@@ -49,7 +49,7 @@ export const envSchema = Type.Object({
   ADMIN_UI_ORIGIN: Default(Type.String({ minLength: 1 }), 'http://localhost:5173'),
   BETTER_AUTH_SECRET: Default(
     Type.String({ minLength: 32 }),
-    'pinstripe-better-auth-development-secret',
+    'vxrerp-better-auth-development-secret',
   ),
   ADMIN_SESSION_IDLE_TTL_MINUTES: Default(Type.Integer({ minimum: 1 }), 60),
   ADMIN_SESSION_ABSOLUTE_TTL_HOURS: Default(Type.Integer({ minimum: 1 }), 12),
@@ -61,9 +61,9 @@ export const envSchema = Type.Object({
   PORTAL_BASE_URL: Default(Type.String({ minLength: 1 }), 'http://localhost:3100'),
   HOSTED_URL_SECRET: Default(
     Type.String({ minLength: 16 }),
-    'pinstripe-hosted-url-development-secret',
+    'vxrerp-hosted-url-development-secret',
   ),
-  FILE_STORAGE_DIRECTORY: Default(Type.String({ minLength: 1 }), '.pinstripe-storage'),
+  FILE_STORAGE_DIRECTORY: Default(Type.String({ minLength: 1 }), '.vxrerp-storage'),
   BANK_TRANSFER_BANK_BIN: Optional(Type.String({ pattern: '^[0-9]{6}$' })),
   BANK_TRANSFER_BANK_NAME: Optional(Type.String({ minLength: 1 })),
   BANK_TRANSFER_ACCOUNT_NUMBER: Optional(Type.String({ pattern: '^[0-9A-Za-z]{1,19}$' })),

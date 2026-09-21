@@ -1,4 +1,4 @@
-import type { LedgerIntegrityCheckJob } from '@pinstripe/core/queues';
+import type { LedgerIntegrityCheckJob } from '@vxrerp/core/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

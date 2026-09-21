@@ -1,6 +1,6 @@
-import type { WebhookDeliveryJob } from '@pinstripe/core/queues';
-import { WEBHOOK_SIGNATURE_HEADER } from '@pinstripe/core/utils';
 import { WebhookDeliveryFailedError } from '@type/errors';
+import type { WebhookDeliveryJob } from '@vxrerp/core/queues';
+import { WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/core/utils';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

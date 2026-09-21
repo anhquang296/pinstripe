@@ -1,5 +1,5 @@
-import type { WebhookDeliveryJob } from '@pinstripe/core/queues';
-import { WEBHOOK_QUEUE } from '@pinstripe/core/queues';
+import type { WebhookDeliveryJob } from '@vxrerp/core/queues';
+import { WEBHOOK_QUEUE } from '@vxrerp/core/queues';
 import { WebhookDeliveryProcessor } from '@workflows/processors/webhook-delivery.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

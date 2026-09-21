@@ -1,7 +1,7 @@
 import { authenticateApiKey } from '@hooks/authenticate-request';
-import { PermissionEnum } from '@pinstripe/core/contracts';
-import { ForbiddenError } from '@pinstripe/core/errors';
-import { ApiKeyService } from '@pinstripe/core/services';
+import { PermissionEnum } from '@vxrerp/core/contracts';
+import { ForbiddenError } from '@vxrerp/core/errors';
+import { ApiKeyService } from '@vxrerp/core/services';
 import type { FastifyRequest } from 'fastify';
 
 export async function verifyPortalKeyRequest(request: FastifyRequest): Promise<void> {

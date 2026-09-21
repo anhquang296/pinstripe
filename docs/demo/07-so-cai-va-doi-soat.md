@@ -1,6 +1,6 @@
 # KB-07 — Sổ cái kế toán và đối soát
 
-**Thời lượng** ~6 phút · **Màn hình** admin-ui · **Khán giả** kế toán, tài chính
+**Thời lượng** ~6 phút · **Màn hình** erp-ui · **Khán giả** kế toán, tài chính
 
 ## Kể gì
 

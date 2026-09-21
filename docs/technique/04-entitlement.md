@@ -148,10 +148,10 @@ một hàm duy nhất, và không service nào cần join từ subscription sang
 
 ## Hai đường đọc
 
-| Đường                                         | Trả về                       | Cache                   | Ai gọi                          |
-| --------------------------------------------- | ---------------------------- | ----------------------- | ------------------------------- |
-| `GET /v1/entitlements?customerId=&productId=` | danh sách, phân trang        | **không**, đọc thẳng DB | admin-ui và mọi client hiện nay |
-| `getEntitlementStatus(customerId, productId)` | đúng một `EntitlementStatus` | Redis, TTL 300s         | **chưa route nào gọi**          |
+| Đường                                         | Trả về                       | Cache                   | Ai gọi                        |
+| --------------------------------------------- | ---------------------------- | ----------------------- | ----------------------------- |
+| `GET /v1/entitlements?customerId=&productId=` | danh sách, phân trang        | **không**, đọc thẳng DB | erp-ui và mọi client hiện nay |
+| `getEntitlementStatus(customerId, productId)` | đúng một `EntitlementStatus` | Redis, TTL 300s         | **chưa route nào gọi**        |
 
 `getEntitlementStatus`
 ([`entitlement.service.ts:76-97`](../../packages/core/src/services/entitlement.service.ts)) là hàm
@@ -277,7 +277,7 @@ subscription vẫn `active`, entitlement vẫn `active`, và chỉ mất quyền
 Ba mốc của chuỗi bất đồng bộ trong một câu:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select event_type, status, occurred_at, published_at from outbox_events
  where aggregate_type = 'subscription' order by occurred_at desc limit 5"
 ```
@@ -285,7 +285,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Quyền và hợp đồng cạnh nhau — hai cột trạng thái, hai ý nghĩa:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select e.product_id, e.status as entitlement, s.status as subscription, e.granted_at, e.revoked_at
  from entitlements e join subscriptions s on s.id = e.subscription_id
  order by e.created_at desc limit 5"
@@ -325,6 +325,6 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 
 - [flow 04 — Subscription và entitlement](../flows/04-subscription-entitlement.md) — máy trạng thái, từng dòng code, cache
 - [flow 02 — Event pipeline](../flows/02-event-pipeline.md) — vì sao phải qua outbox thay vì ghi thẳng
-- [UC-02 — Đăng ký một khách vào plan](../usecases/02-subscribe-to-plan.md) — kịch bản đầy đủ trên admin-ui
+- [UC-02 — Đăng ký một khách vào plan](../usecases/02-subscribe-to-plan.md) — kịch bản đầy đủ trên erp-ui
 - [ADR 0005](../adr/0005-phase-3-subscription-entitlement.md) — quyết định gốc: đồng bộ qua event, không join
 - [PITFALLS §6, §8](../PITFALLS.md) — entitlement mồ côi và độ trễ một nhịp

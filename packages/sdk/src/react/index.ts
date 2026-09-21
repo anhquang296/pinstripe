@@ -69,8 +69,8 @@ export {
   useInvoicesQuery,
   useUpcomingInvoiceQuery,
 } from '@react/invoices/queries';
-export type { PinstripeQueries } from '@react/keys/create-pinstripe-queries';
-export { createPinstripeQueries } from '@react/keys/create-pinstripe-queries';
+export type { VxrErpQueries } from '@react/keys/create-vxr-erp-queries';
+export { createVxrErpQueries } from '@react/keys/create-vxr-erp-queries';
 export {
   useCreateLedgerTransactionMutation,
   useReverseLedgerTransactionMutation,
@@ -105,14 +105,6 @@ export {
   useRefundQuery,
   useRefundsQuery,
 } from '@react/payments/queries';
-export {
-  PinstripeProvider,
-  usePinstripeClient,
-  usePinstripeContext,
-  usePinstripeQueries,
-} from '@react/pinstripe.provider';
-export type { PinstripeQuerySubject } from '@react/pinstripe-query-subject';
-export { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
 export {
   useCreatePortalMembershipMutation,
   useDeletePortalMembershipMutation,
@@ -156,11 +148,19 @@ export {
   useCreateTestClockMutation,
 } from '@react/test-clocks/mutations';
 export { useTestClockQuery, useTestClocksQuery } from '@react/test-clocks/queries';
-export type { PinstripeMutationCallbacksResult } from '@react/usePinstripeMutationCallbacks';
-export { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
 export type { UpdateUserVariables } from '@react/users/mutations';
 export { useCreateUserMutation, useUpdateUserMutation } from '@react/users/mutations';
 export { useUserQuery, useUsersQuery } from '@react/users/queries';
+export type { VxrErpMutationCallbacksResult } from '@react/useVxrErpMutationCallbacks';
+export { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+export {
+  useVxrErpClient,
+  useVxrErpContext,
+  useVxrErpQueries,
+  VxrErpProvider,
+} from '@react/vxr-erp.provider';
+export type { VxrErpQuerySubject } from '@react/vxr-erp-query-subject';
+export { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 export {
   useCreateWebhookEndpointMutation,
   useUpdateWebhookEndpointMutation,

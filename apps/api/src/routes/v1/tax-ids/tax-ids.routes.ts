@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createTaxIdSchema,
   deletedTaxIdSchema,
@@ -6,8 +7,7 @@ import {
   ListResponseSchema,
   taxIdParamsSchema,
   taxIdSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 export const taxIdsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

@@ -1,5 +1,5 @@
-import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
+import { useVxrErpQueries } from '@react/vxr-erp.provider';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { FindTaxIdsQuery, FindTaxRatesQuery } from '@type/contracts.types';
 
@@ -7,7 +7,7 @@ export function useTaxRatesQuery(
   query?: FindTaxRatesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.tax.taxRates(query),
@@ -17,7 +17,7 @@ export function useTaxRatesQuery(
 }
 
 export function useTaxRateQuery(taxRateId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.tax.taxRate(taxRateId), enabled: enabled && Boolean(taxRateId) });
 }
@@ -26,7 +26,7 @@ export function useTaxIdsQuery(
   query?: FindTaxIdsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.tax.taxIds(query),
@@ -36,7 +36,7 @@ export function useTaxIdsQuery(
 }
 
 export function useTaxIdQuery(taxIdId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.tax.taxId(taxIdId), enabled: enabled && Boolean(taxIdId) });
 }

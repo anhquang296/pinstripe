@@ -1,6 +1,6 @@
-import { UserRoleEnum } from '@pinstripe/core/contracts';
-import { adminSessions } from '@pinstripe/core/database';
-import { generateGid, ObjectPrefixEnum } from '@pinstripe/core/utils';
+import { UserRoleEnum } from '@vxrerp/core/contracts';
+import { adminSessions } from '@vxrerp/core/database';
+import { generateGid, ObjectPrefixEnum } from '@vxrerp/core/utils';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -21,7 +21,7 @@ interface InjectedCookie {
 }
 
 const AUTH_PATH = '/v1/auth';
-const SESSION_COOKIE_PREFIX = 'pinstripe';
+const SESSION_COOKIE_PREFIX = 'vxrerp';
 const PASSWORD = 'correct horse battery staple';
 const MS_PER_HOUR = 3_600_000;
 const MS_PER_MINUTE = 60_000;

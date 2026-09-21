@@ -1,4 +1,4 @@
-import { DisputeReasonEnum, PaymentMethodTypeEnum } from '@pinstripe/core/contracts';
+import { DisputeReasonEnum, PaymentMethodTypeEnum } from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -153,7 +153,7 @@ describe('POST /v1/payouts', () => {
       method: 'POST',
       url: '/v1/payouts',
       headers: buildHeaders(),
-      payload: { currency: 'vnd', statementDescriptor: 'PINSTRIPE' },
+      payload: { currency: 'vnd', statementDescriptor: 'VXRERP' },
     });
 
     const payout = created.json();

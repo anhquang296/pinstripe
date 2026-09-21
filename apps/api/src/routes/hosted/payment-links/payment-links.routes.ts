@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { paymentLinkParamsSchema } from '@pinstripe/core/contracts';
 import { Type } from '@sinclair/typebox';
+import { paymentLinkParamsSchema } from '@vxrerp/core/contracts';
 
 const hostedPaymentLinkQuerySchema = Type.Object({
   token: Type.String({ minLength: 1 }),

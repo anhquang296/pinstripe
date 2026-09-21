@@ -4,7 +4,7 @@ Ba resource nền: mọi thứ sau này (subscription, invoice, payment) đều 
 
 ## Khi nào chạy
 
-Khi client gọi `POST/GET /v1/customers`, `/v1/products`, `/v1/prices` — hoặc khi admin-ui thao tác trên các trang tương ứng.
+Khi client gọi `POST/GET /v1/customers`, `/v1/products`, `/v1/prices` — hoặc khi erp-ui thao tác trên các trang tương ứng.
 
 ## Khuôn chung của một lệnh ghi
 

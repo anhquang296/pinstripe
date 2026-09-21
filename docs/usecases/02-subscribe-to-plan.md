@@ -5,7 +5,7 @@
 Người vận hành gắn một khách hàng vào một bảng giá định kỳ, để từ đó khách có **quyền dùng**
 (entitlement) và hệ thống bắt đầu đếm chu kỳ tính tiền.
 
-Đây là use case cho thấy rõ nhất đặc trưng kiến trúc của Pinstripe: **quyền dùng không được ghi
+Đây là use case cho thấy rõ nhất đặc trưng kiến trúc của VXR ERP: **quyền dùng không được ghi
 trong request**. Response 201 trả về khi subscription đã tồn tại, nhưng entitlement chỉ xuất hiện
 vài giây sau, do worker.
 
@@ -56,13 +56,13 @@ sequenceDiagram
 
 | #   | Ở đâu                                                                                                                            | Chuyện gì xảy ra                                                                                                    | Quan sát được gì                                              |
 | --- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| 1   | UI [SubscriptionsPage.tsx:29-30](../../apps/admin-ui/src/pages/SubscriptionsPage.tsx)                                            | trang nạp sẵn 100 khách và 100 price để làm dropdown                                                                | hai `<select>` có dữ liệu                                     |
-| 2   | UI [SubscriptionsPage.tsx:55-67](../../apps/admin-ui/src/pages/SubscriptionsPage.tsx)                                            | `priceOptions` lọc `filter(prices?.data, { type: 'recurring' })`                                                    | price một lần (`one_time`) **không xuất hiện** trong dropdown |
-| 3   | UI [SubscriptionForm/index.tsx:34-53](../../apps/admin-ui/src/components/SubscriptionForm/index.tsx)                             | ba field: khách hàng, bảng giá, trial (ngày)                                                                        | nhãn currency in kèm tên khách và tên price để tự đối chiếu   |
-| 4   | UI [subscription-form.ts:7-15](../../apps/admin-ui/src/forms/subscription-form.ts)                                               | zod: phải chọn khách, phải chọn price, trial 0–730 ngày                                                             | lỗi hiện dưới field, không có request                         |
-| 5   | UI [subscription-form.ts:27-35](../../apps/admin-ui/src/forms/subscription-form.ts)                                              | `priceId` được bọc thành `items: [{ priceId }]`; `trialPeriodDays` bị **bỏ hẳn** khi bằng 0                         | payload gọn, không gửi `trialPeriodDays: 0`                   |
-| 6   | Hook [mutations.ts:15-17](../../apps/admin-ui/src/reactquery/subscriptions/mutations.ts)                                         | `mutationFn` → `createSubscription(payload)`                                                                        | nút `disabled`                                                |
-| 7   | API [request.ts:31-39](../../apps/admin-ui/src/api/subscriptions/request.ts)                                                     | `POST /v1/subscriptions`                                                                                            | —                                                             |
+| 1   | UI [SubscriptionsPage.tsx:29-30](../../apps/erp-ui/src/pages/SubscriptionsPage.tsx)                                              | trang nạp sẵn 100 khách và 100 price để làm dropdown                                                                | hai `<select>` có dữ liệu                                     |
+| 2   | UI [SubscriptionsPage.tsx:55-67](../../apps/erp-ui/src/pages/SubscriptionsPage.tsx)                                              | `priceOptions` lọc `filter(prices?.data, { type: 'recurring' })`                                                    | price một lần (`one_time`) **không xuất hiện** trong dropdown |
+| 3   | UI [SubscriptionForm/index.tsx:34-53](../../apps/erp-ui/src/components/SubscriptionForm/index.tsx)                               | ba field: khách hàng, bảng giá, trial (ngày)                                                                        | nhãn currency in kèm tên khách và tên price để tự đối chiếu   |
+| 4   | UI [subscription-form.ts:7-15](../../apps/erp-ui/src/forms/subscription-form.ts)                                                 | zod: phải chọn khách, phải chọn price, trial 0–730 ngày                                                             | lỗi hiện dưới field, không có request                         |
+| 5   | UI [subscription-form.ts:27-35](../../apps/erp-ui/src/forms/subscription-form.ts)                                                | `priceId` được bọc thành `items: [{ priceId }]`; `trialPeriodDays` bị **bỏ hẳn** khi bằng 0                         | payload gọn, không gửi `trialPeriodDays: 0`                   |
+| 6   | Hook [mutations.ts:15-17](../../apps/erp-ui/src/reactquery/subscriptions/mutations.ts)                                           | `mutationFn` → `createSubscription(payload)`                                                                        | nút `disabled`                                                |
+| 7   | API [request.ts:31-39](../../apps/erp-ui/src/api/subscriptions/request.ts)                                                       | `POST /v1/subscriptions`                                                                                            | —                                                             |
 | 8   | Service [subscription.service.ts:43](../../packages/core/src/services/subscription.service.ts)                                   | `customerService.getCustomer` — lấy `currency` và `testClockId` của khách                                           | 404 nếu khách không tồn tại                                   |
 | 9   | Service [subscription.service.ts:44](../../packages/core/src/services/subscription.service.ts)                                   | `resolvePrices` — thiếu price nào là 404                                                                            | —                                                             |
 | 10  | Service [subscription.service.ts:45](../../packages/core/src/services/subscription.service.ts)                                   | `resolveNow(customer.testClockId)` — giờ thật, hoặc giờ đóng băng nếu khách gắn test clock                          | quyết định mọi mốc thời gian phía dưới                        |
@@ -70,7 +70,7 @@ sequenceDiagram
 | 12  | Service [subscription.service.ts:50-53](../../packages/core/src/services/subscription.service.ts)                                | tính `trialEnd`, rồi `anchor = billingCycleAnchor ?? trialEnd ?? now`                                               | —                                                             |
 | 13  | Service [subscription.service.ts:71-76](../../packages/core/src/services/subscription.service.ts)                                | status `trialing` nếu có trial, ngược lại `active`; `currentPeriodEnd` = `trialEnd` hoặc `advancePeriod(anchor, …)` | cột "Kỳ hiện tại" và "Hết trial" trên bảng                    |
 | 14  | Service [subscription.service.ts:66-103](../../packages/core/src/services/subscription.service.ts)                               | một transaction: `subscriptions` + `subscription_items` + `subscription.created`                                    | ba nhóm hàng cùng commit                                      |
-| 15  | Hook [mutations.ts:19-20](../../apps/admin-ui/src/reactquery/subscriptions/mutations.ts)                                         | invalidate **cả** `subscriptions` và `entitlements`                                                                 | bảng trên có hàng mới; bảng dưới refetch nhưng chưa có gì     |
+| 15  | Hook [mutations.ts:19-20](../../apps/erp-ui/src/reactquery/subscriptions/mutations.ts)                                           | invalidate **cả** `subscriptions` và `entitlements`                                                                 | bảng trên có hàng mới; bảng dưới refetch nhưng chưa có gì     |
 | 16  | Worker                                                                                                                           | chuỗi outbox → domain event — [flow 02](../flows/02-event-pipeline.md)                                              | `outbox_events.status` thành `published`                      |
 | 17  | Worker [domain-event-dispatch.processor.ts:21-30](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts) | `aggregateType = subscription` → `entitlementService.handleSubscriptionChanged`                                     | —                                                             |
 | 18  | Service [entitlement.service.ts:52-73](../../packages/core/src/services/entitlement.service.ts)                                  | upsert một hàng `entitlements` cho mỗi `productId` của các price trên subscription                                  | hàng hiện ra sau khi tải lại trang                            |
@@ -86,7 +86,7 @@ Mục quan trọng nhất của use case này.
 | hàng `outbox_events` `subscription.created` trạng thái `pending`   | cache Redis entitlement bị xoá                                                                   |
 | response đủ để render bảng Subscriptions                           | webhook `subscription.created` nếu có endpoint đăng ký — [UC-09](./09-receive-webhooks.md)       |
 
-Hệ quả thấy được trên màn hình: [mutations.ts:20](../../apps/admin-ui/src/reactquery/subscriptions/mutations.ts)
+Hệ quả thấy được trên màn hình: [mutations.ts:20](../../apps/erp-ui/src/reactquery/subscriptions/mutations.ts)
 invalidate `entitlements` **ngay** trong `onSuccess`, nên bảng Entitlements refetch tại thời điểm
 hàng đó còn chưa được ghi. Nó vẫn trống. Phải chờ vài giây rồi tải lại trang.
 
@@ -161,7 +161,7 @@ curl -s -X POST $API/api/v1/management/outbox/relay \
 ### Kiểm chứng bằng SQL
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select s.id, s.status, s.current_period_end, count(i.id) as items
  from subscriptions s left join subscription_items i on i.subscription_id = s.id
  group by s.id, s.status, s.current_period_end order by s.created_at desc limit 3"
@@ -170,13 +170,13 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Theo dõi đúng ba mốc của chuỗi bất đồng bộ trong một câu:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select event_type, status, occurred_at, published_at from outbox_events
  where aggregate_type = 'subscription' order by occurred_at desc limit 5"
 ```
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select customer_id, product_id, status, granted_at from entitlements order by created_at desc limit 5"
 ```
 

@@ -1,4 +1,4 @@
-import type { AppError, AppErrorOptions } from '@pinstripe/core/errors';
+import type { AppError, AppErrorOptions } from '@vxrerp/core/errors';
 import {
   BadRequestError,
   ForbiddenError,
@@ -6,7 +6,7 @@ import {
   NotFoundError,
   TooManyRequestsError,
   UnauthorizedError,
-} from '@pinstripe/core/errors';
+} from '@vxrerp/core/errors';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 

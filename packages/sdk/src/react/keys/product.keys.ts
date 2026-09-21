@@ -1,10 +1,10 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type { FindProductsQuery } from '@type/contracts.types';
 
-export function createProductQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.PRODUCT, {
+export function createProductQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.PRODUCT, {
     products: (query?: FindProductsQuery) => {
       return {
         queryKey: [query],

@@ -1,1 +1,1 @@
-export const PINSTRIPE_API_VERSION = '2026-01-01';
+export const VXRERP_API_VERSION = '2026-01-01';

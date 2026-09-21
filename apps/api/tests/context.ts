@@ -1,6 +1,6 @@
 import { buildApp } from '@app';
-import type { ApiKeyType, Permission } from '@pinstripe/core/contracts';
-import { ApiKeyTypeEnum, PermissionEnum } from '@pinstripe/core/contracts';
+import type { ApiKeyType, Permission } from '@vxrerp/core/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 
 export interface MintedApiKey {

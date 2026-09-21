@@ -51,22 +51,22 @@ sequenceDiagram
 
 ## Kịch bản chính — cú click
 
-| #   | Ở đâu                                                                                             | Chuyện gì xảy ra                                                                                                                                                | Quan sát được gì                            |
-| --- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| 1   | UI [InvoicesPage.tsx:80-85](../../apps/admin-ui/src/pages/InvoicesPage.tsx)                       | `handleOnDecline` — **cùng** mutation với "Thu tiền", chỉ khác `paymentMethod: 'pm_card_declined'`                                                              | hai nút, một đường code                     |
-| 2   | Client [mock-psp.client.ts:15-19](../../packages/core/src/clients/mock-psp.client.ts)             | PSP giả lập tra `paymentMethod` trong bảng lỗi → `card_declined`                                                                                                | —                                           |
-| 3   | Service [payment.service.ts:103-108](../../packages/core/src/services/payment.service.ts)         | `charge.isApproved` false → `recordDeclinedAttempt`                                                                                                             | —                                           |
-| 4   | Service [recordDeclinedAttempt:222-268](../../packages/core/src/services/payment.service.ts)      | transaction: intent về `requires_payment_method` + `failureCode`/`failureMessage`, INSERT `payment_attempts` outcome `declined`, outbox `payment_intent.failed` | —                                           |
-| 5   | HTTP                                                                                              | trả **200** với `status: requires_payment_method`                                                                                                               | không có mã lỗi HTTP nào                    |
-| 6   | Hook [mutations.ts:29-41](../../apps/admin-ui/src/reactquery/payments/mutations.ts)               | `onSuccess` kiểm `paymentIntent.failureMessage` → toast **đỏ**, `return` sớm để không toast thành công                                                          | toast "The card was declined by the issuer" |
-| 7   | UI [InvoiceItem.tsx:90-104](../../apps/admin-ui/src/components/InvoiceItem.tsx)                   | hoá đơn vẫn `open` → ba nút vẫn đó                                                                                                                              | bấm lại được ngay                           |
-| 8   | UI [PaymentIntentItem.tsx:40-42, 48-56](../../apps/admin-ui/src/components/PaymentIntentItem.tsx) | trang `/payments`: `failureCode` in đỏ dưới status; cột "Các lần thử" hiện chip cho từng attempt                                                                | mỗi lần bấm thêm một chip `declined`        |
+| #   | Ở đâu                                                                                           | Chuyện gì xảy ra                                                                                                                                                | Quan sát được gì                            |
+| --- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 1   | UI [InvoicesPage.tsx:80-85](../../apps/erp-ui/src/pages/InvoicesPage.tsx)                       | `handleOnDecline` — **cùng** mutation với "Thu tiền", chỉ khác `paymentMethod: 'pm_card_declined'`                                                              | hai nút, một đường code                     |
+| 2   | Client [mock-psp.client.ts:15-19](../../packages/core/src/clients/mock-psp.client.ts)           | PSP giả lập tra `paymentMethod` trong bảng lỗi → `card_declined`                                                                                                | —                                           |
+| 3   | Service [payment.service.ts:103-108](../../packages/core/src/services/payment.service.ts)       | `charge.isApproved` false → `recordDeclinedAttempt`                                                                                                             | —                                           |
+| 4   | Service [recordDeclinedAttempt:222-268](../../packages/core/src/services/payment.service.ts)    | transaction: intent về `requires_payment_method` + `failureCode`/`failureMessage`, INSERT `payment_attempts` outcome `declined`, outbox `payment_intent.failed` | —                                           |
+| 5   | HTTP                                                                                            | trả **200** với `status: requires_payment_method`                                                                                                               | không có mã lỗi HTTP nào                    |
+| 6   | Hook [mutations.ts:29-41](../../apps/erp-ui/src/reactquery/payments/mutations.ts)               | `onSuccess` kiểm `paymentIntent.failureMessage` → toast **đỏ**, `return` sớm để không toast thành công                                                          | toast "The card was declined by the issuer" |
+| 7   | UI [InvoiceItem.tsx:90-104](../../apps/erp-ui/src/components/InvoiceItem.tsx)                   | hoá đơn vẫn `open` → ba nút vẫn đó                                                                                                                              | bấm lại được ngay                           |
+| 8   | UI [PaymentIntentItem.tsx:40-42, 48-56](../../apps/erp-ui/src/components/PaymentIntentItem.tsx) | trang `/payments`: `failureCode` in đỏ dưới status; cột "Các lần thử" hiện chip cho từng attempt                                                                | mỗi lần bấm thêm một chip `declined`        |
 
 ### Thất bại nghiệp vụ ≠ lỗi kỹ thuật
 
 Đây là điểm quan trọng nhất của use case: **thẻ bị từ chối là một kết quả, không phải một lỗi.**
 Server trả 200, `onError` không chạy, mutation coi là thành công. Chỉ có
-[mutations.ts:32](../../apps/admin-ui/src/reactquery/payments/mutations.ts) đọc `failureMessage` và
+[mutations.ts:32](../../apps/erp-ui/src/reactquery/payments/mutations.ts) đọc `failureMessage` và
 tự quyết định hiện toast đỏ.
 
 Lý do: từ chối là thông tin nghiệp vụ cần lưu lại (`payment_attempts`), không phải sự cố cần retry.
@@ -213,14 +213,14 @@ Ba mã thẻ giả lập — [mock-psp.client.ts:15-19](../../packages/core/src/
 Mặc định phải chờ 7 ngày. Đẩy `next_attempt_at` về quá khứ:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "update invoices set next_attempt_at = now() - interval '1 day' where status = 'open'"
 ```
 
 Cho khách luôn bị từ chối, để thấy nhánh retry thay vì `collected`:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "update customers set metadata = '{\"defaultPaymentMethod\":\"pm_card_declined\"}'::jsonb where id = 'cus_...'"
 ```
 
@@ -235,14 +235,14 @@ Lặp lại lệnh đẩy `next_attempt_at` bốn lần là đi hết lịch ret
 Đồng hồ dunning và số lần đã thử:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select number, status, attempt_count, due_at, next_attempt_at from invoices order by created_at desc limit 5"
 ```
 
 Lịch sử mọi lần quẹt thẻ:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select a.outcome, a.failure_code, a.payment_method, i.status as intent_status
  from payment_attempts a join payment_intents i on i.id = a.payment_intent_id
  order by a.created_at desc limit 10"
@@ -251,7 +251,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Xác nhận **không** có bút toán nào sinh ra từ các lần thất bại:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select count(*) from ledger_transactions where external_id like 'payment_intent:%'"
 ```
 

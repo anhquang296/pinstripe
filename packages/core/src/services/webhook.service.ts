@@ -6,8 +6,8 @@ import type {
   CreateWebhookEndpointPayload,
   FindWebhookDeliveriesQuery,
   FindWebhookEndpointsQuery,
-  PinstripeEvent,
   UpdateWebhookEndpointPayload,
+  VxrErpEvent,
   WebhookDeliveryResponse,
   WebhookDeliveryStatus,
   WebhookEndpointResponse,
@@ -152,7 +152,7 @@ export class WebhookService {
 
     const createdAt = this.fastify.clock.now().toISOString();
 
-    const payload: PinstripeEvent = {
+    const payload: VxrErpEvent = {
       id: event.eventId,
       type: event.eventType,
       createdAt: event.occurredAt,

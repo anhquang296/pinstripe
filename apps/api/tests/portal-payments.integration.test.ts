@@ -1,9 +1,9 @@
-import type { InvoiceResponse } from '@pinstripe/core/contracts';
+import type { InvoiceResponse } from '@vxrerp/core/contracts';
 import {
   CollectionMethodEnum,
   CurrencyEnum,
   PortalPaymentChannelEnum,
-} from '@pinstripe/core/contracts';
+} from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';

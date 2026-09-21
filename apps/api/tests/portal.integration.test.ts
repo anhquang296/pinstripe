@@ -5,7 +5,7 @@ import {
   PermissionEnum,
   PORTAL_CLIENT_IP_HEADER,
   PortalRequestKindEnum,
-} from '@pinstripe/core/contracts';
+} from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

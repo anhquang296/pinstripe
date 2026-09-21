@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createPortalMembershipSchema,
   deletedPortalMembershipSchema,
@@ -7,8 +8,7 @@ import {
   portalMembershipParamsSchema,
   portalMembershipSchema,
   updatePortalMembershipSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 export const portalMembershipsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

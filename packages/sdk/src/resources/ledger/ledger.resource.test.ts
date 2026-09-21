@@ -1,5 +1,5 @@
-import { PinstripeClient } from '@client/pinstripe.client';
-import type { FetchImpl } from '@client/pinstripe.types';
+import { VxrErpClient } from '@client/vxr-erp.client';
+import type { FetchImpl } from '@client/vxr-erp.types';
 import { expect, it, vi } from 'vitest';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -12,7 +12,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 function setup(body: unknown, status = 200) {
   const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(body, status));
 
-  const client = new PinstripeClient({
+  const client = new VxrErpClient({
     baseUrl: '',
     fetch: fetchImpl as FetchImpl,
     maxRetries: 0,

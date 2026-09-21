@@ -1,4 +1,4 @@
-import { PAYMENT_QUEUE, PSP_CALLBACK_POLL_JOB, QueueNameEnum } from '@pinstripe/core/queues';
+import { PAYMENT_QUEUE, PSP_CALLBACK_POLL_JOB, QueueNameEnum } from '@vxrerp/core/queues';
 import { PspCallbackPollProcessor } from '@workflows/processors/psp-callback-poll.processor';
 import type { Workflow } from '@workflows/workflow';
 import { Worker } from 'bullmq';

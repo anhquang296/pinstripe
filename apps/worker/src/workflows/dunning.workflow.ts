@@ -1,11 +1,11 @@
-import type { DunningRunShardJob } from '@pinstripe/core/queues';
+import type { DunningRunShardJob } from '@vxrerp/core/queues';
 import {
   buildDunningRunShardJob,
   DUNNING_QUEUE,
   DUNNING_RUN_DISPATCH_JOB,
   DUNNING_RUN_SHARD_JOB,
   QueueNameEnum,
-} from '@pinstripe/core/queues';
+} from '@vxrerp/core/queues';
 import { DunningRunShardProcessor } from '@workflows/processors/dunning-run-shard.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

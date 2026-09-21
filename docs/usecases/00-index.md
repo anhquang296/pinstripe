@@ -1,7 +1,7 @@
-# Use case của Pinstripe
+# Use case của VXR ERP
 
 Mỗi file ở đây kể **một kịch bản, theo thứ tự thời gian, xuyên hết các tầng**: từ cú click trên
-admin-ui → hook React Query → HTTP → service → transaction → worker nào bị kích hoạt → webhook đi ra.
+erp-ui → hook React Query → HTTP → service → transaction → worker nào bị kích hoạt → webhook đi ra.
 Kèm phần tự diễn lại bằng UI hoặc curl, và câu SQL để tự thấy dữ liệu.
 
 Nếu bạn mới vào project, **đọc ở đây trước** rồi mới sang `flows/`.
@@ -12,7 +12,7 @@ Nếu bạn mới vào project, **đọc ở đây trước** rồi mới sang `
 > key `ADMIN_API_KEY` / `SYSTEM_API_KEY` / `MANAGEMENT_API_KEY`. Mọi lệnh `curl` dưới đây còn dùng
 > prefix `/api/v1/admin`, `/api/v1/management` và các key đó **sẽ trả 404 hoặc 401**. Phần mô tả cơ
 > chế vẫn đúng; chỉ đường dẫn và khoá là sai. Admin đầu tiên nay tạo bằng
-> `pnpm --filter @pinstripe/api bootstrap-admin`, không phải route management.
+> `pnpm --filter @vxrerp/api bootstrap-admin`, không phải route management.
 >
 > Chỗ nói cổng nhà xe "chưa có đăng nhập" cũng đã sai kể từ
 > [ADR 0026](../adr/0026-customer-portal-auth-and-bff.md) — cổng đăng nhập bằng link một lần gửi
@@ -36,11 +36,11 @@ bại, và cách tự chạy.
 
 ## Một điều phải biết trước
 
-**admin-ui là back-office nội bộ. Không có UI cho khách tự đăng ký.**
+**erp-ui là back-office nội bộ. Không có UI cho khách tự đăng ký.**
 
 Nên "khách đăng ký một plan" trong project này thực chất là _người vận hành tạo subscription cho
 khách_, hoặc _một hệ thống bên ngoài gọi `POST /v1/subscriptions`_. Portal khách hàng
-(`apps/portal-ui`) **chỉ đọc**: xem gói và hoá đơn, không thao tác gì, và hiện **chưa có đăng nhập**.
+(`apps/operator-portal`) **chỉ đọc**: xem gói và hoá đơn, không thao tác gì, và hiện **chưa có đăng nhập**.
 
 Vài thao tác cũng chưa có trên UI, buộc phải dùng curl — mỗi use case nói rõ chỗ nào:
 
@@ -121,12 +121,12 @@ pnpm db:migrate
 pnpm dev
 ```
 
-| Thứ       | Ở đâu                                                                   |
-| --------- | ----------------------------------------------------------------------- |
-| admin-ui  | http://localhost:5173                                                   |
-| portal-ui | http://localhost:3100                                                   |
-| API       | http://localhost:3000                                                   |
-| 6 worker  | port 3001–3006: outbox, domain-event, ledger, billing, webhook, dunning |
+| Thứ             | Ở đâu                                                                   |
+| --------------- | ----------------------------------------------------------------------- |
+| erp-ui          | http://localhost:5173                                                   |
+| operator-portal | http://localhost:3100                                                   |
+| API             | http://localhost:3000                                                   |
+| 6 worker        | port 3001–3006: outbox, domain-event, ledger, billing, webhook, dunning |
 
 Mọi mục "tự chạy thử" dùng chung hai đoạn mở đầu này:
 
@@ -138,7 +138,7 @@ JSON='content-type: application/json'
 ```
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c "<câu SQL>"
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c "<câu SQL>"
 ```
 
 Route `/api/v1/admin/*` ([UC-10](./10-close-the-period.md)) dùng `ADMIN_API_KEY`, không phải

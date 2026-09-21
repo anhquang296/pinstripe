@@ -25,7 +25,7 @@ Ba cách quen thuộc đều không giải được:
 | Cách                          | Hỏng ở đâu                                                                                             |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Sửa giờ máy hoặc giờ database | đổi giờ của **tất cả** — mọi khách trong cùng DB, mọi worker đang chạy, cả log và index theo thời gian |
-| `vi.useFakeTimers()`          | chỉ sống bên trong một process test; không bấm tay được trên admin-ui, không demo được, không QA được  |
+| `vi.useFakeTimers()`          | chỉ sống bên trong một process test; không bấm tay được trên erp-ui, không demo được, không QA được    |
 | `sleep` trong test            | chậm, và không có cách nào tới được mốc "40 ngày sau"                                                  |
 
 Thứ cần là một trục thời gian **riêng cho một nhóm dữ liệu**, tua được, còn phần còn lại của hệ
@@ -64,14 +64,14 @@ nằm ngoài tầm với của test clock. Xem [PITFALLS §1](../PITFALLS.md).
 | [`idempotency-key.repository.ts:53,60`](../../packages/core/src/repositories/idempotency-key.repository.ts) | `updated_at` của hàng khoá, không ai đọc để quyết định |
 | [`entitlement.repository.ts:63`](../../packages/core/src/repositories/entitlement.repository.ts)            | fallback `updatedAt` khi caller không truyền           |
 | [`ledger.service.ts:464`](../../packages/core/src/services/ledger.service.ts)                               | fallback khi dựng response                             |
-| [`test-clock-form.ts:20`](../../apps/admin-ui/src/forms/test-clock-form.ts)                                 | form admin-ui mặc định mốc "bây giờ"                   |
+| [`test-clock-form.ts:20`](../../apps/erp-ui/src/forms/test-clock-form.ts)                                   | form erp-ui mặc định mốc "bây giờ"                     |
 
 ## Hai tầng thời gian — đừng lẫn
 
 | Tầng                                             | Đổi giờ của gì        | Trạng thái trong repo                                               |
 | ------------------------------------------------ | --------------------- | ------------------------------------------------------------------- |
 | `Clock` tiêm vào (`SystemClock` / `FrozenClock`) | **cả process**        | `FrozenClock` **chưa được wire vào app**, chỉ unit test của nó dùng |
-| Hàng `test_clocks` + `resolveNow`                | **một nhóm thực thể** | đây là cơ chế đang chạy thật, cả API lẫn admin-ui                   |
+| Hàng `test_clocks` + `resolveNow`                | **một nhóm thực thể** | đây là cơ chế đang chạy thật, cả API lẫn erp-ui                     |
 
 `FrozenClock` ([`clock.ts:11-32`](../../packages/core/src/utils/clock.ts)) có `advanceTo` /
 `advanceBy` và từ chối đi lùi, nhưng người dùng duy nhất của nó là
@@ -208,7 +208,7 @@ CLOCK=$(curl -s -X POST $API/v1/test_helpers/test_clocks -H "$AUTH" -H "$JSON" \
   -d '{"name":"Trial 7 ngay","frozenTime":"2026-01-01T00:00:00.000Z"}' | jq -r '.id')
 ```
 
-**Bước 2 — Khách gắn đồng hồ.** Bắt buộc dùng curl: form tạo khách trên admin-ui không có trường
+**Bước 2 — Khách gắn đồng hồ.** Bắt buộc dùng curl: form tạo khách trên erp-ui không có trường
 `testClockId`, và không có API gắn sau.
 
 ```bash
@@ -288,7 +288,7 @@ Mong đợi: kỳ `2026-03-08 → 2026-04-08` — `rollPeriod` chạy hai lần,
 Chuỗi event sinh ra, đọc từ dưới lên là đúng thứ tự thời gian:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select event_type, occurred_at from outbox_events
  where aggregate_type in ('subscription','test_clock') order by occurred_at desc limit 10"
 ```
@@ -297,7 +297,7 @@ Hai trục thời gian tồn tại song song — `period_in_future = t` là lý 
 subscription này:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select current_period_end, now() as real_now, current_period_end > now() as period_in_future
  from subscriptions where test_clock_id is not null"
 ```
@@ -323,7 +323,7 @@ Tiến trình chết giữa chừng thì `frozenTime` đã nhảy nhưng `status
 sau đó bị 409. Gỡ bằng tay:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "update test_clocks set status = 'ready' where status = 'advancing'"
 ```
 

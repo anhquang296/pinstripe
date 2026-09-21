@@ -1,8 +1,8 @@
 # KB-04 ⭐ — Thu tiền bằng cách cấn trừ doanh thu vé
 
-**Thời lượng** ~6 phút · **Màn hình** admin-ui · **Nhà xe** Phương Trang FUTA
+**Thời lượng** ~6 phút · **Màn hình** erp-ui · **Nhà xe** Phương Trang FUTA
 
-Đây là kịch bản quan trọng nhất. Nó là điểm khác biệt của Pinstripe so với một hệ thống billing
+Đây là kịch bản quan trọng nhất. Nó là điểm khác biệt của VXR ERP so với một hệ thống billing
 thông thường: kênh thu tiền chính **không phải thẻ**.
 
 ## Kể gì
@@ -70,7 +70,7 @@ trả lại kết quả cũ chứ không trừ lần hai.
 
 **"Nhà xe không đủ doanh thu vé thì sao?"** Đó chính là [KB-05](./05-tru-vi-va-con-no.md).
 
-**"Tại sao không trừ thẳng vào ví trong Pinstripe?"** Vì số dư thật nằm ở Vexere. Giữ một bản sao ở
+**"Tại sao không trừ thẳng vào ví trong VXR ERP?"** Vì số dư thật nằm ở Vexere. Giữ một bản sao ở
 đây là tạo ra một con số chắc chắn sẽ lệch.
 
 Tiếp theo: [KB-05 — Trừ ví và còn nợ](./05-tru-vi-va-con-no.md)

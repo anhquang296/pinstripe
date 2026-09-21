@@ -1,10 +1,10 @@
-import type { CheckoutSessionResponse } from '@pinstripe/core/contracts';
+import type { CheckoutSessionResponse } from '@vxrerp/core/contracts';
 import {
   CheckoutSessionModeEnum,
   CurrencyEnum,
   RecurringIntervalEnum,
-} from '@pinstripe/core/contracts';
-import { HostedResourceEnum } from '@pinstripe/core/utils';
+} from '@vxrerp/core/contracts';
+import { HostedResourceEnum } from '@vxrerp/core/utils';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -30,7 +30,7 @@ afterAll(async () => {
 
 async function makeCheckoutSession(): Promise<CheckoutSessionResponse> {
   const customer = await fastify.customerService.createCustomer({
-    email: `hosted-${Date.now()}@pinstripe.test`,
+    email: `hosted-${Date.now()}@vxrerp.test`,
     currency: CurrencyEnum.VND,
   });
 

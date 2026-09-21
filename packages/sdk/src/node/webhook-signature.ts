@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const SIGNATURE_SCHEME = 'v1';
 
-export const WEBHOOK_SIGNATURE_HEADER = 'pinstripe-signature';
+export const WEBHOOK_SIGNATURE_HEADER = 'vxrerp-signature';
 export const DEFAULT_WEBHOOK_TOLERANCE_SECONDS = 300;
 
 export interface WebhookVerificationOptions {

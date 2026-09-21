@@ -1,10 +1,10 @@
-import type { LedgerIntegrityCheckJob } from '@pinstripe/core/queues';
+import type { LedgerIntegrityCheckJob } from '@vxrerp/core/queues';
 import {
   buildLedgerIntegrityCheckJob,
   LEDGER_INTEGRITY_CHECK_JOB,
   LEDGER_QUEUE,
   QueueNameEnum,
-} from '@pinstripe/core/queues';
+} from '@vxrerp/core/queues';
 import { LedgerIntegrityCheckProcessor } from '@workflows/processors/ledger-integrity-check.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

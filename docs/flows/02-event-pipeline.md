@@ -32,7 +32,7 @@ sequenceDiagram
     EW->>WQ: add(WebhookDelivery, jobId = webhook-delivery-<id>)
     Note over EW: nếu aggregateType = subscription<br/>→ entitlementService.handleSubscriptionChanged()
     WW->>PG: đọc delivery + secret của endpoint
-    WW->>EP: POST body + header pinstripe-signature
+    WW->>EP: POST body + header vxrerp-signature
     EP-->>WW: 2xx / lỗi
     WW->>PG: UPDATE webhook_deliveries (succeeded | failed)
 ```
@@ -77,14 +77,14 @@ Bước 13 là consumer nội bộ duy nhất hiện có. Mọi `aggregateType` 
 
 ## Chặng 4 — giao webhook
 
-| #   | Nơi xảy ra                                                                                                      | Làm gì                                                                   |
-| --- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| 14  | [webhook-delivery.processor.ts:17](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts)    | `resolveDeliveryAttempt(deliveryId)` — lấy url + body + chữ ký           |
-| 15  | [webhook.service.ts:203](../../packages/core/src/services/webhook.service.ts)                                   | ký bằng secret của endpoint tại thời điểm gửi                            |
-| 16  | [webhook-signature.ts:10-15](../../packages/core/src/utils/webhook-signature.ts)                                | HMAC-SHA256 trên `<timestamp>.<body>`, header dạng `t=<unix>,v1=<hex>`   |
-| 17  | [webhook-delivery.processor.ts:45-53](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts) | `fetch` POST, header `pinstripe-signature`, timeout `WEBHOOK_TIMEOUT_MS` |
-| 18  | [webhook.service.ts:207-220](../../packages/core/src/services/webhook.service.ts)                               | ghi kết quả: `succeeded` + `deliveredAt`, hoặc `failed` + `lastError`    |
-| 19  | [webhook-delivery.processor.ts:36](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts)    | thất bại thì `throw` để BullMQ retry                                     |
+| #   | Nơi xảy ra                                                                                                      | Làm gì                                                                 |
+| --- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 14  | [webhook-delivery.processor.ts:17](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts)    | `resolveDeliveryAttempt(deliveryId)` — lấy url + body + chữ ký         |
+| 15  | [webhook.service.ts:203](../../packages/core/src/services/webhook.service.ts)                                   | ký bằng secret của endpoint tại thời điểm gửi                          |
+| 16  | [webhook-signature.ts:10-15](../../packages/core/src/utils/webhook-signature.ts)                                | HMAC-SHA256 trên `<timestamp>.<body>`, header dạng `t=<unix>,v1=<hex>` |
+| 17  | [webhook-delivery.processor.ts:45-53](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts) | `fetch` POST, header `vxrerp-signature`, timeout `WEBHOOK_TIMEOUT_MS`  |
+| 18  | [webhook.service.ts:207-220](../../packages/core/src/services/webhook.service.ts)                               | ghi kết quả: `succeeded` + `deliveredAt`, hoặc `failed` + `lastError`  |
+| 19  | [webhook-delivery.processor.ts:36](../../apps/worker/src/workflows/processors/webhook-delivery.processor.ts)    | thất bại thì `throw` để BullMQ retry                                   |
 
 Chỉ status 2xx (`response.ok`) mới tính là thành công. `attemptCount` lấy từ `job.attemptsMade + 1`, nên hàng trong DB phản ánh đúng lần thử thứ mấy.
 

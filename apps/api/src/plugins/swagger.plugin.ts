@@ -1,5 +1,5 @@
 import swagger from '@fastify/swagger';
-import { PINSTRIPE_API_VERSION } from '@pinstripe/core/contracts';
+import { VXRERP_API_VERSION } from '@vxrerp/core/contracts';
 import fp from 'fastify-plugin';
 import _ from 'lodash';
 
@@ -11,7 +11,7 @@ export const swaggerPlugin = fp(async (fastify) => {
       openapi: '3.1.0',
       info: {
         title: 'VXR Billing Engine',
-        version: PINSTRIPE_API_VERSION,
+        version: VXRERP_API_VERSION,
       },
       servers: [{ url: '/' }],
       components: {

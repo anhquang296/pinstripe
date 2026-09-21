@@ -1,7 +1,7 @@
-import { PinstripeSignatureVerificationError } from '@errors/pinstripe.error';
+import { VxrErpSignatureVerificationError } from '@errors/vxr-erp.error';
 import type { WebhookVerificationOptions } from '@node/webhook-signature';
 import { isWebhookSignatureValid } from '@node/webhook-signature';
-import type { PinstripeEvent } from '@type/contracts.types';
+import type { VxrErpEvent } from '@type/contracts.types';
 
 export const webhooks = {
   isSignatureValid(
@@ -18,12 +18,12 @@ export const webhooks = {
     signatureHeader: string,
     secret: string,
     options: WebhookVerificationOptions = {},
-  ): PinstripeEvent<T> {
+  ): VxrErpEvent<T> {
     if (isWebhookSignatureValid(rawBody, signatureHeader, secret, options)) {
-      return JSON.parse(rawBody) as PinstripeEvent<T>;
+      return JSON.parse(rawBody) as VxrErpEvent<T>;
     }
 
-    throw new PinstripeSignatureVerificationError(
+    throw new VxrErpSignatureVerificationError(
       'Webhook signature verification failed for the supplied payload',
     );
   },

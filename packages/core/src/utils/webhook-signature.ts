@@ -5,7 +5,7 @@ import _ from 'lodash';
 const SIGNATURE_SCHEME = 'v1';
 const MILLISECONDS_PER_SECOND = 1000;
 
-export const WEBHOOK_SIGNATURE_HEADER = 'pinstripe-signature';
+export const WEBHOOK_SIGNATURE_HEADER = 'vxrerp-signature';
 
 export function buildWebhookSignature(payload: string, secret: string, signedAt: Date): string {
   const timestamp = Math.floor(signedAt.getTime() / MILLISECONDS_PER_SECOND);

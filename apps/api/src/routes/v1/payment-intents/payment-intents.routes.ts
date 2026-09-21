@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   cancelPaymentIntentSchema,
   capturePaymentIntentSchema,
@@ -8,8 +9,7 @@ import {
   ListResponseSchema,
   paymentIntentParamsSchema,
   paymentIntentSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 export const paymentIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

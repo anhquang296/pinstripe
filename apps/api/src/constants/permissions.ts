@@ -1,5 +1,5 @@
-import type { Permission } from '@pinstripe/core/contracts';
-import { PermissionEnum } from '@pinstripe/core/contracts';
+import type { Permission } from '@vxrerp/core/contracts';
+import { PermissionEnum } from '@vxrerp/core/contracts';
 
 export const READ_OPERATION_PREFIXES = ['find', 'get'];
 

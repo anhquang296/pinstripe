@@ -1,1 +1,1 @@
-export const PORTAL_CLIENT_IP_HEADER = 'x-pinstripe-client-ip';
+export const PORTAL_CLIENT_IP_HEADER = 'x-vxrerp-client-ip';

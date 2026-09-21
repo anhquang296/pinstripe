@@ -1,9 +1,5 @@
-import type { InvoiceReminderRunJob, NotificationSendJob } from '@pinstripe/core/queues';
-import {
-  INVOICE_REMINDER_RUN_JOB,
-  NOTIFICATION_QUEUE,
-  QueueNameEnum,
-} from '@pinstripe/core/queues';
+import type { InvoiceReminderRunJob, NotificationSendJob } from '@vxrerp/core/queues';
+import { INVOICE_REMINDER_RUN_JOB, NOTIFICATION_QUEUE, QueueNameEnum } from '@vxrerp/core/queues';
 import { InvoiceReminderRunProcessor } from '@workflows/processors/invoice-reminder-run.processor';
 import { NotificationSendProcessor } from '@workflows/processors/notification-send.processor';
 import type { Workflow } from '@workflows/workflow';

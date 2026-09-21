@@ -160,7 +160,7 @@ Ba gói là ba product, nên entitlement phân biệt được. Chi tiết ở
 ## Step by step — dựng catalog Go / Plus / Pro rồi tăng giá
 
 Chạy được trên môi trường dev đã `pnpm docker:up`, `pnpm db:migrate` và `pnpm dev`. Cùng các bước
-này làm được trên `/prices` của admin-ui — trang đó tạo price (per_unit, tiered, metered) và tắt
+này làm được trên `/prices` của erp-ui — trang đó tạo price (per_unit, tiered, metered) và tắt
 `active` được ([UC-01](../usecases/01-onboard-customer-and-catalog.md)); curl ở đây là để thấy
 nguyên payload và nguyên phản hồi, nhất là bước 3.
 
@@ -247,7 +247,7 @@ curl -s "$API/v1/prices?lookupKey=pro_monthly_vnd" -H "$AUTH" \
 Cả catalog trong một câu — product bên trái, các version giá bên phải:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select pr.name, p.lookup_key, p.version, p.unit_amount, p.recurring_interval, p.active
  from prices p join products pr on pr.id = p.product_id
  order by pr.name, p.lookup_key, p.version"
@@ -256,7 +256,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Hoá đơn trỏ vào version nào — bằng chứng của tính bất biến:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select l.invoice_id, p.lookup_key, p.version, l.amount
  from invoice_line_items l join prices p on p.id = l.price_id
  order by l.created_at desc limit 10"
@@ -295,6 +295,6 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 
 - [flow 03 — Customer và catalog](../flows/03-catalog-and-customer.md) — khuôn CRUD, phân trang con trỏ, sáu quy tắc hình dạng
 - [technique 04 — Entitlement](./04-entitlement.md) — vì sao "một gói = một product"
-- [UC-01 — Dựng khách hàng và bảng giá](../usecases/01-onboard-customer-and-catalog.md) — kịch bản đầy đủ trên admin-ui
+- [UC-01 — Dựng khách hàng và bảng giá](../usecases/01-onboard-customer-and-catalog.md) — kịch bản đầy đủ trên erp-ui
 - [UC-02 — Đăng ký một khách vào plan](../usecases/02-subscribe-to-plan.md) — năm kiểm tra khi gắn price vào subscription
 - [ADR 0002](../adr/0002-phase-1-customer-catalog.md) — quyết định gốc: price bất biến, có version

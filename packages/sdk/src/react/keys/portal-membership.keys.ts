@@ -1,10 +1,10 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type { FindPortalMembershipsQuery } from '@type/contracts.types';
 
-export function createPortalMembershipQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.PORTAL_MEMBERSHIP, {
+export function createPortalMembershipQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.PORTAL_MEMBERSHIP, {
     portalMemberships: (query: FindPortalMembershipsQuery) => {
       return {
         queryKey: [query],

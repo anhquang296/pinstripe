@@ -1,4 +1,4 @@
-import { UnauthorizedError } from '@pinstripe/core/errors';
+import { UnauthorizedError } from '@vxrerp/core/errors';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 

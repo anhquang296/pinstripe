@@ -1,9 +1,9 @@
 import { writeFile } from 'node:fs/promises';
 
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { TestClockService } from '@pinstripe/core/services';
 import { swaggerPlugin } from '@plugins/swagger.plugin';
 import { v1Routes } from '@routes/v1/v1.routes';
+import { TestClockService } from '@vxrerp/core/services';
 import Fastify from 'fastify';
 
 const OPENAPI_FILE_URL = new URL('../openapi.json', import.meta.url);

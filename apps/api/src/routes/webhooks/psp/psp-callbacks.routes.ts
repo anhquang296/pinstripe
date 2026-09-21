@@ -1,11 +1,11 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { verifyPspCallbackRequest } from '@hooks/verify-psp-callback-request';
+import { ApiResponse } from '@utils/api-response';
 import {
   pspCallbackParamsSchema,
   pspCallbackResponseSchema,
   pspCallbackSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 declare module 'fastify' {
   interface FastifyRequest {

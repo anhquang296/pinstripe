@@ -8,5 +8,5 @@ coverage/
 .env.local
 .DS_Store
 .overnight/
-.pinstripe-storage/
+.vxrerp-storage/
 *.tsbuildinfo

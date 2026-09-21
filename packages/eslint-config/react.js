@@ -59,7 +59,7 @@ export function react({ ignores = [], tsconfigRootDir, hasLodash = false } = {})
                     'Array',
                     'String',
                     'Number',
-                    '^pinstripe\\.',
+                    '^vxrErp\\.',
                   ],
                 },
               ],

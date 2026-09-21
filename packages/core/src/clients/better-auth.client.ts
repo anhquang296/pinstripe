@@ -237,7 +237,7 @@ export class BetterAuthClient {
       },
       verification: { modelName: AuthModelNameEnum.AUTH_VERIFICATIONS },
       advanced: {
-        cookiePrefix: 'pinstripe',
+        cookiePrefix: 'vxrerp',
         database: { generateId: BetterAuthClient.buildId },
       },
       emailAndPassword: {

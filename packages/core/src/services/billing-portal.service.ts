@@ -16,7 +16,7 @@ import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 
-const DEFAULT_BUSINESS_NAME = 'Pinstripe Billing';
+const DEFAULT_BUSINESS_NAME = 'VXR ERP Billing';
 
 const DEFAULT_FEATURES: BillingPortalFeatures = {
   canViewInvoiceHistory: true,

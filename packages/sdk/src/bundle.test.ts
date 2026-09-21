@@ -18,9 +18,9 @@ it('keeps the isomorphic entry free of node builtins and of a runtime core impor
   const bundle = readIsomorphicBundle();
 
   if (!bundle) {
-    expect.fail('dist/index.js is missing — run `pnpm --filter @pinstripe/sdk build` first');
+    expect.fail('dist/index.js is missing — run `pnpm --filter @vxrerp/sdk build` first');
   }
 
   expect(bundle).not.toContain('node:');
-  expect(bundle).not.toContain('@pinstripe/core');
+  expect(bundle).not.toContain('@vxrerp/core');
 });

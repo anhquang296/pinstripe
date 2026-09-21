@@ -1,5 +1,5 @@
-import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
+import { useVxrErpQueries } from '@react/vxr-erp.provider';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type {
   FindCustomerBalanceTransactionsQuery,
@@ -10,7 +10,7 @@ export function useCustomersQuery(
   query?: FindCustomersQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.customer.customers(query),
@@ -20,7 +20,7 @@ export function useCustomersQuery(
 }
 
 export function useCustomerQuery(customerId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.customer.customer(customerId), enabled });
 }
@@ -30,7 +30,7 @@ export function useCustomerBalanceTransactionsQuery(
   query?: FindCustomerBalanceTransactionsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.customer.customer(customerId)._ctx.balanceTransactions(query),

@@ -29,7 +29,7 @@ có `testClockId` thì `clock.now()`, có thì đọc `frozenTime` của đồng
 ## Hai chỗ hổng phải biết trước
 
 **1. Form tạo test clock luôn đóng băng ở "bây giờ".**
-[test-clock-form.ts:17-22](../../apps/admin-ui/src/forms/test-clock-form.ts) chỉ có field `name`;
+[test-clock-form.ts:17-22](../../apps/erp-ui/src/forms/test-clock-form.ts) chỉ có field `name`;
 `frozenTime` bị hard-code `new Date().toISOString()`. Muốn đồng hồ bắt đầu ở một mốc quá khứ hoặc
 tương lai thì phải gọi API.
 
@@ -74,17 +74,17 @@ sequenceDiagram
 
 ## Kịch bản chính
 
-| #   | Ở đâu                                                                                            | Chuyện gì xảy ra                                                                      | Quan sát được gì                                                                                               |
-| --- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 1   | UI [TestClockItem.tsx:38-43](../../apps/admin-ui/src/components/TestClockItem.tsx)               | mỗi dòng có một `<input type="datetime-local">` riêng                                 | mốc lưu trong `Record<id, string>` — [TestClocksPage.tsx:21](../../apps/admin-ui/src/pages/TestClocksPage.tsx) |
-| 2   | UI [TestClocksPage.tsx:44-58](../../apps/admin-ui/src/pages/TestClocksPage.tsx)                  | `handleOnAdvance` — chưa chọn mốc thì `return` im lặng                                | bấm "Tua" khi input trống: không gì xảy ra                                                                     |
-| 3   | Service [test-clock.service.ts:76-78](../../packages/core/src/services/test-clock.service.ts)    | đang `advancing` → 409                                                                | khoá chống chạy chồng                                                                                          |
-| 4   | Service [test-clock.service.ts:82-87](../../packages/core/src/services/test-clock.service.ts)    | mốc mới phải **sau** mốc hiện tại, không thì 400                                      | đồng hồ chỉ đi tới, không lùi                                                                                  |
-| 5   | Service [test-clock.service.ts:89-96](../../packages/core/src/services/test-clock.service.ts)    | `status = advancing`, ghi `frozenTime`, rồi `advanceSubscriptions`                    | —                                                                                                              |
-| 6   | Service [advanceSubscriptions:276-291](../../packages/core/src/services/subscription.service.ts) | lấy subscription **của đồng hồ này**, chưa huỷ, `currentPeriodEnd <= now`, tối đa 500 | —                                                                                                              |
-| 7   | Service [rollPeriod:313-348](../../packages/core/src/services/subscription.service.ts)           | lặp tới khi `currentPeriodEnd > now`, tối đa `MAX_PERIOD_ROLLS = 120`                 | nhảy xa mấy cũng không treo                                                                                    |
-| 8   | Service [test-clock.service.ts:105-129](../../packages/core/src/services/test-clock.service.ts)  | transaction cuối: `status = ready` + `test_clock.advanced`                            | —                                                                                                              |
-| 9   | Hook [mutations.ts:36-38](../../apps/admin-ui/src/reactquery/test-clocks/mutations.ts)           | invalidate testClocks + subscriptions + entitlements                                  | trang này và `/subscriptions` đều mới theo                                                                     |
+| #   | Ở đâu                                                                                            | Chuyện gì xảy ra                                                                      | Quan sát được gì                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1   | UI [TestClockItem.tsx:38-43](../../apps/erp-ui/src/components/TestClockItem.tsx)                 | mỗi dòng có một `<input type="datetime-local">` riêng                                 | mốc lưu trong `Record<id, string>` — [TestClocksPage.tsx:21](../../apps/erp-ui/src/pages/TestClocksPage.tsx) |
+| 2   | UI [TestClocksPage.tsx:44-58](../../apps/erp-ui/src/pages/TestClocksPage.tsx)                    | `handleOnAdvance` — chưa chọn mốc thì `return` im lặng                                | bấm "Tua" khi input trống: không gì xảy ra                                                                   |
+| 3   | Service [test-clock.service.ts:76-78](../../packages/core/src/services/test-clock.service.ts)    | đang `advancing` → 409                                                                | khoá chống chạy chồng                                                                                        |
+| 4   | Service [test-clock.service.ts:82-87](../../packages/core/src/services/test-clock.service.ts)    | mốc mới phải **sau** mốc hiện tại, không thì 400                                      | đồng hồ chỉ đi tới, không lùi                                                                                |
+| 5   | Service [test-clock.service.ts:89-96](../../packages/core/src/services/test-clock.service.ts)    | `status = advancing`, ghi `frozenTime`, rồi `advanceSubscriptions`                    | —                                                                                                            |
+| 6   | Service [advanceSubscriptions:276-291](../../packages/core/src/services/subscription.service.ts) | lấy subscription **của đồng hồ này**, chưa huỷ, `currentPeriodEnd <= now`, tối đa 500 | —                                                                                                            |
+| 7   | Service [rollPeriod:313-348](../../packages/core/src/services/subscription.service.ts)           | lặp tới khi `currentPeriodEnd > now`, tối đa `MAX_PERIOD_ROLLS = 120`                 | nhảy xa mấy cũng không treo                                                                                  |
+| 8   | Service [test-clock.service.ts:105-129](../../packages/core/src/services/test-clock.service.ts)  | transaction cuối: `status = ready` + `test_clock.advanced`                            | —                                                                                                            |
+| 9   | Hook [mutations.ts:36-38](../../apps/erp-ui/src/reactquery/test-clocks/mutations.ts)             | invalidate testClocks + subscriptions + entitlements                                  | trang này và `/subscriptions` đều mới theo                                                                   |
 
 ### Ba nhánh của mỗi lần roll
 
@@ -142,7 +142,7 @@ chỉ hoàn nguyên `status`, **không** hoàn nguyên `frozenTime` — nên n�
 Gỡ kẹt bằng tay:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "update test_clocks set status = 'ready' where status = 'advancing'"
 ```
 
@@ -270,7 +270,7 @@ Sau khi đã gắn đồng hồ bằng curl ở bước 2, phần còn lại là
 Đồng hồ và các subscription gắn nó:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select c.id, c.name, c.frozen_time, c.status, count(s.id) as subscriptions
  from test_clocks c left join subscriptions s on s.test_clock_id = c.id
  group by c.id, c.name, c.frozen_time, c.status order by c.created_at desc"
@@ -279,7 +279,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Chuỗi event sinh ra từ các lần tua — đọc từ dưới lên là đúng thứ tự thời gian:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select event_type, status, occurred_at from outbox_events
  where aggregate_type in ('subscription','test_clock') order by occurred_at desc limit 15"
 ```
@@ -287,7 +287,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 So giờ đồng hồ với giờ thật — thấy rõ hai trục thời gian tồn tại song song:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select s.id, s.current_period_end, now() as real_now,
         s.current_period_end > now() as period_in_future
  from subscriptions s where s.test_clock_id is not null"

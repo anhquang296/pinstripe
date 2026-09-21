@@ -1,4 +1,4 @@
-import type { PinstripeTransport } from '@client/pinstripe-transport';
+import type { VxrErpTransport } from '@client/vxr-erp-transport';
 import { PortalAccountResource } from '@resources/portal/account.resource';
 import { PortalBankTransfersResource } from '@resources/portal/bank-transfers.resource';
 import { PortalInvoiceComparisonsResource } from '@resources/portal/invoice-comparisons.resource';
@@ -28,7 +28,7 @@ export class PortalNamespace {
   readonly subscriptions: PortalSubscriptionsResource;
   readonly paymentMethods: PortalPaymentMethodsResource;
 
-  constructor(transport: PinstripeTransport) {
+  constructor(transport: VxrErpTransport) {
     this.links = new PortalLinksResource(transport);
     this.sessions = new PortalSessionsResource(transport);
     this.account = new PortalAccountResource(transport);

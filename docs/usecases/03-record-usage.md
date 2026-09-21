@@ -50,9 +50,9 @@ sequenceDiagram
 
 | #   | Ở đâu                                                                                       | Chuyện gì xảy ra                                                                             |
 | --- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 1   | UI [meter-form.ts:6-11](../../apps/admin-ui/src/forms/meter-form.ts)                        | bốn field: `displayName`, `eventName`, `aggregation` (từ `MeterAggregationEnum`), `valueKey` |
-| 2   | UI [meter-form.ts:17-22](../../apps/admin-ui/src/forms/meter-form.ts)                       | default: `aggregation = SUM`, `valueKey = 'value'`                                           |
-| 3   | Hook [mutations.ts:13-23](../../packages/sdk/src/react/meters/mutations.ts)                 | `useCreateMeterMutation` → `pinstripe.meters.create(payload)`                                |
+| 1   | UI [meter-form.ts:6-11](../../apps/erp-ui/src/forms/meter-form.ts)                          | bốn field: `displayName`, `eventName`, `aggregation` (từ `MeterAggregationEnum`), `valueKey` |
+| 2   | UI [meter-form.ts:17-22](../../apps/erp-ui/src/forms/meter-form.ts)                         | default: `aggregation = SUM`, `valueKey = 'value'`                                           |
+| 3   | Hook [mutations.ts:13-23](../../packages/sdk/src/react/meters/mutations.ts)                 | `useCreateMeterMutation` → `vxrErp.meters.create(payload)`                                   |
 | 4   | SDK [meters.resource.ts:41-47](../../packages/sdk/src/resources/billing/meters.resource.ts) | `POST /v1/billing/meters`                                                                    |
 | 5   | Service [meter.service.ts:92-125](../../packages/core/src/services/meter.service.ts)        | transaction: INSERT `meters` + `meter.created` vào outbox                                    |
 | 6   | Service [meter.service.ts:126-135](../../packages/core/src/services/meter.service.ts)       | `eventName` trùng một meter chưa xoá → `ConflictError` với `param: 'eventName'`              |
@@ -64,8 +64,8 @@ sequenceDiagram
 
 | #   | Ở đâu                                                                                                   | Chuyện gì xảy ra                                                                                                             | Quan sát được gì                                                   |
 | --- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 1   | UI [MetersPage.tsx:100-105](../../apps/admin-ui/src/pages/MetersPage.tsx)                               | tìm meter trong **cache của bảng phía trên**, thiếu meter hoặc khách thì `return` im lặng                                    | bấm nút mà không chọn đủ thì không có gì xảy ra, cũng không có lỗi |
-| 2   | UI [MetersPage.tsx:107-111](../../apps/admin-ui/src/pages/MetersPage.tsx)                               | payload dựng từ chính meter: `{ eventName: meter.eventName, customerId, payload: { [meter.valueKey]: Number(eventValue) } }` | UI phải biết `valueKey` để đặt đúng khoá                           |
+| 1   | UI [MetersPage.tsx:100-105](../../apps/erp-ui/src/pages/MetersPage.tsx)                                 | tìm meter trong **cache của bảng phía trên**, thiếu meter hoặc khách thì `return` im lặng                                    | bấm nút mà không chọn đủ thì không có gì xảy ra, cũng không có lỗi |
+| 2   | UI [MetersPage.tsx:107-111](../../apps/erp-ui/src/pages/MetersPage.tsx)                                 | payload dựng từ chính meter: `{ eventName: meter.eventName, customerId, payload: { [meter.valueKey]: Number(eventValue) } }` | UI phải biết `valueKey` để đặt đúng khoá                           |
 | 3   | SDK [meter-events.resource.ts:15-21](../../packages/sdk/src/resources/billing/meter-events.resource.ts) | `POST /v1/billing/meter_events`                                                                                              | —                                                                  |
 | 4   | Service [meter-event.service.ts:29](../../packages/core/src/services/meter-event.service.ts)            | `resolveMeter(eventName)`                                                                                                    | tên chưa khai báo meter → 404, **không** âm thầm bỏ qua            |
 | 5   | Service [buildMeterEvent:124-144](../../packages/core/src/services/meter-event.service.ts)              | `timestamp` = client gửi hoặc `receivedAt`; `identifier` = client gửi hoặc **id sinh mới**                                   | xem mục cảnh báo dưới                                              |
@@ -74,7 +74,7 @@ sequenceDiagram
 | 8   | Service [meter-event.service.ts:32-36](../../packages/core/src/services/meter-event.service.ts)         | Redis `EXISTS` — đã thấy identifier thì trả về luôn, **không** ghi                                                           | —                                                                  |
 | 9   | Service [meter-event.service.ts:38](../../packages/core/src/services/meter-event.service.ts)            | INSERT với `onConflictDoNothing` trên `(meter_id, identifier)`                                                               | chốt chặn thật                                                     |
 | 10  | Hook [mutations.ts:60](../../packages/sdk/src/react/meters/mutations.ts)                                | invalidate `meter.eventSummary._def`                                                                                         | query summary tự chạy lại                                          |
-| 11  | UI [MetersPage.tsx:171-180](../../apps/admin-ui/src/pages/MetersPage.tsx)                               | số tổng hợp và số event render lại                                                                                           | **một cú click = 1 ghi + 1 đọc lại**, thấy ngay                    |
+| 11  | UI [MetersPage.tsx:171-180](../../apps/erp-ui/src/pages/MetersPage.tsx)                                 | số tổng hợp và số event render lại                                                                                           | **một cú click = 1 ghi + 1 đọc lại**, thấy ngay                    |
 
 ## Mốc thời gian
 
@@ -103,7 +103,7 @@ chặn UPDATE và DELETE. Số liệu sai thì ghi event bù, không sửa lịc
 
 ## Chỗ dễ hiểu sai: nút này không bao giờ bị dedup
 
-[MetersPage.tsx:107-111](../../apps/admin-ui/src/pages/MetersPage.tsx) **không gửi `identifier`**.
+[MetersPage.tsx:107-111](../../apps/erp-ui/src/pages/MetersPage.tsx) **không gửi `identifier`**.
 Server thấy thiếu thì sinh một id mới
 ([meter-event.service.ts:135](../../packages/core/src/services/meter-event.service.ts)), nên mỗi cú
 click là một identifier khác nhau và luôn được ghi.
@@ -179,7 +179,7 @@ Trả về `{ accepted: 1, duplicates: 1 }` — `evt-fixed-001` đã có từ l�
 ### Kiểm chứng bằng SQL
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select identifier, value, timestamp, received_at from meter_events order by received_at desc limit 10"
 ```
 
@@ -188,14 +188,14 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Tổng hợp giống hệt cách server tính:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select customer_id, count(*) as events, sum(value) as total from meter_events group by customer_id"
 ```
 
 Thử chạm vào lịch sử để thấy trigger chặn:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "update meter_events set value = 999 where identifier = 'evt-fixed-001'"
 ```
 

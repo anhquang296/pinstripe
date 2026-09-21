@@ -259,7 +259,7 @@ lặp lại khi đang chạy thì `409`, và hai case cho `params` — cùng key
 `400`, cùng path param mà không có body thì replay. Chạy bằng:
 
 ```bash
-pnpm --filter @pinstripe/core test:integration
+pnpm --filter @vxrerp/core test:integration
 ```
 
 Hai nhánh chưa có test và đáng thêm khi động vào khu vực này: đường retry sau `failed` (nhánh 6), và

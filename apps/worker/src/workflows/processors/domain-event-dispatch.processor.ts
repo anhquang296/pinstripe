@@ -1,5 +1,5 @@
-import { AggregateTypeEnum } from '@pinstripe/core/contracts';
-import type { DomainEventDispatchJob } from '@pinstripe/core/queues';
+import { AggregateTypeEnum } from '@vxrerp/core/contracts';
+import type { DomainEventDispatchJob } from '@vxrerp/core/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

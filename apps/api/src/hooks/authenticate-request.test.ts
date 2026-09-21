@@ -1,6 +1,6 @@
-import type { Permission } from '@pinstripe/core/contracts';
-import { ApiKeyTypeEnum, PermissionEnum, UserRoleEnum } from '@pinstripe/core/contracts';
-import { ForbiddenError, UnauthorizedError } from '@pinstripe/core/errors';
+import type { Permission } from '@vxrerp/core/contracts';
+import { ApiKeyTypeEnum, PermissionEnum, UserRoleEnum } from '@vxrerp/core/contracts';
+import { ForbiddenError, UnauthorizedError } from '@vxrerp/core/errors';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { expect, it, vi } from 'vitest';
 
@@ -15,7 +15,7 @@ interface SetupOverrides {
 }
 
 const DASHBOARD_ORIGIN = 'http://localhost:5173';
-const SESSION_COOKIE = 'pinstripe.session_token=token.signature';
+const SESSION_COOKIE = 'vxrerp.session_token=token.signature';
 
 function makeAuthSession(overrides: { role?: string; banned?: boolean } = {}) {
   const { role = UserRoleEnum.MEMBER, banned = false } = overrides;
@@ -88,7 +88,7 @@ it('builds an actor from the session cookie of a GET request', async () => {
 });
 
 it('sets the refreshed session cookie on the reply when the session is refreshed', async () => {
-  const refreshedCookie = 'pinstripe.session_token=token.signature; Max-Age=3600; Path=/';
+  const refreshedCookie = 'vxrerp.session_token=token.signature; Max-Age=3600; Path=/';
 
   const { request, reply, header } = setup({
     headers: { cookie: SESSION_COOKIE },

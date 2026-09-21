@@ -1,11 +1,11 @@
-import type { BillingRunShardJob } from '@pinstripe/core/queues';
+import type { BillingRunShardJob } from '@vxrerp/core/queues';
 import {
   BILLING_QUEUE,
   BILLING_RUN_DISPATCH_JOB,
   BILLING_RUN_SHARD_JOB,
   buildBillingRunShardJob,
   QueueNameEnum,
-} from '@pinstripe/core/queues';
+} from '@vxrerp/core/queues';
 import { BillingRunShardProcessor } from '@workflows/processors/billing-run-shard.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

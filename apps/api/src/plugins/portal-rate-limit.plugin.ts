@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 
-import { PORTAL_CLIENT_IP_HEADER } from '@pinstripe/core/contracts';
-import { TooManyRequestsError } from '@pinstripe/core/errors';
-import { consumeRateLimit, RedisNamespaceEnum } from '@pinstripe/core/utils';
 import { readAuth } from '@utils/request-auth';
+import { PORTAL_CLIENT_IP_HEADER } from '@vxrerp/core/contracts';
+import { TooManyRequestsError } from '@vxrerp/core/errors';
+import { consumeRateLimit, RedisNamespaceEnum } from '@vxrerp/core/utils';
 import type { FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import _ from 'lodash';

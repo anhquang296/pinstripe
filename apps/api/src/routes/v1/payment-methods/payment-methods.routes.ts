@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   attachPaymentMethodSchema,
   createPaymentMethodSchema,
@@ -7,8 +8,7 @@ import {
   paymentMethodParamsSchema,
   paymentMethodSchema,
   updatePaymentMethodSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/core/contracts';
 
 export const paymentMethodsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

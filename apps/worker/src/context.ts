@@ -1,4 +1,4 @@
-import { corePlugin, workerConnectionPlugin } from '@pinstripe/core/plugins';
+import { corePlugin, workerConnectionPlugin } from '@vxrerp/core/plugins';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 

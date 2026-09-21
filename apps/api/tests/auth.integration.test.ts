@@ -1,10 +1,10 @@
 import {
   LedgerAccountCodeEnum,
   PermissionEnum,
-  PINSTRIPE_API_VERSION,
   PostingDirectionEnum,
-} from '@pinstripe/core/contracts';
-import { CurrencyEnum } from '@pinstripe/core/utils';
+  VXRERP_API_VERSION,
+} from '@vxrerp/core/contracts';
+import { CurrencyEnum } from '@vxrerp/core/utils';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -152,7 +152,7 @@ describe('platform envelope', () => {
       headers: buildAuthHeaders(apiKey.token),
     });
 
-    expect(response.headers['pinstripe-version']).toBe(PINSTRIPE_API_VERSION);
+    expect(response.headers['vxrerp-version']).toBe(VXRERP_API_VERSION);
   });
 
   it('reports the remaining request budget on every response', async () => {

@@ -225,7 +225,7 @@ nên đây là danh sách cái gì hỏng và hỏng ra sao.
 4. **Thiếu `identifier` thì dedup im lặng tắt.** `identifier: payload.identifier ?? generateGid(...)`
    — client không gửi thì mỗi request tự sinh một khoá mới, nên một lần retry mạng thành một lần tính
    tiền thêm. Và chính admin UI là client đó
-   ([`MetersPage.tsx:107-111`](../../apps/admin-ui/src/pages/MetersPage.tsx) gọi `createMeterEvent`
+   ([`MetersPage.tsx:107-111`](../../apps/erp-ui/src/pages/MetersPage.tsx) gọi `createMeterEvent`
    không kèm `identifier`), nên bấm "bắn event" mười lần ra mười hàng.
 5. **Response của bản trùng được dựng từ bộ nhớ, không đọc lại hàng đã lưu.** Cả nhánh Redis-hit lẫn
    nhánh `ON CONFLICT` đều `return MeterEventService.buildMeterEvent(event)` với `event` là candidate

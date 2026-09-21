@@ -1,14 +1,9 @@
-export { PinstripeClient } from '@client/pinstripe.client';
-export type {
-  FetchImpl,
-  HttpMethod,
-  PinstripeConfig,
-  RequestOptions,
-} from '@client/pinstripe.types';
-export { HttpMethodEnum } from '@client/pinstripe.types';
+export { VxrErpClient } from '@client/vxr-erp.client';
+export type { FetchImpl, HttpMethod, RequestOptions, VxrErpConfig } from '@client/vxr-erp.types';
+export { HttpMethodEnum } from '@client/vxr-erp.types';
 export {
-  PinstripeConnectionError,
-  PinstripeError,
-  PinstripeSignatureVerificationError,
-} from '@errors/pinstripe.error';
+  VxrErpConnectionError,
+  VxrErpError,
+  VxrErpSignatureVerificationError,
+} from '@errors/vxr-erp.error';
 export type * from '@type/contracts.types';

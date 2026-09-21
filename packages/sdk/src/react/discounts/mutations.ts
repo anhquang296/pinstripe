@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CouponResponse,
@@ -34,7 +34,7 @@ export interface UpdateDiscountVariables {
 function useDiscountInvalidation() {
   const queryClient = useQueryClient();
 
-  const { queries } = usePinstripeContext();
+  const { queries } = useVxrErpContext();
 
   return () => {
     queryClient.invalidateQueries({ queryKey: queries.discount.coupons._def });
@@ -48,11 +48,11 @@ function useDiscountInvalidation() {
 }
 
 export function useCreateCouponMutation({ successMessage }: MutationProps<CouponResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateCouponPayload) => {
@@ -67,11 +67,11 @@ export function useCreateCouponMutation({ successMessage }: MutationProps<Coupon
 }
 
 export function useUpdateCouponMutation({ successMessage }: MutationProps<CouponResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: UpdateCouponVariables) => {
@@ -88,11 +88,11 @@ export function useUpdateCouponMutation({ successMessage }: MutationProps<Coupon
 export function useDeleteCouponMutation({
   successMessage,
 }: MutationProps<DeletedCouponResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (couponId: string) => {
@@ -109,11 +109,11 @@ export function useDeleteCouponMutation({
 export function useCreatePromotionCodeMutation({
   successMessage,
 }: MutationProps<PromotionCodeResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreatePromotionCodePayload) => {
@@ -130,11 +130,11 @@ export function useCreatePromotionCodeMutation({
 export function useUpdatePromotionCodeMutation({
   successMessage,
 }: MutationProps<PromotionCodeResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: UpdatePromotionCodeVariables) => {
@@ -151,11 +151,11 @@ export function useUpdatePromotionCodeMutation({
 export function useCreateDiscountMutation({
   successMessage,
 }: MutationProps<DiscountResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateDiscountPayload) => {
@@ -172,11 +172,11 @@ export function useCreateDiscountMutation({
 export function useUpdateDiscountMutation({
   successMessage,
 }: MutationProps<DiscountResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: UpdateDiscountVariables) => {
@@ -193,11 +193,11 @@ export function useUpdateDiscountMutation({
 export function useDeleteDiscountMutation({
   successMessage,
 }: MutationProps<DeletedDiscountResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useDiscountInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (discountId: string) => {

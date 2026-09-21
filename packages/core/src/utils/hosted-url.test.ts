@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { HostedResourceEnum, HostedUrlFactory } from './hosted-url';
 
-const BASE_URL = 'https://pay.pinstripe.test/';
+const BASE_URL = 'https://pay.vxrerp.test/';
 const SECRET = 'hosted-url-secret-for-tests';
 
 function setup(secret = SECRET) {
@@ -16,7 +16,7 @@ describe('HostedUrlFactory', () => {
     const url = hostedUrlFactory.buildCheckoutUrl('cs_123');
     const token = hostedUrlFactory.buildToken(HostedResourceEnum.CHECKOUT_SESSION, 'cs_123');
 
-    expect(url).toBe(`https://pay.pinstripe.test/hosted/checkout/cs_123?token=${token}`);
+    expect(url).toBe(`https://pay.vxrerp.test/hosted/checkout/cs_123?token=${token}`);
   });
 
   it('gives the pdf its own path under the same invoice token', () => {
@@ -25,7 +25,7 @@ describe('HostedUrlFactory', () => {
     const pdfUrl = hostedUrlFactory.buildInvoicePdfUrl('in_123');
     const token = hostedUrlFactory.buildToken(HostedResourceEnum.INVOICE, 'in_123');
 
-    expect(pdfUrl).toBe(`https://pay.pinstripe.test/hosted/invoice/in_123/pdf?token=${token}`);
+    expect(pdfUrl).toBe(`https://pay.vxrerp.test/hosted/invoice/in_123/pdf?token=${token}`);
   });
 
   it('accepts the token it issued for that resource and id', () => {

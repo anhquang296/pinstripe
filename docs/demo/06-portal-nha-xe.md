@@ -1,6 +1,6 @@
 # KB-06 — Cổng nhà xe: nhà xe tự xem công nợ
 
-**Thời lượng** ~6 phút · **Màn hình** portal-ui (http://localhost:3100) + Mailpit (http://localhost:58025)
+**Thời lượng** ~6 phút · **Màn hình** operator-portal (http://localhost:3100) + Mailpit (http://localhost:58025)
 · **Nhà xe** Hoàng Long
 
 ## Kể gì
@@ -57,7 +57,7 @@
 
 | Hiện tượng                      | Làm gì                                                           |
 | ------------------------------- | ---------------------------------------------------------------- |
-| Không thấy email trong Mailpit  | `apps/portal-ui/.env.local` thiếu `PINSTRIPE_PORTAL_API_KEY`     |
+| Không thấy email trong Mailpit  | `apps/operator-portal/.env.local` thiếu `VXRERP_PORTAL_API_KEY`  |
 | Bấm link báo hết hạn            | Link dùng một lần và sống 15 phút — quay lại bước 1 xin link mới |
 | Thẻ chuyển khoản không có mã QR | Bốn biến `BANK_TRANSFER_*` trong `.env` đang trống               |
 | Cổng đá về trang đăng nhập      | Phiên hết hạn sau 60 phút — đăng nhập lại                        |
@@ -68,6 +68,6 @@
 khoản đi qua ngân hàng bằng mã VietQR, và kế toán Vexere ghi nhận. Đó là chủ ý của giai đoạn này.
 
 **"Nhiều người của một nhà xe dùng chung được không?"** Được — mỗi người một email, mỗi người một
-vai. Danh sách quản trị ở drawer Customer bên admin-ui.
+vai. Danh sách quản trị ở drawer Customer bên erp-ui.
 
 Tiếp theo: [KB-07 — Sổ cái và đối soát](./07-so-cai-va-doi-soat.md)

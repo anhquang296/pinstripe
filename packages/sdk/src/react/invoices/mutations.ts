@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateCreditNotePayload,
@@ -19,7 +19,7 @@ import type {
 function useInvoiceInvalidation() {
   const queryClient = useQueryClient();
 
-  const { queries } = usePinstripeContext();
+  const { queries } = useVxrErpContext();
 
   return (invoiceId: string) => {
     queryClient.invalidateQueries({ queryKey: queries.invoice.invoice(invoiceId).queryKey });
@@ -32,11 +32,11 @@ function useInvoiceInvalidation() {
 }
 
 export function useCreateInvoiceMutation({ successMessage }: MutationProps<InvoiceResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateInvoicePayload) => {
@@ -53,11 +53,11 @@ export function useCreateInvoiceMutation({ successMessage }: MutationProps<Invoi
 export function useFinalizeInvoiceMutation({
   successMessage,
 }: MutationProps<InvoiceResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (invoiceId: string) => {
@@ -72,11 +72,11 @@ export function useFinalizeInvoiceMutation({
 }
 
 export function usePayInvoiceMutation({ successMessage }: MutationProps<InvoiceResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: PayInvoicePayload }) => {
@@ -91,11 +91,11 @@ export function usePayInvoiceMutation({ successMessage }: MutationProps<InvoiceR
 }
 
 export function useVoidInvoiceMutation({ successMessage }: MutationProps<InvoiceResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: VoidInvoicePayload }) => {
@@ -112,7 +112,7 @@ export function useVoidInvoiceMutation({ successMessage }: MutationProps<Invoice
 function useInvoiceItemInvalidation() {
   const queryClient = useQueryClient();
 
-  const { queries } = usePinstripeContext();
+  const { queries } = useVxrErpContext();
 
   return (invoiceItemId: string) => {
     queryClient.invalidateQueries({
@@ -126,11 +126,11 @@ function useInvoiceItemInvalidation() {
 export function useCreateInvoiceItemMutation({
   successMessage,
 }: MutationProps<InvoiceItemResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceItemInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateInvoiceItemPayload) => {
@@ -147,11 +147,11 @@ export function useCreateInvoiceItemMutation({
 export function useUpdateInvoiceItemMutation({
   successMessage,
 }: MutationProps<InvoiceItemResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceItemInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateInvoiceItemPayload }) => {
@@ -168,11 +168,11 @@ export function useUpdateInvoiceItemMutation({
 export function useDeleteInvoiceItemMutation({
   successMessage,
 }: MutationProps<DeletedInvoiceItemResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceItemInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (invoiceItemId: string) => {
@@ -189,11 +189,11 @@ export function useDeleteInvoiceItemMutation({
 export function useCreateCreditNoteMutation({
   successMessage,
 }: MutationProps<CreditNoteResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useInvoiceInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateCreditNotePayload) => {
@@ -212,11 +212,11 @@ export function useVoidCreditNoteMutation({
 }: MutationProps<CreditNoteResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
   const invalidate = useInvoiceInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload?: VoidCreditNotePayload }) => {

@@ -1,4 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
+import { readPortalAuth } from '@utils/request-auth';
 import {
   findPortalInvoicesSchema,
   findPortalPaymentsSchema,
@@ -10,9 +12,7 @@ import {
   portalInvoiceRemindersSchema,
   portalInvoiceTotalsSchema,
   portalPaymentSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
-import { readPortalAuth } from '@utils/request-auth';
+} from '@vxrerp/core/contracts';
 
 export const portalInvoicesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

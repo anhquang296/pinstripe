@@ -3,7 +3,7 @@ import { createTransport } from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
-const DEFAULT_FROM_EMAIL = 'billing@pinstripe.test';
+const DEFAULT_FROM_EMAIL = 'billing@vxrerp.test';
 
 export type SmtpConfig = {
   smtpTransportOptions: SMTPTransport.Options;

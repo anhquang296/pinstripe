@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CancelPaymentIntentPayload,
@@ -18,7 +18,7 @@ export type ChargeInvoiceVariables = Pick<
 function usePaymentInvalidation() {
   const queryClient = useQueryClient();
 
-  const { queries } = usePinstripeContext();
+  const { queries } = useVxrErpContext();
 
   return () => {
     queryClient.invalidateQueries({ queryKey: queries.payment.paymentIntents._def });
@@ -35,11 +35,11 @@ function usePaymentInvalidation() {
 export function useChargeInvoiceMutation({
   successMessage,
 }: MutationProps<PaymentIntentResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = usePaymentInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: async ({ invoiceId, paymentMethodId }: ChargeInvoiceVariables) => {
@@ -56,11 +56,11 @@ export function useChargeInvoiceMutation({
 }
 
 export function useCreateRefundMutation({ successMessage }: MutationProps<RefundResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = usePaymentInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateRefundPayload) => {
@@ -77,11 +77,11 @@ export function useCreateRefundMutation({ successMessage }: MutationProps<Refund
 export function useCancelPaymentIntentMutation({
   successMessage,
 }: MutationProps<PaymentIntentResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = usePaymentInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload?: CancelPaymentIntentPayload }) => {

@@ -3,7 +3,7 @@
 ## Ai, muốn gì
 
 Người vận hành chốt số tiền của kỳ thành một hoá đơn có số, rồi thu tiền qua nhà xử lý thanh toán.
-Đây là use case sinh ra nhiều bút toán sổ cái nhất, và là chỗ duy nhất trong admin-ui mà **một cú
+Đây là use case sinh ra nhiều bút toán sổ cái nhất, và là chỗ duy nhất trong erp-ui mà **một cú
 click gửi hai request**.
 
 ## Điều kiện trước
@@ -16,7 +16,7 @@ click gửi hai request**.
 ## Vòng đời trên một dòng bảng
 
 Trang `/invoices` hiện các nút **theo status**, nên bảng tự dạy thứ tự hợp lệ —
-[InvoiceItem.tsx:54-55](../../apps/admin-ui/src/components/InvoiceItem.tsx):
+[InvoiceItem.tsx:54-55](../../apps/erp-ui/src/components/InvoiceItem.tsx):
 
 ```mermaid
 stateDiagram-v2
@@ -37,7 +37,7 @@ stateDiagram-v2
 | `open`                            | Thu tiền · Thẻ bị từ chối · Credit note · Hủy |
 | `paid` / `void` / `uncollectible` | không nút nào                                 |
 
-`isBusy` — [InvoicesPage.tsx:105](../../apps/admin-ui/src/pages/InvoicesPage.tsx) — gộp bốn cờ
+`isBusy` — [InvoicesPage.tsx:105](../../apps/erp-ui/src/pages/InvoicesPage.tsx) — gộp bốn cờ
 `isPending` lại, nên trong lúc một hành động đang chạy thì **mọi** nút trên **mọi** dòng đều bị vô
 hiệu. Tránh bấm chồng trên một hoá đơn, đổi lại cả bảng đứng im một nhịp.
 
@@ -79,8 +79,8 @@ sequenceDiagram
 
 | #   | Ở đâu                                                                                    | Chuyện gì xảy ra                                                                    | Quan sát được gì                           |
 | --- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------ |
-| 1   | UI [InvoicesPage.tsx:60-64](../../apps/admin-ui/src/pages/InvoicesPage.tsx)              | `handleOnDraft` — chưa chọn subscription thì `if` không vào, nút cũng đã `disabled` | —                                          |
-| 2   | API [request.ts:40-42](../../apps/admin-ui/src/api/invoices/request.ts)                  | `POST /v1/invoices` body `{ subscriptionId }`                                       | —                                          |
+| 1   | UI [InvoicesPage.tsx:60-64](../../apps/erp-ui/src/pages/InvoicesPage.tsx)                | `handleOnDraft` — chưa chọn subscription thì `if` không vào, nút cũng đã `disabled` | —                                          |
+| 2   | API [request.ts:40-42](../../apps/erp-ui/src/api/invoices/request.ts)                    | `POST /v1/invoices` body `{ subscriptionId }`                                       | —                                          |
 | 3   | Service [ensureDraftInvoice:53-110](../../packages/core/src/services/invoice.service.ts) | **idempotent theo kỳ**: đã có hoá đơn cho `currentPeriodStart` thì trả về cái cũ    | bấm hai lần không ra hai hoá đơn           |
 | 4   | Service [invoice.service.ts:67-98](../../packages/core/src/services/invoice.service.ts)  | transaction: `invoices` (total 0, `number = null`) + `invoice.created`              | dòng mới, cột Số hiện **id** vì chưa có số |
 
@@ -88,29 +88,29 @@ sequenceDiagram
 
 | #   | Ở đâu                                                                                     | Chuyện gì xảy ra                                                      | Quan sát được gì                                                                                                                                    |
 | --- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 5   | UI [InvoiceItem.tsx:34-36](../../apps/admin-ui/src/components/InvoiceItem.tsx)            | nút **Phát hành** chỉ hiện khi `draft`                                | —                                                                                                                                                   |
-| 6   | API [request.ts:44-50](../../apps/admin-ui/src/api/invoices/request.ts)                   | `POST /v1/invoices/:id/finalize`, body `{}`                           | —                                                                                                                                                   |
+| 5   | UI [InvoiceItem.tsx:34-36](../../apps/erp-ui/src/components/InvoiceItem.tsx)              | nút **Phát hành** chỉ hiện khi `draft`                                | —                                                                                                                                                   |
+| 6   | API [request.ts:44-50](../../apps/erp-ui/src/api/invoices/request.ts)                     | `POST /v1/invoices/:id/finalize`, body `{}`                           | —                                                                                                                                                   |
 | 7   | Service [invoice.service.ts:123-127](../../packages/core/src/services/invoice.service.ts) | `subscription.currentPeriodStart` phải còn khớp `invoice.periodStart` | lệch → 409, chặn dán số của kỳ mới vào hoá đơn kỳ cũ                                                                                                |
 | 8   | Service [invoice.service.ts:129](../../packages/core/src/services/invoice.service.ts)     | `rateUpcomingInvoice` chạy lại — **con số chốt tại thời điểm này**    | phải khớp cái đã xem ở [UC-04](./04-preview-charges.md)                                                                                             |
 | 9   | Service [invoice.service.ts:149-156](../../packages/core/src/services/invoice.service.ts) | `claimNumberSequence` trong transaction → `INV-000001`                | cột Số đổi từ id sang số hoá đơn                                                                                                                    |
 | 10  | Service [invoice.service.ts:158](../../packages/core/src/services/invoice.service.ts)     | INSERT `invoice_line_items` — bản chụp bất biến                       | —                                                                                                                                                   |
 | 11  | Service [postReceivable:336-362](../../packages/core/src/services/invoice.service.ts)     | bút toán **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue` | trang `/ledger` có giao dịch mới                                                                                                                    |
 | 12  | Service [invoice.service.ts:169](../../packages/core/src/services/invoice.service.ts)     | `nextAttemptAt = dueAt` (`now + INVOICE_DUE_DAYS`)                    | đây là thứ khiến dunning nhặt hoá đơn này về sau — [UC-06](./06-handle-declined-card.md). **Hai cột này không có trong response**, chỉ thấy qua SQL |
-| 13  | Hook [mutations.ts:56](../../apps/admin-ui/src/reactquery/invoices/mutations.ts)          | toast in chính `invoice.number`                                       | `Đã phát hành INV-000001.`                                                                                                                          |
+| 13  | Hook [mutations.ts:56](../../apps/erp-ui/src/reactquery/invoices/mutations.ts)            | toast in chính `invoice.number`                                       | `Đã phát hành INV-000001.`                                                                                                                          |
 
 ### Bước 3 — thu tiền
 
-| #   | Ở đâu                                                                                     | Chuyện gì xảy ra                                                                                              | Quan sát được gì                                                                   |
-| --- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 14  | UI [InvoicesPage.tsx:73-78](../../apps/admin-ui/src/pages/InvoicesPage.tsx)               | `handleOnCharge` gửi `paymentMethod: 'pm_card_ok'` — thẻ giả lập luôn duyệt                                   | hằng số ở [InvoicesPage.tsx:21-22](../../apps/admin-ui/src/pages/InvoicesPage.tsx) |
-| 15  | Hook [mutations.ts:24-28](../../apps/admin-ui/src/reactquery/payments/mutations.ts)       | **hai request trong một `mutationFn`**: `createPaymentIntent` rồi `confirmPaymentIntent(paymentIntent.id, …)` | nếu request đầu lỗi thì request sau không chạy                                     |
-| 16  | Service [payment.service.ts:35-54](../../packages/core/src/services/payment.service.ts)   | invoice phải `open`, `amountRemaining > 0`, `amount <= owed`                                                  | —                                                                                  |
-| 17  | Service [payment.service.ts:95-100](../../packages/core/src/services/payment.service.ts)  | `psp.createCharge` với `idempotencyKey: charge:<intentId>`                                                    | confirm lại cùng intent không trừ tiền lần nữa                                     |
-| 18  | Service [payment.service.ts:110-148](../../packages/core/src/services/payment.service.ts) | transaction: intent `succeeded` + `payment_attempts` + `payment_intent.succeeded`                             | —                                                                                  |
-| 19  | Service [payment.service.ts:150-154](../../packages/core/src/services/payment.service.ts) | `payInvoice(..., 'payment_intent:<id>')` — **transaction thứ hai**                                            | xem mục rủi ro dưới                                                                |
-| 20  | Service [postCashReceipt:364-391](../../packages/core/src/services/invoice.service.ts)    | bút toán **Nợ** `cash` / **Có** `accounts_receivable`                                                         | `/ledger` có giao dịch thứ hai                                                     |
-| 21  | Service [invoice.service.ts:211](../../packages/core/src/services/invoice.service.ts)     | `isSettled` → status `paid`, `paidAt`, outbox `invoice.paid`                                                  | cột Còn lại về 0, status `paid`                                                    |
-| 22  | Hook [mutations.ts:8-18](../../apps/admin-ui/src/reactquery/payments/mutations.ts)        | invalidate **5 nhóm**: paymentIntents, refunds, invoices, ledger.accounts, ledger.transactions                | trang `/payments` và `/ledger` cũng mới theo                                       |
+| #   | Ở đâu                                                                                     | Chuyện gì xảy ra                                                                                              | Quan sát được gì                                                                 |
+| --- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 14  | UI [InvoicesPage.tsx:73-78](../../apps/erp-ui/src/pages/InvoicesPage.tsx)                 | `handleOnCharge` gửi `paymentMethod: 'pm_card_ok'` — thẻ giả lập luôn duyệt                                   | hằng số ở [InvoicesPage.tsx:21-22](../../apps/erp-ui/src/pages/InvoicesPage.tsx) |
+| 15  | Hook [mutations.ts:24-28](../../apps/erp-ui/src/reactquery/payments/mutations.ts)         | **hai request trong một `mutationFn`**: `createPaymentIntent` rồi `confirmPaymentIntent(paymentIntent.id, …)` | nếu request đầu lỗi thì request sau không chạy                                   |
+| 16  | Service [payment.service.ts:35-54](../../packages/core/src/services/payment.service.ts)   | invoice phải `open`, `amountRemaining > 0`, `amount <= owed`                                                  | —                                                                                |
+| 17  | Service [payment.service.ts:95-100](../../packages/core/src/services/payment.service.ts)  | `psp.createCharge` với `idempotencyKey: charge:<intentId>`                                                    | confirm lại cùng intent không trừ tiền lần nữa                                   |
+| 18  | Service [payment.service.ts:110-148](../../packages/core/src/services/payment.service.ts) | transaction: intent `succeeded` + `payment_attempts` + `payment_intent.succeeded`                             | —                                                                                |
+| 19  | Service [payment.service.ts:150-154](../../packages/core/src/services/payment.service.ts) | `payInvoice(..., 'payment_intent:<id>')` — **transaction thứ hai**                                            | xem mục rủi ro dưới                                                              |
+| 20  | Service [postCashReceipt:364-391](../../packages/core/src/services/invoice.service.ts)    | bút toán **Nợ** `cash` / **Có** `accounts_receivable`                                                         | `/ledger` có giao dịch thứ hai                                                   |
+| 21  | Service [invoice.service.ts:211](../../packages/core/src/services/invoice.service.ts)     | `isSettled` → status `paid`, `paidAt`, outbox `invoice.paid`                                                  | cột Còn lại về 0, status `paid`                                                  |
+| 22  | Hook [mutations.ts:8-18](../../apps/erp-ui/src/reactquery/payments/mutations.ts)          | invalidate **5 nhóm**: paymentIntents, refunds, invoices, ledger.accounts, ledger.transactions                | trang `/payments` và `/ledger` cũng mới theo                                     |
 
 ## Mốc thời gian
 
@@ -171,7 +171,7 @@ Công cụ phát hiện là đối chiếu ở [UC-10](./10-close-the-period.md)
 ## Đường thứ hai mà UI không dùng
 
 `POST /v1/invoices/:id/pay` tồn tại và có cả hook
-([usePayInvoiceMutation:65-83](../../apps/admin-ui/src/reactquery/invoices/mutations.ts)) nhưng
+([usePayInvoiceMutation:65-83](../../apps/erp-ui/src/reactquery/invoices/mutations.ts)) nhưng
 **không trang nào gọi**. Nó ghi nhận tiền vào **mà không qua PSP** — dùng cho chuyển khoản tay,
 đối trừ ngoài hệ thống.
 
@@ -218,7 +218,7 @@ curl -s -X POST $API/v1/invoices/$INV/finalize -H "$AUTH" -H "$JSON" \
 đó, nên chúng là cột nội bộ chỉ đọc được qua SQL:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select number, status, due_at, next_attempt_at from invoices order by created_at desc limit 3"
 ```
 
@@ -247,7 +247,7 @@ curl -s $API/v1/invoices/$INV -H "$AUTH" \
 Bốn posting, hai giao dịch, sổ phải cân:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select t.external_id, a.code, p.direction, p.amount
  from ledger_postings p
  join ledger_transactions t on t.id = p.transaction_id
@@ -258,7 +258,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Mỗi `external_id` phải có tổng debit = tổng credit:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select t.external_id,
         sum(case when p.direction = 'debit' then p.amount else -p.amount end) as must_be_zero
  from ledger_postings p join ledger_transactions t on t.id = p.transaction_id
@@ -268,7 +268,7 @@ docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinst
 Thử sửa hoá đơn đã phát hành để thấy trigger chặn:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "update invoices set total = 1 where status <> 'draft'"
 ```
 
@@ -280,7 +280,7 @@ Postgres trả `invoice ... has been issued and its billed content is immutable`
 (12 test) đi đúng chuỗi trên, kể cả các nhánh 409. Chạy:
 
 ```bash
-set -a && . ./.env && set +a && pnpm --filter @pinstripe/core test:integration
+set -a && . ./.env && set +a && pnpm --filter @vxrerp/core test:integration
 ```
 
 ## Đọc sâu hơn

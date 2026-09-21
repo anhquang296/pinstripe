@@ -1,6 +1,6 @@
 # KB-03 — Đo lượng dùng và xem trước số tiền
 
-**Thời lượng** ~5 phút · **Màn hình** admin-ui
+**Thời lượng** ~5 phút · **Màn hình** erp-ui
 
 ## Kể gì
 

@@ -1,10 +1,10 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type { FindCheckoutSessionsQuery } from '@type/contracts.types';
 
-export function createCheckoutQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.CHECKOUT, {
+export function createCheckoutQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.CHECKOUT, {
     sessions: (query?: FindCheckoutSessionsQuery) => {
       return {
         queryKey: [query],

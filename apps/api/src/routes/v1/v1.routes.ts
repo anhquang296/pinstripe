@@ -1,5 +1,4 @@
 import { verifyApiRequest } from '@hooks/verify-api-request';
-import { PermissionEnum } from '@pinstripe/core/contracts';
 import { expandPlugin } from '@plugins/expand.plugin';
 import { idempotencyPlugin } from '@plugins/idempotency.plugin';
 import { rateLimitPlugin } from '@plugins/rate-limit.plugin';
@@ -44,6 +43,7 @@ import { Type } from '@sinclair/typebox';
 import { ApiResponse } from '@utils/api-response';
 import { tagRouteByPrefix } from '@utils/openapi-tag';
 import { buildRouteConfig } from '@utils/route-permission';
+import { PermissionEnum } from '@vxrerp/core/contracts';
 import type { FastifyInstance } from 'fastify';
 
 export async function v1Routes(fastify: FastifyInstance): Promise<void> {
