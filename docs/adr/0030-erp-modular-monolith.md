@@ -99,8 +99,8 @@ có ích.
 ### 7. erp-ui chia theo feature, `features/auth` ghép
 
 Một app nội bộ duy nhất (`apps/erp-ui`), bên trong chỉ có `features/<feature>/`.
-`features/billing` giữ mọi màn billing, `features/admin` giữ bề mặt của platform (user, role, API key,
-webhook, settings). Mỗi feature export một `FeatureDefinition` gồm `routes`, `navigationItems` và
+`features/billing` giữ mọi màn billing, `features/admin` giữ bề mặt của platform (user, role,
+settings). Mỗi feature export một `FeatureDefinition` gồm `routes`, `navigationItems` và
 `reportRangePaths`; `features/auth` — nơi có đăng nhập, `RequireSession`, layout, sidebar, topbar — ghép chúng — route của mỗi feature thành con của `RequireSession` →
 `FeatureLayout` của chính nó, mục menu thành nhóm theo `NavigationGroupEnum`. `features/auth` là feature duy nhất được import feature khác; feature còn lại không import `auth` hay nhau, `common/` không import feature nào; `apps/erp-ui/eslint.config.js` chặn cả ba chiều. URL của mọi
 màn không đổi.
@@ -112,8 +112,11 @@ UI có hai tầng, theo kiểu app launcher của Odoo. Sau đăng nhập, `/` l
 là một ô (`title`, `icon`, `tone` trong `FeatureDefinition`), chỉ hiện khi người dùng thấy được ít nhất
 một mục menu của nó. Chọn một ô là vào tầng feature: mỗi feature có `FeatureLayout` riêng, sidebar chỉ
 chứa menu của chính nó — không còn một sidebar gộp mọi module, thứ sẽ phình ra theo số module.
-`features/admin` hiện là ứng dụng "Cài đặt" (tài khoản, người dùng, vai trò, API key, webhook), với lối
-tắt ở top bar; cài đặt riêng của một module nằm trong nhóm "Cài đặt" của chính module đó (ví dụ
+`features/admin` hiện là ứng dụng "Cài đặt" (tài khoản, người dùng, vai trò), với lối
+tắt ở top bar. Webhook và API key là màn của module (`/billing/webhooks`, `/billing/api-keys`): người
+dùng tạo chúng cho một mục đích, và cắm hay rút một module không được chạm vào webhook, key của module
+khác — module sau này cần webhook thì có màn riêng dưới prefix của nó. Hạ tầng phía server (bảng,
+service, outbox → webhook) vẫn ở platform; tách chúng theo module ở phía API là bước sau; cài đặt riêng của một module nằm trong nhóm "Cài đặt" của chính module đó (ví dụ
 `/crm/settings`). Prefix khai một lần trong `routes/paths.ts`,
 page dựng URL bằng hằng path và `generatePath`, không viết chuỗi.
 

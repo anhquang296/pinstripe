@@ -10,7 +10,7 @@ Typed client cho VXR ERP API. Frontend không gọi API bằng tay nữa — m�
 | `@vxrerp/sdk/react` | app React có TanStack Query             | `VxrErpProvider`, query keys, `use*Query` / `use*Mutation` |
 | `@vxrerp/sdk/node`  | server (Next server components, script) | `createVxrErpClient()` đọc env, `webhooks.constructEvent`  |
 
-`react` và `react-query` là **optional peer** — `billing-portal-ui` import `.` và `/node` nên không bao giờ kéo React Query vào module graph.
+`react` và `react-query` là **optional peer** — `portal-ui` import `.` và `/node` nên không bao giờ kéo React Query vào module graph.
 
 ## Dùng
 

@@ -7,7 +7,7 @@ import { Gear } from '@gravity-ui/icons';
 
 export const adminFeature: FeatureDefinition = {
   title: 'Cài đặt',
-  description: 'Tài khoản, người dùng, vai trò và tích hợp',
+  description: 'Tài khoản, người dùng và vai trò',
   icon: <Gear />,
   tone: FeatureToneEnum.DEFAULT,
   homePath: adminPaths.SETTINGS_ACCOUNT,

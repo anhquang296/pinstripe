@@ -12,7 +12,7 @@ import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
 import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
-import { WEBHOOK_TABS } from '@features/admin/constants/tabs';
+import { WEBHOOK_TABS } from '@features/billing/constants/tabs';
 import { WebhookDeliveryStatusEnum } from '@vxrerp/platform/contracts';
 import { useWebhookDeliveriesQuery } from '@vxrerp/sdk/react';
 import { filter, get, isEmpty, isNull, last, size } from 'lodash-es';

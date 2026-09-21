@@ -25,8 +25,6 @@ const PERMISSION_OPTIONS = [
   { value: PermissionEnum.LEDGER_WRITE, label: 'ledger.write — ghi bút toán sổ cái' },
   { value: PermissionEnum.INTEGRATION_WRITE, label: 'integration.write — webhook endpoint' },
   { value: PermissionEnum.TEST_CLOCK_WRITE, label: 'test_clock.write — test clock' },
-  { value: PermissionEnum.API_KEY_MANAGE, label: 'api_key.manage — quản lý API key' },
-  { value: PermissionEnum.USER_MANAGE, label: 'user.manage — quản lý người dùng' },
   { value: PermissionEnum.PORTAL_WRITE, label: 'portal.write — mở phiên cổng khách hàng' },
 ];
 

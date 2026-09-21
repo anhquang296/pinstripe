@@ -19,7 +19,7 @@ import {
 import { cursorSearchParams, useCursorPagination } from '@common/hooks/useCursorPagination';
 import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
-import ApiKeyForm from '@features/admin/components/ApiKeyForm';
+import ApiKeyForm from '@features/billing/components/ApiKeyForm';
 import { Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
