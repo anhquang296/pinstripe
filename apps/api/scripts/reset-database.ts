@@ -1,4 +1,5 @@
 import { billingMigrationSource } from '@vxrerp/billing/database';
+import { crmMigrationSource } from '@vxrerp/crm/database';
 import type { Env } from '@vxrerp/platform/config';
 import { loadEnv, NodeEnvEnum } from '@vxrerp/platform/config';
 import {
@@ -10,7 +11,11 @@ import { Redis } from 'ioredis';
 
 async function resetDatabase(env: Env): Promise<void> {
   await dropDatabaseSchemas(env.DATABASE_URL);
-  await migrateDatabase(env.DATABASE_URL, [platformMigrationSource, billingMigrationSource]);
+  await migrateDatabase(env.DATABASE_URL, [
+    platformMigrationSource,
+    billingMigrationSource,
+    crmMigrationSource,
+  ]);
 }
 
 async function resetRedis(env: Env): Promise<number> {

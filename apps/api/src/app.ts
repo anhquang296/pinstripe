@@ -7,6 +7,7 @@ import { swaggerUiPlugin } from '@plugins/swagger-ui.plugin';
 import { apiRoutes } from '@routes/routes';
 import { parseQuerystring } from '@utils/querystring';
 import { billingPlugin } from '@vxrerp/billing/plugins';
+import { crmPlugin } from '@vxrerp/crm/plugins';
 import { platformPlugin } from '@vxrerp/platform/plugins';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
@@ -25,6 +26,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await fastify.register(platformPlugin);
   await fastify.register(billingPlugin);
+  await fastify.register(crmPlugin);
   await fastify.register(apiKeyPlugin);
   await fastify.register(apiVersionPlugin);
 

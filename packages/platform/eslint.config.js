@@ -5,7 +5,7 @@ export default node({
   ignores: ['migrations/'],
   importBans: [
     {
-      group: ['@vxrerp/billing', '@vxrerp/billing/*'],
+      group: ['@vxrerp/billing', '@vxrerp/billing/*', '@vxrerp/crm', '@vxrerp/crm/*'],
       message:
         'erp-module-convention: platform never imports a module — a module depends on platform, never the reverse.',
     },

@@ -30,6 +30,7 @@ export enum PermissionEnum {
   API_KEY_MANAGE = 'api_key.manage',
   USER_MANAGE = 'user.manage',
   PORTAL_WRITE = 'portal.write',
+  CRM_READ = 'crm.read',
 }
 export type Permission = `${PermissionEnum}`;
 
@@ -48,6 +49,7 @@ const ADMIN_PERMISSIONS: readonly Permission[] = [
   PermissionEnum.TEST_CLOCK_WRITE,
   PermissionEnum.API_KEY_MANAGE,
   PermissionEnum.USER_MANAGE,
+  PermissionEnum.CRM_READ,
 ];
 
 const MODERATOR_PERMISSIONS: readonly Permission[] = [
@@ -57,12 +59,13 @@ const MODERATOR_PERMISSIONS: readonly Permission[] = [
   PermissionEnum.SUBSCRIPTION_WRITE,
   PermissionEnum.INVOICE_WRITE,
   PermissionEnum.TEST_CLOCK_WRITE,
+  PermissionEnum.CRM_READ,
 ];
 
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   [UserRoleEnum.ADMIN]: ADMIN_PERMISSIONS,
   [UserRoleEnum.MODERATOR]: MODERATOR_PERMISSIONS,
-  [UserRoleEnum.MEMBER]: [PermissionEnum.BILLING_READ],
+  [UserRoleEnum.MEMBER]: [PermissionEnum.BILLING_READ, PermissionEnum.CRM_READ],
 };
 
 export const userSchema = Type.Object({

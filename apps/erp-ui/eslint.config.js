@@ -67,7 +67,7 @@ export default [
       ],
     },
   },
-  ...['admin', 'billing'].map((feature) => {
+  ...['admin', 'billing', 'crm'].map((feature) => {
     return {
       files: [`src/features/${feature}/**/*.{ts,tsx}`],
       rules: {

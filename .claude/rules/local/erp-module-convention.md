@@ -64,6 +64,22 @@ sql`update invoices set due_at = now() where id = ${invoiceId}`;
 
 Hạ tầng test dùng chung ở `@vxrerp/platform/testing`: `loadTestEnv(overrides)`, `createTestDatabaseSetup(sources)`, `truncateDatabase`. Test của platform chỉ đăng ký `platformPlugin` và chỉ migrate platform — nếu nó cần billing thì test đó thuộc billing. Seed đặc thù module (như `number_sequences`) được dựng lại trong `tests/context.ts` của module, không trong platform.
 
+## Thêm một module
+
+`@vxrerp/crm` là mẫu tối thiểu: một module chưa có tính năng nhưng đã cắm đủ mọi điểm nối. Module mới đi đúng các bước này; bước nào thiếu thì module chưa được cắm.
+
+| Lớp           | Việc                                                                                                                                                                | Chỗ (theo mẫu CRM)                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Shared kernel | Thêm member vào `DatabaseSchemaEnum`, và permission của module vào `PermissionEnum` + `ROLE_PERMISSIONS`                                                            | `packages/platform/src/types/database-schema.ts`, `contracts/users.types.ts` |
+| Package       | `packages/modules/<m>` (`@vxrerp/<m>`): `package.json` export `./database`, `./plugins` (điều kiện `import` **và** `default`), tsconfig, tsup, eslint               | `packages/modules/crm/`                                                      |
+| Dữ liệu       | `<m>PgSchema`, `drizzle.config.ts` với `schemaFilter` + `__<m>_migrations`, `pnpm db:generate`, `<m>MigrationSource` gọi `buildMigrationSource(import.meta.url, …)` | `src/database/`                                                              |
+| Plugin        | `<m>Plugin` đăng ký registry, config, và handler domain event của module                                                                                            | `src/plugins/crm.plugin.ts`                                                  |
+| Ranh giới     | Thêm `@vxrerp/<m>*` vào `importBans` của platform và của mọi module khác; module mới cấm lại các module đã có                                                       | `eslint.config.js` từng package                                              |
+| Composition   | Đăng ký `<m>Plugin` sau `billingPlugin`; thêm migration source vào `migrate-database.ts`, `reset-database.ts`, `apps/api/tests/global-setup.ts`; thêm dependency    | `apps/api`, `apps/worker`                                                    |
+| UI            | `features/<m>` với `FeatureDefinition`, thêm vào `ERP_FEATURES`, thêm tên vào danh sách feature của `eslint.config.js`, thêm nhóm menu nếu cần                      | `apps/erp-ui/src/features/crm/`                                              |
+
+Thứ tự đăng ký plugin là thứ tự phụ thuộc: `platformPlugin` → các module. Module không phụ thuộc nhau nên thứ tự giữa chúng không quan trọng, trừ thứ tự chạy handler cho cùng một event.
+
 ## NEVER Do
 
 - Import một module từ platform, hay import module này từ module kia.
@@ -74,3 +90,4 @@ Hạ tầng test dùng chung ở `@vxrerp/platform/testing`: `loadTestEnv(overri
 - Viết SQL tay mà không ghi schema.
 - Nới một enum của shared kernel thành `string` để module tự đăng ký giá trị.
 - Để test của platform nạp `billingPlugin`, hay đưa seed của module vào `truncateDatabase`.
+- Gọi `buildMigrationSource` mà không truyền `import.meta.url` của chính module — platform không resolve được package mà nó không phụ thuộc.

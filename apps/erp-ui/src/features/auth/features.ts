@@ -2,9 +2,10 @@ import type { FeatureDefinition } from '@common/types/feature-definition';
 import { buildNavigationGroups, matchesReportRange } from '@common/utils/navigation';
 import { adminFeature } from '@features/admin';
 import { billingFeature } from '@features/billing';
+import { crmFeature } from '@features/crm';
 import { flatMap } from 'lodash-es';
 
-export const ERP_FEATURES: FeatureDefinition[] = [adminFeature, billingFeature];
+export const ERP_FEATURES: FeatureDefinition[] = [adminFeature, billingFeature, crmFeature];
 
 const reportRangePaths = flatMap(ERP_FEATURES, 'reportRangePaths');
 

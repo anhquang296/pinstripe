@@ -119,5 +119,9 @@ page dựng URL bằng hằng path và `generatePath`, không viết chuỗi.
 
 - DB local cũ không migrate tiếp được: `pnpm db:reset` rồi seed lại. Test tự dọn `public`, `platform`,
   `billing`, `drizzle` trong global setup.
-- Phase 1b xong. CRM (Phase 2) là module thứ hai: `packages/modules/crm`, schema `crm`, `features/crm`
-  trong erp-ui, cộng giá trị mới trong các enum shared kernel.
+- Phase 1b xong. Phase 2 bắt đầu bằng khung module CRM (`@vxrerp/crm`, schema `crm`, `features/crm` ở
+  `/crm`, permission `crm.read`) chưa có tính năng: nó chứng minh một module cắm vào đủ mọi điểm nối và
+  nhận event `customer.*` của billing qua `crm.customer-activity` mà không import billing. Checklist thêm
+  module nằm trong `erp-module-convention.md`.
+- `buildMigrationSource` nhận `import.meta.url` của module gọi nó: resolve từ vị trí của platform chỉ
+  chạy khi pnpm tình cờ link được package đó, và hỏng ngay với module thứ hai.

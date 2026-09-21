@@ -2,6 +2,7 @@ import type { Permission } from '@vxrerp/platform/contracts';
 
 export enum NavigationGroupEnum {
   OVERVIEW = 'overview',
+  CRM = 'crm',
   SALES = 'sales',
   FINANCE = 'finance',
   DEVELOPERS = 'developers',
@@ -10,6 +11,7 @@ export enum NavigationGroupEnum {
 
 export const NAVIGATION_GROUP_LABELS: Record<NavigationGroupEnum, string> = {
   [NavigationGroupEnum.OVERVIEW]: 'Tổng quan',
+  [NavigationGroupEnum.CRM]: 'CRM',
   [NavigationGroupEnum.SALES]: 'Sales',
   [NavigationGroupEnum.FINANCE]: 'Finance',
   [NavigationGroupEnum.DEVELOPERS]: 'Developers',

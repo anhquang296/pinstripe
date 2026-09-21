@@ -1,4 +1,5 @@
 import { billingPlugin } from '@vxrerp/billing/plugins';
+import { crmPlugin } from '@vxrerp/crm/plugins';
 import { NodeEnvEnum } from '@vxrerp/platform/config';
 import { platformPlugin } from '@vxrerp/platform/plugins';
 import Fastify from 'fastify';
@@ -20,6 +21,7 @@ async function runScript(): Promise<void> {
 
   await fastify.register(platformPlugin);
   await fastify.register(billingPlugin);
+  await fastify.register(crmPlugin);
   await fastify.ready();
 
   if (fastify.config.NODE_ENV === NodeEnvEnum.PRODUCTION) {

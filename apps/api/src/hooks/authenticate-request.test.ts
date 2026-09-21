@@ -82,7 +82,10 @@ it('builds an actor from the session cookie of a GET request', async () => {
 
   expect(request.actor?.userId).toBe('usr_1');
   expect(request.actor?.role).toBe(UserRoleEnum.MEMBER);
-  expect(request.actor?.permissions).toEqual([PermissionEnum.BILLING_READ]);
+  expect(request.actor?.permissions).toEqual([
+    PermissionEnum.BILLING_READ,
+    PermissionEnum.CRM_READ,
+  ]);
   expect(request.auth).toBeUndefined();
   expect(header).not.toHaveBeenCalled();
 });

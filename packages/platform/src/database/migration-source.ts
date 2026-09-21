@@ -15,10 +15,11 @@ export interface MigrationSource {
 }
 
 export function buildMigrationSource(
+  moduleUrl: string,
   packageName: string,
   migrationsTable: string,
 ): MigrationSource {
-  const packageJsonPath = createRequire(import.meta.url).resolve(`${packageName}/package.json`);
+  const packageJsonPath = createRequire(moduleUrl).resolve(`${packageName}/package.json`);
 
   return {
     migrationsFolder: join(dirname(packageJsonPath), 'migrations'),
@@ -28,6 +29,7 @@ export function buildMigrationSource(
 }
 
 export const platformMigrationSource = buildMigrationSource(
+  import.meta.url,
   '@vxrerp/platform',
   '__platform_migrations',
 );
