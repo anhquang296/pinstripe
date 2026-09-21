@@ -79,6 +79,27 @@ caller đi bằng API key. Quản trị user chỉ có `find` / `get` / `create`
 phải một route, hạ quyền hay vô hiệu hoá đi qua `update` để `UserService` còn giữ được luật admin
 active cuối cùng — xem `auth-convention.md`.
 
+## `apiKeys` và `webhookEndpoints` nhận module từ người gọi
+
+Webhook endpoint và API key thuộc về một module (`ErpModuleEnum`), xem
+[`erp-module-convention.md`](./erp-module-convention.md). `apiKeys.create` và
+`webhookEndpoints.create` bắt buộc có `module` trong payload; `apiKeys.find`,
+`webhookEndpoints.find` và `webhookDeliveries.find` nhận `module` trong query. SDK **không** tự điền
+module: nó không biết màn nào đang gọi. Feature của erp-ui truyền module của chính nó — màn Billing
+truyền `ErpModuleEnum.BILLING` vào cả payload tạo lẫn query danh sách, để không thấy key hay endpoint
+của module khác.
+
+```ts
+// CORRECT — module do màn billing quyết
+vxrErp.webhookEndpoints.create({ module: ErpModuleEnum.BILLING, url, enabledEvents });
+useApiKeysQuery({ limit, module: ErpModuleEnum.BILLING, ...toQuery(search) });
+
+// WRONG — SDK tự gán mặc định, màn của module khác sẽ tạo nhầm vào billing
+create(payload) {
+  return this._transport.post(WEBHOOK_ENDPOINTS_PATH, { module: 'billing', ...payload });
+}
+```
+
 ## `operationId` của route v1 là tên method SDK
 
 `apps/api/openapi.json` sinh từ `schema` của route qua `@fastify/swagger` (`pnpm --filter @vxrerp/api openapi`). Mỗi route v1 khai `operationId: '<resource>.<method>'` đúng bằng lời gọi SDK. Không khai `summary` hay `description` trên route:
@@ -125,7 +146,7 @@ Không thêm method của module khác vào `portal.*`.
 
 `useCreatePortalLinkMutation` cũng ở entry portal, không ở barrel chính: `POST /v1/portal/links` chỉ
 nhận API key mang `portal.write` (`verifyPortalKeyRequest`), mà cookie session của dashboard **không**
-đi qua hook đó — xem [`auth-convention.md`](./auth-convention.md). Admin-ui gọi nó là 404/401,
+đi qua hook đó — xem [`auth-convention.md`](./auth-convention.md). erp-ui gọi nó là 404/401,
 không bao giờ chạy. Kế toán Vexere mở link cho một nhà xe bằng `billingPortal.sessions.create`
 (`POST /v1/billing_portal/sessions`, surface `v1`, quyền `customer.write`), trả đúng URL
 `/login/verify?linkKey=…` dùng một lần. Đường gửi email chỉ có ở `portal-ui`, nơi BFF gắn
@@ -187,3 +208,4 @@ trình duyệt vẫn chỉ đi qua `VxrErpClient({ baseUrl: '/bff' })` và hook 
 - Đọc `process.env` ngoài `src/node/create-vxr-erp-client.ts`.
 - Đặt `splitting: false` trong `tsup.config.ts` — `instanceof VxrErpError` sẽ sai giữa các entry.
 - Đặt method của một module khác billing vào `portal.*`, hay đặt tên portal mới không mang tiền tố module.
+- Cho SDK tự điền `module` khi tạo hay liệt kê API key, webhook endpoint, webhook delivery — module do feature gọi truyền vào.
