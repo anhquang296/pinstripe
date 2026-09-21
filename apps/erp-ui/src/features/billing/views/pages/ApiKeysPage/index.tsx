@@ -24,7 +24,7 @@ import { Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { ApiKeyResponse } from '@vxrerp/platform/contracts';
-import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
+import { ApiKeyTypeEnum, ErpModuleEnum, PermissionEnum } from '@vxrerp/platform/contracts';
 import {
   useApiKeysQuery,
   useCreateApiKeyMutation,
@@ -56,7 +56,7 @@ export default function ApiKeysPage() {
   const canManage = useCan(PermissionEnum.API_KEY_MANAGE);
 
   const { data: apiKeys, isPending } = useApiKeysQuery(
-    { limit: PAGE_LIMIT, ...toQuery(search) },
+    { limit: PAGE_LIMIT, module: ErpModuleEnum.BILLING, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -77,7 +77,7 @@ export default function ApiKeysPage() {
   const hasMore = get(apiKeys, 'hasMore', false);
 
   const handleOnSave = form.handleSubmit(async (formData) => {
-    const { token } = await createApiKey(apiKeyFormDataToPayload(formData));
+    const { token } = await createApiKey(apiKeyFormDataToPayload(formData, ErpModuleEnum.BILLING));
 
     if (token) {
       setCreatedToken(token);

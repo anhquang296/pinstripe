@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
+import type { ErpModule } from '@contracts/modules.types';
+import { DOMAIN_EVENT_MODULES } from '@contracts/modules.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type {
@@ -14,7 +16,12 @@ import type {
 } from '@contracts/webhooks.types';
 import { WebhookDeliveryStatusEnum, WebhookEndpointStatusEnum } from '@contracts/webhooks.types';
 import type { WebhookEndpoint } from '@database/schemas';
-import { ConflictError, NotFoundError, TooManyRequestsError } from '@errors/app.error';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  TooManyRequestsError,
+} from '@errors/app.error';
 import type { DomainEventDispatchJob } from '@queues/domain-event.queue';
 import { QueueNameEnum } from '@queues/queue-name';
 import type { WebhookDeliveryJob } from '@queues/webhook.queue';
@@ -49,8 +56,11 @@ export class WebhookService {
 
     const { description = '', metadata = {} } = payload;
 
+    WebhookService.assertEventTypesBelongTo(payload.module, payload.enabledEvents);
+
     const createdEndpoint = await this.fastify.webhookRepository.createWebhookEndpoint({
       id,
+      module: payload.module,
       url: payload.url,
       status: WebhookEndpointStatusEnum.ENABLED,
       enabledEvents: [...payload.enabledEvents],
@@ -72,9 +82,13 @@ export class WebhookService {
     id: string,
     payload: UpdateWebhookEndpointPayload,
   ): Promise<WebhookEndpointResponse> {
-    await this.fastify.webhookRepository.getWebhookEndpoint(id);
+    const endpoint = await this.fastify.webhookRepository.getWebhookEndpoint(id);
 
     const enabledEvents = payload.enabledEvents ? [...payload.enabledEvents] : undefined;
+
+    if (enabledEvents) {
+      WebhookService.assertEventTypesBelongTo(endpoint.module, enabledEvents);
+    }
 
     const updatedEndpoint = await this.fastify.webhookRepository.updateWebhookEndpoint(id, {
       status: payload.status,
@@ -106,7 +120,7 @@ export class WebhookService {
     const afterAt = await this.resolveEndpointCursor(query.before);
 
     const rows = await this.fastify.webhookRepository.findWebhookEndpoints(
-      { status: query.status, beforeAt, afterAt },
+      { module: query.module, status: query.status, beforeAt, afterAt },
       limit + 1,
     );
 
@@ -125,7 +139,7 @@ export class WebhookService {
     const { limit = DEFAULT_PAGE_LIMIT } = query;
 
     const rows = await this.fastify.webhookRepository.findWebhookDeliveries(
-      { endpointId: query.endpointId, status: query.status },
+      { endpointId: query.endpointId, endpointModule: query.module, status: query.status },
       limit + 1,
     );
 
@@ -138,7 +152,7 @@ export class WebhookService {
 
   async handleDomainEvent(event: DomainEventDispatchJob): Promise<number> {
     const endpoints = await this.fastify.webhookRepository.findWebhookEndpoints(
-      { status: WebhookEndpointStatusEnum.ENABLED },
+      { module: DOMAIN_EVENT_MODULES[event.eventType], status: WebhookEndpointStatusEnum.ENABLED },
       ENDPOINT_SCAN_LIMIT,
     );
 
@@ -318,6 +332,27 @@ export class WebhookService {
     return `${SECRET_PREFIX}${randomBytes(SECRET_BYTE_LENGTH).toString('hex')}`;
   }
 
+  private static assertEventTypesBelongTo(
+    module: ErpModule,
+    enabledEvents: readonly string[],
+  ): void {
+    const moduleEventTypes = _.keys(
+      _.pickBy(DOMAIN_EVENT_MODULES, (eventModule) => {
+        return eventModule === module;
+      }),
+    );
+
+    const foreignEventTypes = _.difference(enabledEvents, moduleEventTypes);
+
+    if (_.isEmpty(foreignEventTypes)) {
+      return;
+    }
+
+    throw new BadRequestError(
+      `Event types ${_.join(foreignEventTypes, ', ')} do not belong to module ${module}`,
+    );
+  }
+
   private static buildEndpoint(
     entity: WebhookEndpoint,
     options: { hasSecret: boolean },
@@ -326,6 +361,7 @@ export class WebhookService {
 
     return {
       id: entity.id,
+      module: entity.module,
       url: entity.url,
       status: entity.status,
       enabledEvents: entity.enabledEvents,

@@ -8,11 +8,13 @@ import type {
   RequestAuth,
 } from '@contracts/api-keys.types';
 import { ApiKeyTypeEnum } from '@contracts/api-keys.types';
+import type { ErpModule } from '@contracts/modules.types';
+import { PERMISSION_MODULES } from '@contracts/modules.types';
 import type { ListResponse } from '@contracts/pagination.types';
 import { DEFAULT_PAGE_LIMIT } from '@contracts/pagination.types';
 import type { Permission } from '@contracts/users.types';
 import type { ApiKey } from '@database/schemas';
-import { NotFoundError, UnauthorizedError } from '@errors/app.error';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
@@ -29,6 +31,7 @@ const TYPE_PREFIXES: Record<ApiKeyType, string> = {
 
 export interface BootstrapApiKey {
   name: string;
+  module: ErpModule | null;
   token: string;
   permissions: readonly Permission[];
   type?: ApiKeyType;
@@ -38,6 +41,8 @@ export class ApiKeyService {
   constructor(private readonly fastify: FastifyInstance) {}
 
   async createApiKey(payload: CreateApiKeyPayload): Promise<ApiKeyResponse> {
+    ApiKeyService.assertPermissionsBelongTo(payload.module, payload.permissions);
+
     const token = ApiKeyService.buildToken(payload.type);
 
     const createdAt = this.fastify.clock.now().toISOString();
@@ -45,6 +50,7 @@ export class ApiKeyService {
     const createdApiKey = await this.fastify.apiKeyRepository.createApiKey({
       id: generateGid(ObjectPrefixEnum.API_KEY),
       name: payload.name,
+      module: payload.module,
       type: payload.type,
       permissions: [...payload.permissions],
       tokenPrefix: token.slice(0, TOKEN_PREFIX_LENGTH),
@@ -68,7 +74,11 @@ export class ApiKeyService {
     const beforeAt = await this.resolveCursor(query.after);
     const afterAt = await this.resolveCursor(query.before);
 
-    const rows = await this.fastify.apiKeyRepository.findApiKeys({ beforeAt, afterAt }, limit + 1);
+    const rows = await this.fastify.apiKeyRepository.findApiKeys(
+      { module: query.module, beforeAt, afterAt },
+      limit + 1,
+    );
+
     const hasMore = rows.length > limit;
 
     return {
@@ -139,6 +149,7 @@ export class ApiKeyService {
 
       if (existingApiKey) {
         await this.fastify.apiKeyRepository.updateApiKey(existingApiKey.id, {
+          module: bootstrapKey.module,
           permissions: [...bootstrapKey.permissions],
           updatedAt: createdAt,
         });
@@ -149,6 +160,7 @@ export class ApiKeyService {
       const createdApiKey = await this.fastify.apiKeyRepository.createApiKey({
         id: generateGid(ObjectPrefixEnum.API_KEY),
         name: bootstrapKey.name,
+        module: bootstrapKey.module,
         type,
         permissions: [...bootstrapKey.permissions],
         tokenPrefix: bootstrapKey.token.slice(0, TOKEN_PREFIX_LENGTH),
@@ -179,6 +191,23 @@ export class ApiKeyService {
     return undefined;
   }
 
+  private static assertPermissionsBelongTo(
+    module: ErpModule,
+    permissions: readonly Permission[],
+  ): void {
+    const foreignPermissions = _.reject(permissions, (permission) => {
+      return PERMISSION_MODULES[permission] === module;
+    });
+
+    if (_.isEmpty(foreignPermissions)) {
+      return;
+    }
+
+    throw new BadRequestError(
+      `Permissions ${_.join(foreignPermissions, ', ')} do not belong to module ${module}`,
+    );
+  }
+
   static hasPermission(auth: RequestAuth, permission: Permission): boolean {
     return _.includes(auth.permissions, permission);
   }
@@ -195,6 +224,7 @@ export class ApiKeyService {
     return {
       id: apiKey.id,
       name: apiKey.name,
+      module: apiKey.module,
       type: apiKey.type,
       permissions: apiKey.permissions,
       tokenPrefix: apiKey.tokenPrefix,

@@ -1,6 +1,6 @@
 import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/billing/contracts';
 import { CurrencyEnum } from '@vxrerp/billing/utils';
-import { PermissionEnum, VXRERP_API_VERSION } from '@vxrerp/platform/contracts';
+import { ErpModuleEnum, PermissionEnum, VXRERP_API_VERSION } from '@vxrerp/platform/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -188,12 +188,71 @@ describe('key lifecycle', () => {
   });
 
   it('returns the plaintext token once at creation and never again', async () => {
-    const created = await mintApiKey(fastify, ALL_PERMISSIONS);
+    const created = await mintApiKey(fastify, [PermissionEnum.BILLING_READ]);
     const listed = await fastify.apiKeyService.findApiKeys({ limit: 100 });
     const stored = _.find(listed.data, { id: created.id });
     const storedToken = _.get(stored, 'token');
 
     expect(created.token).toMatch(/^sk_[0-9a-f]{48}$/);
     expect(storedToken).toBeNull();
+  });
+});
+
+describe('module scope', () => {
+  it('creates a key owned by the module whose permissions it carries', async () => {
+    const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
+
+    const response = await fastify.inject({
+      method: 'POST',
+      url: '/v1/api_keys',
+      headers: buildAuthHeaders(apiKey.token),
+      payload: {
+        name: 'billing sync',
+        module: ErpModuleEnum.BILLING,
+        type: 'restricted',
+        permissions: [PermissionEnum.BILLING_READ, PermissionEnum.INVOICE_WRITE],
+      },
+    });
+
+    expect(response.statusCode).toBe(201);
+    expect(response.json().module).toBe(ErpModuleEnum.BILLING);
+  });
+
+  it.each([
+    { permission: PermissionEnum.USER_MANAGE },
+    { permission: PermissionEnum.API_KEY_MANAGE },
+    { permission: PermissionEnum.CRM_READ },
+  ])('refuses a billing key that asks for $permission', async ({ permission }) => {
+    const apiKey = await mintApiKey(fastify, ALL_PERMISSIONS);
+
+    const response = await fastify.inject({
+      method: 'POST',
+      url: '/v1/api_keys',
+      headers: buildAuthHeaders(apiKey.token),
+      payload: {
+        name: 'too wide',
+        module: ErpModuleEnum.BILLING,
+        type: 'secret',
+        permissions: [PermissionEnum.BILLING_READ, permission],
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('lists only the keys of the module the query names', async () => {
+    const billingKey = await mintApiKey(fastify, [PermissionEnum.BILLING_READ]);
+    const crmKey = await mintApiKey(fastify, [PermissionEnum.CRM_READ]);
+
+    const listed = await fastify.apiKeyService.findApiKeys({
+      module: ErpModuleEnum.BILLING,
+      limit: 100,
+    });
+
+    const listedIds = _.map(listed.data, 'id');
+
+    expect(listedIds).toContain(billingKey.id);
+    expect(listedIds).not.toContain(crmKey.id);
+    expect(_.uniq(_.map(listed.data, 'module'))).toEqual([ErpModuleEnum.BILLING]);
   });
 });

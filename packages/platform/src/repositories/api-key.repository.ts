@@ -1,4 +1,5 @@
 import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
+import type { ErpModule } from '@contracts/modules.types';
 import type { DatabaseClient } from '@database/database.client';
 import type { ApiKey, NewApiKey } from '@database/schemas';
 import { apiKeys } from '@database/schemas';
@@ -8,6 +9,7 @@ import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 export interface ApiKeyFilters {
   tokenHash?: string;
+  module?: ErpModule;
   revokedAtIsNull?: boolean;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -43,6 +45,7 @@ export class ApiKeyRepository {
   async findApiKeys(filters: ApiKeyFilters = {}, limit = DEFAULT_QUERY_LIMIT): Promise<ApiKey[]> {
     const where = and(
       filters.tokenHash ? eq(apiKeys.tokenHash, filters.tokenHash) : undefined,
+      filters.module ? eq(apiKeys.module, filters.module) : undefined,
       filters.revokedAtIsNull ? isNull(apiKeys.revokedAt) : undefined,
       filters.beforeAt
         ? sql`(${apiKeys.createdAt}, ${apiKeys.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`

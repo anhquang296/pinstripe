@@ -1,3 +1,4 @@
+import type { ErpModule } from '@contracts/modules.types';
 import type { WebhookDeliveryStatus, WebhookEndpointStatus } from '@contracts/webhooks.types';
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { platformPgSchema } from '@database/schemas/pg-schema.schema';
@@ -8,6 +9,7 @@ export const webhookEndpoints = platformPgSchema.table(
   'webhook_endpoints',
   {
     id: text('id').primaryKey(),
+    module: text('module').$type<ErpModule>().notNull(),
     url: text('url').notNull(),
     status: text('status').$type<WebhookEndpointStatus>().notNull(),
     enabledEvents: jsonb('enabled_events').$type<string[]>().notNull().default([]),
@@ -24,6 +26,7 @@ export const webhookEndpoints = platformPgSchema.table(
   (table) => {
     return [
       index('webhook_endpoints_status_idx').on(table.status),
+      index('webhook_endpoints_module_idx').on(table.module),
       index('webhook_endpoints_created_at_id_idx').on(table.createdAt, table.id),
     ];
   },

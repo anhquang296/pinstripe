@@ -5,10 +5,11 @@ sidebar:
   order: 6
 ---
 
-Đăng ký một endpoint để nhận event:
+Đăng ký một endpoint để nhận event. Mỗi endpoint thuộc về đúng một module (`billing`) và chỉ đăng ký được event của module đó:
 
 ```ts
 const webhookEndpoint = await vxrErp.webhookEndpoints.create({
+  module: 'billing',
   url: 'https://example.com/webhooks/vxrerp',
   enabledEvents: ['invoice.paid', 'invoice.voided'],
 });

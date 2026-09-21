@@ -222,6 +222,7 @@ JSON='content-type: application/json'
 curl -s -X POST $API/v1/webhook_endpoints -H "$AUTH" -H "$JSON" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{
+    "module": "billing",
     "url": "http://localhost:4100/hooks",
     "enabledEvents": ["invoice.finalized","invoice.paid","payment_intent.succeeded","subscription.created"],
     "description": "Tích hợp CRM"

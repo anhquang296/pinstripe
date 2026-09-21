@@ -116,7 +116,10 @@ chứa menu của chính nó — không còn một sidebar gộp mọi module, t
 tắt ở top bar. Webhook và API key là màn của module (`/billing/webhooks`, `/billing/api-keys`): người
 dùng tạo chúng cho một mục đích, và cắm hay rút một module không được chạm vào webhook, key của module
 khác — module sau này cần webhook thì có màn riêng dưới prefix của nó. Hạ tầng phía server (bảng,
-service, outbox → webhook) vẫn ở platform; tách chúng theo module ở phía API là bước sau; cài đặt riêng của một module nằm trong nhóm "Cài đặt" của chính module đó (ví dụ
+service, outbox → webhook) vẫn ở platform, nhưng mỗi endpoint và mỗi key mang cột `module`:
+endpoint chỉ đăng ký event của module mình (`DOMAIN_EVENT_MODULES`), key chỉ mang permission của
+module mình (`PERMISSION_MODULES`), list lọc theo `module`, và fan-out chỉ quét endpoint của module
+phát event. Key `module = null` là key của cả ERP, chỉ sinh từ env `SECRET_API_KEY`; cài đặt riêng của một module nằm trong nhóm "Cài đặt" của chính module đó (ví dụ
 `/crm/settings`). Prefix khai một lần trong `routes/paths.ts`,
 page dựng URL bằng hằng path và `generatePath`, không viết chuỗi.
 

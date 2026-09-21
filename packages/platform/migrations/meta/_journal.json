@@ -8,6 +8,13 @@
       "when": 1789983504176,
       "tag": "0000_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789990074467,
+      "tag": "0001_scope_integrations_by_module",
+      "breakpoints": true
     }
   ]
 }

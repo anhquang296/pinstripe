@@ -1,6 +1,7 @@
 import { DomainEventTypeEnum } from '@contracts/events.types';
+import { ErpModuleEnum } from '@contracts/modules.types';
 import { WebhookDeliveryStatusEnum } from '@contracts/webhooks.types';
-import { ConflictError, TooManyRequestsError } from '@errors/app.error';
+import { BadRequestError, ConflictError, TooManyRequestsError } from '@errors/app.error';
 import { generateGid, ObjectPrefixEnum } from '@utils/gid-factory';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
@@ -20,6 +21,7 @@ afterAll(async () => {
 
 async function makeDelivery(): Promise<string> {
   const endpoint = await fastify.webhookService.createWebhookEndpoint({
+    module: ErpModuleEnum.BILLING,
     url: 'https://example.test/hooks',
     enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
   });
@@ -103,4 +105,45 @@ it('stops delivering to one endpoint once it is over its rate limit', async () =
   const act = fastify.webhookService.resolveDeliveryAttempt(deliveryId);
 
   await expect(act).rejects.toThrow(TooManyRequestsError);
+});
+
+it('refuses an endpoint that subscribes to events of another module', async () => {
+  await expect(
+    fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.CRM,
+      url: 'https://example.test/crm',
+      enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
+    }),
+  ).rejects.toThrow(BadRequestError);
+});
+
+it('refuses an update that moves an endpoint onto events of another module', async () => {
+  const endpoint = await fastify.webhookService.createWebhookEndpoint({
+    module: ErpModuleEnum.CRM,
+    url: 'https://example.test/crm-empty',
+    enabledEvents: [],
+  });
+
+  await expect(
+    fastify.webhookService.updateWebhookEndpoint(endpoint.id, {
+      enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
+    }),
+  ).rejects.toThrow(BadRequestError);
+});
+
+it('lists the deliveries of one module only', async () => {
+  const deliveryId = await makeDelivery();
+
+  const billingDeliveries = await fastify.webhookService.findWebhookDeliveries({
+    module: ErpModuleEnum.BILLING,
+    limit: 100,
+  });
+
+  const crmDeliveries = await fastify.webhookService.findWebhookDeliveries({
+    module: ErpModuleEnum.CRM,
+    limit: 100,
+  });
+
+  expect(_.map(billingDeliveries.data, 'id')).toContain(deliveryId);
+  expect(_.map(crmDeliveries.data, 'id')).not.toContain(deliveryId);
 });

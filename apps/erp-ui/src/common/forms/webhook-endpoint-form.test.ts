@@ -1,4 +1,8 @@
-import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/platform/contracts';
+import {
+  DomainEventTypeEnum,
+  ErpModuleEnum,
+  WebhookEndpointStatusEnum,
+} from '@vxrerp/platform/contracts';
 import type { WebhookEndpointResponse } from '@vxrerp/sdk';
 import { describe, expect, it } from 'vitest';
 
@@ -13,6 +17,7 @@ function makeWebhookEndpoint(
 ): WebhookEndpointResponse {
   return {
     id: 'whe_1',
+    module: ErpModuleEnum.BILLING,
     url: 'http://localhost:4100/hooks',
     status: WebhookEndpointStatusEnum.ENABLED,
     enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
@@ -50,9 +55,10 @@ describe('webhookEndpointFormDataToPayload', () => {
   it('bỏ mô tả khỏi payload tạo mới khi mô tả rỗng', () => {
     const formData = webhookEndpointToFormData(makeWebhookEndpoint({ description: '' }));
 
-    const result = webhookEndpointFormDataToPayload(formData);
+    const result = webhookEndpointFormDataToPayload(formData, ErpModuleEnum.BILLING);
 
     expect(result).toEqual({
+      module: ErpModuleEnum.BILLING,
       url: 'http://localhost:4100/hooks',
       enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
       description: undefined,

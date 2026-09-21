@@ -43,13 +43,20 @@ it('sends the one api key the client was built with', async () => {
 it('creates an api key with the permissions it was given', async () => {
   const { client, fetchImpl } = setup({ id: 'ak_1' }, 201);
 
-  await client.apiKeys.create({ name: 'ci', type: 'secret', permissions: ['billing.read'] });
+  const payload = {
+    name: 'ci',
+    module: 'billing',
+    type: 'secret',
+    permissions: ['billing.read'],
+  } as const;
+
+  await client.apiKeys.create({ ...payload, permissions: [...payload.permissions] });
 
   const { url, method, body } = readCall(fetchImpl);
 
   expect(url).toBe('/v1/api_keys');
   expect(method).toBe('POST');
-  expect(body).toBe(JSON.stringify({ name: 'ci', type: 'secret', permissions: ['billing.read'] }));
+  expect(body).toBe(JSON.stringify(payload));
 });
 
 it('deletes an api key by id', async () => {

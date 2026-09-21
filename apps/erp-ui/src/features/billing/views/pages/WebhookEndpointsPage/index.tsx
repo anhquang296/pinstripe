@@ -26,7 +26,11 @@ import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { WebhookEndpointResponse } from '@vxrerp/platform/contracts';
-import { PermissionEnum, WebhookEndpointStatusEnum } from '@vxrerp/platform/contracts';
+import {
+  ErpModuleEnum,
+  PermissionEnum,
+  WebhookEndpointStatusEnum,
+} from '@vxrerp/platform/contracts';
 import { useCreateWebhookEndpointMutation, useWebhookEndpointsQuery } from '@vxrerp/sdk/react';
 import { filter, get, isNull, last, size, sumBy } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
@@ -61,7 +65,7 @@ export default function WebhookEndpointsPage() {
   const canWrite = useCan(PermissionEnum.INTEGRATION_WRITE);
 
   const { data: webhookEndpoints, isPending } = useWebhookEndpointsQuery(
-    { limit: PAGE_LIMIT, ...toQuery(search) },
+    { limit: PAGE_LIMIT, module: ErpModuleEnum.BILLING, ...toQuery(search) },
     { hasPlaceholder: true },
   );
 
@@ -81,7 +85,7 @@ export default function WebhookEndpointsPage() {
   const hasMore = get(webhookEndpoints, 'hasMore', false);
 
   const handleOnSave = form.handleSubmit(async (formData) => {
-    await createWebhookEndpoint(webhookEndpointFormDataToPayload(formData));
+    await createWebhookEndpoint(webhookEndpointFormDataToPayload(formData, ErpModuleEnum.BILLING));
     form.reset(webhookEndpointFormDefaultValues);
     setIsCreateOpen(false);
   });

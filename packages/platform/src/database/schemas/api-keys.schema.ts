@@ -1,4 +1,5 @@
 import type { ApiKeyType } from '@contracts/api-keys.types';
+import type { ErpModule } from '@contracts/modules.types';
 import type { Permission } from '@contracts/users.types';
 import { isoTimestamp } from '@database/columns/iso-timestamp';
 import { platformPgSchema } from '@database/schemas/pg-schema.schema';
@@ -10,6 +11,7 @@ export const apiKeys = platformPgSchema.table(
   {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
+    module: text('module').$type<ErpModule>(),
     type: text('type').$type<ApiKeyType>().notNull(),
     permissions: jsonb('permissions').$type<Permission[]>().notNull().default([]),
     tokenPrefix: text('token_prefix').notNull(),
@@ -27,6 +29,7 @@ export const apiKeys = platformPgSchema.table(
     return [
       uniqueIndex('api_keys_token_hash_idx').on(table.tokenHash),
       index('api_keys_created_at_id_idx').on(table.createdAt, table.id),
+      index('api_keys_module_idx').on(table.module),
     ];
   },
 );

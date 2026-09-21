@@ -1,10 +1,11 @@
-import { DomainEventTypeEnum } from '@vxrerp/platform/contracts';
+import { DomainEventTypeEnum, ErpModuleEnum } from '@vxrerp/platform/contracts';
 import type { FastifyInstance } from 'fastify';
 
 const DEMO_WEBHOOK_URL = 'https://webhook.site/vxrerp-demo';
 
 export async function seedIntegrations(fastify: FastifyInstance): Promise<void> {
   await fastify.webhookService.createWebhookEndpoint({
+    module: ErpModuleEnum.BILLING,
     url: DEMO_WEBHOOK_URL,
     description: 'Hệ thống kế toán nội bộ Vexere',
     enabledEvents: [

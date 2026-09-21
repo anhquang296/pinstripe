@@ -1,5 +1,5 @@
 import type { Permission, RequestAuth, UserAuth } from '@vxrerp/platform/contracts';
-import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
+import { ApiKeyTypeEnum, ErpModuleEnum, PermissionEnum } from '@vxrerp/platform/contracts';
 import type { BootstrapApiKey } from '@vxrerp/platform/services';
 import fp from 'fastify-plugin';
 
@@ -16,12 +16,18 @@ export const apiKeyPlugin = fp(async (fastify) => {
   const { SECRET_API_KEY, PORTAL_API_KEY } = fastify.config;
 
   const bootstrapKeys: BootstrapApiKey[] = [
-    { name: 'bootstrap secret', token: SECRET_API_KEY, permissions: SECRET_KEY_PERMISSIONS },
+    {
+      name: 'bootstrap secret',
+      module: null,
+      token: SECRET_API_KEY,
+      permissions: SECRET_KEY_PERMISSIONS,
+    },
   ];
 
   if (PORTAL_API_KEY) {
     bootstrapKeys.push({
       name: 'bootstrap portal',
+      module: ErpModuleEnum.BILLING,
       token: PORTAL_API_KEY,
       permissions: [PermissionEnum.PORTAL_WRITE],
       type: ApiKeyTypeEnum.PUBLISHABLE,

@@ -94,6 +94,13 @@ Session bị từ chối bằng `UnauthorizedError` khi không có session, khi 
 xoá. `SECRET` mang toàn bộ permission, `RESTRICTED` mang đúng tập được cấp lúc tạo, `PUBLISHABLE`
 mang `[portal.write]`.
 
+Mỗi key thuộc về một module (`api_keys.module`, `ErpModuleEnum`) và chỉ mang permission của module
+đó: `ApiKeyService.createApiKey` tra `PERMISSION_MODULES` và trả `BadRequestError` cho permission
+của module khác, hay của platform (`user.manage`, `api_key.manage`, map về `null`). Không thêm đường
+tạo key không có module qua HTTP. `module = null` là key của cả ERP và chỉ sinh từ env qua
+`ensureBootstrapApiKeys` (`SECRET_API_KEY`); key portal bootstrap thuộc `billing`. Danh sách key lọc
+theo `module`, nên màn API key của một module không thấy key của module khác.
+
 `ROLE_PERMISSIONS[ADMIN]` là hằng `ADMIN_PERMISSIONS` liệt kê tường minh, **không** phải
 `Object.values(PermissionEnum)`: `portal.write` là quyền của machine caller, và `Object.values` sẽ
 âm thầm cấp nó — cùng mọi permission phi-dashboard thêm về sau — cho role admin.
@@ -138,6 +145,7 @@ Chỉ đọc chúng trong `better-auth.plugin.ts`; client nhận config đã res
 - Bỏ check `Origin` ở route auth, hay ở nhánh session của `authenticateRequest`, với lý do better-auth đã tự check.
 - Cho `authenticateRequest` nhận lại một tham số surface, hay cho một hook của surface máy gọi máy (`portal` key, `hosted`, `webhooks`) đọc cookie session.
 - Cho request đi bằng API key bỏ qua `authorizeRequest` — permission áp cho cả hai đường.
+- Tạo qua HTTP một key không có `module`, hay cho một key mang permission của module khác hoặc của platform.
 - Dựng lại `ApiKeyScopeEnum`, hay cho `ROLE_PERMISSIONS[ADMIN]` quay về `Object.values(PermissionEnum)`.
 - Đảo thứ tự resolve trong `resolveOperationPermission` để shortcut `find` / `get` chạy trước override theo full `operationId`.
 - Mở một route khi không resolve được permission của nó — thiếu permission là `ForbiddenError`, không phải mặc định cho qua.

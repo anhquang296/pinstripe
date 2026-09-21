@@ -4,6 +4,7 @@ import { DECLINE_TAXONOMY, DeclineCodeEnum } from '@contracts/payments.types';
 import { MILLISECONDS_PER_DAY } from '@vxrerp/platform/constants';
 import {
   DomainEventTypeEnum,
+  ErpModuleEnum,
   WebhookDeliveryStatusEnum,
   WebhookEndpointStatusEnum,
 } from '@vxrerp/platform/contracts';
@@ -268,6 +269,7 @@ describe('DunningService.runDunningShard', () => {
 describe('WebhookService.createWebhookEndpoint', () => {
   it('returns the signing secret once, at creation, and never again', async () => {
     const created = await fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.BILLING,
       url: 'https://example.test/hooks',
       enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
     });
@@ -285,11 +287,13 @@ describe('WebhookService.handleDomainEvent', () => {
     const eventId = generateGid(ObjectPrefixEnum.EVENT);
 
     const subscribed = await fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.BILLING,
       url: 'https://example.test/subscribed',
       enabledEvents: [DomainEventTypeEnum.INVOICE_PAID],
     });
 
     await fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.BILLING,
       url: 'https://example.test/uninterested',
       enabledEvents: [DomainEventTypeEnum.CUSTOMER_CREATED],
     });
@@ -314,6 +318,7 @@ describe('WebhookService.handleDomainEvent', () => {
 
   it('ignores a disabled endpoint', async () => {
     const endpoint = await fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.BILLING,
       url: 'https://example.test/disabled',
       enabledEvents: [DomainEventTypeEnum.INVOICE_VOIDED],
     });
@@ -340,6 +345,7 @@ describe('WebhookService.handleDomainEvent', () => {
 
   it('signs the body it will actually send with the endpoint secret', async () => {
     const created = await fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.BILLING,
       url: 'https://example.test/signed',
       enabledEvents: [DomainEventTypeEnum.INVOICE_FINALIZED],
     });
@@ -367,6 +373,7 @@ describe('WebhookService.handleDomainEvent', () => {
     const eventId = generateGid(ObjectPrefixEnum.EVENT);
 
     const created = await fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.BILLING,
       url: 'https://example.test/idempotent',
       enabledEvents: [DomainEventTypeEnum.REFUND_CREATED],
     });
@@ -393,6 +400,7 @@ describe('WebhookService.handleDomainEvent', () => {
 describe('WebhookService.recordDeliveryResult', () => {
   it('keeps the failure reason on the delivery so a dead endpoint is visible', async () => {
     const created = await fastify.webhookService.createWebhookEndpoint({
+      module: ErpModuleEnum.BILLING,
       url: 'https://example.test/broken',
       enabledEvents: [DomainEventTypeEnum.INVOICE_CREATED],
     });

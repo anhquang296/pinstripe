@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ErpModule } from '@vxrerp/platform/contracts';
 import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
 import type { CreateApiKeyPayload } from '@vxrerp/sdk';
 import { z } from 'zod';
@@ -19,9 +20,13 @@ export const apiKeyFormDefaultValues: ApiKeyFormData = {
   permissions: [PermissionEnum.BILLING_READ],
 };
 
-export function apiKeyFormDataToPayload(formData: ApiKeyFormData): CreateApiKeyPayload {
+export function apiKeyFormDataToPayload(
+  formData: ApiKeyFormData,
+  module: ErpModule,
+): CreateApiKeyPayload {
   return {
     name: formData.name,
+    module,
     type: formData.type,
     permissions: formData.permissions,
   };

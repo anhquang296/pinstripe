@@ -1,4 +1,5 @@
 import { DEFAULT_QUERY_LIMIT } from '@constants/pagination';
+import type { ErpModule } from '@contracts/modules.types';
 import type { WebhookDeliveryStatus, WebhookEndpointStatus } from '@contracts/webhooks.types';
 import type { DatabaseClient, DatabaseTransaction } from '@database/database.client';
 import type {
@@ -10,10 +11,11 @@ import type {
 import { webhookDeliveries, webhookEndpoints } from '@database/schemas';
 import { NotFoundError } from '@errors/app.error';
 import type { RowCursor } from '@repositories/cursor';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import _ from 'lodash';
 
 export interface WebhookEndpointFilters {
+  module?: ErpModule;
   status?: WebhookEndpointStatus;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -21,6 +23,7 @@ export interface WebhookEndpointFilters {
 
 export interface WebhookDeliveryFilters {
   endpointId?: string;
+  endpointModule?: ErpModule;
   status?: WebhookDeliveryStatus;
   beforeAt?: RowCursor;
   afterAt?: RowCursor;
@@ -58,6 +61,7 @@ export class WebhookRepository {
     limit = DEFAULT_QUERY_LIMIT,
   ): Promise<WebhookEndpoint[]> {
     const where = and(
+      filters.module ? eq(webhookEndpoints.module, filters.module) : undefined,
       filters.status ? eq(webhookEndpoints.status, filters.status) : undefined,
       filters.beforeAt
         ? sql`(${webhookEndpoints.createdAt}, ${webhookEndpoints.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`
@@ -120,6 +124,15 @@ export class WebhookRepository {
   ): Promise<WebhookDelivery[]> {
     const where = and(
       filters.endpointId ? eq(webhookDeliveries.endpointId, filters.endpointId) : undefined,
+      filters.endpointModule
+        ? inArray(
+            webhookDeliveries.endpointId,
+            this._db.master
+              .select({ id: webhookEndpoints.id })
+              .from(webhookEndpoints)
+              .where(eq(webhookEndpoints.module, filters.endpointModule)),
+          )
+        : undefined,
       filters.status ? eq(webhookDeliveries.status, filters.status) : undefined,
       filters.beforeAt
         ? sql`(${webhookDeliveries.createdAt}, ${webhookDeliveries.id}) < (${filters.beforeAt.createdAt}::timestamptz, ${filters.beforeAt.id})`

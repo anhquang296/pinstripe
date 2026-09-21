@@ -33203,8 +33203,20 @@
               "schema": {
                 "additionalProperties": false,
                 "type": "object",
-                "required": ["url", "enabledEvents"],
+                "required": ["module", "url", "enabledEvents"],
                 "properties": {
+                  "module": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["billing"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["crm"]
+                      }
+                    ]
+                  },
                   "url": {
                     "format": "uri",
                     "minLength": 1,
@@ -33453,6 +33465,7 @@
                   "type": "object",
                   "required": [
                     "id",
+                    "module",
                     "url",
                     "status",
                     "enabledEvents",
@@ -33465,6 +33478,18 @@
                   "properties": {
                     "id": {
                       "type": "string"
+                    },
+                    "module": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["billing"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["crm"]
+                        }
+                      ]
                     },
                     "url": {
                       "type": "string"
@@ -33555,6 +33580,23 @@
               "anyOf": [
                 {
                   "type": "string",
+                  "enum": ["billing"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["crm"]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "module",
+            "required": false
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
                   "enum": ["enabled"]
                 },
                 {
@@ -33589,6 +33631,7 @@
                         "type": "object",
                         "required": [
                           "id",
+                          "module",
                           "url",
                           "status",
                           "enabledEvents",
@@ -33601,6 +33644,18 @@
                         "properties": {
                           "id": {
                             "type": "string"
+                          },
+                          "module": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": ["billing"]
+                              },
+                              {
+                                "type": "string",
+                                "enum": ["crm"]
+                              }
+                            ]
                           },
                           "url": {
                             "type": "string"
@@ -33682,6 +33737,7 @@
                   "type": "object",
                   "required": [
                     "id",
+                    "module",
                     "url",
                     "status",
                     "enabledEvents",
@@ -33694,6 +33750,18 @@
                   "properties": {
                     "id": {
                       "type": "string"
+                    },
+                    "module": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["billing"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["crm"]
+                        }
+                      ]
                     },
                     "url": {
                       "type": "string"
@@ -34024,6 +34092,7 @@
                   "type": "object",
                   "required": [
                     "id",
+                    "module",
                     "url",
                     "status",
                     "enabledEvents",
@@ -34036,6 +34105,18 @@
                   "properties": {
                     "id": {
                       "type": "string"
+                    },
+                    "module": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": ["billing"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["crm"]
+                        }
+                      ]
                     },
                     "url": {
                       "type": "string"
@@ -34129,6 +34210,23 @@
             },
             "in": "query",
             "name": "endpointId",
+            "required": false
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["billing"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["crm"]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "module",
             "required": false
           },
           {
@@ -37790,12 +37888,24 @@
               "schema": {
                 "additionalProperties": false,
                 "type": "object",
-                "required": ["name", "type", "permissions"],
+                "required": ["name", "module", "type", "permissions"],
                 "properties": {
                   "name": {
                     "minLength": 1,
                     "maxLength": 100,
                     "type": "string"
+                  },
+                  "module": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["billing"]
+                      },
+                      {
+                        "type": "string",
+                        "enum": ["crm"]
+                      }
+                    ]
                   },
                   "type": {
                     "anyOf": [
@@ -37900,6 +38010,7 @@
                   "required": [
                     "id",
                     "name",
+                    "module",
                     "type",
                     "permissions",
                     "tokenPrefix",
@@ -37914,6 +38025,25 @@
                     },
                     "name": {
                       "type": "string"
+                    },
+                    "module": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["billing"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["crm"]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "type": {
                       "anyOf": [
@@ -38051,6 +38181,23 @@
         "parameters": [
           {
             "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["billing"]
+                },
+                {
+                  "type": "string",
+                  "enum": ["crm"]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "module",
+            "required": false
+          },
+          {
+            "schema": {
               "minimum": 1,
               "maximum": 100,
               "default": 10,
@@ -38099,6 +38246,7 @@
                         "required": [
                           "id",
                           "name",
+                          "module",
                           "type",
                           "permissions",
                           "tokenPrefix",
@@ -38113,6 +38261,25 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "module": {
+                            "anyOf": [
+                              {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": ["billing"]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": ["crm"]
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "type": {
                             "anyOf": [
@@ -38272,6 +38439,7 @@
                   "required": [
                     "id",
                     "name",
+                    "module",
                     "type",
                     "permissions",
                     "tokenPrefix",
@@ -38286,6 +38454,25 @@
                     },
                     "name": {
                       "type": "string"
+                    },
+                    "module": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["billing"]
+                            },
+                            {
+                              "type": "string",
+                              "enum": ["crm"]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "type": {
                       "anyOf": [

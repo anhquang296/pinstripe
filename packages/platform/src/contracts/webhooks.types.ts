@@ -1,5 +1,7 @@
 import type { DomainEventType } from '@contracts/events.types';
 import { DomainEventTypeEnum } from '@contracts/events.types';
+import type { ErpModule } from '@contracts/modules.types';
+import { ErpModuleEnum } from '@contracts/modules.types';
 import type { Static } from '@sinclair/typebox';
 import { Type } from '@sinclair/typebox';
 
@@ -19,6 +21,7 @@ export type WebhookDeliveryStatus = `${WebhookDeliveryStatusEnum}`;
 
 export const webhookEndpointSchema = Type.Object({
   id: Type.String(),
+  module: Type.Unsafe<ErpModule>(Type.Enum(ErpModuleEnum)),
   url: Type.String(),
   status: Type.Unsafe<WebhookEndpointStatus>(Type.Enum(WebhookEndpointStatusEnum)),
   enabledEvents: Type.Array(Type.String()),
@@ -48,6 +51,7 @@ export const webhookEndpointParamsSchema = Type.Object({
 
 export const createWebhookEndpointSchema = Type.Object(
   {
+    module: Type.Unsafe<ErpModule>(Type.Enum(ErpModuleEnum)),
     url: Type.String({ format: 'uri', minLength: 1 }),
     enabledEvents: Type.Array(Type.Unsafe<string>(Type.Enum(DomainEventTypeEnum)), { minItems: 1 }),
     description: Type.Optional(Type.String()),
@@ -73,6 +77,7 @@ export const findWebhookEndpointsSchema = Type.Object(
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, default: 10 })),
     after: Type.Optional(Type.String()),
     before: Type.Optional(Type.String()),
+    module: Type.Optional(Type.Unsafe<ErpModule>(Type.Enum(ErpModuleEnum))),
     status: Type.Optional(Type.Unsafe<WebhookEndpointStatus>(Type.Enum(WebhookEndpointStatusEnum))),
   },
   { additionalProperties: false },
@@ -88,6 +93,7 @@ export const findWebhookDeliveriesSchema = Type.Object(
     after: Type.Optional(Type.String()),
     before: Type.Optional(Type.String()),
     endpointId: Type.Optional(Type.String()),
+    module: Type.Optional(Type.Unsafe<ErpModule>(Type.Enum(ErpModuleEnum))),
     status: Type.Optional(Type.Unsafe<WebhookDeliveryStatus>(Type.Enum(WebhookDeliveryStatusEnum))),
   },
   { additionalProperties: false },

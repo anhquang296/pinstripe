@@ -4,6 +4,7 @@ export * from '@contracts/audit-logs.types';
 export * from '@contracts/errors.types';
 export * from '@contracts/events.types';
 export * from '@contracts/idempotency.types';
+export * from '@contracts/modules.types';
 export * from '@contracts/pagination.types';
 export * from '@contracts/users.types';
 export * from '@contracts/webhooks.types';

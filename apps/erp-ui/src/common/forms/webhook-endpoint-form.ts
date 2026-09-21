@@ -1,5 +1,6 @@
 import { toEnumMember } from '@common/utils/enum';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ErpModule } from '@vxrerp/platform/contracts';
 import { DomainEventTypeEnum, WebhookEndpointStatusEnum } from '@vxrerp/platform/contracts';
 import type {
   CreateWebhookEndpointPayload,
@@ -43,8 +44,10 @@ export function webhookEndpointToFormData(
 
 export function webhookEndpointFormDataToPayload(
   formData: WebhookEndpointFormData,
+  module: ErpModule,
 ): CreateWebhookEndpointPayload {
   return {
+    module,
     url: formData.url,
     enabledEvents: formData.enabledEvents,
     description: formData.description || undefined,
