@@ -27,25 +27,26 @@ src/
 │   ├── constants/        navigation (NavigationGroupEnum, NavigationItem)
 │   ├── types/            feature-definition (FeatureDefinition)
 │   ├── forms/  hooks/  utils/
-├── shell/                ghép các feature thành một app
-│   ├── features.ts       ERP_FEATURES, NAVIGATION_GROUPS, FEATURE_ROUTES, hasReportRange
-│   ├── components/       AppSidebar, AppTopbar, NotificationButton, RequireSession
-│   ├── routes/           paths.ts (shellPaths), def.tsx (shellRouteDefs)
-│   └── views/{layouts,pages}/   AppLayout, AuthPage
-└── features/<feature>/   một feature cho mỗi module: billing, admin (bề mặt platform), sau này crm
-    ├── index.ts          <feature>Feature: FeatureDefinition — điểm export duy nhất
-    ├── components/       form của từng entity (CustomerForm, UserForm…)
-    ├── constants/        navigation (<FEATURE>_NAVIGATION_ITEMS), tabs
-    ├── routes/           paths.ts (<feature>Paths), def.tsx (<feature>RouteDefs: RouteObject[])
-    └── views/pages/
+└── features/
+    ├── auth/             đăng nhập + khung app + ghép các feature khác
+    │   ├── features.ts   ERP_FEATURES, NAVIGATION_GROUPS, FEATURE_ROUTES, hasReportRange
+    │   ├── components/   AppSidebar, AppTopbar, NotificationButton, RequireSession
+    │   ├── routes/       paths.ts (authPaths), def.tsx (authRouteDefs)
+    │   └── views/{layouts,pages}/   AppLayout, AuthPage
+    └── <feature>/        một feature cho mỗi module: billing, admin (bề mặt platform), sau này crm
+        ├── index.ts      <feature>Feature: FeatureDefinition — điểm export duy nhất
+        ├── components/   form của từng entity (CustomerForm, UserForm…)
+        ├── constants/    navigation (<FEATURE>_NAVIGATION_ITEMS), tabs
+        ├── routes/       paths.ts (<feature>Paths), def.tsx (<feature>RouteDefs: RouteObject[])
+        └── views/pages/
 ```
 
-- Mỗi feature export đúng một `FeatureDefinition` — `routes`, `navigationItems`, `reportRangePaths` — từ `index.ts`. `src/shell/features.ts` liệt kê `ERP_FEATURES` rồi ghép: route thành con của `RequireSession` → `AppLayout`, mục menu thành nhóm theo thứ tự của `NavigationGroupEnum`, path báo cáo thành `hasReportRange`. Thêm một feature là thêm một dòng vào `ERP_FEATURES`.
+- Mỗi feature export đúng một `FeatureDefinition` — `routes`, `navigationItems`, `reportRangePaths` — từ `index.ts`. `features/auth/features.ts` liệt kê `ERP_FEATURES` rồi ghép: route thành con của `RequireSession` → `AppLayout`, mục menu thành nhóm theo thứ tự của `NavigationGroupEnum`, path báo cáo thành `hasReportRange`. Thêm một feature là thêm một dòng vào `ERP_FEATURES`.
 - Thứ tự trong `ERP_FEATURES` là thứ tự mục **bên trong** một nhóm menu; thứ tự nhóm do `NavigationGroupEnum` quyết.
-- Route khai trong `features/<feature>/routes/def.tsx`, path lấy từ `<feature>Paths`; `RoutesProvider` dựng `createBrowserRouter` từ `shellRouteDefs`. Không có `App.tsx`, không `<Routes>` JSX.
-- Hướng import: `shell/` import feature (qua `index.ts`); feature không import `shell/` và không import feature khác; `common/` không import cả hai. `eslint.config.js` chặn cả ba chiều — thêm feature mới thì thêm tên nó vào danh sách feature trong config đó.
+- Route khai trong `features/<feature>/routes/def.tsx`, path lấy từ `<feature>Paths`; `RoutesProvider` dựng `createBrowserRouter` từ `authRouteDefs`. Không có `App.tsx`, không `<Routes>` JSX.
+- Hướng import: `features/auth` là feature **duy nhất** được import feature khác (qua `index.ts`), vì nó ghép chúng. Mọi feature khác không import `features/auth` và không import nhau; `common/` không import feature nào. `eslint.config.js` chặn cả ba chiều — thêm feature mới thì thêm tên nó vào danh sách feature trong config đó.
 - Một component chỉ có nghĩa với một entity (`CustomerForm`, `UserRoleChips`) nằm trong feature sở hữu entity đó, không nằm trong `common/`. Màn của platform (user, role, API key, webhook, settings) thuộc `features/admin`.
-- Alias là `@common/*`, `@features/*`, `@shell/*`, `@providers/*`, `@libs/*` — không có `@components`, `@pages`, `@lib`.
+- Alias là `@common/*`, `@features/*`, `@providers/*`, `@libs/*` — không có `@components`, `@pages`, `@lib`.
 
 ## UI kit là HeroUI, không có kit thứ hai
 
@@ -239,7 +240,7 @@ yêu cầu "`FilterSelect` phải có `Label` hiển thị" là luật của `Fi
 control trong top bar cao cố định (`h-topbar`) — nhãn đi bằng `aria-label`.
 
 Picker chỉ hiện trên route thực sự tiêu thụ khoảng thời gian, theo `hasReportRange()`
-(`src/shell/features.ts`), ghép từ `reportRangePaths` của từng feature. Hiện nó trên một màn không dùng tới là nói dối
+(`src/features/auth/features.ts`), ghép từ `reportRangePaths` của từng feature. Hiện nó trên một màn không dùng tới là nói dối
 người dùng; danh sách đó dài ra khi thêm màn tiêu thụ.
 
 ## Field đi qua `Controller`
@@ -310,7 +311,7 @@ Tiền và ngày đi qua `src/common/utils/format.ts`: `formatCurrency(minorAmou
 - Đưa một secret chỉ trả một lần vào query cache, hay thêm hook đọc lại nó.
 - Thêm nút xoá user, hay cho `/admin/roles` sửa được `ROLE_PERMISSIONS`.
 - Dựng `PageTabs` cho một màn chỉ có một bề mặt.
-- Đặt component đặc thù một entity vào `common/`, hay cho `common/` import từ `features/` hoặc `shell/`.
-- Import một feature từ feature khác, hay import `shell/` từ một feature — chỉ shell ghép feature.
+- Đặt component đặc thù một entity vào `common/`, hay cho `common/` import từ `features/`.
+- Import một feature từ feature khác, hay import `features/auth` từ một feature — chỉ `features/auth` ghép feature.
 - Đăng ký route hay mục menu của một feature ở ngoài `FeatureDefinition` của chính nó.
 - Dựng lại `App.tsx` / `<Routes>` JSX, hay viết path route thành chuỗi trong `def.tsx` thay vì lấy từ `<feature>Paths`.

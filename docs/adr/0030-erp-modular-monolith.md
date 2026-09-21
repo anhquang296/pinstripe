@@ -96,14 +96,13 @@ cần cơ chế đăng ký — permission, event type và prefix là shared kern
 migration đã được app liệt kê tường minh. Manifest đầy đủ để lại tới khi module thứ hai cho thấy nó
 có ích.
 
-### 7. erp-ui chia theo feature, shell ghép
+### 7. erp-ui chia theo feature, `features/auth` ghép
 
-Một app nội bộ duy nhất (`apps/erp-ui`), bên trong chia `shell/` và `features/<feature>/`.
+Một app nội bộ duy nhất (`apps/erp-ui`), bên trong chỉ có `features/<feature>/`.
 `features/billing` giữ mọi màn billing, `features/admin` giữ bề mặt của platform (user, role, API key,
 webhook, settings). Mỗi feature export một `FeatureDefinition` gồm `routes`, `navigationItems` và
-`reportRangePaths`; `shell/features.ts` ghép chúng — route thành con của `RequireSession` →
-`AppLayout`, mục menu thành nhóm theo `NavigationGroupEnum`. Feature không import shell hay feature
-khác, `common/` không import cả hai; `apps/erp-ui/eslint.config.js` chặn cả ba chiều. URL của mọi
+`reportRangePaths`; `features/auth` — nơi có đăng nhập, `RequireSession`, layout, sidebar, topbar — ghép chúng trong `features.ts` — route thành con của `RequireSession` →
+`AppLayout`, mục menu thành nhóm theo `NavigationGroupEnum`. `features/auth` là feature duy nhất được import feature khác; feature còn lại không import `auth` hay nhau, `common/` không import feature nào; `apps/erp-ui/eslint.config.js` chặn cả ba chiều. URL của mọi
 màn không đổi.
 
 ### 8. Ranh giới được lint

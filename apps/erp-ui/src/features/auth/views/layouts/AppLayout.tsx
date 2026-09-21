@@ -1,5 +1,5 @@
-import AppSidebar from '@shell/components/AppSidebar';
-import AppTopbar from '@shell/components/AppTopbar';
+import AppSidebar from '@features/auth/components/AppSidebar';
+import AppTopbar from '@features/auth/components/AppTopbar';
 import { Outlet } from 'react-router-dom';
 
 export default function AppLayout() {

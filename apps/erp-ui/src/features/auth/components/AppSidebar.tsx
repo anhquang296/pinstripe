@@ -1,7 +1,7 @@
 import type { NavigationItem } from '@common/constants/navigation';
+import { NAVIGATION_GROUPS } from '@features/auth/features';
 import { cn } from '@libs/cn';
 import { usePermissions } from '@libs/permissions';
-import { NAVIGATION_GROUPS } from '@shell/features';
 import { filter, includes, isEmpty, map } from 'lodash-es';
 import { NavLink } from 'react-router-dom';
 

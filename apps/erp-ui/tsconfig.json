@@ -6,7 +6,6 @@
       "@common/*": ["./src/common/*"],
       "@features/*": ["./src/features/*"],
       "@providers/*": ["./src/providers/*"],
-      "@shell/*": ["./src/shell/*"],
       "@libs/*": ["./src/libs/*"]
     }
   },

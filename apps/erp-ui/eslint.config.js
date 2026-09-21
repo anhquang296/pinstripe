@@ -22,10 +22,10 @@ const REACT_ARIA_IMPORTS = {
 
 const SHARED_PATTERNS = [...RELATIVE_PARENT_IMPORTS.patterns, BETTER_AUTH_IMPORTS, REACT_ARIA_IMPORTS];
 
-const SHELL_IMPORTS = {
-  group: ['@shell/*'],
+const AUTH_IMPORTS = {
+  group: ['@features/auth', '@features/auth/*'],
   message:
-    'erp-ui-convention: shell composes features, never the reverse — a feature exposes a FeatureDefinition and does not import the shell.',
+    'erp-ui-convention: features/auth composes the other features, never the reverse — a feature exposes a FeatureDefinition and does not import features/auth.',
 };
 
 const FEATURE_IMPORTS = {
@@ -38,7 +38,7 @@ function crossFeatureImports(feature) {
   return {
     group: ['@features/*', `!@features/${feature}`, `!@features/${feature}/**`],
     message:
-      'erp-ui-convention: a feature never imports another feature — only src/shell composes them.',
+      'erp-ui-convention: a feature never imports another feature — only features/auth composes them.',
   };
 }
 
@@ -63,7 +63,7 @@ export default [
     rules: {
       'no-restricted-imports': [
         'error',
-        { patterns: [...SHARED_PATTERNS, SHELL_IMPORTS, FEATURE_IMPORTS] },
+        { patterns: [...SHARED_PATTERNS, FEATURE_IMPORTS] },
       ],
     },
   },
@@ -73,7 +73,7 @@ export default [
       rules: {
         'no-restricted-imports': [
           'error',
-          { patterns: [...SHARED_PATTERNS, SHELL_IMPORTS, crossFeatureImports(feature)] },
+          { patterns: [...SHARED_PATTERNS, AUTH_IMPORTS, crossFeatureImports(feature)] },
         ],
       },
     };

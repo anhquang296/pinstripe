@@ -1,8 +1,8 @@
 import { UserButton } from '@better-auth-ui/heroui';
 import ReportRangePicker from '@common/components/ReportRangePicker';
-import NotificationButton from '@shell/components/NotificationButton';
-import { NAVIGATION_GROUPS } from '@shell/features';
-import { hasReportRange } from '@shell/features';
+import NotificationButton from '@features/auth/components/NotificationButton';
+import { NAVIGATION_GROUPS } from '@features/auth/features';
+import { hasReportRange } from '@features/auth/features';
 import { find, flatMap, get, startsWith } from 'lodash-es';
 import { useLocation } from 'react-router-dom';
 
