@@ -1,3 +1,4 @@
+import ApiKeysPage from '@features/billing/views/pages/ApiKeysPage';
 import CheckoutSessionsPage from '@features/billing/views/pages/CheckoutSessionsPage';
 import CustomersPage from '@features/billing/views/pages/CustomersPage';
 import DiscountsPage from '@features/billing/views/pages/DiscountsPage';
@@ -16,6 +17,8 @@ import ReportsPage from '@features/billing/views/pages/ReportsPage';
 import SubscriptionsPage from '@features/billing/views/pages/SubscriptionsPage';
 import TaxRatesPage from '@features/billing/views/pages/TaxRatesPage';
 import TestClocksPage from '@features/billing/views/pages/TestClocksPage';
+import WebhookDeliveriesPage from '@features/billing/views/pages/WebhookDeliveriesPage';
+import WebhookEndpointsPage from '@features/billing/views/pages/WebhookEndpointsPage';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
 import { billingPaths } from './paths';
@@ -88,6 +91,16 @@ export const billingRouteDefs: RouteObject[] = [
   { path: billingPaths.LEDGER_TRANSACTION, element: <LedgerTransactionsPage /> },
 
   { path: billingPaths.REPORTS, element: <ReportsPage /> },
+
+  {
+    path: billingPaths.WEBHOOKS,
+    element: <Navigate to={billingPaths.WEBHOOKS_ENDPOINTS} replace />,
+  },
+  { path: billingPaths.WEBHOOKS_ENDPOINTS, element: <WebhookEndpointsPage /> },
+  { path: billingPaths.WEBHOOKS_ENDPOINT, element: <WebhookEndpointsPage /> },
+  { path: billingPaths.WEBHOOKS_DELIVERIES, element: <WebhookDeliveriesPage /> },
+
+  { path: billingPaths.API_KEYS, element: <ApiKeysPage /> },
 
   { path: billingPaths.TEST_CLOCKS, element: <TestClocksPage /> },
   { path: billingPaths.TEST_CLOCK, element: <TestClocksPage /> },

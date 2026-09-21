@@ -66,7 +66,7 @@ Update một bản ghi thì invalidate cả key chi tiết lẫn `_def` của da
 
 [QueryProvider.tsx](../../apps/erp-ui/src/providers/QueryProvider.tsx): `retry: 1`, `refetchOnWindowFocus: false`. Provider ghép trong [ProviderRegistry.tsx](../../apps/erp-ui/src/providers/ProviderRegistry.tsx): `QueryProvider` → `AdminVxrErpProvider` → `RoutesProvider`, cộng `<Toaster>` của sonner.
 
-Mỗi feature (`features/billing`, `features/admin`) khai route trong `routes/def.tsx` bằng path của `routes/paths.ts` của chính nó — ví dụ [billing](../../apps/erp-ui/src/features/billing/routes/def.tsx) — rồi export một `FeatureDefinition`. [features/auth/features.ts](../../apps/erp-ui/src/features/auth/features.ts) ghép các feature; [features/auth/routes/def.tsx](../../apps/erp-ui/src/features/auth/routes/def.tsx) đặt mọi route sau `RequireSession`, trong layout chung `AppLayout`.
+Mỗi feature (`features/billing`, `features/admin`) khai route trong `routes/def.tsx` bằng path của `routes/paths.ts` của chính nó — ví dụ [billing](../../apps/erp-ui/src/features/billing/routes/def.tsx) — rồi export một `FeatureDefinition`. [features/auth/features.ts](../../apps/erp-ui/src/features/auth/features.ts) liệt kê các feature; [features/auth/routes/def.tsx](../../apps/erp-ui/src/features/auth/routes/def.tsx) đặt mọi route sau `RequireSession`: `/` là màn chọn ứng dụng trong `LauncherLayout`, route của mỗi feature nằm trong `FeatureLayout` riêng của nó.
 
 ### Form
 

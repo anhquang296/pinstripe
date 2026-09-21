@@ -4,6 +4,11 @@ import { InvoiceStatusEnum } from '@vxrerp/billing/contracts';
 import { map } from 'lodash-es';
 import { generatePath } from 'react-router-dom';
 
+export const WEBHOOK_TABS = [
+  { to: billingPaths.WEBHOOKS_ENDPOINTS, label: 'Endpoints' },
+  { to: billingPaths.WEBHOOKS_DELIVERIES, label: 'Deliveries' },
+];
+
 export const CATALOG_TABS = [
   { to: billingPaths.CATALOG_PRODUCTS, label: 'Products' },
   { to: billingPaths.CATALOG_PRICES, label: 'Prices' },

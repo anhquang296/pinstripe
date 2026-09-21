@@ -36,20 +36,4 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
     initials: 'RO',
     permission: PermissionEnum.USER_MANAGE,
   },
-  {
-    group: NavigationGroupEnum.DEVELOPERS,
-    to: adminPaths.WEBHOOKS,
-    title: 'Webhooks',
-    description: 'Endpoint và lần gửi',
-    initials: 'WH',
-    permission: PermissionEnum.INTEGRATION_WRITE,
-  },
-  {
-    group: NavigationGroupEnum.DEVELOPERS,
-    to: adminPaths.API_KEYS,
-    title: 'API keys',
-    description: 'Khoá của machine caller',
-    initials: 'AK',
-    permission: PermissionEnum.API_KEY_MANAGE,
-  },
 ];

@@ -177,12 +177,12 @@ python3 /tmp/hook-server.py
 
 ### Trên màn hình
 
-1. `/admin/webhooks` → URL để nguyên `http://localhost:4100/hooks`, chọn event `invoice.finalized` →
+1. `/billing/webhooks` → URL để nguyên `http://localhost:4100/hooks`, chọn event `invoice.finalized` →
    **Đăng ký endpoint**.
 2. **Copy secret trong toast ngay** — dạng `whsec_...`. Đóng toast là mất.
 3. Sang `/billing/invoices`, phát hành một hoá đơn ([UC-05](./05-issue-and-collect-invoice.md)).
 4. Trong vòng ~5 giây, terminal chạy `hook-server.py` in ra signature + payload.
-5. Về `/admin/webhooks`, bảng **Lần giao gần nhất**: một hàng `invoice.finalized`, status `succeeded`,
+5. Về `/billing/webhooks`, bảng **Lần giao gần nhất**: một hàng `invoice.finalized`, status `succeeded`,
    Số lần thử `1`, HTTP `200`.
 6. Bấm **Tắt** trên endpoint → phát hành hoá đơn khác → không có delivery nào mới.
 

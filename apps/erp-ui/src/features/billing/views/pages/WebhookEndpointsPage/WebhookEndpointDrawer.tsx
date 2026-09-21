@@ -12,7 +12,7 @@ import {
   webhookEndpointToFormData,
 } from '@common/forms/webhook-endpoint-form';
 import { formatDate } from '@common/utils/format';
-import WebhookEndpointForm from '@features/admin/components/WebhookEndpointForm';
+import WebhookEndpointForm from '@features/billing/components/WebhookEndpointForm';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import { PermissionEnum } from '@vxrerp/platform/contracts';

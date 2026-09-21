@@ -262,7 +262,7 @@ Sau khi đã gắn đồng hồ bằng curl ở bước 2, phần còn lại là
 1. `/billing/test-clocks` → chọn mốc ở input `datetime-local` → **Tua**.
 2. `/billing/subscriptions` → status và cột "Kỳ hiện tại" đã đổi.
 3. Chờ vài giây, F5 → bảng Entitlements cập nhật theo.
-4. `/admin/webhooks` → nếu đã đăng ký `subscription.renewed` ([UC-09](./09-receive-webhooks.md)) thì thấy
+4. `/billing/webhooks` → nếu đã đăng ký `subscription.renewed` ([UC-09](./09-receive-webhooks.md)) thì thấy
    delivery mới.
 
 ### Kiểm chứng bằng SQL

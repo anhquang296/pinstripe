@@ -20,9 +20,9 @@ import { useCursorPagination } from '@common/hooks/useCursorPagination';
 import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
 import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
-import WebhookEndpointForm from '@features/admin/components/WebhookEndpointForm';
-import { WEBHOOK_TABS } from '@features/admin/constants/tabs';
-import { adminPaths } from '@features/admin/routes/paths';
+import WebhookEndpointForm from '@features/billing/components/WebhookEndpointForm';
+import { WEBHOOK_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { WebhookEndpointResponse } from '@vxrerp/platform/contracts';
@@ -101,7 +101,9 @@ export default function WebhookEndpointsPage() {
   };
 
   const handleOnRowAction = (webhookEndpoint: WebhookEndpointResponse) => {
-    navigate(generatePath(adminPaths.WEBHOOKS_ENDPOINT, { webhookEndpointId: webhookEndpoint.id }));
+    navigate(
+      generatePath(billingPaths.WEBHOOKS_ENDPOINT, { webhookEndpointId: webhookEndpoint.id }),
+    );
   };
 
   return (
@@ -220,7 +222,7 @@ export default function WebhookEndpointsPage() {
         <WebhookEndpointDrawer
           webhookEndpointId={webhookEndpointId}
           onClose={() => {
-            navigate(adminPaths.WEBHOOKS_ENDPOINTS);
+            navigate(billingPaths.WEBHOOKS_ENDPOINTS);
           }}
         />
       ) : null}

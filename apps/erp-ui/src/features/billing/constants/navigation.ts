@@ -78,6 +78,22 @@ export const BILLING_NAVIGATION_ITEMS: NavigationItem[] = [
   },
   {
     group: NavigationGroupEnum.DEVELOPERS,
+    to: billingPaths.WEBHOOKS,
+    title: 'Webhooks',
+    description: 'Nhận event billing ở hệ thống ngoài',
+    initials: 'WH',
+    permission: PermissionEnum.INTEGRATION_WRITE,
+  },
+  {
+    group: NavigationGroupEnum.DEVELOPERS,
+    to: billingPaths.API_KEYS,
+    title: 'API keys',
+    description: 'Khoá gọi API billing từ hệ thống ngoài',
+    initials: 'AK',
+    permission: PermissionEnum.API_KEY_MANAGE,
+  },
+  {
+    group: NavigationGroupEnum.DEVELOPERS,
     to: billingPaths.TEST_CLOCKS,
     title: 'Test clocks',
     description: 'Tua thời gian để thử billing',

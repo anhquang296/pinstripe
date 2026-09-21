@@ -49,6 +49,13 @@ export const billingPaths = {
 
   REPORTS: `${BILLING_PATH}/reports`,
 
+  WEBHOOKS: `${BILLING_PATH}/webhooks`,
+  WEBHOOKS_ENDPOINTS: `${BILLING_PATH}/webhooks/endpoints`,
+  WEBHOOKS_ENDPOINT: `${BILLING_PATH}/webhooks/endpoints/:webhookEndpointId`,
+  WEBHOOKS_DELIVERIES: `${BILLING_PATH}/webhooks/deliveries`,
+
+  API_KEYS: `${BILLING_PATH}/api-keys`,
+
   TEST_CLOCKS: `${BILLING_PATH}/test-clocks`,
   TEST_CLOCK: `${BILLING_PATH}/test-clocks/:testClockId`,
 } as const;

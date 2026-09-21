@@ -44,13 +44,14 @@ src/
 
 - Mỗi feature export đúng một `FeatureDefinition` từ `index.tsx`: `title`, `description`, `icon`, `tone` (ô trên màn chọn ứng dụng), `homePath`, `routes`, `navigationItems`, `reportRangePaths`. Thêm một feature là thêm một dòng vào `ERP_FEATURES`.
 - UI có hai tầng. **Tầng app** là `/`: `LauncherLayout` (chỉ top bar) + `AppLauncherPage`, một lưới ô ứng dụng theo thứ tự `ERP_FEATURES`; một ô chỉ hiện khi người dùng thấy được ít nhất một mục menu của feature đó. **Tầng feature**: `authRouteDefs` bọc `routes` của từng feature trong một `FeatureLayout feature={…}` riêng, nên sidebar chỉ liệt kê menu của **đúng** feature đang mở, nhóm theo thứ tự `NavigationGroupEnum`. Không dựng lại một sidebar gộp menu của mọi feature.
-- Đường ra khỏi một feature là header của sidebar: cả khối là một `Link` về `authPaths.LAUNCHER`, hover hay focus thì icon của feature đổi thành mũi tên quay lại. Không thêm nút launcher thứ hai lên top bar. Top bar ở cả hai tầng có nút Cài đặt (`SETTINGS_FEATURE.homePath`). Cài đặt chung của ERP — tài khoản, người dùng, vai trò, API key, webhook — là feature `admin`, hiện như một ứng dụng tên "Cài đặt". Cài đặt riêng của một module (`/crm/settings`) nằm trong feature của module đó, nhóm `NavigationGroupEnum.SETTINGS`, không nằm trong `admin`.
+- Đường ra khỏi một feature là header của sidebar: cả khối là một `Link` về `authPaths.LAUNCHER`, hover hay focus thì icon của feature đổi thành mũi tên quay lại. Không thêm nút launcher thứ hai lên top bar. Top bar ở cả hai tầng có nút Cài đặt (`SETTINGS_FEATURE.homePath`). Cài đặt chung của ERP — tài khoản, người dùng, vai trò — là feature `admin`, hiện như một ứng dụng tên "Cài đặt". Cài đặt riêng của một module (`/crm/settings`) nằm trong feature của module đó, nhóm `NavigationGroupEnum.SETTINGS`, không nằm trong `admin`.
+- Webhook và API key là màn **của module**, không phải của ứng dụng Cài đặt: người dùng tạo chúng cho một mục đích (billing), và bật/tắt một module không được chạm vào webhook hay key của module khác. Billing giữ `/billing/webhooks`, `/billing/api-keys` trong nhóm `DEVELOPERS`, và form API key chỉ liệt kê quyền của billing. Module sau này cần webhook hay key thì dựng màn của chính nó dưới prefix của mình, không dùng chung màn của billing và không đưa chúng về `admin`.
 - `NavigationItem.permission` là `null` khi mọi người đã đăng nhập đều thấy mục đó (hồ sơ, bảo mật); lọc qua `findVisibleNavigationItems`, không tự `includes` trong component.
 - Mọi feature trừ `auth` có URL prefix bằng tên của nó, khai **một lần** ở đầu `routes/paths.ts` (`const BILLING_PATH = '/billing'`) rồi mọi path dựng từ hằng đó: `/billing/customers`, `/admin/users`. `auth` giữ `/auth/*` và `/` (màn chọn ứng dụng, cũng là đích sau đăng nhập). Settings của better-auth-ui trỏ về `adminPaths.SETTINGS` qua `basePaths` trong `AdminAuthProvider`.
 - Page không viết chuỗi route: đường dẫn tĩnh là `<feature>Paths.X`, đường dẫn có tham số là `generatePath(<feature>Paths.X, { … })`. Path báo cáo (`reportRangePaths`) là pattern của react-router, khớp bằng `matchPath` — `/billing` khớp đúng trang tổng quan, `/billing/subscriptions/usage/*` khớp cả drawer bên dưới.
 - Route khai trong `features/<feature>/routes/def.tsx`, path lấy từ `<feature>Paths`; `RoutesProvider` dựng `createBrowserRouter` từ `authRouteDefs`. Không có `App.tsx`, không `<Routes>` JSX.
 - Hướng import: `features/auth` là feature **duy nhất** được import feature khác (qua `index.ts`), vì nó ghép chúng. Mọi feature khác không import `features/auth` và không import nhau; `common/` không import feature nào. `eslint.config.js` chặn cả ba chiều — thêm feature mới thì thêm tên nó vào danh sách feature trong config đó.
-- Một component chỉ có nghĩa với một entity (`CustomerForm`, `UserRoleChips`) nằm trong feature sở hữu entity đó, không nằm trong `common/`. Màn của platform (user, role, API key, webhook, settings) thuộc `features/admin`.
+- Một component chỉ có nghĩa với một entity (`CustomerForm`, `UserRoleChips`) nằm trong feature sở hữu entity đó, không nằm trong `common/`. Màn của platform (user, role, settings) thuộc `features/admin`; webhook và API key thuộc feature của module dùng chúng.
 - Alias là `@common/*`, `@features/*`, `@providers/*`, `@libs/*` — không có `@components`, `@pages`, `@lib`.
 
 ## UI kit là HeroUI, không có kit thứ hai
@@ -166,7 +167,7 @@ Tab của một màn là **route con**, không phải state: `PageTabs` render `
 
 Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/billing/customers/:customerId`) để deep-link được; entity phụ trong drawer (tax ID, promotion code, discount) dùng state cục bộ. Một path tĩnh và một path động không bao giờ tranh nhau cùng một đoạn: `/billing/subscriptions` redirect sang `/billing/subscriptions/list`, và id nằm dưới tab của nó.
 
-Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/admin/api-keys`, `/billing/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/billing/test-clocks/:testClockId`, `/admin/users/:userId`).
+Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/billing/api-keys`, `/billing/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/billing/test-clocks/:testClockId`, `/admin/users/:userId`).
 
 ## Filter và cursor sống trên URL
 
@@ -321,5 +322,6 @@ Tiền và ngày đi qua `src/common/utils/format.ts`: `formatCurrency(minorAmou
 - Đăng ký route hay mục menu của một feature ở ngoài `FeatureDefinition` của chính nó.
 - Gộp menu của nhiều feature vào một sidebar, hay cho `/` chuyển hướng thẳng vào một feature thay vì hiện màn chọn ứng dụng.
 - Đặt cài đặt riêng của một module vào `features/admin` — nó thuộc nhóm `SETTINGS` của chính module đó.
+- Đưa webhook hay API key về `features/admin`, hay cho một module dùng chung màn webhook / API key của module khác.
 - Khai route của một feature (trừ `auth`) ngoài prefix `/<feature>`, hay viết chuỗi route trong page thay vì `<feature>Paths` / `generatePath`.
 - Dựng lại `App.tsx` / `<Routes>` JSX, hay viết path route thành chuỗi trong `def.tsx` thay vì lấy từ `<feature>Paths`.
