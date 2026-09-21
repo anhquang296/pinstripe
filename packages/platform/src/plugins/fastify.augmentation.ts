@@ -14,6 +14,7 @@ import type { UserRepository } from '@repositories/user.repository';
 import type { WebhookRepository } from '@repositories/webhook.repository';
 import type { ApiKeyService } from '@services/api-key.service';
 import type { AuditLogService } from '@services/audit-log.service';
+import type { DomainEventDispatchService } from '@services/domain-event-dispatch.service';
 import type { EventService } from '@services/event.service';
 import type { IdempotencyService } from '@services/idempotency.service';
 import type { OutboxService } from '@services/outbox.service';
@@ -53,6 +54,7 @@ declare module 'fastify' {
     idempotencyService: IdempotencyService;
     outboxService: OutboxService;
     webhookService: WebhookService;
+    domainEventDispatchService: DomainEventDispatchService;
   }
 }
 

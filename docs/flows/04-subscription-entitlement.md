@@ -106,12 +106,12 @@ Mốc thời gian của kỳ mới là `periodEnd` cũ, **không phải** `now` 
 
 ## Entitlement
 
-| #   | Nơi xảy ra                                                                                                                | Làm gì                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| 1   | [domain-event-dispatch.processor.ts:21-22](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts) | mọi event có `aggregateType = subscription`                                      |
-| 2   | [entitlement.service.ts:37](../../packages/modules/billing/src/services/entitlement.service.ts)                           | tra `ENTITLEMENT_BY_SUBSCRIPTION_STATUS`                                         |
-| 3   | [entitlement.service.ts:40-50](../../packages/modules/billing/src/services/entitlement.service.ts)                        | `revoked` → `revokeEntitlements` cho cả subscription rồi xoá cache               |
-| 4   | [entitlement.service.ts:52-73](../../packages/modules/billing/src/services/entitlement.service.ts)                        | còn lại → `upsertEntitlement` một hàng cho mỗi `productId` của các price đang có |
+| #   | Nơi xảy ra                                                                                                  | Làm gì                                                                           |
+| --- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1   | [billing-domain-event.plugin.ts](../../packages/modules/billing/src/plugins/billing-domain-event.plugin.ts) | mọi event có `aggregateType = subscription`                                      |
+| 2   | [entitlement.service.ts:37](../../packages/modules/billing/src/services/entitlement.service.ts)             | tra `ENTITLEMENT_BY_SUBSCRIPTION_STATUS`                                         |
+| 3   | [entitlement.service.ts:40-50](../../packages/modules/billing/src/services/entitlement.service.ts)          | `revoked` → `revokeEntitlements` cho cả subscription rồi xoá cache               |
+| 4   | [entitlement.service.ts:52-73](../../packages/modules/billing/src/services/entitlement.service.ts)          | còn lại → `upsertEntitlement` một hàng cho mỗi `productId` của các price đang có |
 
 Bảng ánh xạ — [entitlement.service.ts:18-25](../../packages/modules/billing/src/services/entitlement.service.ts):
 

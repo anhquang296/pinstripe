@@ -8,7 +8,7 @@ câu trả lời cho câu thứ nhất để phía tiêu thụ không bao giờ 
 Code: [`entitlement.service.ts`](../../packages/modules/billing/src/services/entitlement.service.ts),
 [`entitlement.repository.ts`](../../packages/modules/billing/src/repositories/entitlement.repository.ts),
 [`entitlements.schema.ts`](../../packages/modules/billing/src/database/schemas/entitlements.schema.ts),
-[`domain-event-dispatch.processor.ts`](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts).
+[`billing-domain-event.plugin.ts`](../../packages/modules/billing/src/plugins/billing-domain-event.plugin.ts).
 Cơ chế từng bước ở [flow 04](../flows/04-subscription-entitlement.md); tài liệu này nói **vì sao** nó
 tồn tại, mang ý nghĩa gì và dùng ra sao.
 
@@ -125,7 +125,7 @@ sequenceDiagram
 ```
 
 Điểm rẽ nằm ở
-[`domain-event-dispatch.processor.ts:21-30`](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts):
+[`billing-domain-event.plugin.ts`](../../packages/modules/billing/src/plugins/billing-domain-event.plugin.ts):
 mọi event có `aggregateType = subscription` — `created`, `updated`, `canceled`, `trial_ended`,
 `renewed` — đều gọi cùng một hàm. `handleSubscriptionChanged`
 ([`entitlement.service.ts:30-73`](../../packages/modules/billing/src/services/entitlement.service.ts)) không

@@ -1,6 +1,6 @@
 # 0030 — ERP modular monolith: `platform` và các module, mỗi module một Postgres schema
 
-- **Trạng thái.** Accepted — đang triển khai theo từng bước (1b.1–1b.4 xong).
+- **Trạng thái.** Accepted — đang triển khai theo từng bước (1b.1–1b.5 xong).
 - **Dựa trên.** [0029 — Đổi tên dự án thành vxrerp](0029-rename-to-vxrerp.md).
 
 ## Bối cảnh
@@ -83,7 +83,20 @@ Từ baseline trở đi, luật migration bất biến áp dụng lại bình th
 - Identity của portal (`portal_users`, `portal_memberships`, `portal_sessions`) **ở lại billing** vì
   membership có FK tới `customers`; nó chuyển sang platform khi membership trỏ tới `companyId` của CRM.
 
-### 6. Ranh giới được lint
+### 6. Module đăng ký handler domain event vào platform
+
+`DomainEventDispatchService` của platform nhận mọi job `DomainEventDispatch`: fan-out webhook như
+trước, rồi chạy các handler module đã đăng ký bằng `registerDomainEventHandler({ name,
+aggregateTypes, handle })`. Billing đăng ký `billing.entitlement-sync` cho aggregate `subscription`
+trong `billingDomainEventPlugin`. Processor của worker chỉ còn một dòng và không biết module nào; tên
+handler trùng là `ConflictError` lúc khởi động.
+
+Plan ban đầu nói tới một `ModuleDefinition` gom route, permission, event và schema. Chỉ phần event
+cần cơ chế đăng ký — permission, event type và prefix là shared kernel (mục 2), còn route / schema /
+migration đã được app liệt kê tường minh. Manifest đầy đủ để lại tới khi module thứ hai cho thấy nó
+có ích.
+
+### 7. Ranh giới được lint
 
 `packages/platform/eslint.config.js` cấm import `@vxrerp/billing*` qua tuỳ chọn `importBans` của preset
 `node`. Hạ tầng test dùng chung (`loadTestEnv`, `createTestDatabaseSetup`, `truncateDatabase`) nằm ở
@@ -93,5 +106,4 @@ Từ baseline trở đi, luật migration bất biến áp dụng lại bình th
 
 - DB local cũ không migrate tiếp được: `pnpm db:reset` rồi seed lại. Test tự dọn `public`, `platform`,
   `billing`, `drizzle` trong global setup.
-- Các bước còn lại: module registry cho domain event (1b.5), tổ chức lại erp-ui theo module (1b.6). ADR
-  này được cập nhật khi từng bước xong.
+- Bước còn lại: tổ chức lại erp-ui theo module (1b.6).
