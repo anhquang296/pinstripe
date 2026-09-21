@@ -52,11 +52,14 @@ it('drops a group no feature contributes to', () => {
 });
 
 it.each([
-  { pathname: '/', expected: true },
-  { pathname: '/reports', expected: true },
-  { pathname: '/reports/revenue', expected: true },
-  { pathname: '/customers', expected: false },
-  { pathname: '/reportsx', expected: false },
+  { pathname: '/billing', expected: true },
+  { pathname: '/billing/reports', expected: true },
+  { pathname: '/billing/subscriptions/usage', expected: true },
+  { pathname: '/billing/subscriptions/usage/mtr_123', expected: true },
+  { pathname: '/billing/customers', expected: false },
+  { pathname: '/billing/reports/x', expected: false },
 ])('matches the report range on $pathname: $expected', ({ pathname, expected }) => {
-  expect(matchesReportRange(['/', '/reports'], pathname)).toBe(expected);
+  const reportRangePatterns = ['/billing', '/billing/reports', '/billing/subscriptions/usage/*'];
+
+  expect(matchesReportRange(reportRangePatterns, pathname)).toBe(expected);
 });

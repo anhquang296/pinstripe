@@ -21,7 +21,7 @@ import { Navigate, type RouteObject } from 'react-router-dom';
 import { billingPaths } from './paths';
 
 export const billingRouteDefs: RouteObject[] = [
-  { index: true, element: <OverviewPage /> },
+  { path: billingPaths.OVERVIEW, element: <OverviewPage /> },
 
   { path: billingPaths.CUSTOMERS, element: <CustomersPage /> },
   { path: billingPaths.CUSTOMER, element: <CustomersPage /> },

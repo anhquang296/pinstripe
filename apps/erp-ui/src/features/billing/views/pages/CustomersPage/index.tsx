@@ -19,6 +19,7 @@ import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNa
 import { formatCurrency, formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import CustomerForm from '@features/billing/components/CustomerForm';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { CustomerResponse } from '@vxrerp/billing/contracts';
@@ -29,7 +30,7 @@ import { filter, get, isEmpty, last, size, toUpper } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import CustomerDrawer from './CustomerDrawer';
 import { customerSearchParams } from './customers.search-params';
@@ -91,11 +92,11 @@ export default function CustomersPage() {
   };
 
   const handleOnRowAction = (customer: CustomerResponse) => {
-    navigate(`/customers/${customer.id}`);
+    navigate(generatePath(billingPaths.CUSTOMER, { customerId: customer.id }));
   };
 
   const handleOnCloseDetail = () => {
-    navigate('/customers');
+    navigate(billingPaths.CUSTOMERS);
   };
 
   return (

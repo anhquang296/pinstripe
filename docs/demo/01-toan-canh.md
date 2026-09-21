@@ -10,23 +10,23 @@
 
 ## Bấm gì
 
-| #   | Ở đâu                 | Làm gì                                     | Nói gì                                                                                                               |
-| --- | --------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| 1   | `/`                   | Để nguyên màn Tổng quan                    | "MRR gần 49 triệu, ARR 585 triệu. Bốn nhà xe đang chạy, một đang dùng thử."                                          |
-| 2   | `/`                   | Chỉ vào khối **Đối soát nhanh**            | "Tiền ở cổng thanh toán và tiền trên sổ cái khớp nhau, chênh lệch 0. Quay lại chỗ này ở cuối buổi."                  |
-| 3   | `/customers`          | Mở danh sách                               | "Năm nhà xe thật: Phương Trang, Thành Bưởi, Hoàng Long, Kumho Samco, Sao Việt."                                      |
-| 4   | `/customers`          | Bấm vào dòng **Phương Trang** để mở drawer | "Mã số thuế, email kế toán, địa chỉ — và hai tài khoản cổng nhà xe: chủ xe và kế toán."                              |
-| 5   | `/catalog/products`   | Mở tab Products                            | "Ba dịch vụ Vexere bán cho nhà xe: nền tảng bán vé, phần mềm quản lý nhà xe, và ZNS chăm sóc khách."                 |
-| 6   | `/catalog/prices`     | Đổi sang tab Prices                        | "Bốn bảng giá. Chú ý `booking_ticket_fee` — **2 tier (graduated)**: 10.000 vé đầu 2.000 đ/vé, vượt bậc còn 1.500 đ." |
-| 7   | `/catalog/prices`     | Chỉ vào cột Version                        | "Giá là bất biến. Tăng giá là sinh version mới, hợp đồng cũ vẫn chạy giá cũ."                                        |
-| 8   | `/subscriptions/list` | Mở danh sách thuê bao                      | "Bốn `active`, một `trialing` — Sao Việt mới ký, đang dùng thử 14 ngày, chưa có hoá đơn nào."                        |
+| #   | Ở đâu                         | Làm gì                                     | Nói gì                                                                                                               |
+| --- | ----------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | `/`                           | Để nguyên màn Tổng quan                    | "MRR gần 49 triệu, ARR 585 triệu. Bốn nhà xe đang chạy, một đang dùng thử."                                          |
+| 2   | `/`                           | Chỉ vào khối **Đối soát nhanh**            | "Tiền ở cổng thanh toán và tiền trên sổ cái khớp nhau, chênh lệch 0. Quay lại chỗ này ở cuối buổi."                  |
+| 3   | `/billing/customers`          | Mở danh sách                               | "Năm nhà xe thật: Phương Trang, Thành Bưởi, Hoàng Long, Kumho Samco, Sao Việt."                                      |
+| 4   | `/billing/customers`          | Bấm vào dòng **Phương Trang** để mở drawer | "Mã số thuế, email kế toán, địa chỉ — và hai tài khoản cổng nhà xe: chủ xe và kế toán."                              |
+| 5   | `/billing/catalog/products`   | Mở tab Products                            | "Ba dịch vụ Vexere bán cho nhà xe: nền tảng bán vé, phần mềm quản lý nhà xe, và ZNS chăm sóc khách."                 |
+| 6   | `/billing/catalog/prices`     | Đổi sang tab Prices                        | "Bốn bảng giá. Chú ý `booking_ticket_fee` — **2 tier (graduated)**: 10.000 vé đầu 2.000 đ/vé, vượt bậc còn 1.500 đ." |
+| 7   | `/billing/catalog/prices`     | Chỉ vào cột Version                        | "Giá là bất biến. Tăng giá là sinh version mới, hợp đồng cũ vẫn chạy giá cũ."                                        |
+| 8   | `/billing/subscriptions/list` | Mở danh sách thuê bao                      | "Bốn `active`, một `trialing` — Sao Việt mới ký, đang dùng thử 14 ngày, chưa có hoá đơn nào."                        |
 
 ## Thấy gì
 
 - Tổng quan: **MRR 48.750.700 ₫**, ARR **585.008.400 ₫**, thuê bao đang chạy **4**, dùng thử **1**.
 - Đối soát nhanh: cổng thanh toán và sổ cái bằng nhau, **chênh lệch 0 ₫**, **0 mục lệch**.
-- `/catalog/prices`: thẻ **TÍNH THEO BẬC = 1**.
-- `/subscriptions/list`: không dòng nào `past_due`.
+- `/billing/catalog/prices`: thẻ **TÍNH THEO BẬC = 1**.
+- `/billing/subscriptions/list`: không dòng nào `past_due`.
 
 ## Nếu hỏng thì
 

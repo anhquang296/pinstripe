@@ -13,16 +13,16 @@ thông thường: kênh thu tiền chính **không phải thẻ**.
 
 ## Bấm gì
 
-| #   | Ở đâu                  | Làm gì                                                                                         |
-| --- | ---------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | `/invoices/draft`      | Ba bản nháp của kỳ này. Bấm dòng **Phương Trang FUTA**                                         |
-| 2   | drawer                 | Chỉ vào **Cách thu tiền: Cấn trừ tiền vé** và **Kỳ: 31/08 → 30/09**                            |
-| 3   | drawer                 | Chỉ vào Tổng tiền đang là **0 ₫** — nói câu ở dưới                                             |
-| 4   | drawer                 | Bấm **Phát hành**                                                                              |
-| 5   | drawer                 | Số hoá đơn xuất hiện, trạng thái `open`, tổng **72.682.500 ₫**, còn lại đúng bằng tổng         |
-| 6   | —                      | **Chờ tối đa 60 giây.** Trong lúc chờ, mở tab Mailpit: email hoá đơn đã gửi cho kế toán nhà xe |
-| 7   | `/invoices/paid`       | F5 — hoá đơn vừa rồi đã sang **`paid`**, không ai bấm gì thêm                                  |
-| 8   | `/ledger/transactions` | Dòng trên cùng: bút toán `DEBIT ticket_offset_clearing / CREDIT accounts_receivable`           |
+| #   | Ở đâu                          | Làm gì                                                                                         |
+| --- | ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| 1   | `/billing/invoices/draft`      | Ba bản nháp của kỳ này. Bấm dòng **Phương Trang FUTA**                                         |
+| 2   | drawer                         | Chỉ vào **Cách thu tiền: Cấn trừ tiền vé** và **Kỳ: 31/08 → 30/09**                            |
+| 3   | drawer                         | Chỉ vào Tổng tiền đang là **0 ₫** — nói câu ở dưới                                             |
+| 4   | drawer                         | Bấm **Phát hành**                                                                              |
+| 5   | drawer                         | Số hoá đơn xuất hiện, trạng thái `open`, tổng **72.682.500 ₫**, còn lại đúng bằng tổng         |
+| 6   | —                              | **Chờ tối đa 60 giây.** Trong lúc chờ, mở tab Mailpit: email hoá đơn đã gửi cho kế toán nhà xe |
+| 7   | `/billing/invoices/paid`       | F5 — hoá đơn vừa rồi đã sang **`paid`**, không ai bấm gì thêm                                  |
+| 8   | `/billing/ledger/transactions` | Dòng trên cùng: bút toán `DEBIT ticket_offset_clearing / CREDIT accounts_receivable`           |
 
 ## Nói gì
 

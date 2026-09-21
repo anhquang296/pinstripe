@@ -60,7 +60,7 @@ sequenceDiagram
 | 5   | HTTP                                                                                                    | trả **200** với `status: requires_payment_method`                                                                                                               | không có mã lỗi HTTP nào                    |
 | 6   | Hook [mutations.ts:29-41](../../apps/erp-ui/src/reactquery/payments/mutations.ts)                       | `onSuccess` kiểm `paymentIntent.failureMessage` → toast **đỏ**, `return` sớm để không toast thành công                                                          | toast "The card was declined by the issuer" |
 | 7   | UI [InvoiceItem.tsx:90-104](../../apps/erp-ui/src/components/InvoiceItem.tsx)                           | hoá đơn vẫn `open` → ba nút vẫn đó                                                                                                                              | bấm lại được ngay                           |
-| 8   | UI [PaymentIntentItem.tsx:40-42, 48-56](../../apps/erp-ui/src/components/PaymentIntentItem.tsx)         | trang `/payments`: `failureCode` in đỏ dưới status; cột "Các lần thử" hiện chip cho từng attempt                                                                | mỗi lần bấm thêm một chip `declined`        |
+| 8   | UI [PaymentIntentItem.tsx:40-42, 48-56](../../apps/erp-ui/src/components/PaymentIntentItem.tsx)         | trang `/billing/payments`: `failureCode` in đỏ dưới status; cột "Các lần thử" hiện chip cho từng attempt                                                        | mỗi lần bấm thêm một chip `declined`        |
 
 ### Thất bại nghiệp vụ ≠ lỗi kỹ thuật
 
@@ -170,11 +170,11 @@ mà chưa được dùng tới.
 
 ### Trên màn hình
 
-1. `/invoices` → có một hoá đơn `open` → bấm **Thẻ bị từ chối**.
+1. `/billing/invoices` → có một hoá đơn `open` → bấm **Thẻ bị từ chối**.
 2. Toast **đỏ**: "The card was declined by the issuer". Hoá đơn vẫn `open`.
-3. `/payments` → payment intent mới, status `requires_payment_method`, dưới status có chữ đỏ
+3. `/billing/payments` → payment intent mới, status `requires_payment_method`, dưới status có chữ đỏ
    `card_declined`, cột "Các lần thử" có một chip `declined`.
-4. Về `/invoices` bấm **Thẻ bị từ chối** lần nữa → `/payments` có intent thứ hai.
+4. Về `/billing/invoices` bấm **Thẻ bị từ chối** lần nữa → `/billing/payments` có intent thứ hai.
 5. Bấm **Thu tiền** → intent thứ ba, `succeeded`, hoá đơn `paid`.
 
 ### Bằng curl — thấy 200 chứ không phải lỗi

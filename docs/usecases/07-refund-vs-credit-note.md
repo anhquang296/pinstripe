@@ -12,7 +12,7 @@ Một câu để nhớ: **chưa thu thì credit note, đã thu thì refund.**
 |              | Credit note                             | Refund                                               |
 | ------------ | --------------------------------------- | ---------------------------------------------------- |
 | Xoá phần nào | phần **chưa trả** của hoá đơn           | phần **đã trả** qua PSP                              |
-| Màn hình     | `/invoices`, nút "Credit note"          | `/payments`, nút "Hoàn tiền"                         |
+| Màn hình     | `/billing/invoices`, nút "Credit note"  | `/billing/payments`, nút "Hoàn tiền"                 |
 | Điều kiện    | hoá đơn **không** phải `draft`          | payment intent phải `succeeded` và có `pspReference` |
 | Trần số tiền | `total − amountPaid − đã credit`        | `paymentIntent.amount − đã hoàn`                     |
 | Gọi ra PSP   | **không**                               | **có** — `psp.createRefund`                          |
@@ -75,7 +75,7 @@ sequenceDiagram
 | 5   | Service [credit-note.service.ts:28-32](../../packages/modules/billing/src/services/credit-note.service.ts) | hoá đơn `draft` → 409 "still a draft and should be edited rather than credited"                                              | —                                                                                       |
 | 6   | Service [credit-note.service.ts:34-42](../../packages/modules/billing/src/services/credit-note.service.ts) | `creditable = total − amountPaid − đã credit`; vượt → 400 với thông điệp nói rõ "money already paid is returned by a refund" | lỗi tự dạy công cụ đúng                                                                 |
 | 7   | Service [credit-note.service.ts:48-55](../../packages/modules/billing/src/services/credit-note.service.ts) | `claimNumberSequence(CREDIT_NOTE)` → `CN-000001`                                                                             | dãy số riêng, độc lập với `INV-`                                                        |
-| 8   | Service [postCredit:147-169](../../packages/modules/billing/src/services/credit-note.service.ts)           | Nợ `revenue` / Có `accounts_receivable`                                                                                      | `/ledger` có giao dịch mới                                                              |
+| 8   | Service [postCredit:147-169](../../packages/modules/billing/src/services/credit-note.service.ts)           | Nợ `revenue` / Có `accounts_receivable`                                                                                      | `/billing/ledger` có giao dịch mới                                                      |
 | 9   | Service [credit-note.service.ts:79-81](../../packages/modules/billing/src/services/credit-note.service.ts) | credit **vừa đúng** phần còn lại → `settleInvoice`                                                                           | hoá đơn thành `paid` **mà không có đồng nào vào**                                       |
 | 10  | Hook [mutations.ts:116](../../apps/erp-ui/src/reactquery/invoices/mutations.ts)                            | toast in `creditNote.number`                                                                                                 | `Đã tạo CN-000001.`                                                                     |
 | 11  | UI [InvoiceItem.tsx:74-82](../../apps/erp-ui/src/components/InvoiceItem.tsx)                               | cột "Đã credit" tăng, "Còn lại" giảm                                                                                         | ba cột tiền cập nhật cùng lúc                                                           |
@@ -85,16 +85,16 @@ phải thu. Muốn biết tiền thật vào bao nhiêu thì đọc `amount_paid
 
 ## Kịch bản chính — refund
 
-| #   | Ở đâu                                                                                            | Chuyện gì xảy ra                                                                 | Quan sát được gì                    |
-| --- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | ----------------------------------- |
-| 1   | UI [PaymentIntentItem.tsx:29, 60-65](../../apps/erp-ui/src/components/PaymentIntentItem.tsx)     | nút "Hoàn tiền" **chỉ** hiện khi intent `succeeded`                              | intent bị từ chối không có nút      |
-| 2   | UI [PaymentsPage.tsx:28-37](../../apps/erp-ui/src/pages/PaymentsPage.tsx)                        | `handleOnRefund` gửi `{ paymentIntentId, amount, reason: 'Hoàn tiền từ admin' }` | ô số tiền ở đầu trang, dùng chung   |
-| 3   | Service [refund.service.ts:25-37](../../packages/modules/billing/src/services/refund.service.ts) | intent phải `succeeded`, phải có `pspReference`                                  | hai 409 khác nhau                   |
-| 4   | Service [refund.service.ts:39-48](../../packages/modules/billing/src/services/refund.service.ts) | `refundable = paymentIntent.amount − đã hoàn`                                    | hoàn nhiều lần được, tới hết        |
-| 5   | Service [refund.service.ts:51-56](../../packages/modules/billing/src/services/refund.service.ts) | `psp.createRefund` — **gọi ra ngoài trước khi ghi DB**                           | xem mục rủi ro                      |
-| 6   | Service [refund.service.ts:59-84](../../packages/modules/billing/src/services/refund.service.ts) | transaction: `refunds` + bút toán + outbox `refund.created`                      | —                                   |
-| 7   | Service [postRefund:122-143](../../packages/modules/billing/src/services/refund.service.ts)      | Nợ `revenue` / Có `cash`                                                         | tiền mặt giảm trên `/ledger`        |
-| 8   | Hook [mutations.ts:8-18](../../apps/erp-ui/src/reactquery/payments/mutations.ts)                 | invalidate 5 nhóm query                                                          | `/invoices` cột "Đã hoàn" tăng theo |
+| #   | Ở đâu                                                                                            | Chuyện gì xảy ra                                                                 | Quan sát được gì                            |
+| --- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------- |
+| 1   | UI [PaymentIntentItem.tsx:29, 60-65](../../apps/erp-ui/src/components/PaymentIntentItem.tsx)     | nút "Hoàn tiền" **chỉ** hiện khi intent `succeeded`                              | intent bị từ chối không có nút              |
+| 2   | UI [PaymentsPage.tsx:28-37](../../apps/erp-ui/src/pages/PaymentsPage.tsx)                        | `handleOnRefund` gửi `{ paymentIntentId, amount, reason: 'Hoàn tiền từ admin' }` | ô số tiền ở đầu trang, dùng chung           |
+| 3   | Service [refund.service.ts:25-37](../../packages/modules/billing/src/services/refund.service.ts) | intent phải `succeeded`, phải có `pspReference`                                  | hai 409 khác nhau                           |
+| 4   | Service [refund.service.ts:39-48](../../packages/modules/billing/src/services/refund.service.ts) | `refundable = paymentIntent.amount − đã hoàn`                                    | hoàn nhiều lần được, tới hết                |
+| 5   | Service [refund.service.ts:51-56](../../packages/modules/billing/src/services/refund.service.ts) | `psp.createRefund` — **gọi ra ngoài trước khi ghi DB**                           | xem mục rủi ro                              |
+| 6   | Service [refund.service.ts:59-84](../../packages/modules/billing/src/services/refund.service.ts) | transaction: `refunds` + bút toán + outbox `refund.created`                      | —                                           |
+| 7   | Service [postRefund:122-143](../../packages/modules/billing/src/services/refund.service.ts)      | Nợ `revenue` / Có `cash`                                                         | tiền mặt giảm trên `/billing/ledger`        |
+| 8   | Hook [mutations.ts:8-18](../../apps/erp-ui/src/reactquery/payments/mutations.ts)                 | invalidate 5 nhóm query                                                          | `/billing/invoices` cột "Đã hoàn" tăng theo |
 
 ### Rủi ro: gọi PSP trước, ghi DB sau
 
@@ -113,7 +113,7 @@ Cả hai đường đều **đồng bộ toàn bộ phần tiền**.
 | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | **Credit note**: hàng `credit_notes`, số `CN-…`, bút toán, có thể `invoice = paid` | outbox relay `credit_note.created` (+ `invoice.paid` nếu tất toán)           |
 | **Refund**: hàng `refunds`, `psp_reference`, bút toán                              | outbox relay `refund.created`                                                |
-| ba cột tiền trên `/invoices` đều đúng ngay                                         | webhook delivery nếu có endpoint đăng ký — [UC-09](./09-receive-webhooks.md) |
+| ba cột tiền trên `/billing/invoices` đều đúng ngay                                 | webhook delivery nếu có endpoint đăng ký — [UC-09](./09-receive-webhooks.md) |
 
 ## Dữ liệu để lại
 
@@ -125,7 +125,7 @@ Cả hai đường đều **đồng bộ toàn bộ phần tiền**.
 | `refunds`                                 | refund                    | `psp_reference` **unique**, `reason`                                             |
 | `ledger_transactions` + `ledger_postings` | cả hai                    | `external_id` = `credit_note:<id>` hoặc `refund:<id>`                            |
 
-Ba cột `amountCredited`, `amountRefunded`, `amountRemaining` trên `/invoices` **không** được lưu — ba
+Ba cột `amountCredited`, `amountRefunded`, `amountRemaining` trên `/billing/invoices` **không** được lưu — ba
 truy vấn tổng hợp mỗi lần đọc
 ([invoice.service.ts:495-509](../../packages/modules/billing/src/services/invoice.service.ts)), nên không bao
 giờ lệch với bảng nguồn.
@@ -153,7 +153,7 @@ reload là mất. Hoá đơn vẫn `paid` trong DB nhưng không refund được
 
 **Credit note** — dựng một hoá đơn `open`, ghi rõ số tiền để đối chiếu:
 
-1. `/invoices` → tạo nháp → **Phát hành**. Ghi lại cột Tổng, ví dụ `200.000`.
+1. `/billing/invoices` → tạo nháp → **Phát hành**. Ghi lại cột Tổng, ví dụ `200.000`.
 2. Sửa ô "Số tiền credit note" thành `50000` → bấm **Credit note** trên dòng đó.
 3. Cột "Đã credit" = `50.000`, "Còn lại" = `150.000`, status vẫn `open`.
 4. Sửa ô thành `150000` → bấm **Credit note** lần nữa → status thành `paid`, "Còn lại" `0`, mà
@@ -163,8 +163,8 @@ reload là mất. Hoá đơn vẫn `paid` trong DB nhưng không refund được
 **Refund** — cần một hoá đơn đã thu tiền thật:
 
 1. Dựng và thu tiền một hoá đơn khác ([UC-05](./05-issue-and-collect-invoice.md)).
-2. `/payments` → sửa "Số tiền hoàn" thành một phần số đã thu → **Hoàn tiền**.
-3. Bảng **Refunds** có hàng mới; về `/invoices` cột "Đã hoàn" tăng.
+2. `/billing/payments` → sửa "Số tiền hoàn" thành một phần số đã thu → **Hoàn tiền**.
+3. Bảng **Refunds** có hàng mới; về `/billing/invoices` cột "Đã hoàn" tăng.
 4. Bấm **Hoàn tiền** tiếp cho tới khi vượt trần → toast đỏ 400.
 
 ### Bằng curl

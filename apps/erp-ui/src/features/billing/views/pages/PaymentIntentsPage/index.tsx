@@ -14,12 +14,13 @@ import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNa
 import { formatCurrency, formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import { PAYMENT_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import type { PaymentIntentResponse } from '@vxrerp/billing/contracts';
 import { CurrencyEnum, PaymentIntentStatusEnum } from '@vxrerp/billing/contracts';
 import { usePaymentIntentsQuery } from '@vxrerp/sdk/react';
 import { filter, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import { paymentIntentSearchParams } from './payment-intents.search-params';
 import PaymentIntentDrawer from './PaymentIntentDrawer';
@@ -73,11 +74,11 @@ export default function PaymentIntentsPage() {
   };
 
   const handleOnRowAction = (paymentIntent: PaymentIntentResponse) => {
-    navigate(`/payments/intents/${paymentIntent.id}`);
+    navigate(generatePath(billingPaths.PAYMENTS_INTENT, { paymentIntentId: paymentIntent.id }));
   };
 
   const handleOnCloseDetail = () => {
-    navigate('/payments/intents');
+    navigate(billingPaths.PAYMENTS_INTENTS);
   };
 
   return (

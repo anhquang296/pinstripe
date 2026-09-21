@@ -97,10 +97,10 @@ thì phải gọi API.
 
 Điều này quan trọng vì subscription bắt buộc price cùng currency với khách — [UC-02](./02-subscribe-to-plan.md).
 
-**2. `/products` tạo được nhưng không sửa được** (`useUpdateProductMutation` tồn tại mà không trang
+**2. `/billing/catalog/products` tạo được nhưng không sửa được** (`useUpdateProductMutation` tồn tại mà không trang
 nào gọi).
 
-`/prices` thì đã đủ: [PriceForm](../../apps/erp-ui/src/components/PriceForm/index.tsx) tạo được cả
+`/billing/catalog/prices` thì đã đủ: [PriceForm](../../apps/erp-ui/src/components/PriceForm/index.tsx) tạo được cả
 ba dạng — per_unit, tiered, metered — và mỗi hàng có nút bật/tắt `active`. Cái nó **không** có là
 đường sửa số tiền, và đó là thiết kế chứ không phải thiếu sót: giá đã phát hành là bất biến, tăng
 giá là tạo price mới cùng `lookupKey` ([technique 05](../technique/05-product-and-price.md)).
@@ -109,11 +109,11 @@ giá là tạo price mới cùng `lookupKey` ([technique 05](../technique/05-pro
 
 ### Trên màn hình
 
-1. `/customers` → điền email + tên → **Tạo customer**. Hàng mới hiện ngay ở bảng dưới.
-2. `/products` → điền tên → **Tạo product**.
-3. `/prices` → chọn product, điền lookup key + đơn giá, chọn chu kỳ → **Tạo price**. Submit lại đúng
+1. `/billing/customers` → điền email + tên → **Tạo customer**. Hàng mới hiện ngay ở bảng dưới.
+2. `/billing/catalog/products` → điền tên → **Tạo product**.
+3. `/billing/catalog/prices` → chọn product, điền lookup key + đơn giá, chọn chu kỳ → **Tạo price**. Submit lại đúng
    lookup key đó với số tiền khác thì ra `v2`, và `v1` vẫn nằm nguyên trong bảng. Bấm **Ngừng bán**
-   ở `v1` để nó rụng khỏi dropdown của `/subscriptions` mà hợp đồng cũ không bị đụng.
+   ở `v1` để nó rụng khỏi dropdown của `/billing/subscriptions` mà hợp đồng cũ không bị đụng.
 
 ### Bằng curl
 
@@ -153,7 +153,7 @@ curl -s -X POST $API/v1/prices -H "$AUTH" -H "$JSON" \
 
 Gửi lại đúng lệnh price ở trên (cùng `lookupKey`) thì được `version: 2`, không phải lỗi — mỗi lần
 tạo là một version mới, version cũ vẫn phục vụ hợp đồng cũ. Đó chính là dòng chú thích trên trang
-`/prices` ([PricesPage.tsx:18-20](../../apps/erp-ui/src/pages/PricesPage.tsx)).
+`/billing/catalog/prices` ([PricesPage.tsx:18-20](../../apps/erp-ui/src/pages/PricesPage.tsx)).
 
 Thử `Idempotency-Key` lặp lại: gửi hai lần cùng key **và** cùng body thì lần hai trả về nguyên
 response cũ kèm header `idempotent-replayed: true`, không tạo bản ghi thứ hai.

@@ -22,6 +22,7 @@ import { formatDate } from '@common/utils/format';
 import { toBooleanFilter, toBooleanSelectValue, toQuery } from '@common/utils/search-params';
 import TaxRateForm from '@features/billing/components/TaxRateForm';
 import { SUBSCRIPTION_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { TaxRateResponse } from '@vxrerp/billing/contracts';
@@ -32,7 +33,7 @@ import { filter, get, last, reject, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import { taxRateSearchParams } from './tax-rates.search-params';
 import TaxRateDrawer from './TaxRateDrawer';
@@ -96,7 +97,7 @@ export default function TaxRatesPage() {
   };
 
   const handleOnRowAction = (taxRate: TaxRateResponse) => {
-    navigate(`/subscriptions/tax/${taxRate.id}`);
+    navigate(generatePath(billingPaths.SUBSCRIPTIONS_TAX_RATE, { taxRateId: taxRate.id }));
   };
 
   return (
@@ -205,7 +206,7 @@ export default function TaxRatesPage() {
         <TaxRateDrawer
           taxRateId={taxRateId}
           onClose={() => {
-            navigate('/subscriptions/tax');
+            navigate(billingPaths.SUBSCRIPTIONS_TAX);
           }}
         />
       ) : null}

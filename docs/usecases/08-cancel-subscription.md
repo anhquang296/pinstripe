@@ -159,7 +159,7 @@ xoá nợ đã phát hành.
 
 ### Trên màn hình
 
-1. `/subscriptions` → chọn một dòng `active` → **Hủy cuối kỳ**.
+1. `/billing/subscriptions` → chọn một dòng `active` → **Hủy cuối kỳ**.
 2. Status **vẫn** `active`, bên cạnh có chip vàng "hủy cuối kỳ". Hai nút vẫn còn.
 3. Bảng Entitlements: vẫn `active` — đúng, vì quyền dùng chưa mất.
 4. Trên một dòng khác → **Hủy ngay** → status `canceled`, ô Thao tác thành "đã kết thúc".

@@ -10,6 +10,10 @@ import { Navigate, type RouteObject } from 'react-router-dom';
 import { adminPaths } from './paths';
 
 export const adminRouteDefs: RouteObject[] = [
+  {
+    path: adminPaths.SETTINGS,
+    element: <Navigate to={adminPaths.SETTINGS_ACCOUNT} replace />,
+  },
   { path: adminPaths.SETTINGS_ACCOUNT, element: <AccountSettingsPage /> },
   { path: adminPaths.SETTINGS_SECURITY, element: <SecuritySettingsPage /> },
 
@@ -23,7 +27,7 @@ export const adminRouteDefs: RouteObject[] = [
 
   { path: adminPaths.API_KEYS, element: <ApiKeysPage /> },
 
-  { path: adminPaths.ADMIN_USERS, element: <UsersPage /> },
-  { path: adminPaths.ADMIN_USER, element: <UsersPage /> },
-  { path: adminPaths.ADMIN_ROLES, element: <RolesPage /> },
+  { path: adminPaths.USERS, element: <UsersPage /> },
+  { path: adminPaths.USER, element: <UsersPage /> },
+  { path: adminPaths.ROLES, element: <RolesPage /> },
 ];

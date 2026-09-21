@@ -4,7 +4,12 @@ import { billingRouteDefs } from '@features/billing/routes/def';
 import { billingPaths } from '@features/billing/routes/paths';
 
 export const billingFeature: FeatureDefinition = {
+  homePath: billingPaths.OVERVIEW,
   routes: billingRouteDefs,
   navigationItems: BILLING_NAVIGATION_ITEMS,
-  reportRangePaths: [billingPaths.OVERVIEW, billingPaths.REPORTS, billingPaths.SUBSCRIPTIONS_USAGE],
+  reportRangePaths: [
+    billingPaths.OVERVIEW,
+    billingPaths.REPORTS,
+    `${billingPaths.SUBSCRIPTIONS_USAGE}/*`,
+  ],
 };

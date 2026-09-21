@@ -118,7 +118,7 @@ xong để mà chờ. Muốn UI đúng hơn thì phải poll hoặc đẩy realt
 
 ### Trên màn hình
 
-1. `/subscriptions` → chọn khách, chọn bảng giá, để trial `0` → **Tạo subscription**.
+1. `/billing/subscriptions` → chọn khách, chọn bảng giá, để trial `0` → **Tạo subscription**.
 2. Hàng mới hiện ngay ở bảng trên, status `active`, kỳ hiện tại đã có ngày.
 3. Bảng **Entitlements** phía dưới: vẫn trống.
 4. Chờ ~5 giây, tải lại trang (F5) → hàng entitlement `active` xuất hiện.

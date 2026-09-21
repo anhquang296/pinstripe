@@ -28,6 +28,7 @@ import { toQuery } from '@common/utils/search-params';
 import CouponForm from '@features/billing/components/CouponForm';
 import DiscountForm from '@features/billing/components/DiscountForm';
 import { SUBSCRIPTION_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { CouponResponse } from '@vxrerp/billing/contracts';
@@ -44,7 +45,7 @@ import { filter, get, last, map, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import CouponDrawer from './CouponDrawer';
 import DiscountDrawer from './DiscountDrawer';
@@ -146,7 +147,7 @@ export default function DiscountsPage() {
   };
 
   const handleOnRowAction = (coupon: CouponResponse) => {
-    navigate(`/subscriptions/discounts/${coupon.id}`);
+    navigate(generatePath(billingPaths.SUBSCRIPTIONS_COUPON, { couponId: coupon.id }));
   };
 
   return (
@@ -322,7 +323,7 @@ export default function DiscountsPage() {
         <CouponDrawer
           couponId={couponId}
           onClose={() => {
-            navigate('/subscriptions/discounts');
+            navigate(billingPaths.SUBSCRIPTIONS_DISCOUNTS);
           }}
         />
       ) : null}

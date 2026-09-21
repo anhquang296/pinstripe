@@ -86,13 +86,13 @@ Chạy xong in ra 8 dòng, dòng cuối là `seed-demo hoàn tất`. Nó dựng:
 Đăng nhập http://localhost:5173 bằng `admin@vxrerp.test`, rồi soát:
 
 - [ ] `/` — MRR khác 0, "Thuê bao đang chạy" = 4, các thẻ doanh thu 30 ngày có số
-- [ ] `/customers` — đủ 5 nhà xe, đúng tên và mã số thuế
-- [ ] `/catalog/prices` — 4 bảng giá, `booking_ticket_fee` hiện hai bậc
-- [ ] `/subscriptions/list` — 4 `active` + 1 `trialing`, **không có cái nào `past_due`**
-- [ ] `/subscriptions/usage` — hai meter, có số liệu kỳ này
-- [ ] `/invoices/paid` — hoá đơn trải từ tháng 5 tới tháng 9, số tăng dần theo thời gian
-- [ ] `/invoices/draft` — đúng 3 bản nháp: Phương Trang, Thành Bưởi, Kumho
-- [ ] `/ledger/transactions` — có bút toán, `/reports` mục Đối soát **không có dòng lệch nào**
+- [ ] `/billing/customers` — đủ 5 nhà xe, đúng tên và mã số thuế
+- [ ] `/billing/catalog/prices` — 4 bảng giá, `booking_ticket_fee` hiện hai bậc
+- [ ] `/billing/subscriptions/list` — 4 `active` + 1 `trialing`, **không có cái nào `past_due`**
+- [ ] `/billing/subscriptions/usage` — hai meter, có số liệu kỳ này
+- [ ] `/billing/invoices/paid` — hoá đơn trải từ tháng 5 tới tháng 9, số tăng dần theo thời gian
+- [ ] `/billing/invoices/draft` — đúng 3 bản nháp: Phương Trang, Thành Bưởi, Kumho
+- [ ] `/billing/ledger/transactions` — có bút toán, `/billing/reports` mục Đối soát **không có dòng lệch nào**
 
 Mở sẵn bốn tab trước khi lên sân khấu:
 

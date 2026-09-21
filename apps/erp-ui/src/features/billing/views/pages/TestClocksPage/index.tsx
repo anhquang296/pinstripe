@@ -19,6 +19,7 @@ import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNa
 import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import TestClockForm from '@features/billing/components/TestClockForm';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { TestClockResponse } from '@vxrerp/billing/contracts';
@@ -29,7 +30,7 @@ import { filter, get, last, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import TestClockDrawer from './TestClockDrawer';
 
@@ -85,7 +86,7 @@ export default function TestClocksPage() {
   };
 
   const handleOnRowAction = (testClock: TestClockResponse) => {
-    navigate(`/test-clocks/${testClock.id}`);
+    navigate(generatePath(billingPaths.TEST_CLOCK, { testClockId: testClock.id }));
   };
 
   if (isDisabled) {
@@ -187,7 +188,7 @@ export default function TestClocksPage() {
         <TestClockDrawer
           testClockId={testClockId}
           onClose={() => {
-            navigate('/test-clocks');
+            navigate(billingPaths.TEST_CLOCKS);
           }}
         />
       ) : null}

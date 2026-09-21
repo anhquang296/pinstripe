@@ -22,6 +22,7 @@ import { formatDate } from '@common/utils/format';
 import { toBooleanFilter, toBooleanSelectValue, toQuery } from '@common/utils/search-params';
 import ProductForm from '@features/billing/components/ProductForm';
 import { CATALOG_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { ProductResponse } from '@vxrerp/billing/contracts';
@@ -31,7 +32,7 @@ import { filter, get, last, reject, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import ProductDrawer from './ProductDrawer';
 import { productSearchParams } from './products.search-params';
@@ -95,7 +96,7 @@ export default function ProductsPage() {
   };
 
   const handleOnRowAction = (product: ProductResponse) => {
-    navigate(`/catalog/products/${product.id}`);
+    navigate(generatePath(billingPaths.CATALOG_PRODUCT, { productId: product.id }));
   };
 
   return (
@@ -197,7 +198,7 @@ export default function ProductsPage() {
         <ProductDrawer
           productId={productId}
           onClose={() => {
-            navigate('/catalog/products');
+            navigate(billingPaths.CATALOG_PRODUCTS);
           }}
         />
       ) : null}

@@ -43,6 +43,8 @@ src/
 
 - Mỗi feature export đúng một `FeatureDefinition` — `routes`, `navigationItems`, `reportRangePaths` — từ `index.ts`. `features/auth/features.ts` liệt kê `ERP_FEATURES` rồi ghép: route thành con của `RequireSession` → `AppLayout`, mục menu thành nhóm theo thứ tự của `NavigationGroupEnum`, path báo cáo thành `hasReportRange`. Thêm một feature là thêm một dòng vào `ERP_FEATURES`.
 - Thứ tự trong `ERP_FEATURES` là thứ tự mục **bên trong** một nhóm menu; thứ tự nhóm do `NavigationGroupEnum` quyết.
+- Mọi feature trừ `auth` có URL prefix bằng tên của nó, khai **một lần** ở đầu `routes/paths.ts` (`const BILLING_PATH = '/billing'`) rồi mọi path dựng từ hằng đó: `/billing/customers`, `/admin/users`. `auth` giữ `/auth/*` và `/` — `/` chuyển hướng tới `homePath` của billing. Settings của better-auth-ui trỏ về `adminPaths.SETTINGS` qua `basePaths` trong `AdminAuthProvider`.
+- Page không viết chuỗi route: đường dẫn tĩnh là `<feature>Paths.X`, đường dẫn có tham số là `generatePath(<feature>Paths.X, { … })`. Path báo cáo (`reportRangePaths`) là pattern của react-router, khớp bằng `matchPath` — `/billing` khớp đúng trang tổng quan, `/billing/subscriptions/usage/*` khớp cả drawer bên dưới.
 - Route khai trong `features/<feature>/routes/def.tsx`, path lấy từ `<feature>Paths`; `RoutesProvider` dựng `createBrowserRouter` từ `authRouteDefs`. Không có `App.tsx`, không `<Routes>` JSX.
 - Hướng import: `features/auth` là feature **duy nhất** được import feature khác (qua `index.ts`), vì nó ghép chúng. Mọi feature khác không import `features/auth` và không import nhau; `common/` không import feature nào. `eslint.config.js` chặn cả ba chiều — thêm feature mới thì thêm tên nó vào danh sách feature trong config đó.
 - Một component chỉ có nghĩa với một entity (`CustomerForm`, `UserRoleChips`) nằm trong feature sở hữu entity đó, không nằm trong `common/`. Màn của platform (user, role, API key, webhook, settings) thuộc `features/admin`.
@@ -157,11 +159,11 @@ Hai bề mặt của nhóm Admin không có nút xoá, vì không có route xoá
 
 ## Tab là route con, drawer là param
 
-Tab của một màn là **route con**, không phải state: `PageTabs` render `Tabs` của HeroUI (variant mặc định, `w-fit`) với `selectedKey` suy ra từ `pathname` và `navigate(to)` khi đổi tab, và mỗi tab có URL riêng (`/catalog/products`, `/subscriptions/usage`). Mỗi tab là một Page riêng giữ query và mutation của chính nó — đó là thứ giữ [`component-convention.md`](../agentkit/profiles/react/component-convention.md) đúng khi một màn có bốn tab.
+Tab của một màn là **route con**, không phải state: `PageTabs` render `Tabs` của HeroUI (variant mặc định, `w-fit`) với `selectedKey` suy ra từ `pathname` và `navigate(to)` khi đổi tab, và mỗi tab có URL riêng (`/billing/catalog/products`, `/billing/subscriptions/usage`). Mỗi tab là một Page riêng giữ query và mutation của chính nó — đó là thứ giữ [`component-convention.md`](../agentkit/profiles/react/component-convention.md) đúng khi một màn có bốn tab.
 
-Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/customers/:customerId`) để deep-link được; entity phụ trong drawer (tax ID, promotion code, discount) dùng state cục bộ. Một path tĩnh và một path động không bao giờ tranh nhau cùng một đoạn: `/subscriptions` redirect sang `/subscriptions/list`, và id nằm dưới tab của nó.
+Drawer chi tiết của **entity chính** trên màn mở bằng route param (`/billing/customers/:customerId`) để deep-link được; entity phụ trong drawer (tax ID, promotion code, discount) dùng state cục bộ. Một path tĩnh và một path động không bao giờ tranh nhau cùng một đoạn: `/billing/subscriptions` redirect sang `/billing/subscriptions/list`, và id nằm dưới tab của nó.
 
-Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/api-keys`, `/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/test-clocks/:testClockId`, `/admin/users/:userId`).
+Một màn **không** có tab thì không dựng `PageTabs` cho nó: `/admin/api-keys`, `/billing/test-clocks`, `/admin/users`, `/admin/roles` là màn phẳng, id nằm ngay dưới path của màn (`/billing/test-clocks/:testClockId`, `/admin/users/:userId`).
 
 ## Filter và cursor sống trên URL
 
@@ -314,4 +316,5 @@ Tiền và ngày đi qua `src/common/utils/format.ts`: `formatCurrency(minorAmou
 - Đặt component đặc thù một entity vào `common/`, hay cho `common/` import từ `features/`.
 - Import một feature từ feature khác, hay import `features/auth` từ một feature — chỉ `features/auth` ghép feature.
 - Đăng ký route hay mục menu của một feature ở ngoài `FeatureDefinition` của chính nó.
+- Khai route của một feature (trừ `auth`) ngoài prefix `/<feature>`, hay viết chuỗi route trong page thay vì `<feature>Paths` / `generatePath`.
 - Dựng lại `App.tsx` / `<Routes>` JSX, hay viết path route thành chuỗi trong `def.tsx` thay vì lấy từ `<feature>Paths`.

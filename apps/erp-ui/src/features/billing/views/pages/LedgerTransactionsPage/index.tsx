@@ -21,6 +21,7 @@ import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import LedgerTransactionForm from '@features/billing/components/LedgerTransactionForm';
 import { LEDGER_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { LedgerTransactionResponse } from '@vxrerp/billing/contracts';
@@ -30,7 +31,7 @@ import { filter, get, isEmpty, last, size, sumBy } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import { ledgerTransactionSearchParams } from './ledger-transactions.search-params';
 import LedgerTransactionDrawer from './LedgerTransactionDrawer';
@@ -91,11 +92,13 @@ export default function LedgerTransactionsPage() {
   };
 
   const handleOnRowAction = (ledgerTransaction: LedgerTransactionResponse) => {
-    navigate(`/ledger/transactions/${ledgerTransaction.id}`);
+    navigate(
+      generatePath(billingPaths.LEDGER_TRANSACTION, { transactionId: ledgerTransaction.id }),
+    );
   };
 
   const handleOnCloseDetail = () => {
-    navigate('/ledger/transactions');
+    navigate(billingPaths.LEDGER_TRANSACTIONS);
   };
 
   return (

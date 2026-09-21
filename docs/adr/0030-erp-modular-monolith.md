@@ -105,6 +105,10 @@ webhook, settings). Mỗi feature export một `FeatureDefinition` gồm `routes
 `AppLayout`, mục menu thành nhóm theo `NavigationGroupEnum`. `features/auth` là feature duy nhất được import feature khác; feature còn lại không import `auth` hay nhau, `common/` không import feature nào; `apps/erp-ui/eslint.config.js` chặn cả ba chiều. URL của mọi
 màn không đổi.
 
+URL của mọi feature trừ `auth` mang prefix bằng tên feature (`/billing/customers`, `/admin/users`,
+`/admin/settings/account`); `/` chuyển hướng về `/billing`. Prefix khai một lần trong `routes/paths.ts`,
+page dựng URL bằng hằng path và `generatePath`, không viết chuỗi.
+
 ### 8. Ranh giới được lint
 
 `packages/platform/eslint.config.js` cấm import `@vxrerp/billing*` qua tuỳ chọn `importBans` của preset

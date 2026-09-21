@@ -5,6 +5,7 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import { useReportRangeLabel, useReportWindow } from '@common/hooks/useReportWindow';
 import { formatCurrency } from '@common/utils/format';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { CurrencyEnum } from '@vxrerp/billing/contracts';
 import { useReconciliationReportQuery, useRevenueSummaryQuery } from '@vxrerp/sdk/react';
@@ -25,7 +26,7 @@ export default function OverviewPage() {
   const exceptionCount = size(get(reconciliation, 'exceptions', []));
 
   const handleOnOpenReports = () => {
-    navigate('/reports');
+    navigate(billingPaths.REPORTS);
   };
 
   return (

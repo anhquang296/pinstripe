@@ -38,7 +38,7 @@ tương lai thì phải gọi API.
 ([UC-01](./01-onboard-customer-and-catalog.md)). Nên **bước bắt buộc phải làm bằng curl**, và không
 có cách nào khác.
 
-Hệ quả: trang `/test-clocks` một mình không đủ để diễn kịch bản. Luôn cần curl ở giữa.
+Hệ quả: trang `/billing/test-clocks` một mình không đủ để diễn kịch bản. Luôn cần curl ở giữa.
 
 ## Sơ đồ
 
@@ -84,7 +84,7 @@ sequenceDiagram
 | 6   | Service [advanceSubscriptions:276-291](../../packages/modules/billing/src/services/subscription.service.ts) | lấy subscription **của đồng hồ này**, chưa huỷ, `currentPeriodEnd <= now`, tối đa 500 | —                                                                                                            |
 | 7   | Service [rollPeriod:313-348](../../packages/modules/billing/src/services/subscription.service.ts)           | lặp tới khi `currentPeriodEnd > now`, tối đa `MAX_PERIOD_ROLLS = 120`                 | nhảy xa mấy cũng không treo                                                                                  |
 | 8   | Service [test-clock.service.ts:105-129](../../packages/modules/billing/src/services/test-clock.service.ts)  | transaction cuối: `status = ready` + `test_clock.advanced`                            | —                                                                                                            |
-| 9   | Hook [mutations.ts:36-38](../../apps/erp-ui/src/reactquery/test-clocks/mutations.ts)                        | invalidate testClocks + subscriptions + entitlements                                  | trang này và `/subscriptions` đều mới theo                                                                   |
+| 9   | Hook [mutations.ts:36-38](../../apps/erp-ui/src/reactquery/test-clocks/mutations.ts)                        | invalidate testClocks + subscriptions + entitlements                                  | trang này và `/billing/subscriptions` đều mới theo                                                           |
 
 ### Ba nhánh của mỗi lần roll
 
@@ -124,11 +124,11 @@ Nói gọn: **test clock điều khiển chu kỳ subscription, không điều k
 
 ## Mốc thời gian
 
-| Xong ngay khi 200 trả về                              | Xảy ra sau, do worker                                                                 |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `test_clocks.frozen_time` = mốc mới, `status = ready` | outbox relay `subscription.renewed`/`trial_ended`/`canceled` và `test_clock.advanced` |
-| `subscriptions` đã cuốn kỳ, status đã đổi             | `entitlements` đồng bộ lại (worker `domain-event`)                                    |
-| bảng `/subscriptions` đúng ngay sau invalidate        | webhook delivery nếu có endpoint đăng ký — [UC-09](./09-receive-webhooks.md)          |
+| Xong ngay khi 200 trả về                               | Xảy ra sau, do worker                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `test_clocks.frozen_time` = mốc mới, `status = ready`  | outbox relay `subscription.renewed`/`trial_ended`/`canceled` và `test_clock.advanced` |
+| `subscriptions` đã cuốn kỳ, status đã đổi              | `entitlements` đồng bộ lại (worker `domain-event`)                                    |
+| bảng `/billing/subscriptions` đúng ngay sau invalidate | webhook delivery nếu có endpoint đăng ký — [UC-09](./09-receive-webhooks.md)          |
 
 ## Trạng thái kẹt duy nhất trong hệ thống
 
@@ -177,7 +177,7 @@ AUTH="Authorization: Bearer $SECRET_API_KEY"
 JSON='content-type: application/json'
 ```
 
-**1. Tạo đồng hồ** — trên UI (`/test-clocks`, điền tên, **Tạo test clock**), hoặc bằng curl nếu muốn
+**1. Tạo đồng hồ** — trên UI (`/billing/test-clocks`, điền tên, **Tạo test clock**), hoặc bằng curl nếu muốn
 mốc bắt đầu khác "bây giờ":
 
 ```bash
@@ -259,10 +259,10 @@ Status thành `canceled`, `endedAt` là **cuối kỳ** chứ không phải lúc
 
 Sau khi đã gắn đồng hồ bằng curl ở bước 2, phần còn lại làm được hết trên UI:
 
-1. `/test-clocks` → chọn mốc ở input `datetime-local` → **Tua**.
-2. `/subscriptions` → status và cột "Kỳ hiện tại" đã đổi.
+1. `/billing/test-clocks` → chọn mốc ở input `datetime-local` → **Tua**.
+2. `/billing/subscriptions` → status và cột "Kỳ hiện tại" đã đổi.
 3. Chờ vài giây, F5 → bảng Entitlements cập nhật theo.
-4. `/webhooks` → nếu đã đăng ký `subscription.renewed` ([UC-09](./09-receive-webhooks.md)) thì thấy
+4. `/admin/webhooks` → nếu đã đăng ký `subscription.renewed` ([UC-09](./09-receive-webhooks.md)) thì thấy
    delivery mới.
 
 ### Kiểm chứng bằng SQL

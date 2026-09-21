@@ -24,6 +24,7 @@ import { formatCurrency, formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import InvoiceForm from '@features/billing/components/InvoiceForm';
 import { INVOICE_STATUS_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { InvoiceResponse } from '@vxrerp/billing/contracts';
@@ -39,7 +40,7 @@ import { get, isEmpty, last, map, size, sumBy, toString } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import InvoiceDrawer from './InvoiceDrawer';
 import { invoiceSearchParams, serializeInvoiceSearch } from './invoices.search-params';
@@ -135,11 +136,11 @@ export default function InvoicesPage() {
   };
 
   const handleOnRowAction = (invoice: InvoiceResponse) => {
-    navigate(`/invoices/${invoiceStatus}/${invoice.id}`);
+    navigate(generatePath(billingPaths.INVOICE, { status: invoiceStatus, invoiceId: invoice.id }));
   };
 
   const handleOnCloseDetail = () => {
-    navigate(`/invoices/${invoiceStatus}`);
+    navigate(generatePath(billingPaths.INVOICES_BY_STATUS, { status: invoiceStatus }));
   };
 
   return (

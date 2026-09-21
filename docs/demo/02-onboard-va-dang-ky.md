@@ -10,18 +10,18 @@
 
 ## Bấm gì
 
-| #   | Ở đâu                 | Làm gì                                                                                                                  |
-| --- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | `/customers`          | Bấm **Tạo customer**                                                                                                    |
-| 2   | drawer                | Email `ketoan@xekhachdemo.vn` · Tên `Công ty TNHH Xe khách Demo`                                                        |
-| 3   | drawer                | Nền tảng đối tác → **Vexere** · Mã tài khoản đối tác → `demo-new`                                                       |
-| 4   | drawer                | Bấm **Tạo customer**, toast xanh hiện, dòng mới xuất hiện đầu bảng                                                      |
-| 5   | `/subscriptions/list` | Bấm **Tạo subscription**                                                                                                |
-| 6   | drawer                | Khách hàng → `Công ty TNHH Xe khách Demo` · Bảng giá → `booking_platform_monthly` · Cách thu tiền → **Cấn trừ tiền vé** |
-| 7   | drawer                | Để trống Trial, bấm **Tạo subscription**                                                                                |
-| 8   | `/subscriptions/list` | Chỉ vào dòng mới: trạng thái `active`, kỳ hiện tại chạy một tháng kể từ hôm nay                                         |
-| 9   | —                     | **Đợi ~5 giây**, bấm F5                                                                                                 |
-| 10  | `/subscriptions/list` | Mở drawer thuê bao vừa tạo → tab **Entitlements** đã có quyền dùng "Nền tảng bán vé Vexere"                             |
+| #   | Ở đâu                         | Làm gì                                                                                                                  |
+| --- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | `/billing/customers`          | Bấm **Tạo customer**                                                                                                    |
+| 2   | drawer                        | Email `ketoan@xekhachdemo.vn` · Tên `Công ty TNHH Xe khách Demo`                                                        |
+| 3   | drawer                        | Nền tảng đối tác → **Vexere** · Mã tài khoản đối tác → `demo-new`                                                       |
+| 4   | drawer                        | Bấm **Tạo customer**, toast xanh hiện, dòng mới xuất hiện đầu bảng                                                      |
+| 5   | `/billing/subscriptions/list` | Bấm **Tạo subscription**                                                                                                |
+| 6   | drawer                        | Khách hàng → `Công ty TNHH Xe khách Demo` · Bảng giá → `booking_platform_monthly` · Cách thu tiền → **Cấn trừ tiền vé** |
+| 7   | drawer                        | Để trống Trial, bấm **Tạo subscription**                                                                                |
+| 8   | `/billing/subscriptions/list` | Chỉ vào dòng mới: trạng thái `active`, kỳ hiện tại chạy một tháng kể từ hôm nay                                         |
+| 9   | —                             | **Đợi ~5 giây**, bấm F5                                                                                                 |
+| 10  | `/billing/subscriptions/list` | Mở drawer thuê bao vừa tạo → tab **Entitlements** đã có quyền dùng "Nền tảng bán vé Vexere"                             |
 
 ## Thấy gì
 

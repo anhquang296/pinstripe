@@ -23,6 +23,7 @@ import { formatPriceAmount } from '@common/utils/price';
 import { toBooleanFilter, toBooleanSelectValue, toQuery } from '@common/utils/search-params';
 import PaymentLinkForm from '@features/billing/components/PaymentLinkForm';
 import { CHECKOUT_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { PaymentLinkResponse } from '@vxrerp/billing/contracts';
@@ -37,7 +38,7 @@ import { filter, get, last, map, reject, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import { paymentLinkSearchParams } from './payment-links.search-params';
 import PaymentLinkDrawer from './PaymentLinkDrawer';
@@ -114,7 +115,7 @@ export default function PaymentLinksPage() {
   };
 
   const handleOnRowAction = (paymentLink: PaymentLinkResponse) => {
-    navigate(`/checkout/payment-links/${paymentLink.id}`);
+    navigate(generatePath(billingPaths.CHECKOUT_PAYMENT_LINK, { paymentLinkId: paymentLink.id }));
   };
 
   return (
@@ -226,7 +227,7 @@ export default function PaymentLinksPage() {
           paymentLinkId={paymentLinkId}
           priceOptions={priceOptions}
           onClose={() => {
-            navigate('/checkout/payment-links');
+            navigate(billingPaths.CHECKOUT_PAYMENT_LINKS);
           }}
         />
       ) : null}

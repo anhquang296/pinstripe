@@ -75,19 +75,19 @@ Bốn cái đầu (01 → 04) là chuỗi bắt buộc: use case sau cần dữ 
 
 ## Bảng tra: use case ↔ màn hình ↔ flow
 
-| Use case                                                         | Màn hình                           | Flow nền                                                                                               |
-| ---------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [01 — Customer và catalog](./01-onboard-customer-and-catalog.md) | `/customers` `/products` `/prices` | [03](../flows/03-catalog-and-customer.md)                                                              |
-| [02 — Đăng ký plan](./02-subscribe-to-plan.md)                   | `/subscriptions`                   | [04](../flows/04-subscription-entitlement.md), [02](../flows/02-event-pipeline.md)                     |
-| [03 — Ghi nhận usage](./03-record-usage.md)                      | `/meters`                          | [05](../flows/05-metering-and-rating.md)                                                               |
-| [04 — Xem trước số tiền](./04-preview-charges.md)                | `/rating`                          | [05](../flows/05-metering-and-rating.md)                                                               |
-| [05 — Phát hành và thu tiền](./05-issue-and-collect-invoice.md)  | `/invoices`                        | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md), [10](../flows/10-ledger.md) |
-| [06 — Thẻ bị từ chối](./06-handle-declined-card.md)              | `/invoices` `/payments`            | [09](../flows/09-dunning.md), [07](../flows/07-payments-and-refunds.md)                                |
-| [07 — Refund vs credit note](./07-refund-vs-credit-note.md)      | `/payments` `/invoices`            | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md)                              |
-| [08 — Huỷ subscription](./08-cancel-subscription.md)             | `/subscriptions`                   | [04](../flows/04-subscription-entitlement.md)                                                          |
-| [09 — Nhận webhook](./09-receive-webhooks.md)                    | `/webhooks`                        | [02](../flows/02-event-pipeline.md)                                                                    |
-| [10 — Chốt kỳ](./10-close-the-period.md)                         | `/reports` `/ledger`               | [10](../flows/10-ledger.md), [11](../flows/11-reporting-reconciliation.md)                             |
-| [11 — Test clock](./11-simulate-a-billing-cycle.md)              | `/test-clocks`                     | [12](../flows/12-test-clock.md)                                                                        |
+| Use case                                                         | Màn hình                                                                   | Flow nền                                                                                               |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [01 — Customer và catalog](./01-onboard-customer-and-catalog.md) | `/billing/customers` `/billing/catalog/products` `/billing/catalog/prices` | [03](../flows/03-catalog-and-customer.md)                                                              |
+| [02 — Đăng ký plan](./02-subscribe-to-plan.md)                   | `/billing/subscriptions`                                                   | [04](../flows/04-subscription-entitlement.md), [02](../flows/02-event-pipeline.md)                     |
+| [03 — Ghi nhận usage](./03-record-usage.md)                      | `/meters`                                                                  | [05](../flows/05-metering-and-rating.md)                                                               |
+| [04 — Xem trước số tiền](./04-preview-charges.md)                | `/rating`                                                                  | [05](../flows/05-metering-and-rating.md)                                                               |
+| [05 — Phát hành và thu tiền](./05-issue-and-collect-invoice.md)  | `/billing/invoices`                                                        | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md), [10](../flows/10-ledger.md) |
+| [06 — Thẻ bị từ chối](./06-handle-declined-card.md)              | `/billing/invoices` `/billing/payments`                                    | [09](../flows/09-dunning.md), [07](../flows/07-payments-and-refunds.md)                                |
+| [07 — Refund vs credit note](./07-refund-vs-credit-note.md)      | `/billing/payments` `/billing/invoices`                                    | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md)                              |
+| [08 — Huỷ subscription](./08-cancel-subscription.md)             | `/billing/subscriptions`                                                   | [04](../flows/04-subscription-entitlement.md)                                                          |
+| [09 — Nhận webhook](./09-receive-webhooks.md)                    | `/admin/webhooks`                                                          | [02](../flows/02-event-pipeline.md)                                                                    |
+| [10 — Chốt kỳ](./10-close-the-period.md)                         | `/billing/reports` `/billing/ledger`                                       | [10](../flows/10-ledger.md), [11](../flows/11-reporting-reconciliation.md)                             |
+| [11 — Test clock](./11-simulate-a-billing-cycle.md)              | `/billing/test-clocks`                                                     | [12](../flows/12-test-clock.md)                                                                        |
 
 ## Một cú click chạm tới những gì
 

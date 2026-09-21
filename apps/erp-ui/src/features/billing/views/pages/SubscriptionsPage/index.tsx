@@ -23,6 +23,7 @@ import { formatPriceAmount } from '@common/utils/price';
 import { toQuery } from '@common/utils/search-params';
 import SubscriptionForm from '@features/billing/components/SubscriptionForm';
 import { SUBSCRIPTION_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { SubscriptionResponse } from '@vxrerp/billing/contracts';
@@ -38,7 +39,7 @@ import { filter, get, isNull, last, map, size, toUpper, values } from 'lodash-es
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import SubscriptionDrawer from './SubscriptionDrawer';
 import { subscriptionSearchParams } from './subscriptions.search-params';
@@ -131,7 +132,7 @@ export default function SubscriptionsPage() {
   };
 
   const handleOnRowAction = (subscription: SubscriptionResponse) => {
-    navigate(`/subscriptions/list/${subscription.id}`);
+    navigate(generatePath(billingPaths.SUBSCRIPTION, { subscriptionId: subscription.id }));
   };
 
   return (
@@ -254,7 +255,7 @@ export default function SubscriptionsPage() {
         <SubscriptionDrawer
           subscriptionId={subscriptionId}
           onClose={() => {
-            navigate('/subscriptions/list');
+            navigate(billingPaths.SUBSCRIPTIONS_LIST);
           }}
         />
       ) : null}

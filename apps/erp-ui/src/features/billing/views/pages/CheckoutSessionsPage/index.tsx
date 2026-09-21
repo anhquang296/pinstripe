@@ -23,6 +23,7 @@ import { formatPriceAmount } from '@common/utils/price';
 import { toQuery } from '@common/utils/search-params';
 import CheckoutSessionForm from '@features/billing/components/CheckoutSessionForm';
 import { CHECKOUT_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { CheckoutSessionResponse } from '@vxrerp/billing/contracts';
@@ -38,7 +39,7 @@ import { filter, get, isNull, last, map, size, values } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import { checkoutSessionSearchParams } from './checkout-sessions.search-params';
 import CheckoutSessionDrawer from './CheckoutSessionDrawer';
@@ -124,7 +125,9 @@ export default function CheckoutSessionsPage() {
   };
 
   const handleOnRowAction = (checkoutSession: CheckoutSessionResponse) => {
-    navigate(`/checkout/sessions/${checkoutSession.id}`);
+    navigate(
+      generatePath(billingPaths.CHECKOUT_SESSION, { checkoutSessionId: checkoutSession.id }),
+    );
   };
 
   return (
@@ -259,7 +262,7 @@ export default function CheckoutSessionsPage() {
         <CheckoutSessionDrawer
           checkoutSessionId={checkoutSessionId}
           onClose={() => {
-            navigate('/checkout/sessions');
+            navigate(billingPaths.CHECKOUT_SESSIONS);
           }}
         />
       ) : null}

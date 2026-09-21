@@ -21,6 +21,7 @@ import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import PortalConfigurationForm from '@features/billing/components/PortalConfigurationForm';
 import { CHECKOUT_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { BillingPortalConfigurationResponse } from '@vxrerp/billing/contracts';
@@ -33,7 +34,7 @@ import { filter, get, last, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import PortalConfigurationDrawer from './PortalConfigurationDrawer';
 
@@ -86,7 +87,11 @@ export default function PortalConfigurationsPage() {
   };
 
   const handleOnRowAction = (configuration: BillingPortalConfigurationResponse) => {
-    navigate(`/checkout/portal/${configuration.id}`);
+    navigate(
+      generatePath(billingPaths.CHECKOUT_PORTAL_CONFIGURATION, {
+        configurationId: configuration.id,
+      }),
+    );
   };
 
   return (
@@ -183,7 +188,7 @@ export default function PortalConfigurationsPage() {
         <PortalConfigurationDrawer
           configurationId={configurationId}
           onClose={() => {
-            navigate('/checkout/portal');
+            navigate(billingPaths.CHECKOUT_PORTAL);
           }}
         />
       ) : null}

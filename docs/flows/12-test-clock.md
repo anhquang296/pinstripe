@@ -80,7 +80,7 @@ Bước 5 chỉ hoàn nguyên `status`, **không** hoàn nguyên `frozenTime` �
 5. Advance lên +40 ngày → thêm một lần roll, event `subscription.renewed`.
 6. `GET /v1/invoices/upcoming?subscriptionId=...` xem số tiền của kỳ mới.
 
-Trang `/test-clocks` của erp-ui làm đúng các bước này qua UI.
+Trang `/billing/test-clocks` của erp-ui làm đúng các bước này qua UI.
 
 ## Đọc tiếp
 

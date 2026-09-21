@@ -1,15 +1,18 @@
+const ADMIN_PATH = '/admin';
+
 export const adminPaths = {
-  SETTINGS_ACCOUNT: '/settings/account',
-  SETTINGS_SECURITY: '/settings/security',
+  SETTINGS: `${ADMIN_PATH}/settings`,
+  SETTINGS_ACCOUNT: `${ADMIN_PATH}/settings/account`,
+  SETTINGS_SECURITY: `${ADMIN_PATH}/settings/security`,
 
-  WEBHOOKS: '/webhooks',
-  WEBHOOKS_ENDPOINTS: '/webhooks/endpoints',
-  WEBHOOKS_ENDPOINT: '/webhooks/endpoints/:webhookEndpointId',
-  WEBHOOKS_DELIVERIES: '/webhooks/deliveries',
+  WEBHOOKS: `${ADMIN_PATH}/webhooks`,
+  WEBHOOKS_ENDPOINTS: `${ADMIN_PATH}/webhooks/endpoints`,
+  WEBHOOKS_ENDPOINT: `${ADMIN_PATH}/webhooks/endpoints/:webhookEndpointId`,
+  WEBHOOKS_DELIVERIES: `${ADMIN_PATH}/webhooks/deliveries`,
 
-  API_KEYS: '/api-keys',
+  API_KEYS: `${ADMIN_PATH}/api-keys`,
 
-  ADMIN_USERS: '/admin/users',
-  ADMIN_USER: '/admin/users/:userId',
-  ADMIN_ROLES: '/admin/roles',
+  USERS: `${ADMIN_PATH}/users`,
+  USER: `${ADMIN_PATH}/users/:userId`,
+  ROLES: `${ADMIN_PATH}/roles`,
 } as const;

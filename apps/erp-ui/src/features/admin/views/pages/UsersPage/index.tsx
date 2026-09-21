@@ -21,6 +21,7 @@ import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNa
 import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import UserForm from '@features/admin/components/UserForm';
+import { adminPaths } from '@features/admin/routes/paths';
 import { ArrowRotateLeft, Ban } from '@gravity-ui/icons';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
@@ -31,7 +32,7 @@ import { filter, get, includes, isEmpty, isNull, last, size, toLower, toString }
 import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import UserDrawer from './UserDrawer';
 import UserRoleChips from './UserRoleChips';
@@ -130,7 +131,7 @@ export default function UsersPage() {
   };
 
   const handleOnRowAction = (user: UserResponse) => {
-    navigate(`/admin/users/${user.id}`);
+    navigate(generatePath(adminPaths.USER, { userId: user.id }));
   };
 
   return (
@@ -270,7 +271,7 @@ export default function UsersPage() {
         <UserDrawer
           userId={userId}
           onClose={() => {
-            navigate('/admin/users');
+            navigate(adminPaths.USERS);
           }}
         />
       ) : null}

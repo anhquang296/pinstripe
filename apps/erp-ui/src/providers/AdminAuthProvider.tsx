@@ -1,4 +1,5 @@
 import { AuthProvider } from '@better-auth-ui/heroui';
+import { adminPaths } from '@features/admin/routes/paths';
 import { authClient } from '@libs/auth-client';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
@@ -55,6 +56,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
       authClient={authClient}
       queryClient={queryClient}
       redirectTo="/"
+      basePaths={{ settings: adminPaths.SETTINGS }}
       emailAndPassword={{
         enabled: true,
         forgotPassword: false,

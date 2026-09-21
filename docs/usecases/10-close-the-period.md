@@ -17,7 +17,7 @@ Hai màn hình này là nơi duy nhất trong erp-ui dùng `ADMIN_API_KEY` thay 
 
 ## Phần 1 — Reports
 
-Trang `/reports` **không có thao tác nào**: hai query, sáu ô chỉ số, một khối đối chiếu. Cả hai dùng
+Trang `/billing/reports` **không có thao tác nào**: hai query, sáu ô chỉ số, một khối đối chiếu. Cả hai dùng
 chung một cửa sổ 30 ngày, `useMemo` một lần lúc mount
 ([ReportsPage.tsx:25-37](../../apps/erp-ui/src/pages/ReportsPage.tsx)) nên không đổi cho tới khi
 tải lại trang.
@@ -84,7 +84,7 @@ UI còn cắt danh sách ngoại lệ ở 20 hàng
 
 ## Phần 2 — Ledger và đảo bút toán
 
-`/ledger` có hai phần: bảng số dư tài khoản, và danh sách bút toán gần đây với các posting của từng
+`/billing/ledger` có hai phần: bảng số dư tài khoản, và danh sách bút toán gần đây với các posting của từng
 cái.
 
 ### Số dư không được lưu
@@ -150,7 +150,7 @@ Worker `ledger` chỉ **báo động, không tự sửa**: sổ lệch thì `log
 | Bỏ trống lý do                             | zod chặn, không có request                                                                       |
 | Bấm **Đảo bút toán** rồi bấm lại cùng dòng | bỏ chọn, form biến mật                                                                           |
 | Chọn dòng khác khi form đang mở            | form chuyển sang dòng mới, giữ nguyên lý do đang gõ                                              |
-| `ADMIN_API_KEY` sai                        | 401 trên cả `/reports` và `/ledger`; `/v1` vẫn chạy bình thường                                  |
+| `ADMIN_API_KEY` sai                        | 401 trên cả `/billing/reports` và `/billing/ledger`; `/v1` vẫn chạy bình thường                  |
 | MRR = 0 dù có subscription                 | thường vì subscription đang `trialing`, hoặc price là `tiered`/`metered`                         |
 
 ## Tự chạy thử
@@ -158,15 +158,15 @@ Worker `ledger` chỉ **báo động, không tự sửa**: sổ lệch thì `log
 ### Trên màn hình
 
 1. Diễn xong [UC-05](./05-issue-and-collect-invoice.md) ít nhất một lần.
-2. `/reports` → sáu ô chỉ số; khối đối chiếu có `matched` ≥ 1, `difference` = `0`, bảng ngoại lệ
+2. `/billing/reports` → sáu ô chỉ số; khối đối chiếu có `matched` ≥ 1, `difference` = `0`, bảng ngoại lệ
    trống. Đó là trạng thái khoẻ.
-3. `/ledger` → bảng số dư: `accounts_receivable` (theo khách), `cash`, `revenue`. Danh sách bút
+3. `/billing/ledger` → bảng số dư: `accounts_receivable` (theo khách), `cash`, `revenue`. Danh sách bút
    toán: hai giao dịch của UC-05, mỗi cái hai posting.
 4. Bấm **Đảo bút toán** trên giao dịch `Invoice ... payment` → form lý do hiện ra → gõ lý do →
    **Xác nhận đảo**.
 5. Giao dịch gốc có chip "đã bị đảo"; trên cùng danh sách có giao dịch mới `Reversal of ...`.
 6. Bảng số dư: `cash` giảm về 0.
-7. Quay lại `/reports`, **tải lại trang** → `collectedInWindow` giảm, và đối chiếu giờ báo
+7. Quay lại `/billing/reports`, **tải lại trang** → `collectedInWindow` giảm, và đối chiếu giờ báo
    `missing_in_ledger` cho `payment_intent:<id>` — vì intent vẫn `succeeded` mà sổ đã đảo.
 
 Bước 7 là cách dựng một ngoại lệ đối chiếu có chủ ý, để thấy nó thực sự phát hiện được lệch.

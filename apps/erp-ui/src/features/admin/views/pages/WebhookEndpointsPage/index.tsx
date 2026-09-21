@@ -22,6 +22,7 @@ import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import WebhookEndpointForm from '@features/admin/components/WebhookEndpointForm';
 import { WEBHOOK_TABS } from '@features/admin/constants/tabs';
+import { adminPaths } from '@features/admin/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { WebhookEndpointResponse } from '@vxrerp/platform/contracts';
@@ -31,7 +32,7 @@ import { filter, get, isNull, last, size, sumBy } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import { webhookEndpointSearchParams } from './webhook-endpoints.search-params';
 import WebhookEndpointDrawer from './WebhookEndpointDrawer';
@@ -100,7 +101,7 @@ export default function WebhookEndpointsPage() {
   };
 
   const handleOnRowAction = (webhookEndpoint: WebhookEndpointResponse) => {
-    navigate(`/webhooks/endpoints/${webhookEndpoint.id}`);
+    navigate(generatePath(adminPaths.WEBHOOKS_ENDPOINT, { webhookEndpointId: webhookEndpoint.id }));
   };
 
   return (
@@ -219,7 +220,7 @@ export default function WebhookEndpointsPage() {
         <WebhookEndpointDrawer
           webhookEndpointId={webhookEndpointId}
           onClose={() => {
-            navigate('/webhooks/endpoints');
+            navigate(adminPaths.WEBHOOKS_ENDPOINTS);
           }}
         />
       ) : null}

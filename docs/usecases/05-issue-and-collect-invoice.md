@@ -15,7 +15,7 @@ click gửi hai request**.
 
 ## Vòng đời trên một dòng bảng
 
-Trang `/invoices` hiện các nút **theo status**, nên bảng tự dạy thứ tự hợp lệ —
+Trang `/billing/invoices` hiện các nút **theo status**, nên bảng tự dạy thứ tự hợp lệ —
 [InvoiceItem.tsx:54-55](../../apps/erp-ui/src/components/InvoiceItem.tsx):
 
 ```mermaid
@@ -94,7 +94,7 @@ sequenceDiagram
 | 8   | Service [invoice.service.ts:129](../../packages/modules/billing/src/services/invoice.service.ts)     | `rateUpcomingInvoice` chạy lại — **con số chốt tại thời điểm này**    | phải khớp cái đã xem ở [UC-04](./04-preview-charges.md)                                                                                             |
 | 9   | Service [invoice.service.ts:149-156](../../packages/modules/billing/src/services/invoice.service.ts) | `claimNumberSequence` trong transaction → `INV-000001`                | cột Số đổi từ id sang số hoá đơn                                                                                                                    |
 | 10  | Service [invoice.service.ts:158](../../packages/modules/billing/src/services/invoice.service.ts)     | INSERT `invoice_line_items` — bản chụp bất biến                       | —                                                                                                                                                   |
-| 11  | Service [postReceivable:336-362](../../packages/modules/billing/src/services/invoice.service.ts)     | bút toán **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue` | trang `/ledger` có giao dịch mới                                                                                                                    |
+| 11  | Service [postReceivable:336-362](../../packages/modules/billing/src/services/invoice.service.ts)     | bút toán **Nợ** `accounts_receivable` (theo khách) / **Có** `revenue` | trang `/billing/ledger` có giao dịch mới                                                                                                            |
 | 12  | Service [invoice.service.ts:169](../../packages/modules/billing/src/services/invoice.service.ts)     | `nextAttemptAt = dueAt` (`now + INVOICE_DUE_DAYS`)                    | đây là thứ khiến dunning nhặt hoá đơn này về sau — [UC-06](./06-handle-declined-card.md). **Hai cột này không có trong response**, chỉ thấy qua SQL |
 | 13  | Hook [mutations.ts:56](../../apps/erp-ui/src/reactquery/invoices/mutations.ts)                       | toast in chính `invoice.number`                                       | `Đã phát hành INV-000001.`                                                                                                                          |
 
@@ -108,9 +108,9 @@ sequenceDiagram
 | 17  | Service [payment.service.ts:95-100](../../packages/modules/billing/src/services/payment.service.ts)  | `psp.createCharge` với `idempotencyKey: charge:<intentId>`                                                    | confirm lại cùng intent không trừ tiền lần nữa                                   |
 | 18  | Service [payment.service.ts:110-148](../../packages/modules/billing/src/services/payment.service.ts) | transaction: intent `succeeded` + `payment_attempts` + `payment_intent.succeeded`                             | —                                                                                |
 | 19  | Service [payment.service.ts:150-154](../../packages/modules/billing/src/services/payment.service.ts) | `payInvoice(..., 'payment_intent:<id>')` — **transaction thứ hai**                                            | xem mục rủi ro dưới                                                              |
-| 20  | Service [postCashReceipt:364-391](../../packages/modules/billing/src/services/invoice.service.ts)    | bút toán **Nợ** `cash` / **Có** `accounts_receivable`                                                         | `/ledger` có giao dịch thứ hai                                                   |
+| 20  | Service [postCashReceipt:364-391](../../packages/modules/billing/src/services/invoice.service.ts)    | bút toán **Nợ** `cash` / **Có** `accounts_receivable`                                                         | `/billing/ledger` có giao dịch thứ hai                                           |
 | 21  | Service [invoice.service.ts:211](../../packages/modules/billing/src/services/invoice.service.ts)     | `isSettled` → status `paid`, `paidAt`, outbox `invoice.paid`                                                  | cột Còn lại về 0, status `paid`                                                  |
-| 22  | Hook [mutations.ts:8-18](../../apps/erp-ui/src/reactquery/payments/mutations.ts)                     | invalidate **5 nhóm**: paymentIntents, refunds, invoices, ledger.accounts, ledger.transactions                | trang `/payments` và `/ledger` cũng mới theo                                     |
+| 22  | Hook [mutations.ts:8-18](../../apps/erp-ui/src/reactquery/payments/mutations.ts)                     | invalidate **5 nhóm**: paymentIntents, refunds, invoices, ledger.accounts, ledger.transactions                | trang `/billing/payments` và `/billing/ledger` cũng mới theo                     |
 
 ## Mốc thời gian
 
@@ -183,11 +183,11 @@ nhưng cần biết trước để không đi tìm bug.
 
 ### Trên màn hình
 
-1. `/invoices` → chọn subscription → **Tạo hóa đơn nháp**. Dòng mới, status `draft`, Tổng `0`.
+1. `/billing/invoices` → chọn subscription → **Tạo hóa đơn nháp**. Dòng mới, status `draft`, Tổng `0`.
 2. **Phát hành** → status `open`, cột Số thành `INV-000001`, Tổng có số tiền, Còn lại bằng Tổng.
 3. **Thu tiền** → status `paid`, Đã trả = Tổng, Còn lại `0`, toast "Đã thu tiền qua PSP.".
-4. Mở `/ledger` → hai giao dịch mới, mỗi cái hai posting cân nhau.
-5. Mở `/payments` → payment intent `succeeded` với một attempt `succeeded`.
+4. Mở `/billing/ledger` → hai giao dịch mới, mỗi cái hai posting cân nhau.
+5. Mở `/billing/payments` → payment intent `succeeded` với một attempt `succeeded`.
 
 ### Bằng curl
 

@@ -23,6 +23,7 @@ import { formatPriceAmount } from '@common/utils/price';
 import { toBooleanFilter, toBooleanSelectValue, toQuery } from '@common/utils/search-params';
 import PriceForm from '@features/billing/components/PriceForm';
 import { CATALOG_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { PriceResponse } from '@vxrerp/billing/contracts';
@@ -38,7 +39,7 @@ import { filter, get, last, map, reject, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import PriceDrawer from './PriceDrawer';
 import { priceSearchParams } from './prices.search-params';
@@ -120,7 +121,7 @@ export default function PricesPage() {
   };
 
   const handleOnRowAction = (price: PriceResponse) => {
-    navigate(`/catalog/prices/${price.id}`);
+    navigate(generatePath(billingPaths.CATALOG_PRICE, { priceId: price.id }));
   };
 
   return (
@@ -253,7 +254,7 @@ export default function PricesPage() {
         <PriceDrawer
           priceId={priceId}
           onClose={() => {
-            navigate('/catalog/prices');
+            navigate(billingPaths.CATALOG_PRICES);
           }}
         />
       ) : null}

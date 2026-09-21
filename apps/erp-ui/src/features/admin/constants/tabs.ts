@@ -1,4 +1,6 @@
+import { adminPaths } from '@features/admin/routes/paths';
+
 export const WEBHOOK_TABS = [
-  { to: '/webhooks/endpoints', label: 'Endpoints' },
-  { to: '/webhooks/deliveries', label: 'Deliveries' },
+  { to: adminPaths.WEBHOOKS_ENDPOINTS, label: 'Endpoints' },
+  { to: adminPaths.WEBHOOKS_DELIVERIES, label: 'Deliveries' },
 ];

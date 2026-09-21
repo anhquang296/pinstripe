@@ -22,6 +22,7 @@ import { formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import MeterForm from '@features/billing/components/MeterForm';
 import { SUBSCRIPTION_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { MeterResponse } from '@vxrerp/billing/contracts';
@@ -32,7 +33,7 @@ import { filter, get, isNull, last, size } from 'lodash-es';
 import { useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import MeterDrawer from './MeterDrawer';
 import { meterSearchParams } from './meters.search-params';
@@ -98,7 +99,7 @@ export default function MetersPage() {
   };
 
   const handleOnRowAction = (meter: MeterResponse) => {
-    navigate(`/subscriptions/usage/${meter.id}`);
+    navigate(generatePath(billingPaths.SUBSCRIPTIONS_METER, { meterId: meter.id }));
   };
 
   return (
@@ -210,7 +211,7 @@ export default function MetersPage() {
         <MeterDrawer
           meterId={meterId}
           onClose={() => {
-            navigate('/subscriptions/usage');
+            navigate(billingPaths.SUBSCRIPTIONS_USAGE);
           }}
         />
       ) : null}

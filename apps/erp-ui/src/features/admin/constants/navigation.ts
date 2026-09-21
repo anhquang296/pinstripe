@@ -22,7 +22,7 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
   },
   {
     group: NavigationGroupEnum.ADMIN,
-    to: adminPaths.ADMIN_USERS,
+    to: adminPaths.USERS,
     title: 'Users',
     description: 'Người vận hành và vai trò',
     initials: 'US',
@@ -30,7 +30,7 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
   },
   {
     group: NavigationGroupEnum.ADMIN,
-    to: adminPaths.ADMIN_ROLES,
+    to: adminPaths.ROLES,
     title: 'Roles',
     description: 'Ma trận quyền theo vai trò',
     initials: 'RO',

@@ -23,6 +23,7 @@ import { formatCurrency, formatDate } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import RefundForm from '@features/billing/components/RefundForm';
 import { PAYMENT_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import { Button } from '@heroui/react';
 import { useCan } from '@libs/permissions';
 import type { RefundResponse } from '@vxrerp/billing/contracts';
@@ -37,7 +38,7 @@ import { filter, flatMap, get, isEmpty, isNull, last, map, size, sumBy, values }
 import { debounce, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import RefundDrawer from './RefundDrawer';
 import { refundSearchParams } from './refunds.search-params';
@@ -124,11 +125,11 @@ export default function RefundsPage() {
   };
 
   const handleOnRowAction = (refund: RefundResponse) => {
-    navigate(`/payments/refunds/${refund.id}`);
+    navigate(generatePath(billingPaths.PAYMENTS_REFUND, { refundId: refund.id }));
   };
 
   const handleOnCloseDetail = () => {
-    navigate('/payments/refunds');
+    navigate(billingPaths.PAYMENTS_REFUNDS);
   };
 
   return (

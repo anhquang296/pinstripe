@@ -13,12 +13,13 @@ import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNa
 import { formatCurrency } from '@common/utils/format';
 import { toQuery } from '@common/utils/search-params';
 import { LEDGER_TABS } from '@features/billing/constants/tabs';
+import { billingPaths } from '@features/billing/routes/paths';
 import type { LedgerAccountResponse } from '@vxrerp/billing/contracts';
 import { CurrencyEnum, LedgerAccountCodeEnum } from '@vxrerp/billing/contracts';
 import { useCustomersQuery, useLedgerAccountsQuery } from '@vxrerp/sdk/react';
 import { filter, fromPairs, get, isEmpty, isNull, last, map, size, sumBy, values } from 'lodash-es';
 import { debounce, useQueryStates } from 'nuqs';
-import { useParams } from 'react-router-dom';
+import { generatePath, useParams } from 'react-router-dom';
 
 import { ledgerAccountSearchParams } from './ledger-accounts.search-params';
 import LedgerAccountDrawer from './LedgerAccountDrawer';
@@ -80,11 +81,11 @@ export default function LedgerAccountsPage() {
   };
 
   const handleOnRowAction = (ledgerAccount: LedgerAccountResponse) => {
-    navigate(`/ledger/accounts/${ledgerAccount.id}`);
+    navigate(generatePath(billingPaths.LEDGER_ACCOUNT, { accountId: ledgerAccount.id }));
   };
 
   const handleOnCloseDetail = () => {
-    navigate('/ledger/accounts');
+    navigate(billingPaths.LEDGER_ACCOUNTS);
   };
 
   return (
