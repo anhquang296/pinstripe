@@ -1,6 +1,6 @@
 # KB-06 — Cổng nhà xe: nhà xe tự xem công nợ
 
-**Thời lượng** ~6 phút · **Màn hình** operator-portal (http://localhost:3100) + Mailpit (http://localhost:58025)
+**Thời lượng** ~6 phút · **Màn hình** billing-portal-ui (http://localhost:3100) + Mailpit (http://localhost:58025)
 · **Nhà xe** Hoàng Long
 
 ## Kể gì
@@ -55,12 +55,12 @@
 
 ## Nếu hỏng thì
 
-| Hiện tượng                      | Làm gì                                                           |
-| ------------------------------- | ---------------------------------------------------------------- |
-| Không thấy email trong Mailpit  | `apps/operator-portal/.env.local` thiếu `VXRERP_PORTAL_API_KEY`  |
-| Bấm link báo hết hạn            | Link dùng một lần và sống 15 phút — quay lại bước 1 xin link mới |
-| Thẻ chuyển khoản không có mã QR | Bốn biến `BANK_TRANSFER_*` trong `.env` đang trống               |
-| Cổng đá về trang đăng nhập      | Phiên hết hạn sau 60 phút — đăng nhập lại                        |
+| Hiện tượng                      | Làm gì                                                            |
+| ------------------------------- | ----------------------------------------------------------------- |
+| Không thấy email trong Mailpit  | `apps/billing-portal-ui/.env.local` thiếu `VXRERP_PORTAL_API_KEY` |
+| Bấm link báo hết hạn            | Link dùng một lần và sống 15 phút — quay lại bước 1 xin link mới  |
+| Thẻ chuyển khoản không có mã QR | Bốn biến `BANK_TRANSFER_*` trong `.env` đang trống                |
+| Cổng đá về trang đăng nhập      | Phiên hết hạn sau 60 phút — đăng nhập lại                         |
 
 ## Câu hỏi hay bị hỏi
 

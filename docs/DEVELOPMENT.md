@@ -24,7 +24,7 @@ pnpm dev
 | worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                       |
 | worker notification | 3007  | gửi email; nhắc nợ chuyển khoản mỗi `INVOICE_REMINDER_INTERVAL_MS` |
 | erp-ui              | 5173  | Vite, proxy `/api` và `/v1` sang api; xác thực bằng cookie session |
-| operator-portal     | 3100  | Next.js + BFF; cần `VXRERP_API_URL` + `VXRERP_PORTAL_API_KEY`      |
+| billing-portal-ui   | 3100  | Next.js + BFF; cần `VXRERP_API_URL` + `VXRERP_PORTAL_API_KEY`      |
 | postgres            | 55432 | user/pass/db: `vxrerp`                                             |
 | redis               | 56379 |                                                                    |
 | mailpit             | 58025 | UI xem email dev                                                   |

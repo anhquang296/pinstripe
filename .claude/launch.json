@@ -14,9 +14,9 @@
       "port": 5173
     },
     {
-      "name": "operator-portal",
+      "name": "billing-portal-ui",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@vxrerp/operator-portal", "dev"],
+      "runtimeArgs": ["--filter", "@vxrerp/billing-portal-ui", "dev"],
       "port": 3100
     },
     {

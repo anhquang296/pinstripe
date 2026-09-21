@@ -74,7 +74,7 @@ against a running stack leaves every `Authorization: Bearer` call failing until 
 pnpm dev
 ```
 
-Turbo builds `packages/core` first, then runs the API, the workers, the ERP UI and the operator portal.
+Turbo builds `packages/core` first, then runs the API, the workers, the ERP UI and the billing portal UI.
 
 ## 6. Create the first admin
 
@@ -93,9 +93,9 @@ last-active-admin rule still holds.
 
 ## 7. Optional — customer portal env
 
-`apps/operator-portal` is a Next.js app and does not read the root `.env`. Customers sign in with a one-time
+`apps/billing-portal-ui` is a Next.js app and does not read the root `.env`. Customers sign in with a one-time
 link sent to their billing email; the Next.js server holds the keys and the browser only gets an
-httpOnly cookie. Create `apps/operator-portal/.env.local`:
+httpOnly cookie. Create `apps/billing-portal-ui/.env.local`:
 
 ```
 VXRERP_API_URL=http://localhost:3000
@@ -117,14 +117,14 @@ partner-collection scenarios to complete.
 
 ## Local URLs
 
-| Service         | URL                    |
-| --------------- | ---------------------- |
-| API             | http://localhost:3000  |
-| ERP UI          | http://localhost:5173  |
-| Operator portal | http://localhost:3100  |
-| Mailpit         | http://localhost:58025 |
-| Postgres        | localhost:55432        |
-| Redis           | localhost:56379        |
+| Service           | URL                    |
+| ----------------- | ---------------------- |
+| API               | http://localhost:3000  |
+| ERP UI            | http://localhost:5173  |
+| Billing portal UI | http://localhost:3100  |
+| Mailpit           | http://localhost:58025 |
+| Postgres          | localhost:55432        |
+| Redis             | localhost:56379        |
 
 Workers run on ports `3001`–`3006`: outbox, domain-event, ledger, billing, webhook, dunning.
 

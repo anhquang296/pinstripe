@@ -1,6 +1,6 @@
 # Flow 13 — Luồng dữ liệu ở frontend
 
-Hai app đọc cùng một API nhưng qua hai bề mặt khác nhau: erp-ui là SPA đi bằng cookie session vào `/v1` và `/api/v1/admin`, operator-portal chỉ được đi vào `/portal/*` bằng session của khách hàng.
+Hai app đọc cùng một API nhưng qua hai bề mặt khác nhau: erp-ui là SPA đi bằng cookie session vào `/v1` và `/api/v1/admin`, billing-portal-ui chỉ được đi vào `/portal/*` bằng session của khách hàng.
 
 ## erp-ui
 
@@ -72,7 +72,7 @@ Route khai trong [routes/def.tsx](../../apps/erp-ui/src/features/dashboard/route
 
 React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/common/forms/` (`customer-form.ts`, `product-form.ts`, `meter-form.ts`, `subscription-form.ts`, `test-clock-form.ts`, `reverse-transaction-form.ts`…), ghép với component tương ứng dưới `src/features/dashboard/components/<X>Form/`.
 
-## operator-portal
+## billing-portal-ui
 
 Next.js 15 App Router, port 3100, HeroUI v3 như erp-ui. Quyết định đầy đủ ở
 [ADR 0026](../adr/0026-customer-portal-auth-and-bff.md).
@@ -100,8 +100,8 @@ API /portal/*
   nợ, các lần thanh toán), `/payments`, `/subscriptions` (kèm form yêu cầu đổi gói), `/usage` (mức dùng
   kỳ hiện tại), `/account` (kế toán phụ trách, số dư tín dụng, thẻ đã lưu, form yêu cầu cập nhật hồ sơ).
 - Component bảng/thẻ (`DataTable`, `StatItem`, `DetailList`…) là bản riêng trong
-  `apps/operator-portal/src/common`, không import từ erp-ui. Số ngày trễ đếm theo ngày lịch giờ Việt Nam.
-- Env của portal: `VXRERP_API_URL`, `VXRERP_PORTAL_API_KEY` trong `apps/operator-portal/.env.local`,
+  `apps/billing-portal-ui/src/common`, không import từ erp-ui. Số ngày trễ đếm theo ngày lịch giờ Việt Nam.
+- Env của portal: `VXRERP_API_URL`, `VXRERP_PORTAL_API_KEY` trong `apps/billing-portal-ui/.env.local`,
   chỉ đọc ở `src/libs/portal-bff.ts`.
 
 Phía API, mọi route `/portal/*` lấy `customerId` từ session chứ không từ tham số:

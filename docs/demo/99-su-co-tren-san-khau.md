@@ -47,7 +47,7 @@ pnpm seed:demo
 | Hoá đơn nháp hiện **0 ₫**                  | đúng như thiết kế — số tiền đóng băng lúc phát hành                   | nói ra, đó là một điểm hay                               |
 | Phát hành xong 90 giây vẫn `open`          | worker `dunning` chưa chạy vòng nào                                   | chờ thêm một phút, hoặc xem mục 1                        |
 | Bảng trắng, không lỗi                      | phiên dashboard hết hạn (12 giờ) hoặc vừa bị reset                    | đăng nhập lại                                            |
-| Email không tới Mailpit                    | `apps/operator-portal/.env.local` thiếu `VXRERP_PORTAL_API_KEY`       | thêm vào rồi khởi động lại portal                        |
+| Email không tới Mailpit                    | `apps/billing-portal-ui/.env.local` thiếu `VXRERP_PORTAL_API_KEY`     | thêm vào rồi khởi động lại portal                        |
 | Link đăng nhập cổng báo hết hạn            | link dùng một lần, sống 15 phút                                       | xin link mới từ `/login`                                 |
 | Không có mã VietQR trên hoá đơn            | bốn biến `BANK_TRANSFER_*` đang trống                                 | điền vào `.env`, restart                                 |
 | Refund trả lỗi 500                         | cổng thanh toán giả giữ giao dịch trong RAM, `pnpm dev` reload là mất | tránh demo refund sau khi vừa sửa code                   |

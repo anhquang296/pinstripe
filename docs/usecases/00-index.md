@@ -40,7 +40,7 @@ bại, và cách tự chạy.
 
 Nên "khách đăng ký một plan" trong project này thực chất là _người vận hành tạo subscription cho
 khách_, hoặc _một hệ thống bên ngoài gọi `POST /v1/subscriptions`_. Portal khách hàng
-(`apps/operator-portal`) **chỉ đọc**: xem gói và hoá đơn, không thao tác gì, và hiện **chưa có đăng nhập**.
+(`apps/billing-portal-ui`) **chỉ đọc**: xem gói và hoá đơn, không thao tác gì, và hiện **chưa có đăng nhập**.
 
 Vài thao tác cũng chưa có trên UI, buộc phải dùng curl — mỗi use case nói rõ chỗ nào:
 
@@ -121,12 +121,12 @@ pnpm db:migrate
 pnpm dev
 ```
 
-| Thứ             | Ở đâu                                                                   |
-| --------------- | ----------------------------------------------------------------------- |
-| erp-ui          | http://localhost:5173                                                   |
-| operator-portal | http://localhost:3100                                                   |
-| API             | http://localhost:3000                                                   |
-| 6 worker        | port 3001–3006: outbox, domain-event, ledger, billing, webhook, dunning |
+| Thứ               | Ở đâu                                                                   |
+| ----------------- | ----------------------------------------------------------------------- |
+| erp-ui            | http://localhost:5173                                                   |
+| billing-portal-ui | http://localhost:3100                                                   |
+| API               | http://localhost:3000                                                   |
+| 6 worker          | port 3001–3006: outbox, domain-event, ledger, billing, webhook, dunning |
 
 Mọi mục "tự chạy thử" dùng chung hai đoạn mở đầu này:
 

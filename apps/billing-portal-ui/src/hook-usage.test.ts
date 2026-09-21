@@ -45,7 +45,7 @@ describe('hook của @vxrerp/sdk/react/portal', () => {
     expect(isEmpty(hookNames)).toBe(false);
   });
 
-  it('không còn hook portal nào mà operator-portal chưa dùng', () => {
+  it('không còn hook portal nào mà billing-portal-ui chưa dùng', () => {
     const unusedHooks = filter(hookNames, (hookName) => {
       return !some(appSources, (appSource) => {
         return new RegExp(`\\b${hookName}\\b`).test(appSource);

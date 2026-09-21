@@ -124,8 +124,8 @@ Không hàng nào bị xoá. `subscription_items` vẫn còn để hoá đơn c�
 
 ## Khách thấy gì trên portal
 
-`/customers/<customerId>` của operator-portal đọc trực tiếp từ API và render trên server —
-[page.tsx:27-31](../../apps/operator-portal/src/app/customers/[customerId]/page.tsx), ba GET song song,
+`/customers/<customerId>` của billing-portal-ui đọc trực tiếp từ API và render trên server —
+[page.tsx:27-31](../../apps/billing-portal-ui/src/app/customers/[customerId]/page.tsx), ba GET song song,
 `cache: 'no-store'`.
 
 | Sau khi huỷ | Bảng "Gói đang dùng"                                                             |
@@ -134,7 +134,7 @@ Không hàng nào bị xoá. `subscription_items` vẫn còn để hoá đơn c�
 | ngay        | status `canceled` màu xám                                                        |
 
 Cột `cancelAtPeriodEnd` **không** được portal render
-([page.tsx:48-54](../../apps/operator-portal/src/app/customers/[customerId]/page.tsx) chỉ có 4 cột: Mã,
+([page.tsx:48-54](../../apps/billing-portal-ui/src/app/customers/[customerId]/page.tsx) chỉ có 4 cột: Mã,
 Trạng thái, Kỳ hiện tại, Hết trial). Nên một khách đã xin huỷ cuối kỳ vào portal vẫn thấy gói
 "active" bình thường. Đáng sửa nếu portal ra thật.
 

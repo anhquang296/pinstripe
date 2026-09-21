@@ -24,7 +24,7 @@ biến camelCase `vxrErp`, chữ hiển thị "VXR ERP".
 | Root package    | `pinstripe`                                                         | `vxrerp`                                                   |
 | Workspace scope | `@pinstripe/*`                                                      | `@vxrerp/*`                                                |
 | App nội bộ      | `apps/admin-ui`, `@pinstripe/admin-ui`                              | `apps/erp-ui`, `@vxrerp/erp-ui`                            |
-| Cổng nhà xe     | `apps/portal-ui`, `@pinstripe/portal-ui`                            | `apps/operator-portal`, `@vxrerp/operator-portal`          |
+| Cổng nhà xe     | `apps/portal-ui`, `@pinstripe/portal-ui`                            | `apps/billing-portal-ui`, `@vxrerp/billing-portal-ui`      |
 | SDK             | `PinstripeClient`, `PinstripeError`, `usePinstripe*`…               | `VxrErpClient`, `VxrErpError`, `useVxrErp*`…               |
 | Query subject   | `PinstripeQuerySubjectEnum`                                         | `VxrErpQuerySubjectEnum`                                   |
 | Env của SDK/BFF | `PINSTRIPE_*`                                                       | `VXRERP_*`                                                 |
