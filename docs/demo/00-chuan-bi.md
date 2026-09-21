@@ -25,7 +25,7 @@ Dòng đầu là **số dư giả của đối tác**: doanh thu vé của Phư�
 nó thì mọi lần cấn trừ đều trừ được 0 đ và [KB-04](./04-can-tru-tien-ve.md) không diễn được. Đọc lúc
 boot, nên sửa xong phải khởi động lại `pnpm dev`.
 
-Trong `apps/billing-portal-ui/.env.local` (Next.js không đọc `.env` gốc):
+Trong `apps/portal-ui/.env.local` (Next.js không đọc `.env` gốc):
 
 ```
 VXRERP_API_URL=http://localhost:3000

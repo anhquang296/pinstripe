@@ -13,16 +13,16 @@ chế** — nó nói bấm gì, thấy gì, và nói gì trước khán giả.
 01 Toàn cảnh ─► 02 Onboard ─► 03 Usage ─► 04 Cấn trừ vé ⭐ ─► 05 Trừ ví ─► 06 Cổng nhà xe ─► 07 Sổ cái
 ```
 
-| #                                | Kịch bản                           | Phút | Màn hình                   |
-| -------------------------------- | ---------------------------------- | ---- | -------------------------- |
-| [01](./01-toan-canh.md)          | Vexere đang thu tiền 5 nhà xe      | 4    | erp-ui                     |
-| [02](./02-onboard-va-dang-ky.md) | Nhận nhà xe mới và ký gói          | 5    | erp-ui                     |
-| [03](./03-usage-va-xem-truoc.md) | Đo lượng dùng, xem trước số tiền   | 5    | erp-ui                     |
-| [04](./04-can-tru-tien-ve.md) ⭐ | Thu tiền bằng cấn trừ doanh thu vé | 6    | erp-ui                     |
-| [05](./05-tru-vi-va-con-no.md)   | Trừ ví, ví thiếu thì còn nợ        | 4    | erp-ui                     |
-| [06](./06-portal-nha-xe.md)      | Cổng nhà xe và email               | 6    | billing-portal-ui, Mailpit |
-| [07](./07-so-cai-va-doi-soat.md) | Sổ cái kép và đối soát             | 6    | erp-ui                     |
-|                                  | **Tổng**                           | ~36  |                            |
+| #                                | Kịch bản                           | Phút | Màn hình           |
+| -------------------------------- | ---------------------------------- | ---- | ------------------ |
+| [01](./01-toan-canh.md)          | Vexere đang thu tiền 5 nhà xe      | 4    | erp-ui             |
+| [02](./02-onboard-va-dang-ky.md) | Nhận nhà xe mới và ký gói          | 5    | erp-ui             |
+| [03](./03-usage-va-xem-truoc.md) | Đo lượng dùng, xem trước số tiền   | 5    | erp-ui             |
+| [04](./04-can-tru-tien-ve.md) ⭐ | Thu tiền bằng cấn trừ doanh thu vé | 6    | erp-ui             |
+| [05](./05-tru-vi-va-con-no.md)   | Trừ ví, ví thiếu thì còn nợ        | 4    | erp-ui             |
+| [06](./06-portal-nha-xe.md)      | Cổng nhà xe và email               | 6    | portal-ui, Mailpit |
+| [07](./07-so-cai-va-doi-soat.md) | Sổ cái kép và đối soát             | 6    | erp-ui             |
+|                                  | **Tổng**                           | ~36  |                    |
 
 [99 — Sự cố trên sân khấu](./99-su-co-tren-san-khau.md) — mở sẵn ở một tab.
 

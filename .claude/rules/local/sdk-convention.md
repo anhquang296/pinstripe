@@ -114,13 +114,13 @@ SDK.
 
 Hook của bề mặt khách hàng (`portal.*`) sống ở entry riêng `@vxrerp/sdk/react/portal`
 (`src/react/portal/`), không nằm trong barrel `src/react/index.ts`. Lý do là hai test đối xứng dưới
-đây: erp-ui không bao giờ dùng hook của khách hàng, và `billing-portal-ui` không dùng hook của dashboard.
+đây: erp-ui không bao giờ dùng hook của khách hàng, và `portal-ui` không dùng hook của dashboard.
 Key của chúng vẫn đăng ký trong `createVxrErpQueries` dưới subject `VxrErpQuerySubjectEnum.PORTAL`,
 nên cả hai entry dùng chung một `VxrErpProvider`.
 
-`portal` trần là bề mặt của **billing portal** (`apps/billing-portal-ui`) và chỉ của nó — tên có trước
-quy tắc portal thuộc về module (ADR 0029). Portal của một module khác mang tiền tố module ở mọi lớp:
-resource `<m>Portal.*`, entry `@vxrerp/sdk/react/<m>-portal`, route `/v1/<m>_portal/**`, subject riêng.
+`portal` trần là bề mặt của **billing portal** (`apps/portal-ui`) và chỉ của nó — tên có trước
+quy tắc portal thuộc về module (ADR 0029, ADR 0031). Portal của một module khác mang tiền tố module ở mọi lớp:
+app `apps/<m>-portal-ui`, resource `<m>Portal.*`, entry `@vxrerp/sdk/react/<m>-portal`, route `/v1/<m>_portal/**`, subject riêng.
 Không thêm method của module khác vào `portal.*`.
 
 `useCreatePortalLinkMutation` cũng ở entry portal, không ở barrel chính: `POST /v1/portal/links` chỉ
@@ -128,7 +128,7 @@ nhận API key mang `portal.write` (`verifyPortalKeyRequest`), mà cookie sessio
 đi qua hook đó — xem [`auth-convention.md`](./auth-convention.md). Admin-ui gọi nó là 404/401,
 không bao giờ chạy. Kế toán Vexere mở link cho một nhà xe bằng `billingPortal.sessions.create`
 (`POST /v1/billing_portal/sessions`, surface `v1`, quyền `customer.write`), trả đúng URL
-`/login/verify?linkKey=…` dùng một lần. Đường gửi email chỉ có ở `billing-portal-ui`, nơi BFF gắn
+`/login/verify?linkKey=…` dùng một lần. Đường gửi email chỉ có ở `portal-ui`, nơi BFF gắn
 `VXRERP_PORTAL_API_KEY`. Không thêm lại một nút "tạo link portal" vào erp-ui khi chưa có route v1
 gửi email.
 
@@ -140,8 +140,8 @@ ai gọi. `useVxrErpClient` / `useVxrErpContext` / `useVxrErpQueries` /
 `useVxrErpMutationCallbacks` không nằm trong tập đó vì chúng là plumbing của provider, không phải
 hook dữ liệu — hình dạng tên quyết định điều đó, không phải một danh sách.
 
-`apps/billing-portal-ui/src/hook-usage.test.ts` làm đúng việc đó cho barrel `src/react/portal/index.ts`:
-mọi hook portal phải có màn dùng tới trong `apps/billing-portal-ui/src`, cũng không có danh sách ngoại lệ.
+`apps/portal-ui/src/hook-usage.test.ts` làm đúng việc đó cho barrel `src/react/portal/index.ts`:
+mọi hook portal phải có màn dùng tới trong `apps/portal-ui/src`, cũng không có danh sách ngoại lệ.
 
 Toast: một package không import được `sonner`. Mutation hook trong SDK tự invalidate rồi gọi `onMutationError` / `onMutationSuccess` từ provider; app nối `toast` vào đó **một lần** (`apps/erp-ui/src/providers/AdminVxrErpProvider.tsx`). Yêu cầu "đúng một toast entry point" của rule được thoả về mặt cấu trúc, và chuỗi text ở lại trong app — SDK không sở hữu chữ tiếng Việt nào.
 
@@ -165,8 +165,8 @@ VXRERP_SECRET_API_KEY
 VXRERP_MAX_RETRIES, VXRERP_TIMEOUT_MS
 ```
 
-`VXRERP_PORTAL_API_KEY` không thuộc SDK: nó là key scope `portal` mà lớp BFF của `billing-portal-ui`
-(`apps/billing-portal-ui/src/libs/portal-bff.ts`) gắn vào hai route đăng nhập `/v1/portal/links` và
+`VXRERP_PORTAL_API_KEY` không thuộc SDK: nó là key scope `portal` mà lớp BFF của `portal-ui`
+(`apps/portal-ui/src/libs/portal-bff.ts`) gắn vào hai route đăng nhập `/v1/portal/links` và
 `/v1/portal/sessions`. File đó là proxy phía server có allowlist, không phải HTTP client thứ hai —
 trình duyệt vẫn chỉ đi qua `VxrErpClient({ baseUrl: '/bff' })` và hook của SDK. Xem ADR 0026.
 

@@ -181,7 +181,7 @@ mở route callback PSP thật.
 
 ## 7. Bảo mật — ba thứ chặn production
 
-1. **billing-portal-ui không xác thực.** `app/customers/[customerId]/page.tsx` không kiểm tra người xem là ai;
+1. **portal-ui không xác thực.** `app/customers/[customerId]/page.tsx` không kiểm tra người xem là ai;
    biết `customerId` là đọc được hoá đơn và subscription của khách đó. **Không được đưa ra internet ở
    dạng hiện tại** — [flows/13](flows/13-frontend-data-flow.md), [ADR 0012](adr/0012-phase-9-portal-reporting.md).
 2. **erp-ui không có đường xác thực thật.** API key được vite dev proxy gắn vào; build production
@@ -244,7 +244,7 @@ Những chỗ **chưa** an toàn:
 | `packages/platform` / `packages/modules/*` chạy từ `dist`, và `tsup` có `clean: true` | sửa package rồi chạy một package lẻ → vẫn là code cũ. `pnpm dev` / `turbo` lo thứ tự, chạy tay thì không                         |
 | `pnpm db:migrate` / `pnpm db:reset` nạp `.env` qua `tsx --env-file`                   | chạy `tsx apps/api/scripts/migrate-database.ts` trần thì thiếu biến — dùng script pnpm                                           |
 | Compose nằm ở `docker/compose.yml`                                                    | `docker compose up` trần không tìm thấy — dùng `pnpm docker:up`                                                                  |
-| billing-portal-ui không đọc `.env` gốc                                                | cần `apps/billing-portal-ui/.env.local` riêng                                                                                    |
+| portal-ui không đọc `.env` gốc                                                        | cần `apps/portal-ui/.env.local` riêng                                                                                            |
 | Migration là journal                                                                  | **không xoá file đã generate** — nhiều migration là SQL viết tay (trigger, view, seed `number_sequences`)                        |
 | Năm secret, mỗi cái ≥ 16 ký tự                                                        | thiếu một cái là app không boot — kể cả `WEBHOOK_SIGNING_SECRET` vốn không ai đọc                                                |
 | `.env.example` thiếu mọi biến tinh chỉnh                                              | `OUTBOX_*`, `BILLING_RUN_*`, `DUNNING_*`, `WEBHOOK_*`, `INVOICE_DUE_DAYS`, `METER_DEDUP_WINDOW_DAYS` chỉ có default trong schema |
@@ -271,7 +271,7 @@ pnpm test → turbo run test
   ├─ @vxrerp/platform, @vxrerp/billing → vitest run   ← CHỈ unit test trong src/utils/
   ├─ @vxrerp/api    → vitest run --passWithNoTests   (0 test)
   ├─ @vxrerp/worker → vitest run --passWithNoTests   (0 test)
-  └─ erp-ui, billing-portal-ui → không có script test, bị bỏ qua
+  └─ erp-ui, portal-ui → không có script test, bị bỏ qua
 ```
 
 `test:integration` **không phải turbo task và không được chain từ `test`**. Toàn bộ integration suite
@@ -361,7 +361,7 @@ Không có gì ngoài lời gọi service là đồng bộ. Entitlement chỉ c�
 | **Meter ingestion**           | đúng 1 test, dù là hot path — các giới hạn khác của tầng này ở [technique 07](technique/07-metering.md)                                 |
 | **Logic thuần trong service** | `assertTransition`, `assertPricesUsable`, `resolveInterval`, `resolveTrialEnd`, `assertPriceShape`, `resolveReplay` — chưa có unit test |
 | **Repository**                | không test trực tiếp. `cursor.ts` là logic thuần, chưa có unit test                                                                     |
-| **UI**                        | erp-ui và billing-portal-ui không có test runner, 0 test                                                                                |
+| **UI**                        | erp-ui và portal-ui không có test runner, 0 test                                                                                        |
 
 Ngoài `src/utils/`, **mọi service chỉ được test qua database thật**.
 

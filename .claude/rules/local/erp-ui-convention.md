@@ -8,7 +8,7 @@ Applies to `apps/erp-ui/**`.
 
 Does **not** apply to:
 
-- `apps/billing-portal-ui` — bề mặt của khách hàng, `portal.*`, luật riêng.
+- `apps/portal-ui` — bề mặt của khách hàng, `portal.*`, luật riêng.
 - `packages/sdk/**` — hook, key và toast của SDK do [`sdk-convention.md`](./sdk-convention.md) quản.
 - Đường đăng nhập phía server (`/v1/auth/*`, authorization) — [`auth-convention.md`](./auth-convention.md).
 

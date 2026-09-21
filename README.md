@@ -93,9 +93,9 @@ last-active-admin rule still holds.
 
 ## 7. Optional — customer portal env
 
-`apps/billing-portal-ui` is a Next.js app and does not read the root `.env`. Customers sign in with a one-time
+`apps/portal-ui` is a Next.js app and does not read the root `.env`. Customers sign in with a one-time
 link sent to their billing email; the Next.js server holds the keys and the browser only gets an
-httpOnly cookie. Create `apps/billing-portal-ui/.env.local`:
+httpOnly cookie. Create `apps/portal-ui/.env.local`:
 
 ```
 VXRERP_API_URL=http://localhost:3000
