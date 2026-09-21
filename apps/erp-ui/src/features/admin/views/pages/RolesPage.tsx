@@ -4,6 +4,7 @@ import StatGrid from '@common/components/StatGrid';
 import StatItem from '@common/components/StatItem';
 import { OPTION_LIMIT } from '@common/constants/pagination';
 import { ROLE_DESCRIPTIONS, ROLE_OPTIONS } from '@common/constants/roles';
+import { Check } from '@gravity-ui/icons';
 import type { Permission, UserRole } from '@vxrerp/platform/contracts';
 import { PermissionEnum, ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/platform/contracts';
 import { useUsersQuery } from '@vxrerp/sdk/react';
@@ -112,7 +113,9 @@ export default function RolesPage() {
               label: roleOption.value,
               renderCell: (permissionRow: PermissionRow) => {
                 return includes(rolePermissions, permissionRow.id) ? (
-                  <span className="text-success">có</span>
+                  <span className="text-success">
+                    <Check />
+                  </span>
                 ) : (
                   <span className="text-muted">—</span>
                 );
