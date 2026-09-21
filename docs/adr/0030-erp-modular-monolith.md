@@ -1,6 +1,6 @@
 # 0030 — ERP modular monolith: `platform` và các module, mỗi module một Postgres schema
 
-- **Trạng thái.** Accepted — đang triển khai theo từng bước (1b.1–1b.5 xong).
+- **Trạng thái.** Accepted — đang triển khai theo từng bước (Phase 1b xong).
 - **Dựa trên.** [0029 — Đổi tên dự án thành vxrerp](0029-rename-to-vxrerp.md).
 
 ## Bối cảnh
@@ -96,7 +96,17 @@ cần cơ chế đăng ký — permission, event type và prefix là shared kern
 migration đã được app liệt kê tường minh. Manifest đầy đủ để lại tới khi module thứ hai cho thấy nó
 có ích.
 
-### 7. Ranh giới được lint
+### 7. erp-ui chia theo feature, shell ghép
+
+Một app nội bộ duy nhất (`apps/erp-ui`), bên trong chia `shell/` và `features/<feature>/`.
+`features/billing` giữ mọi màn billing, `features/admin` giữ bề mặt của platform (user, role, API key,
+webhook, settings). Mỗi feature export một `FeatureDefinition` gồm `routes`, `navigationItems` và
+`reportRangePaths`; `shell/features.ts` ghép chúng — route thành con của `RequireSession` →
+`AppLayout`, mục menu thành nhóm theo `NavigationGroupEnum`. Feature không import shell hay feature
+khác, `common/` không import cả hai; `apps/erp-ui/eslint.config.js` chặn cả ba chiều. URL của mọi
+màn không đổi.
+
+### 8. Ranh giới được lint
 
 `packages/platform/eslint.config.js` cấm import `@vxrerp/billing*` qua tuỳ chọn `importBans` của preset
 `node`. Hạ tầng test dùng chung (`loadTestEnv`, `createTestDatabaseSetup`, `truncateDatabase`) nằm ở
@@ -106,4 +116,5 @@ có ích.
 
 - DB local cũ không migrate tiếp được: `pnpm db:reset` rồi seed lại. Test tự dọn `public`, `platform`,
   `billing`, `drizzle` trong global setup.
-- Bước còn lại: tổ chức lại erp-ui theo module (1b.6).
+- Phase 1b xong. CRM (Phase 2) là module thứ hai: `packages/modules/crm`, schema `crm`, `features/crm`
+  trong erp-ui, cộng giá trị mới trong các enum shared kernel.

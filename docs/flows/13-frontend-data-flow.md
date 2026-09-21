@@ -66,11 +66,11 @@ Update một bản ghi thì invalidate cả key chi tiết lẫn `_def` của da
 
 [QueryProvider.tsx](../../apps/erp-ui/src/providers/QueryProvider.tsx): `retry: 1`, `refetchOnWindowFocus: false`. Provider ghép trong [ProviderRegistry.tsx](../../apps/erp-ui/src/providers/ProviderRegistry.tsx): `QueryProvider` → `AdminVxrErpProvider` → `RoutesProvider`, cộng `<Toaster>` của sonner.
 
-Route khai trong [routes/def.tsx](../../apps/erp-ui/src/features/dashboard/routes/def.tsx) bằng path của [routes/paths.ts](../../apps/erp-ui/src/features/dashboard/routes/paths.ts). Mọi màn nằm sau `RequireSession`, trong layout chung `AppLayout`.
+Mỗi feature (`features/billing`, `features/admin`) khai route trong `routes/def.tsx` bằng path của `routes/paths.ts` của chính nó — ví dụ [billing](../../apps/erp-ui/src/features/billing/routes/def.tsx) — rồi export một `FeatureDefinition`. [shell/features.ts](../../apps/erp-ui/src/shell/features.ts) ghép các feature; [shell/routes/def.tsx](../../apps/erp-ui/src/shell/routes/def.tsx) đặt mọi route sau `RequireSession`, trong layout chung `AppLayout`.
 
 ### Form
 
-React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/common/forms/` (`customer-form.ts`, `product-form.ts`, `meter-form.ts`, `subscription-form.ts`, `test-clock-form.ts`, `reverse-transaction-form.ts`…), ghép với component tương ứng dưới `src/features/dashboard/components/<X>Form/`.
+React Hook Form + Zod. Mỗi form một file cấu hình dưới `src/common/forms/` (`customer-form.ts`, `product-form.ts`, `meter-form.ts`, `subscription-form.ts`, `test-clock-form.ts`, `reverse-transaction-form.ts`…), ghép với component tương ứng dưới `src/features/<feature>/components/<X>Form/`.
 
 ## billing-portal-ui
 

@@ -1,0 +1,87 @@
+import type { NavigationItem } from '@common/constants/navigation';
+import { NavigationGroupEnum } from '@common/constants/navigation';
+import { billingPaths } from '@features/billing/routes/paths';
+import { PermissionEnum } from '@vxrerp/platform/contracts';
+
+export const BILLING_NAVIGATION_ITEMS: NavigationItem[] = [
+  {
+    group: NavigationGroupEnum.OVERVIEW,
+    to: billingPaths.OVERVIEW,
+    title: 'Tổng quan',
+    description: 'Doanh thu và đối soát gần nhất',
+    initials: 'TQ',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.SALES,
+    to: billingPaths.CUSTOMERS,
+    title: 'Customers',
+    description: 'Khách hàng và thông tin thanh toán',
+    initials: 'CU',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.SALES,
+    to: billingPaths.CATALOG,
+    title: 'Products & Prices',
+    description: 'Danh mục sản phẩm và bảng giá',
+    initials: 'PP',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.SALES,
+    to: billingPaths.SUBSCRIPTIONS,
+    title: 'Subscriptions',
+    description: 'Thuê bao, lượng dùng, giảm giá, thuế',
+    initials: 'SU',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.SALES,
+    to: billingPaths.CHECKOUT,
+    title: 'Checkout & Portal',
+    description: 'Payment link, phiên checkout, portal',
+    initials: 'CK',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.FINANCE,
+    to: billingPaths.INVOICES,
+    title: 'Invoices',
+    description: 'Hoá đơn và credit note',
+    initials: 'IN',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.FINANCE,
+    to: billingPaths.PAYMENTS,
+    title: 'Payments',
+    description: 'Payment intent và refund',
+    initials: 'PA',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.FINANCE,
+    to: billingPaths.LEDGER,
+    title: 'Ledger',
+    description: 'Tài khoản và bút toán',
+    initials: 'LE',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.FINANCE,
+    to: billingPaths.REPORTS,
+    title: 'Reports',
+    description: 'Doanh thu và công nợ',
+    initials: 'RE',
+    permission: PermissionEnum.BILLING_READ,
+  },
+  {
+    group: NavigationGroupEnum.DEVELOPERS,
+    to: billingPaths.TEST_CLOCKS,
+    title: 'Test clocks',
+    description: 'Tua thời gian để thử billing',
+    initials: 'TC',
+    permission: PermissionEnum.TEST_CLOCK_WRITE,
+  },
+];

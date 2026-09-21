@@ -1,4 +1,4 @@
-import { dashboardRouteDefs } from '@features/dashboard';
+import { shellRouteDefs } from '@shell/routes/def';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
 
@@ -13,7 +13,7 @@ const router = createBrowserRouter([
         </AdminAuthProvider>
       </NuqsAdapter>
     ),
-    children: dashboardRouteDefs,
+    children: shellRouteDefs,
   },
 ]);
 
