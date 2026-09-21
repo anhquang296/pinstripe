@@ -1,4 +1,4 @@
-# Flow của Pinstripe
+# Flow của VXR ERP
 
 Mỗi file trong thư mục này mô tả **một luồng chạy hết một vòng**: bắt đầu từ đâu, đi qua file nào, chạm bảng nào, phát event gì, hỏng thì ra sao. Mỗi bước trỏ thẳng vào `file:line` để vừa đọc vừa mở code.
 
@@ -9,8 +9,8 @@ Tài liệu này trả lời câu hỏi **"cơ chế chạy thế nào"**, tổ 
 ```mermaid
 flowchart TB
     subgraph clients [Client]
-        AU["admin-ui<br/>React SPA :5173"]
-        PU["portal-ui<br/>Next.js :3100"]
+        AU["erp-ui<br/>React SPA :5173"]
+        PU["billing-portal-ui<br/>Next.js :3100"]
         EXT["Tích hợp bên ngoài"]
     end
 
@@ -25,7 +25,7 @@ flowchart TB
         W6[dunning]
     end
 
-    CORE["packages/core<br/>21 service · 18 repository · composition root"]
+    CORE["packages/platform + packages/modules/billing<br/>platformPlugin + billingPlugin"]
     PG[("Postgres<br/>:55432")]
     RD[("Redis<br/>:56379")]
     EP["Endpoint webhook của khách"]
@@ -40,7 +40,7 @@ flowchart TB
     W5 --> EP
 ```
 
-Điểm đáng nhớ: **API và worker dùng chung một `corePlugin`** ([core.plugin.ts](../../packages/core/src/plugins/core.plugin.ts)), nên cùng service, cùng hành vi. Khác nhau chỉ ở chỗ ai gọi.
+Điểm đáng nhớ: **API và worker đăng ký cùng `platformPlugin` rồi `billingPlugin`** ([platform.plugin.ts](../../packages/platform/src/plugins/platform.plugin.ts), [billing.plugin.ts](../../packages/modules/billing/src/plugins/billing.plugin.ts)), nên cùng service, cùng hành vi. Khác nhau chỉ ở chỗ ai gọi.
 
 ## Thứ tự đọc cho người mới
 
@@ -53,23 +53,23 @@ Bốn file đó là đủ để đọc hiểu phần còn lại theo nhu cầu.
 
 ## Muốn hiểu X thì đọc file nào
 
-| Câu hỏi                                                            | File                                   |
-| ------------------------------------------------------------------ | -------------------------------------- |
-| Request đi qua những gì? API key, idempotency, lỗi trả về ra sao?  | [01](./01-request-lifecycle.md)        |
-| Webhook được gửi thế nào? Tại sao có outbox?                       | [02](./02-event-pipeline.md)           |
-| CRUD, phân trang con trỏ, soft delete, version của giá             | [03](./03-catalog-and-customer.md)     |
-| Trạng thái subscription, trial, gia hạn; khi nào khách bị chặn     | [04](./04-subscription-entitlement.md) |
-| Nạp event dùng, chống trùng; tính tiền theo bậc, chia tỷ lệ        | [05](./05-metering-and-rating.md)      |
-| Nháp → phát hành → thu → huỷ; credit note khác refund chỗ nào      | [06](./06-invoicing.md)                |
-| Gọi PSP, xử lý bị từ chối, hoàn tiền                               | [07](./07-payments-and-refunds.md)     |
-| Job nền tạo hoá đơn; mẫu scheduler + shard                         | [08](./08-billing-run.md)              |
-| Thu hồi nợ, lịch retry, khi nào bỏ cuộc                            | [09](./09-dunning.md)                  |
-| Bút toán kép, bất biến, đảo bút toán, số dư                        | [10](./10-ledger.md)                   |
-| MRR, churn; đối chiếu PSP với sổ cái                               | [11](./11-reporting-reconciliation.md) |
-| Nhảy thời gian để thử hành vi theo kỳ                              | [12](./12-test-clock.md)               |
-| React Query, query key, form; portal-ui đọc dữ liệu thế nào        | [13](./13-frontend-data-flow.md)       |
-| Chỗ nào dễ tự bắn vào chân; cần biết gì trước khi viết test        | [PITFALLS](../PITFALLS.md)             |
-| Bấm nút này thì chuyện gì xảy ra, cái gì xong ngay cái gì phải chờ | [usecases](../usecases/00-index.md)    |
+| Câu hỏi                                                             | File                                   |
+| ------------------------------------------------------------------- | -------------------------------------- |
+| Request đi qua những gì? API key, idempotency, lỗi trả về ra sao?   | [01](./01-request-lifecycle.md)        |
+| Webhook được gửi thế nào? Tại sao có outbox?                        | [02](./02-event-pipeline.md)           |
+| CRUD, phân trang con trỏ, soft delete, version của giá              | [03](./03-catalog-and-customer.md)     |
+| Trạng thái subscription, trial, gia hạn; khi nào khách bị chặn      | [04](./04-subscription-entitlement.md) |
+| Nạp event dùng, chống trùng; tính tiền theo bậc, chia tỷ lệ         | [05](./05-metering-and-rating.md)      |
+| Nháp → phát hành → thu → huỷ; credit note khác refund chỗ nào       | [06](./06-invoicing.md)                |
+| Gọi PSP, xử lý bị từ chối, hoàn tiền                                | [07](./07-payments-and-refunds.md)     |
+| Job nền tạo hoá đơn; mẫu scheduler + shard                          | [08](./08-billing-run.md)              |
+| Thu hồi nợ, lịch retry, khi nào bỏ cuộc                             | [09](./09-dunning.md)                  |
+| Bút toán kép, bất biến, đảo bút toán, số dư                         | [10](./10-ledger.md)                   |
+| MRR, churn; đối chiếu PSP với sổ cái                                | [11](./11-reporting-reconciliation.md) |
+| Nhảy thời gian để thử hành vi theo kỳ                               | [12](./12-test-clock.md)               |
+| React Query, query key, form; billing-portal-ui đọc dữ liệu thế nào | [13](./13-frontend-data-flow.md)       |
+| Chỗ nào dễ tự bắn vào chân; cần biết gì trước khi viết test         | [PITFALLS](../PITFALLS.md)             |
+| Bấm nút này thì chuyện gì xảy ra, cái gì xong ngay cái gì phải chờ  | [usecases](../usecases/00-index.md)    |
 
 ## Bốn quy tắc lặp lại ở mọi flow
 

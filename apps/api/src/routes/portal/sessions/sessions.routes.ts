@@ -1,11 +1,11 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createPortalLinkSchema,
   portalLinkSchema,
   portalSessionSchema,
   redeemPortalLinkSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
 
 export const portalSessionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

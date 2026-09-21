@@ -1,10 +1,10 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { Type } from '@sinclair/typebox';
+import { buildCheckoutPage } from '@utils/hosted-page';
 import {
   checkoutSessionParamsSchema,
   completeCheckoutSessionSchema,
-} from '@pinstripe/core/contracts';
-import { Type } from '@sinclair/typebox';
-import { buildCheckoutPage } from '@utils/hosted-page';
+} from '@vxrerp/billing/contracts';
 
 const hostedTokenSchema = Type.Object({ token: Type.String({ minLength: 1 }) });
 

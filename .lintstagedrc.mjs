@@ -1,12 +1,14 @@
 import path from 'node:path';
 
 const PACKAGE_ROOTS = [
-  'packages/core',
+  'packages/platform',
+  'packages/modules/billing',
+  'packages/modules/crm',
   'packages/sdk',
   'apps/api',
   'apps/worker',
-  'apps/admin-ui',
-  'apps/portal-ui',
+  'apps/erp-ui',
+  'apps/billing-portal-ui',
 ];
 
 const GENERATED_PATHS = [

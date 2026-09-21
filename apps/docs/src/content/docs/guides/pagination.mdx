@@ -27,7 +27,7 @@ Duyệt hết một collection:
 let after: string | undefined;
 
 for (;;) {
-  const page = await pinstripe.customers.find({ limit: 100, after });
+  const page = await vxrErp.customers.find({ limit: 100, after });
 
   for (const customer of page.data) {
     await syncCustomer(customer);

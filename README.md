@@ -1,4 +1,4 @@
-# Pinstripe
+# VXR ERP
 
 Step-by-step guide to run the project locally.
 
@@ -74,17 +74,17 @@ against a running stack leaves every `Authorization: Bearer` call failing until 
 pnpm dev
 ```
 
-Turbo builds `packages/core` first, then runs the API, the workers, the admin UI and the customer portal.
+Turbo builds `packages/platform` and then `packages/modules/billing` first, then runs the API, the workers, the ERP UI and the billing portal UI.
 
 ## 6. Create the first admin
 
-The admin UI signs in with a real session cookie — the Vite proxy forwards `/v1` to the API and
+The ERP UI signs in with a real session cookie — the Vite proxy forwards `/v1` to the API and
 injects nothing, so a build outside `vite dev` authenticates with exactly what it has. Sign-up does
 not exist on the server, so the first admin is created from the command line. The script is
 idempotent:
 
 ```bash
-pnpm --filter @pinstripe/api bootstrap-admin -- --email admin@pinstripe.test --name Admin --password '<at least 12 characters>'
+pnpm --filter @vxrerp/api bootstrap-admin -- --email admin@vxrerp.test --name Admin --password '<at least 12 characters>'
 ```
 
 Sign in at http://localhost:5173 with that email and password. Every other user is created in the
@@ -93,16 +93,16 @@ last-active-admin rule still holds.
 
 ## 7. Optional — customer portal env
 
-`apps/portal-ui` is a Next.js app and does not read the root `.env`. Customers sign in with a one-time
+`apps/billing-portal-ui` is a Next.js app and does not read the root `.env`. Customers sign in with a one-time
 link sent to their billing email; the Next.js server holds the keys and the browser only gets an
-httpOnly cookie. Create `apps/portal-ui/.env.local`:
+httpOnly cookie. Create `apps/billing-portal-ui/.env.local`:
 
 ```
-PINSTRIPE_API_URL=http://localhost:3000
-PINSTRIPE_PORTAL_API_KEY=<same value as PORTAL_API_KEY>
+VXRERP_API_URL=http://localhost:3000
+VXRERP_PORTAL_API_KEY=<same value as PORTAL_API_KEY>
 ```
 
-Never give it `PINSTRIPE_SECRET_API_KEY`. Sign-in links land in mailpit (http://localhost:58025).
+Never give it `VXRERP_SECRET_API_KEY`. Sign-in links land in mailpit (http://localhost:58025).
 
 ## 8. Optional — load the demo dataset
 
@@ -117,14 +117,14 @@ partner-collection scenarios to complete.
 
 ## Local URLs
 
-| Service   | URL                    |
-| --------- | ---------------------- |
-| API       | http://localhost:3000  |
-| Admin UI  | http://localhost:5173  |
-| Portal UI | http://localhost:3100  |
-| Mailpit   | http://localhost:58025 |
-| Postgres  | localhost:55432        |
-| Redis     | localhost:56379        |
+| Service           | URL                    |
+| ----------------- | ---------------------- |
+| API               | http://localhost:3000  |
+| ERP UI            | http://localhost:5173  |
+| Billing portal UI | http://localhost:3100  |
+| Mailpit           | http://localhost:58025 |
+| Postgres          | localhost:55432        |
+| Redis             | localhost:56379        |
 
 Workers run on ports `3001`–`3006`: outbox, domain-event, ledger, billing, webhook, dunning.
 
@@ -132,7 +132,7 @@ Workers run on ports `3001`–`3006`: outbox, domain-event, ledger, billing, web
 
 [docs/usecases/](docs/usecases/00-index.md) is the easiest way in. Each file follows one real
 scenario — a customer onto a plan, an invoice issued and collected, a declined card chased by
-dunning — from the click in admin-ui down through the API, the transaction, and the workers it wakes,
+dunning — from the click in erp-ui down through the API, the transaction, and the workers it wakes,
 saying plainly what is done by the time the response returns and what only happens seconds later.
 Every use case ends with the UI steps, the equivalent curl, and the SQL to see the rows for yourself.
 

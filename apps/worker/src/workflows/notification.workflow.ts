@@ -1,9 +1,6 @@
-import type { InvoiceReminderRunJob, NotificationSendJob } from '@pinstripe/core/queues';
-import {
-  INVOICE_REMINDER_RUN_JOB,
-  NOTIFICATION_QUEUE,
-  QueueNameEnum,
-} from '@pinstripe/core/queues';
+import type { InvoiceReminderRunJob, NotificationSendJob } from '@vxrerp/billing/queues';
+import { INVOICE_REMINDER_RUN_JOB, NOTIFICATION_QUEUE } from '@vxrerp/billing/queues';
+import { QueueNameEnum } from '@vxrerp/platform/queues';
 import { InvoiceReminderRunProcessor } from '@workflows/processors/invoice-reminder-run.processor';
 import { NotificationSendProcessor } from '@workflows/processors/notification-send.processor';
 import type { Workflow } from '@workflows/workflow';
@@ -50,7 +47,7 @@ export class NotificationWorkflow implements Workflow {
   }
 
   private async dispatchInvoiceReminderSchedule(): Promise<void> {
-    const { invoiceReminderIntervalMs } = this.fastify.workflowSchedules;
+    const { invoiceReminderIntervalMs } = this.fastify.billingSchedules;
 
     await this.fastify.queues
       .resolve(QueueNameEnum.NOTIFICATION)

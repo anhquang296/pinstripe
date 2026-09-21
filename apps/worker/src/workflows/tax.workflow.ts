@@ -1,5 +1,5 @@
-import type { TaxIdVerifyJob } from '@pinstripe/core/queues';
-import { TAX_QUEUE } from '@pinstripe/core/queues';
+import type { TaxIdVerifyJob } from '@vxrerp/billing/queues';
+import { TAX_QUEUE } from '@vxrerp/billing/queues';
 import { TaxIdVerifyProcessor } from '@workflows/processors/tax-id-verify.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

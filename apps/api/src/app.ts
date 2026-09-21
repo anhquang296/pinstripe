@@ -1,5 +1,4 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { corePlugin } from '@pinstripe/core/plugins';
 import { apiKeyPlugin } from '@plugins/api-key.plugin';
 import { apiVersionPlugin } from '@plugins/api-version.plugin';
 import { errorHandlerPlugin } from '@plugins/error-handler.plugin';
@@ -7,6 +6,9 @@ import { swaggerPlugin } from '@plugins/swagger.plugin';
 import { swaggerUiPlugin } from '@plugins/swagger-ui.plugin';
 import { apiRoutes } from '@routes/routes';
 import { parseQuerystring } from '@utils/querystring';
+import { billingPlugin } from '@vxrerp/billing/plugins';
+import { crmPlugin } from '@vxrerp/crm/plugins';
+import { platformPlugin } from '@vxrerp/platform/plugins';
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 
@@ -22,7 +24,9 @@ export async function buildApp(): Promise<FastifyInstance> {
     querystringParser: parseQuerystring,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  await fastify.register(corePlugin);
+  await fastify.register(platformPlugin);
+  await fastify.register(billingPlugin);
+  await fastify.register(crmPlugin);
   await fastify.register(apiKeyPlugin);
   await fastify.register(apiVersionPlugin);
 

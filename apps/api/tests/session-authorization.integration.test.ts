@@ -1,12 +1,8 @@
-import type { UserRole } from '@pinstripe/core/contracts';
-import {
-  LedgerAccountCodeEnum,
-  PermissionEnum,
-  PostingDirectionEnum,
-  UserRoleEnum,
-  UserStatusEnum,
-} from '@pinstripe/core/contracts';
-import { CurrencyEnum, generateGid, ObjectPrefixEnum } from '@pinstripe/core/utils';
+import { LedgerAccountCodeEnum, PostingDirectionEnum } from '@vxrerp/billing/contracts';
+import { CurrencyEnum } from '@vxrerp/billing/utils';
+import type { UserRole } from '@vxrerp/platform/contracts';
+import { PermissionEnum, UserRoleEnum, UserStatusEnum } from '@vxrerp/platform/contracts';
+import { generateGid, ObjectPrefixEnum } from '@vxrerp/platform/utils';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
@@ -19,7 +15,7 @@ interface InjectedCookie {
 }
 
 const AUTH_PATH = '/v1/auth';
-const SESSION_COOKIE_PREFIX = 'pinstripe';
+const SESSION_COOKIE_PREFIX = 'vxrerp';
 const PASSWORD = 'correct horse battery staple';
 
 let fastify: FastifyInstance;

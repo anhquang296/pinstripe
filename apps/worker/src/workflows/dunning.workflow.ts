@@ -1,11 +1,11 @@
-import type { DunningRunShardJob } from '@pinstripe/core/queues';
+import type { DunningRunShardJob } from '@vxrerp/billing/queues';
 import {
   buildDunningRunShardJob,
   DUNNING_QUEUE,
   DUNNING_RUN_DISPATCH_JOB,
   DUNNING_RUN_SHARD_JOB,
-  QueueNameEnum,
-} from '@pinstripe/core/queues';
+} from '@vxrerp/billing/queues';
+import { QueueNameEnum } from '@vxrerp/platform/queues';
 import { DunningRunShardProcessor } from '@workflows/processors/dunning-run-shard.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';
@@ -45,7 +45,7 @@ export class DunningWorkflow implements Workflow {
   }
 
   private async dispatchDunningSchedule(): Promise<void> {
-    const { dunningIntervalMs } = this.fastify.workflowSchedules;
+    const { dunningIntervalMs } = this.fastify.billingSchedules;
 
     await this.fastify.queues
       .resolve(QueueNameEnum.DUNNING)
@@ -57,7 +57,7 @@ export class DunningWorkflow implements Workflow {
   }
 
   private async dispatchShards(): Promise<void> {
-    const { billingRunShardCount, dunningJitterMs } = this.fastify.workflowSchedules;
+    const { billingRunShardCount, dunningJitterMs } = this.fastify.billingSchedules;
 
     const runAt = this.fastify.clock.now();
     const queue = this.fastify.queues.resolve(QueueNameEnum.DUNNING);

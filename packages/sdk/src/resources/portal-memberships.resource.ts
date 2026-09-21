@@ -1,6 +1,6 @@
-import type { RequestOptions } from '@client/pinstripe.types';
-import { HttpMethodEnum } from '@client/pinstripe.types';
-import type { PinstripeTransport } from '@client/pinstripe-transport';
+import type { RequestOptions } from '@client/vxr-erp.types';
+import { HttpMethodEnum } from '@client/vxr-erp.types';
+import type { VxrErpTransport } from '@client/vxr-erp-transport';
 import type {
   CreatePortalMembershipPayload,
   DeletedPortalMembershipResponse,
@@ -14,9 +14,9 @@ import { buildPath } from '@utils/build-path';
 const PORTAL_MEMBERSHIPS_PATH = '/v1/portal_memberships';
 
 export class PortalMembershipsResource {
-  private _transport: PinstripeTransport;
+  private _transport: VxrErpTransport;
 
-  constructor(transport: PinstripeTransport) {
+  constructor(transport: VxrErpTransport) {
     this._transport = transport;
   }
 

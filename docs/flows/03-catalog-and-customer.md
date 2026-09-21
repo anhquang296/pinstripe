@@ -4,7 +4,7 @@ Ba resource nền: mọi thứ sau này (subscription, invoice, payment) đều 
 
 ## Khi nào chạy
 
-Khi client gọi `POST/GET /v1/customers`, `/v1/products`, `/v1/prices` — hoặc khi admin-ui thao tác trên các trang tương ứng.
+Khi client gọi `POST/GET /v1/customers`, `/v1/products`, `/v1/prices` — hoặc khi erp-ui thao tác trên các trang tương ứng.
 
 ## Khuôn chung của một lệnh ghi
 
@@ -33,50 +33,50 @@ Ba chi tiết lặp lại ở mọi service:
 
 ## Customer
 
-| #   | Nơi xảy ra                                                                                  | Làm gì                                                              |
-| --- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 1   | [customers.routes.ts:14-22](../../apps/api/src/routes/v1/customers/customers.routes.ts)     | `POST /` — body theo `createCustomerSchema`, trả 201                |
-| 2   | [customer.service.ts:27-34](../../packages/core/src/services/customer.service.ts)           | `createCustomer` — lấy `now`, sinh id, gọi `writeCustomer`          |
-| 3   | [customer.service.ts:42-78](../../packages/core/src/services/customer.service.ts)           | transaction: INSERT + `customer.created`                            |
-| 4   | [customer.service.ts:79-88](../../packages/core/src/services/customer.service.ts)           | bắt `isUniqueViolation` → `ConflictError` với `param: 'email'`      |
-| 5   | [customer.repository.ts:54-62](../../packages/core/src/repositories/customer.repository.ts) | `createCustomer(payload, executor)` — `executor ?? this._db.master` |
+| #   | Nơi xảy ra                                                                                             | Làm gì                                                              |
+| --- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| 1   | [customers.routes.ts:14-22](../../apps/api/src/routes/v1/customers/customers.routes.ts)                | `POST /` — body theo `createCustomerSchema`, trả 201                |
+| 2   | [customer.service.ts:27-34](../../packages/modules/billing/src/services/customer.service.ts)           | `createCustomer` — lấy `now`, sinh id, gọi `writeCustomer`          |
+| 3   | [customer.service.ts:42-78](../../packages/modules/billing/src/services/customer.service.ts)           | transaction: INSERT + `customer.created`                            |
+| 4   | [customer.service.ts:79-88](../../packages/modules/billing/src/services/customer.service.ts)           | bắt `isUniqueViolation` → `ConflictError` với `param: 'email'`      |
+| 5   | [customer.repository.ts:54-62](../../packages/modules/billing/src/repositories/customer.repository.ts) | `createCustomer(payload, executor)` — `executor ?? this._db.master` |
 
 Các thao tác còn lại:
 
-| Route                 | Service                                                                        | Ghi chú                                                                                             |
-| --------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| `GET /:customerId`    | [getCustomer:91-99](../../packages/core/src/services/customer.service.ts)      | repo trả `null` → service `throw NotFoundError`. Đây là ranh giới `find*` (repo) ↔ `get*` (service) |
-| `POST /:customerId`   | [updateCustomer:101-131](../../packages/core/src/services/customer.service.ts) | `getCustomer` trước để có 404 đúng, rồi UPDATE + `customer.updated`                                 |
-| `DELETE /:customerId` | [deleteCustomer:133-152](../../packages/core/src/services/customer.service.ts) | **soft delete**: `archiveCustomer` chỉ set `deletedAt`; trả `{ object, id, deleted: true }`         |
-| `GET /`               | [findCustomers:154-170](../../packages/core/src/services/customer.service.ts)  | phân trang con trỏ, xem bên dưới                                                                    |
+| Route                 | Service                                                                                   | Ghi chú                                                                                             |
+| --------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `GET /:customerId`    | [getCustomer:91-99](../../packages/modules/billing/src/services/customer.service.ts)      | repo trả `null` → service `throw NotFoundError`. Đây là ranh giới `find*` (repo) ↔ `get*` (service) |
+| `POST /:customerId`   | [updateCustomer:101-131](../../packages/modules/billing/src/services/customer.service.ts) | `getCustomer` trước để có 404 đúng, rồi UPDATE + `customer.updated`                                 |
+| `DELETE /:customerId` | [deleteCustomer:133-152](../../packages/modules/billing/src/services/customer.service.ts) | **soft delete**: `archiveCustomer` chỉ set `deletedAt`; trả `{ object, id, deleted: true }`         |
+| `GET /`               | [findCustomers:154-170](../../packages/modules/billing/src/services/customer.service.ts)  | phân trang con trỏ, xem bên dưới                                                                    |
 
-Soft delete xuyên suốt repository: mọi `findCustomer(s)` đều kèm `isNull(customers.deletedAt)` — [customer.repository.ts:25,36](../../packages/core/src/repositories/customer.repository.ts). Unique index trên email cũng chỉ áp cho hàng chưa xoá: `where deleted_at is null and email is not null` — [customers.schema.ts:27-29](../../packages/core/src/database/schemas/customers.schema.ts). Nhờ vậy một email đã xoá có thể dùng lại.
+Soft delete xuyên suốt repository: mọi `findCustomer(s)` đều kèm `isNull(customers.deletedAt)` — [customer.repository.ts:25,36](../../packages/modules/billing/src/repositories/customer.repository.ts). Unique index trên email cũng chỉ áp cho hàng chưa xoá: `where deleted_at is null and email is not null` — [customers.schema.ts:27-29](../../packages/modules/billing/src/database/schemas/customers.schema.ts). Nhờ vậy một email đã xoá có thể dùng lại.
 
 ## Phân trang con trỏ
 
 Kiểu Stripe, không dùng offset:
 
-1. Service đổi `after` / `before` (là **id**) thành một `RowCursor { createdAt, id }` — [customer.service.ts:172-184](../../packages/core/src/services/customer.service.ts). Id không tồn tại → 404 ngay.
-2. Repo so sánh bộ đôi: `(created_at, id) < (cursor.createdAt, cursor.id)` — [customer.repository.ts:38-43](../../packages/core/src/repositories/customer.repository.ts). Index `customers_created_at_id_idx` phục vụ đúng thứ tự này.
-3. Service query `limit + 1` hàng, `hasMore = rows.length > limit`, rồi cắt về `limit` — [customer.service.ts:158-169](../../packages/core/src/services/customer.service.ts).
+1. Service đổi `after` / `before` (là **id**) thành một `RowCursor { createdAt, id }` — [customer.service.ts:172-184](../../packages/modules/billing/src/services/customer.service.ts). Id không tồn tại → 404 ngay.
+2. Repo so sánh bộ đôi: `(created_at, id) < (cursor.createdAt, cursor.id)` — [customer.repository.ts:38-43](../../packages/modules/billing/src/repositories/customer.repository.ts). Index `customers_created_at_id_idx` phục vụ đúng thứ tự này.
+3. Service query `limit + 1` hàng, `hasMore = rows.length > limit`, rồi cắt về `limit` — [customer.service.ts:158-169](../../packages/modules/billing/src/services/customer.service.ts).
 
 Vỏ response luôn là `{ url, hasMore, data }`. Không có trường `object`, xem [ADR 0021](../adr/0021-iso-timestamps-and-no-object-field.md).
 
 ## Product
 
-Giống hệt customer nhưng không có email nên không có nhánh conflict — [product.service.ts:20-59](../../packages/core/src/services/product.service.ts). Không có `DELETE`; muốn ẩn thì `POST /:productId` với `active: false`.
+Giống hệt customer nhưng không có email nên không có nhánh conflict — [product.service.ts:20-59](../../packages/modules/billing/src/services/product.service.ts). Không có `DELETE`; muốn ẩn thì `POST /:productId` với `active: false`.
 
 ## Price — phần khác biệt đáng chú ý
 
 Price là nơi duy nhất trong nhóm này có logic thật:
 
-| Điều                     | Ở đâu                                                                               | Nội dung                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Kiểm tra product tồn tại | [price.service.ts:32](../../packages/core/src/services/price.service.ts)            | gọi `productService.getProduct` — service gọi service, không đi tắt xuống repo |
-| Ràng buộc hình dạng      | [assertPriceShape:232-272](../../packages/core/src/services/price.service.ts)       | 6 quy tắc, mỗi vi phạm là một `BadRequestError` có `param`                     |
-| Ràng buộc ở DB           | [prices.schema.ts:65-84](../../packages/core/src/database/schemas/prices.schema.ts) | 5 `CHECK` constraint lặp lại đúng các quy tắc đó — tầng phòng thủ thứ hai      |
-| Đánh version             | [resolveNextVersion:208-216](../../packages/core/src/services/price.service.ts)     | cùng `lookupKey` → version tăng dần, unique index `(lookup_key, version)`      |
-| Chọn giá theo thời điểm  | [resolvePrice:172-182](../../packages/core/src/services/price.service.ts)           | `findEffectivePrice(lookupKey, at)` — giá có `effectiveAt <= at` mới nhất      |
+| Điều                     | Ở đâu                                                                                          | Nội dung                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Kiểm tra product tồn tại | [price.service.ts:32](../../packages/modules/billing/src/services/price.service.ts)            | gọi `productService.getProduct` — service gọi service, không đi tắt xuống repo |
+| Ràng buộc hình dạng      | [assertPriceShape:232-272](../../packages/modules/billing/src/services/price.service.ts)       | 6 quy tắc, mỗi vi phạm là một `BadRequestError` có `param`                     |
+| Ràng buộc ở DB           | [prices.schema.ts:65-84](../../packages/modules/billing/src/database/schemas/prices.schema.ts) | 5 `CHECK` constraint lặp lại đúng các quy tắc đó — tầng phòng thủ thứ hai      |
+| Đánh version             | [resolveNextVersion:208-216](../../packages/modules/billing/src/services/price.service.ts)     | cùng `lookupKey` → version tăng dần, unique index `(lookup_key, version)`      |
+| Chọn giá theo thời điểm  | [resolvePrice:172-182](../../packages/modules/billing/src/services/price.service.ts)           | `findEffectivePrice(lookupKey, at)` — giá có `effectiveAt <= at` mới nhất      |
 
 Sáu quy tắc hình dạng:
 
@@ -99,7 +99,7 @@ Sáu quy tắc hình dạng:
 | `products`  | có cột `deleted_at` nhưng flow hiện tại không dùng                                   |
 | `prices`    | `unit_amount` bigint nullable (chỉ per_unit dùng); `tiers` jsonb; 5 CHECK constraint |
 
-Tiền luôn là số nguyên đơn vị nhỏ nhất (cent / đồng), không bao giờ float — tiện ích ở [utils/money.ts](../../packages/core/src/utils/money.ts).
+Tiền luôn là số nguyên đơn vị nhỏ nhất (cent / đồng), không bao giờ float — tiện ích ở [utils/money.ts](../../packages/modules/billing/src/utils/money.ts).
 
 ## Event phát ra
 

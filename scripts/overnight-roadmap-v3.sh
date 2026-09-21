@@ -17,6 +17,6 @@ export ROADMAP="docs/ROADMAP-V3.md"
 export PHASES="${PHASES:-25 26 27 28 29 30 31 32}"
 export BRANCH_PREFIX="${BRANCH_PREFIX:-overnight/v3-phase-}"
 export DEADLINE_HOURS="${DEADLINE_HOURS:-10}"
-export EXTRA_GATE="${EXTRA_GATE:-pnpm --filter @pinstripe/admin-ui build && pnpm --filter @pinstripe/api openapi && git diff --exit-code -- apps/api/openapi.json}"
+export EXTRA_GATE="${EXTRA_GATE:-pnpm --filter @vxrerp/erp-ui build && pnpm --filter @vxrerp/api openapi && git diff --exit-code -- apps/api/openapi.json}"
 
 exec "$(dirname "${BASH_SOURCE[0]}")/overnight-roadmap.sh" "$@"

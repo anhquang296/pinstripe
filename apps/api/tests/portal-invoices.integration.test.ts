@@ -1,9 +1,9 @@
-import type { InvoiceResponse } from '@pinstripe/core/contracts';
+import type { InvoiceResponse } from '@vxrerp/billing/contracts';
 import {
   CollectionMethodEnum,
   CurrencyEnum,
   RecurringIntervalEnum,
-} from '@pinstripe/core/contracts';
+} from '@vxrerp/billing/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, expect, it } from 'vitest';
@@ -53,7 +53,7 @@ async function makeOpenInvoice(customerId: string): Promise<InvoiceResponse> {
 
 async function moveDueDateIntoThePast(invoiceId: string): Promise<void> {
   await fastify.database.master.execute(
-    `update invoices set due_at = now() - interval '3 days' where id = '${invoiceId}'`,
+    `update billing.invoices set due_at = now() - interval '3 days' where id = '${invoiceId}'`,
   );
 }
 

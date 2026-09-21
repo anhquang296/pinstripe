@@ -1,3 +1,0 @@
-DROP INDEX "ledger_accounts_code_currency_customer_id_idx";--> statement-breakpoint
-CREATE UNIQUE INDEX "ledger_accounts_code_currency_idx" ON "ledger_accounts" USING btree ("code","currency") WHERE customer_id is null;--> statement-breakpoint
-CREATE UNIQUE INDEX "ledger_accounts_code_currency_customer_id_idx" ON "ledger_accounts" USING btree ("code","currency","customer_id") WHERE customer_id is not null;

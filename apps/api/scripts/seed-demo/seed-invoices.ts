@@ -1,5 +1,5 @@
-import type { CollectionMethod, InvoiceResponse } from '@pinstripe/core/contracts';
-import { CollectionMethodEnum, PaymentMethodTypeEnum } from '@pinstripe/core/contracts';
+import type { CollectionMethod, InvoiceResponse } from '@vxrerp/billing/contracts';
+import { CollectionMethodEnum, PaymentMethodTypeEnum } from '@vxrerp/billing/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 

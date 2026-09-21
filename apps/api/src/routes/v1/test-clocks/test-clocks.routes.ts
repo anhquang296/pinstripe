@@ -1,13 +1,13 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   advanceTestClockSchema,
   createTestClockSchema,
   findTestClocksSchema,
-  ListResponseSchema,
   testClockParamsSchema,
   testClockSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const testClocksRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

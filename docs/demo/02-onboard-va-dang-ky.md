@@ -1,6 +1,6 @@
 # KB-02 — Nhận một nhà xe mới và ký gói
 
-**Thời lượng** ~5 phút · **Màn hình** admin-ui
+**Thời lượng** ~5 phút · **Màn hình** erp-ui
 
 ## Kể gì
 
@@ -10,18 +10,18 @@
 
 ## Bấm gì
 
-| #   | Ở đâu                 | Làm gì                                                                                                                  |
-| --- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | `/customers`          | Bấm **Tạo customer**                                                                                                    |
-| 2   | drawer                | Email `ketoan@xekhachdemo.vn` · Tên `Công ty TNHH Xe khách Demo`                                                        |
-| 3   | drawer                | Nền tảng đối tác → **Vexere** · Mã tài khoản đối tác → `demo-new`                                                       |
-| 4   | drawer                | Bấm **Tạo customer**, toast xanh hiện, dòng mới xuất hiện đầu bảng                                                      |
-| 5   | `/subscriptions/list` | Bấm **Tạo subscription**                                                                                                |
-| 6   | drawer                | Khách hàng → `Công ty TNHH Xe khách Demo` · Bảng giá → `booking_platform_monthly` · Cách thu tiền → **Cấn trừ tiền vé** |
-| 7   | drawer                | Để trống Trial, bấm **Tạo subscription**                                                                                |
-| 8   | `/subscriptions/list` | Chỉ vào dòng mới: trạng thái `active`, kỳ hiện tại chạy một tháng kể từ hôm nay                                         |
-| 9   | —                     | **Đợi ~5 giây**, bấm F5                                                                                                 |
-| 10  | `/subscriptions/list` | Mở drawer thuê bao vừa tạo → tab **Entitlements** đã có quyền dùng "Nền tảng bán vé Vexere"                             |
+| #   | Ở đâu                         | Làm gì                                                                                                                  |
+| --- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | `/billing/customers`          | Bấm **Tạo customer**                                                                                                    |
+| 2   | drawer                        | Email `ketoan@xekhachdemo.vn` · Tên `Công ty TNHH Xe khách Demo`                                                        |
+| 3   | drawer                        | Nền tảng đối tác → **Vexere** · Mã tài khoản đối tác → `demo-new`                                                       |
+| 4   | drawer                        | Bấm **Tạo customer**, toast xanh hiện, dòng mới xuất hiện đầu bảng                                                      |
+| 5   | `/billing/subscriptions/list` | Bấm **Tạo subscription**                                                                                                |
+| 6   | drawer                        | Khách hàng → `Công ty TNHH Xe khách Demo` · Bảng giá → `booking_platform_monthly` · Cách thu tiền → **Cấn trừ tiền vé** |
+| 7   | drawer                        | Để trống Trial, bấm **Tạo subscription**                                                                                |
+| 8   | `/billing/subscriptions/list` | Chỉ vào dòng mới: trạng thái `active`, kỳ hiện tại chạy một tháng kể từ hôm nay                                         |
+| 9   | —                             | **Đợi ~5 giây**, bấm F5                                                                                                 |
+| 10  | `/billing/subscriptions/list` | Mở drawer thuê bao vừa tạo → tab **Entitlements** đã có quyền dùng "Nền tảng bán vé Vexere"                             |
 
 ## Thấy gì
 
@@ -50,6 +50,6 @@ nợ — [KB-06](./06-portal-nha-xe.md). Đường tự đăng ký sẽ là API 
 bán hàng gọi.
 
 **"`demo-new` là gì?"** Là mã tài khoản của nhà xe đó bên hệ thống Vexere — chỗ giữ doanh thu vé và
-số dư ví. Pinstripe không giữ bản sao hai con số đó, nó hỏi sang khi cần thu tiền.
+số dư ví. VXR ERP không giữ bản sao hai con số đó, nó hỏi sang khi cần thu tiền.
 
 Tiếp theo: [KB-03 — Ghi nhận lượng dùng](./03-usage-va-xem-truoc.md)

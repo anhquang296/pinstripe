@@ -12,7 +12,7 @@ Mọi request `POST` / `DELETE` có thể mang header `Idempotency-Key`. API lư
 SDK tự sinh một key (UUID) cho mỗi request ghi. Muốn tự quản key — ví dụ để retry xuyên qua nhiều lần chạy job — truyền nó qua `options`:
 
 ```ts
-await pinstripe.invoices.pay(
+await vxrErp.invoices.pay(
   invoiceId,
   {},
   { idempotencyKey: `pay-${invoiceId}-${attemptNumber}` },
@@ -22,7 +22,7 @@ await pinstripe.invoices.pay(
 Tắt hẳn việc tự sinh key:
 
 ```ts
-const pinstripe = new PinstripeClient({ shouldGenerateIdempotencyKey: false });
+const vxrErp = new VxrErpClient({ shouldGenerateIdempotencyKey: false });
 ```
 
 Dùng lại một key với payload khác sẽ nhận lỗi `idempotency_error`.
@@ -38,7 +38,7 @@ SDK tự retry khi gặp lỗi mạng hoặc status `408`, `429`, `500`, `502`, 
 Số lần retry chỉnh ở client (`maxRetries`) hoặc từng request:
 
 ```ts
-await pinstripe.customers.get(customerId, { maxRetries: 0 });
+await vxrErp.customers.get(customerId, { maxRetries: 0 });
 ```
 
 Hủy một request đang chạy bằng `AbortSignal`:
@@ -46,5 +46,5 @@ Hủy một request đang chạy bằng `AbortSignal`:
 ```ts
 const controller = new AbortController();
 
-await pinstripe.customers.find({}, { signal: controller.signal });
+await vxrErp.customers.find({}, { signal: controller.signal });
 ```

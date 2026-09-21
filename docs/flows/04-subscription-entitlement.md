@@ -39,16 +39,16 @@ sequenceDiagram
 
 ## Tạo — từng bước
 
-| #   | Nơi xảy ra                                                                                 | Làm gì                                                                                            |
-| --- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| 1   | [subscription.service.ts:43](../../packages/core/src/services/subscription.service.ts)     | `customerService.getCustomer` — lấy `currency` và `testClockId` của khách                         |
-| 2   | [subscription.service.ts:44](../../packages/core/src/services/subscription.service.ts)     | `resolvePrices` — thiếu bất kỳ price nào là `NotFoundError`                                       |
-| 3   | [subscription.service.ts:45](../../packages/core/src/services/subscription.service.ts)     | `resolveNow(customer.testClockId)` — xem mục dưới                                                 |
-| 4   | [assertPricesUsable:467-510](../../packages/core/src/services/subscription.service.ts)     | 5 kiểm tra, xem bảng                                                                              |
-| 5   | [resolveTrialEnd:441-451](../../packages/core/src/services/subscription.service.ts)        | `trialEnd` tường minh, hoặc `trialPeriodDays` cộng vào `now`, hoặc `null`                         |
-| 6   | [subscription.service.ts:51-53](../../packages/core/src/services/subscription.service.ts)  | `anchor` = `billingCycleAnchor` ?? `trialEnd` ?? `now`                                            |
-| 7   | [subscription.service.ts:71-76](../../packages/core/src/services/subscription.service.ts)  | status `trialing` hay `active`; `currentPeriodEnd` = `trialEnd` hoặc `advancePeriod(anchor, ...)` |
-| 8   | [subscription.service.ts:66-103](../../packages/core/src/services/subscription.service.ts) | transaction: subscription + items + `subscription.created`                                        |
+| #   | Nơi xảy ra                                                                                            | Làm gì                                                                                            |
+| --- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1   | [subscription.service.ts:43](../../packages/modules/billing/src/services/subscription.service.ts)     | `customerService.getCustomer` — lấy `currency` và `testClockId` của khách                         |
+| 2   | [subscription.service.ts:44](../../packages/modules/billing/src/services/subscription.service.ts)     | `resolvePrices` — thiếu bất kỳ price nào là `NotFoundError`                                       |
+| 3   | [subscription.service.ts:45](../../packages/modules/billing/src/services/subscription.service.ts)     | `resolveNow(customer.testClockId)` — xem mục dưới                                                 |
+| 4   | [assertPricesUsable:467-510](../../packages/modules/billing/src/services/subscription.service.ts)     | 5 kiểm tra, xem bảng                                                                              |
+| 5   | [resolveTrialEnd:441-451](../../packages/modules/billing/src/services/subscription.service.ts)        | `trialEnd` tường minh, hoặc `trialPeriodDays` cộng vào `now`, hoặc `null`                         |
+| 6   | [subscription.service.ts:51-53](../../packages/modules/billing/src/services/subscription.service.ts)  | `anchor` = `billingCycleAnchor` ?? `trialEnd` ?? `now`                                            |
+| 7   | [subscription.service.ts:71-76](../../packages/modules/billing/src/services/subscription.service.ts)  | status `trialing` hay `active`; `currentPeriodEnd` = `trialEnd` hoặc `advancePeriod(anchor, ...)` |
+| 8   | [subscription.service.ts:66-103](../../packages/modules/billing/src/services/subscription.service.ts) | transaction: subscription + items + `subscription.created`                                        |
 
 ### 5 kiểm tra trên price
 
@@ -64,7 +64,7 @@ Tất cả là `BadRequestError` với `param: 'items'`.
 
 ## Máy trạng thái
 
-Bảng chuyển trạng thái khai báo tại [subscriptions.types.ts:22-44](../../packages/core/src/contracts/subscriptions.types.ts):
+Bảng chuyển trạng thái khai báo tại [subscriptions.types.ts:22-44](../../packages/modules/billing/src/contracts/subscriptions.types.ts):
 
 ```mermaid
 stateDiagram-v2
@@ -87,11 +87,11 @@ stateDiagram-v2
     canceled --> [*]
 ```
 
-`assertTransition` — [subscription.service.ts:512-516](../../packages/core/src/services/subscription.service.ts) — chặn mọi bước không nằm trong bảng bằng `ConflictError`. `canceled` là trạng thái cuối: danh sách đích rỗng, nên không đường nào quay ra.
+`assertTransition` — [subscription.service.ts:512-516](../../packages/modules/billing/src/services/subscription.service.ts) — chặn mọi bước không nằm trong bảng bằng `ConflictError`. `canceled` là trạng thái cuối: danh sách đích rỗng, nên không đường nào quay ra.
 
 ## Gia hạn kỳ
 
-`advanceSubscriptions` / `advanceSubscription` / `rollPeriod` — [subscription.service.ts:276-348](../../packages/core/src/services/subscription.service.ts). Hiện chỉ có **một** nơi gọi: [test-clock.service.ts:96](../../packages/core/src/services/test-clock.service.ts). Tham số đầu là `testClockId`, nên subscription của khách không gắn test clock chưa bao giờ được đẩy kỳ tự động — đây là một khoảng trống đã biết, không phải thiết kế cố ý.
+`advanceSubscriptions` / `advanceSubscription` / `rollPeriod` — [subscription.service.ts:276-348](../../packages/modules/billing/src/services/subscription.service.ts). Hiện chỉ có **một** nơi gọi: [test-clock.service.ts:96](../../packages/modules/billing/src/services/test-clock.service.ts). Tham số đầu là `testClockId`, nên subscription của khách không gắn test clock chưa bao giờ được đẩy kỳ tự động — đây là một khoảng trống đã biết, không phải thiết kế cố ý.
 
 1. Lấy các subscription chưa huỷ, thuộc test clock đó, có `currentPeriodEnd <= now` (tối đa 500).
 2. Lặp `rollPeriod` tới khi `currentPeriodEnd > now`, tối đa `MAX_PERIOD_ROLLS = 120` lần — chặn vòng lặp vô hạn khi nhảy thời gian quá xa.
@@ -100,20 +100,20 @@ stateDiagram-v2
    - đang `trialing` → `active`, event `subscription.trial_ended`.
    - còn lại → `active`, kỳ mới, event `subscription.renewed`.
 
-`advancePeriod` — [billing-period.ts:31-45](../../packages/core/src/utils/billing-period.ts) — cộng theo day/week/month/year; `addMonths` kẹp ngày về ngày cuối tháng đích, nên 31/01 + 1 tháng ra 28/02 chứ không tràn sang 03/03.
+`advancePeriod` — [billing-period.ts:31-45](../../packages/modules/billing/src/utils/billing-period.ts) — cộng theo day/week/month/year; `addMonths` kẹp ngày về ngày cuối tháng đích, nên 31/01 + 1 tháng ra 28/02 chứ không tràn sang 03/03.
 
 Mốc thời gian của kỳ mới là `periodEnd` cũ, **không phải** `now` — nhờ vậy nhảy nhiều kỳ liền vẫn ra đúng lưới thời gian, không bị trôi.
 
 ## Entitlement
 
-| #   | Nơi xảy ra                                                                                                                | Làm gì                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| 1   | [domain-event-dispatch.processor.ts:21-22](../../apps/worker/src/workflows/processors/domain-event-dispatch.processor.ts) | mọi event có `aggregateType = subscription`                                      |
-| 2   | [entitlement.service.ts:37](../../packages/core/src/services/entitlement.service.ts)                                      | tra `ENTITLEMENT_BY_SUBSCRIPTION_STATUS`                                         |
-| 3   | [entitlement.service.ts:40-50](../../packages/core/src/services/entitlement.service.ts)                                   | `revoked` → `revokeEntitlements` cho cả subscription rồi xoá cache               |
-| 4   | [entitlement.service.ts:52-73](../../packages/core/src/services/entitlement.service.ts)                                   | còn lại → `upsertEntitlement` một hàng cho mỗi `productId` của các price đang có |
+| #   | Nơi xảy ra                                                                                                  | Làm gì                                                                           |
+| --- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1   | [billing-domain-event.plugin.ts](../../packages/modules/billing/src/plugins/billing-domain-event.plugin.ts) | mọi event có `aggregateType = subscription`                                      |
+| 2   | [entitlement.service.ts:37](../../packages/modules/billing/src/services/entitlement.service.ts)             | tra `ENTITLEMENT_BY_SUBSCRIPTION_STATUS`                                         |
+| 3   | [entitlement.service.ts:40-50](../../packages/modules/billing/src/services/entitlement.service.ts)          | `revoked` → `revokeEntitlements` cho cả subscription rồi xoá cache               |
+| 4   | [entitlement.service.ts:52-73](../../packages/modules/billing/src/services/entitlement.service.ts)          | còn lại → `upsertEntitlement` một hàng cho mỗi `productId` của các price đang có |
 
-Bảng ánh xạ — [entitlement.service.ts:18-25](../../packages/core/src/services/entitlement.service.ts):
+Bảng ánh xạ — [entitlement.service.ts:18-25](../../packages/modules/billing/src/services/entitlement.service.ts):
 
 | Subscription | Entitlement | Nghĩa                                      |
 | ------------ | ----------- | ------------------------------------------ |
@@ -128,7 +128,7 @@ Hàng `past_due → active` là một quyết định nghiệp vụ, không ph�
 
 ## Cache entitlement
 
-`getEntitlementStatus` — [entitlement.service.ts:76-97](../../packages/core/src/services/entitlement.service.ts) — cache Redis TTL 300 giây, key dựng bởi `redisKeyFactory` với namespace `entitlement`. Không tìm thấy hàng `active` thì trả `revoked` và cache luôn kết quả đó. Mọi lần ghi entitlement đều `invalidateCache` — [entitlement.service.ts:115-129](../../packages/core/src/services/entitlement.service.ts).
+`getEntitlementStatus` — [entitlement.service.ts:76-97](../../packages/modules/billing/src/services/entitlement.service.ts) — cache Redis TTL 300 giây, key dựng bởi `redisKeyFactory` với namespace `entitlement`. Không tìm thấy hàng `active` thì trả `revoked` và cache luôn kết quả đó. Mọi lần ghi entitlement đều `invalidateCache` — [entitlement.service.ts:115-129](../../packages/modules/billing/src/services/entitlement.service.ts).
 
 Lưu ý: `GET /v1/entitlements` **không** đi qua cache, nó đọc thẳng DB. Cache chỉ phục vụ `getEntitlementStatus` (một khách, một product).
 

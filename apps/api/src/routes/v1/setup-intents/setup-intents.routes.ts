@@ -1,14 +1,14 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   cancelSetupIntentSchema,
   confirmSetupIntentSchema,
   createSetupIntentSchema,
   findSetupIntentsSchema,
-  ListResponseSchema,
   setupIntentParamsSchema,
   setupIntentSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const setupIntentsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

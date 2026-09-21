@@ -10,15 +10,15 @@ dùng bao nhiêu, trong cửa sổ nào** — theo cách mà hỏi lại lần t
 (phase 5) mới là chỗ biến con số đó thành tiền.
 
 Code:
-[`meters.schema.ts`](../../packages/core/src/database/schemas/meters.schema.ts),
-[`meter-events.schema.ts`](../../packages/core/src/database/schemas/meter-events.schema.ts),
-[`meter.service.ts`](../../packages/core/src/services/meter.service.ts),
-[`meter-event.service.ts`](../../packages/core/src/services/meter-event.service.ts),
-[`meter-event.repository.ts`](../../packages/core/src/repositories/meter-event.repository.ts),
-[`meters.types.ts`](../../packages/core/src/contracts/meters.types.ts),
-migration [`0007_meters.sql`](../../packages/core/migrations/0007_meters.sql),
-[`0008_meter_events_append_only.sql`](../../packages/core/migrations/0008_meter_events_append_only.sql),
-[`0009_price_meter_link.sql`](../../packages/core/migrations/0009_price_meter_link.sql).
+[`meters.schema.ts`](../../packages/modules/billing/src/database/schemas/meters.schema.ts),
+[`meter-events.schema.ts`](../../packages/modules/billing/src/database/schemas/meter-events.schema.ts),
+[`meter.service.ts`](../../packages/modules/billing/src/services/meter.service.ts),
+[`meter-event.service.ts`](../../packages/modules/billing/src/services/meter-event.service.ts),
+[`meter-event.repository.ts`](../../packages/modules/billing/src/repositories/meter-event.repository.ts),
+[`meters.types.ts`](../../packages/modules/billing/src/contracts/meters.types.ts),
+migration [`0000_baseline.sql`](../../packages/modules/billing/migrations/0000_baseline.sql),
+[`0001_triggers_view_seed.sql`](../../packages/modules/billing/migrations/0001_triggers_view_seed.sql),
+[`0000_baseline.sql`](../../packages/modules/billing/migrations/0000_baseline.sql).
 
 Quyết định và các phương án bị loại nằm ở [ADR 0007](../adr/0007-phase-4-metering.md); đường đi của
 một request ở [flow 05](../flows/05-metering-and-rating.md); cách bấm thử ở
@@ -44,7 +44,7 @@ Tách ra vì hai lý do cụ thể, không phải vì sạch sẽ:
 
 1. **Ingest phải resolve được cách tính ngay tại lúc nhận.** Một event chỉ mang `eventName` và một
    `payload` tự do. `meters` là chỗ nói `eventName` đó cộng theo kiểu gì (`aggregation`) và đọc số ở
-   khoá nào (`value_key`) — [`resolveValue`](../../packages/core/src/services/meter-event.service.ts).
+   khoá nào (`value_key`) — [`resolveValue`](../../packages/modules/billing/src/services/meter-event.service.ts).
    Không có bảng định nghĩa thì mỗi consumer tự đoán, và hai consumer sẽ đoán khác nhau.
 2. **Price trỏ vào meter, không trỏ vào một cách cộng.** Migration `0009` thêm `prices.meter_id` kèm
    ràng buộc:
@@ -58,7 +58,7 @@ Tách ra vì hai lý do cụ thể, không phải vì sạch sẽ:
    vậy `rating.service` không bao giờ phải đoán lượng dùng ở đâu ra.
 
 `meters.aggregation` có bốn giá trị
-([`MeterAggregationEnum`](../../packages/core/src/contracts/meters.types.ts)) và chúng dịch trực tiếp
+([`MeterAggregationEnum`](../../packages/modules/billing/src/contracts/meters.types.ts)) và chúng dịch trực tiếp
 sang SQL — xem [§ Tổng hợp tính lúc đọc](#tổng-hợp-tính-lúc-đọc). `meter_events` **không có** cột
 trạng thái: một event không có vòng đời, nó chỉ có hoặc không có.
 
@@ -119,7 +119,7 @@ sửa hoá đơn cũ**. Nó thành một dòng bù ở kỳ kế tiếp. Đây l
 giới hạn kỹ thuật — sửa hoá đơn đã phát hành là việc của credit note, không phải của metering.
 
 Và cửa sổ dedup là một **ràng buộc**, không phải tham số tinh chỉnh. Event có `timestamp` cũ hơn
-`METER_DEDUP_WINDOW_DAYS` ([`env.schema.ts:57`](../../packages/core/src/config/env.schema.ts), mặc
+`METER_DEDUP_WINDOW_DAYS` ([`env.schema.ts:57`](../../packages/platform/src/config/env.schema.ts), mặc
 định `35`) bị từ chối `400`:
 quá cửa sổ thì hệ thống không còn khẳng định được event đó đã nhận hay chưa, và âm thầm nhận là cách
 tính trùng tiền của khách.
@@ -161,7 +161,7 @@ Hai chi tiết đáng nhớ trong sơ đồ này:
   được nhận, nên không cần một câu đếm thứ hai và không có khoảng hở giữa hai câu lệnh.
 
 Đường batch — `POST /v1/billing/meter_event_batches`, tối đa **1000** event mỗi lần
-([`meters.types.ts:92`](../../packages/core/src/contracts/meters.types.ts)) — là đúng cùng logic gộp
+([`meters.types.ts:92`](../../packages/modules/billing/src/contracts/meters.types.ts)) — là đúng cùng logic gộp
 lại: một `MGET` cho cả lô, **một** `INSERT` cho phần chưa biết, một Redis pipeline cho phần đã ghi
 được. Trả về `{ accepted, duplicates }` để caller tự đối soát.
 
@@ -173,7 +173,7 @@ event cho từng lần dùng, vì một sự kiện mỗi token là một cái �
 
 Không có bảng summary, không có counter, không có job nền. `aggregateMeterEventTotals` dịch
 `meters.aggregation` thành một biểu thức SQL —
-[`meter-event.repository.ts:25-30`](../../packages/core/src/repositories/meter-event.repository.ts):
+[`meter-event.repository.ts:25-30`](../../packages/modules/billing/src/repositories/meter-event.repository.ts):
 
 ```ts
 const VALUE_EXPRESSIONS: Record<MeterAggregation, SQL<number>> = {
@@ -188,7 +188,7 @@ const VALUE_EXPRESSIONS: Record<MeterAggregation, SQL<number>> = {
 `payload[valueKey]`; thiếu khoá đó thì `400` kèm tên khoá trong message, **không âm thầm tính 0**.
 
 Đường từ con số vào tiền đi qua rating
-([`rating.service.ts`](../../packages/core/src/services/rating.service.ts)):
+([`rating.service.ts`](../../packages/modules/billing/src/services/rating.service.ts)):
 
 ```
 getMeterEventSummary(meterId, { customerId, windowStart, windowEnd })
@@ -225,7 +225,7 @@ nên đây là danh sách cái gì hỏng và hỏng ra sao.
 4. **Thiếu `identifier` thì dedup im lặng tắt.** `identifier: payload.identifier ?? generateGid(...)`
    — client không gửi thì mỗi request tự sinh một khoá mới, nên một lần retry mạng thành một lần tính
    tiền thêm. Và chính admin UI là client đó
-   ([`MetersPage.tsx:107-111`](../../apps/admin-ui/src/pages/MetersPage.tsx) gọi `createMeterEvent`
+   ([`MetersPage.tsx:107-111`](../../apps/erp-ui/src/pages/MetersPage.tsx) gọi `createMeterEvent`
    không kèm `identifier`), nên bấm "bắn event" mười lần ra mười hàng.
 5. **Response của bản trùng được dựng từ bộ nhớ, không đọc lại hàng đã lưu.** Cả nhánh Redis-hit lẫn
    nhánh `ON CONFLICT` đều `return MeterEventService.buildMeterEvent(event)` với `event` là candidate
@@ -388,7 +388,7 @@ dòng nào buộc consumer phải sửa.
 - **Usage về trễ thành dòng bù kỳ sau,** không sửa hoá đơn cũ.
 - **Dòng metered không nhân `prorationFactor`** — cửa sổ đo đã hẹp đúng bằng lát hợp đồng.
 - **`meter_events.value` là lượng dùng, không phải tiền.** Nó là `double precision`; tiền luôn là số
-  nguyên đơn vị nhỏ nhất qua [`money.ts`](../../packages/core/src/utils/money.ts).
+  nguyên đơn vị nhỏ nhất qua [`money.ts`](../../packages/modules/billing/src/utils/money.ts).
 - **Một bucket rollup đã đóng chỉ sửa bằng bucket bù,** không `UPDATE` tại chỗ.
 
 ## Đọc tiếp

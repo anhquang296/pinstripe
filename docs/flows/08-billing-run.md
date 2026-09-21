@@ -54,32 +54,32 @@ Tách vậy vì scheduler chỉ tạo **một** job mỗi chu kỳ. Nếu job đ
 
 ## Chia shard
 
-`runBillingShard` — [billing-run.service.ts:22-50](../../packages/core/src/services/billing-run.service.ts) — truyền `shardCount` / `shardIndex` xuống repository, ở đó thành một mệnh đề SQL: `abs(hashtext(subscriptions.id)) % shardCount = shardIndex` — [subscription.repository.ts:57-58](../../packages/core/src/repositories/subscription.repository.ts). Mỗi subscription thuộc đúng một shard, nên các shard không giẫm lên nhau và không cần khoá.
+`runBillingShard` — [billing-run.service.ts:22-50](../../packages/modules/billing/src/services/billing-run.service.ts) — truyền `shardCount` / `shardIndex` xuống repository, ở đó thành một mệnh đề SQL: `abs(hashtext(subscriptions.id)) % shardCount = shardIndex` — [subscription.repository.ts:57-58](../../packages/modules/billing/src/repositories/subscription.repository.ts). Mỗi subscription thuộc đúng một shard, nên các shard không giẫm lên nhau và không cần khoá.
 
 Bộ lọc:
 
-| Điều kiện          | Giá trị                                                                                                        |
-| ------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `status`           | `active` hoặc `past_due` — [billing-run.service.ts:5](../../packages/core/src/services/billing-run.service.ts) |
-| `currentPeriodEnd` | `<= runAt`                                                                                                     |
-| shard              | `(shardIndex, shardCount)`                                                                                     |
-| số lượng           | `BILLING_RUN_BATCH_SIZE`                                                                                       |
+| Điều kiện          | Giá trị                                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `status`           | `active` hoặc `past_due` — [billing-run.service.ts:5](../../packages/modules/billing/src/services/billing-run.service.ts) |
+| `currentPeriodEnd` | `<= runAt`                                                                                                                |
+| shard              | `(shardIndex, shardCount)`                                                                                                |
+| số lượng           | `BILLING_RUN_BATCH_SIZE`                                                                                                  |
 
 `trialing` không nằm trong danh sách: đang dùng thử thì chưa có gì để tính tiền.
 
 ## Việc thật
 
-Với mỗi subscription đến hạn, gọi `invoiceService.ensureDraftInvoice(subscription, {})` — [billing-run.service.ts:37](../../packages/core/src/services/billing-run.service.ts). Hàm này idempotent theo kỳ ([flow 06](./06-invoicing.md)), nên chạy lại một shard không tạo hoá đơn trùng. `isCreated` chỉ dùng để đếm cho log.
+Với mỗi subscription đến hạn, gọi `invoiceService.ensureDraftInvoice(subscription, {})` — [billing-run.service.ts:37](../../packages/modules/billing/src/services/billing-run.service.ts). Hàm này idempotent theo kỳ ([flow 06](./06-invoicing.md)), nên chạy lại một shard không tạo hoá đơn trùng. `isCreated` chỉ dùng để đếm cho log.
 
 Chỉ dừng ở **nháp**. Billing run không finalize, không thu tiền, và không đẩy kỳ subscription — tất cả những việc đó phải gọi tay hoặc qua test clock.
 
 ## Thất bại thì sao
 
-| Hỏng ở đâu             | Hệ quả                                                                                                                                       |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| một shard lỗi          | BullMQ retry (5 lần, backoff mũ — [queue-registry.ts:8-9](../../packages/core/src/queues/queue-registry.ts)); các shard khác không ảnh hưởng |
-| job dispatch lỗi       | bỏ lỡ một chu kỳ; chu kỳ sau quét lại đúng các subscription đó vì điều kiện `currentPeriodEnd <= runAt` vẫn đúng                             |
-| worker chết giữa chừng | như trên — không có trạng thái nào bị kẹt, vì việc duy nhất nó làm là idempotent                                                             |
+| Hỏng ở đâu             | Hệ quả                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| một shard lỗi          | BullMQ retry (5 lần, backoff mũ — [queue-registry.ts:8-9](../../packages/platform/src/queues/queue-registry.ts)); các shard khác không ảnh hưởng |
+| job dispatch lỗi       | bỏ lỡ một chu kỳ; chu kỳ sau quét lại đúng các subscription đó vì điều kiện `currentPeriodEnd <= runAt` vẫn đúng                                 |
+| worker chết giữa chừng | như trên — không có trạng thái nào bị kẹt, vì việc duy nhất nó làm là idempotent                                                                 |
 
 Điều kiện lọc dựa trên trạng thái dữ liệu, không dựa trên "đã chạy chưa", nên bỏ lỡ một chu kỳ không mất việc — chu kỳ sau nhặt lại.
 

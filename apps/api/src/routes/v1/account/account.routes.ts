@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { accountSchema } from '@pinstripe/core/contracts';
-import { ForbiddenError } from '@pinstripe/core/errors';
 import { ApiResponse } from '@utils/api-response';
+import { accountSchema } from '@vxrerp/platform/contracts';
+import { ForbiddenError } from '@vxrerp/platform/errors';
 
 export const accountRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

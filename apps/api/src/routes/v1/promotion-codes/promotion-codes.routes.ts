@@ -1,13 +1,13 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createPromotionCodeSchema,
   findPromotionCodesSchema,
-  ListResponseSchema,
   promotionCodeParamsSchema,
   promotionCodeSchema,
   updatePromotionCodeSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const promotionCodesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

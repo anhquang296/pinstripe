@@ -1,11 +1,11 @@
-import type { UserAuth, UserRole } from '@pinstripe/core/contracts';
-import { ROLE_PERMISSIONS, UserRoleEnum } from '@pinstripe/core/contracts';
-import { ForbiddenError, UnauthorizedError } from '@pinstripe/core/errors';
+import type { UserAuth, UserRole } from '@vxrerp/platform/contracts';
+import { ROLE_PERMISSIONS, UserRoleEnum } from '@vxrerp/platform/contracts';
+import { ForbiddenError, UnauthorizedError } from '@vxrerp/platform/errors';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import _ from 'lodash';
 
 const BEARER_PREFIX = 'Bearer ';
-const SESSION_COOKIE_PREFIX = 'pinstripe.';
+const SESSION_COOKIE_PREFIX = 'vxrerp.';
 
 const USER_ROLES: Record<string, UserRole> = {
   [UserRoleEnum.ADMIN]: UserRoleEnum.ADMIN,

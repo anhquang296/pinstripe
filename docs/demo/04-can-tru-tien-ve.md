@@ -1,8 +1,8 @@
 # KB-04 ⭐ — Thu tiền bằng cách cấn trừ doanh thu vé
 
-**Thời lượng** ~6 phút · **Màn hình** admin-ui · **Nhà xe** Phương Trang FUTA
+**Thời lượng** ~6 phút · **Màn hình** erp-ui · **Nhà xe** Phương Trang FUTA
 
-Đây là kịch bản quan trọng nhất. Nó là điểm khác biệt của Pinstripe so với một hệ thống billing
+Đây là kịch bản quan trọng nhất. Nó là điểm khác biệt của VXR ERP so với một hệ thống billing
 thông thường: kênh thu tiền chính **không phải thẻ**.
 
 ## Kể gì
@@ -13,16 +13,16 @@ thông thường: kênh thu tiền chính **không phải thẻ**.
 
 ## Bấm gì
 
-| #   | Ở đâu                  | Làm gì                                                                                         |
-| --- | ---------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | `/invoices/draft`      | Ba bản nháp của kỳ này. Bấm dòng **Phương Trang FUTA**                                         |
-| 2   | drawer                 | Chỉ vào **Cách thu tiền: Cấn trừ tiền vé** và **Kỳ: 31/08 → 30/09**                            |
-| 3   | drawer                 | Chỉ vào Tổng tiền đang là **0 ₫** — nói câu ở dưới                                             |
-| 4   | drawer                 | Bấm **Phát hành**                                                                              |
-| 5   | drawer                 | Số hoá đơn xuất hiện, trạng thái `open`, tổng **72.682.500 ₫**, còn lại đúng bằng tổng         |
-| 6   | —                      | **Chờ tối đa 60 giây.** Trong lúc chờ, mở tab Mailpit: email hoá đơn đã gửi cho kế toán nhà xe |
-| 7   | `/invoices/paid`       | F5 — hoá đơn vừa rồi đã sang **`paid`**, không ai bấm gì thêm                                  |
-| 8   | `/ledger/transactions` | Dòng trên cùng: bút toán `DEBIT ticket_offset_clearing / CREDIT accounts_receivable`           |
+| #   | Ở đâu                          | Làm gì                                                                                         |
+| --- | ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| 1   | `/billing/invoices/draft`      | Ba bản nháp của kỳ này. Bấm dòng **Phương Trang FUTA**                                         |
+| 2   | drawer                         | Chỉ vào **Cách thu tiền: Cấn trừ tiền vé** và **Kỳ: 31/08 → 30/09**                            |
+| 3   | drawer                         | Chỉ vào Tổng tiền đang là **0 ₫** — nói câu ở dưới                                             |
+| 4   | drawer                         | Bấm **Phát hành**                                                                              |
+| 5   | drawer                         | Số hoá đơn xuất hiện, trạng thái `open`, tổng **72.682.500 ₫**, còn lại đúng bằng tổng         |
+| 6   | —                              | **Chờ tối đa 60 giây.** Trong lúc chờ, mở tab Mailpit: email hoá đơn đã gửi cho kế toán nhà xe |
+| 7   | `/billing/invoices/paid`       | F5 — hoá đơn vừa rồi đã sang **`paid`**, không ai bấm gì thêm                                  |
+| 8   | `/billing/ledger/transactions` | Dòng trên cùng: bút toán `DEBIT ticket_offset_clearing / CREDIT accounts_receivable`           |
 
 ## Nói gì
 
@@ -70,7 +70,7 @@ trả lại kết quả cũ chứ không trừ lần hai.
 
 **"Nhà xe không đủ doanh thu vé thì sao?"** Đó chính là [KB-05](./05-tru-vi-va-con-no.md).
 
-**"Tại sao không trừ thẳng vào ví trong Pinstripe?"** Vì số dư thật nằm ở Vexere. Giữ một bản sao ở
+**"Tại sao không trừ thẳng vào ví trong VXR ERP?"** Vì số dư thật nằm ở Vexere. Giữ một bản sao ở
 đây là tạo ra một con số chắc chắn sẽ lệch.
 
 Tiếp theo: [KB-05 — Trừ ví và còn nợ](./05-tru-vi-va-con-no.md)

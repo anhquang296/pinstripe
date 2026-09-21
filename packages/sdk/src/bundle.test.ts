@@ -14,13 +14,14 @@ function readIsomorphicBundle(): string | null {
   }
 }
 
-it('keeps the isomorphic entry free of node builtins and of a runtime core import', () => {
+it('keeps the isomorphic entry free of node builtins and of a runtime server package import', () => {
   const bundle = readIsomorphicBundle();
 
   if (!bundle) {
-    expect.fail('dist/index.js is missing — run `pnpm --filter @pinstripe/sdk build` first');
+    expect.fail('dist/index.js is missing — run `pnpm --filter @vxrerp/sdk build` first');
   }
 
   expect(bundle).not.toContain('node:');
-  expect(bundle).not.toContain('@pinstripe/core');
+  expect(bundle).not.toContain('@vxrerp/platform');
+  expect(bundle).not.toContain('@vxrerp/billing');
 });

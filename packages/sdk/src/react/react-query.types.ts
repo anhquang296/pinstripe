@@ -1,8 +1,8 @@
-import type { PinstripeError } from '@errors/pinstripe.error';
+import type { VxrErpError } from '@errors/vxr-erp.error';
 
 declare module '@tanstack/react-query' {
   interface Register {
-    defaultError: PinstripeError;
+    defaultError: VxrErpError;
   }
 }
 

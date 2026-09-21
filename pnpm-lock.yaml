@@ -8,12 +8,12 @@ importers:
 
   .:
     devDependencies:
-      '@pinstripe/prettier-config':
-        specifier: workspace:*
-        version: link:packages/prettier-config
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.2
+      '@vxrerp/prettier-config':
+        specifier: workspace:*
+        version: link:packages/prettier-config
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)
@@ -36,14 +36,205 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
 
-  apps/admin-ui:
+  apps/api:
+    dependencies:
+      '@fastify/swagger':
+        specifier: ^9.8.1
+        version: 9.8.1
+      '@fastify/swagger-ui':
+        specifier: ^6.1.1
+        version: 6.1.1
+      '@fastify/type-provider-typebox':
+        specifier: ^5.1.0
+        version: 5.2.0(@sinclair/typebox@0.34.52)
+      '@sinclair/typebox':
+        specifier: ^0.34.13
+        version: 0.34.52
+      '@vxrerp/billing':
+        specifier: workspace:*
+        version: link:../../packages/modules/billing
+      '@vxrerp/crm':
+        specifier: workspace:*
+        version: link:../../packages/modules/crm
+      '@vxrerp/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
+      better-auth:
+        specifier: ^1.7.5
+        version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
+      fastify:
+        specifier: ^5.2.0
+        version: 5.12.4
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.1.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.18.1
+    devDependencies:
+      '@types/lodash':
+        specifier: ^4.17.13
+        version: 4.17.25
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.2
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.5(jiti@2.7.0)
+      ioredis:
+        specifier: ^5.11.1
+        version: 5.11.1
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
+
+  apps/billing-portal-ui:
+    dependencies:
+      '@heroui/react':
+        specifier: ^3.2.6
+        version: 3.2.6(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-aria/utils@3.34.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-aria@3.52.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
+      '@heroui/styles':
+        specifier: ^3.2.6
+        version: 3.2.6(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
+      '@hookform/resolvers':
+        specifier: ^5.9.1
+        version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.88.0(react@19.3.0))(zod@4.6.5)
+      '@lukemorales/query-key-factory':
+        specifier: ^1.3.4
+        version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
+      '@tanstack/react-query':
+        specifier: ^5.62.7
+        version: 5.102.8(react@19.3.0)
+      '@tanstack/react-table':
+        specifier: ^9.2.4
+        version: 9.2.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@vxrerp/billing':
+        specifier: workspace:*
+        version: link:../../packages/modules/billing
+      '@vxrerp/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
+      '@vxrerp/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      lodash-es:
+        specifier: ^4.18.1
+        version: 4.18.1
+      next:
+        specifier: ^15.1.3
+        version: 15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      qrcode:
+        specifier: ^1.5.4
+        version: 1.5.4
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.0(react@19.3.0)
+      react-hook-form:
+        specifier: ^7.88.0
+        version: 7.88.0(react@19.3.0)
+      sonner:
+        specifier: ^2.0.8
+        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      tailwind-merge:
+        specifier: ^3.7.0
+        version: 3.7.0
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4.0.0
+        version: 4.3.3
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.2
+      '@types/qrcode':
+        specifier: ^1.5.6
+        version: 1.5.6
+      '@types/react':
+        specifier: ^19.0.2
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.2
+        version: 19.3.0(@types/react@19.3.0)
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.5(jiti@2.7.0)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.3.3
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: ^5.1.4
+        version: 5.1.4(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
+
+  apps/docs:
+    dependencies:
+      '@astrojs/starlight':
+        specifier: ^0.42.2
+        version: 0.42.2(astro@7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))(typescript@5.9.3)
+      '@vxrerp/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      astro:
+        specifier: ^7.3.3
+        version: 7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
+      sharp:
+        specifier: ^0.35.4
+        version: 0.35.4(@types/node@24.13.5)
+
+  apps/erp-ui:
     dependencies:
       '@better-auth-ui/heroui':
         specifier: ^1.7.26
-        version: 1.7.26(55774ad4e2f641514ef9d538e73f15b4)
+        version: 1.7.26(15ef7f1dcc54d9078367cfd354bb60d9)
       '@better-auth-ui/react':
         specifier: ^1.7.26
-        version: 1.7.26(51db54ed8e5f4d249160b66ed5a0fc86)
+        version: 1.7.26(3f73c79f783358a94a1d05da9efd5e5e)
       '@gravity-ui/icons':
         specifier: ^2.22.0
         version: 2.22.0(react@19.3.0)
@@ -62,12 +253,6 @@ importers:
       '@lukemorales/query-key-factory':
         specifier: ^1.3.4
         version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@pinstripe/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
       '@tanstack/react-form':
         specifier: ^1.33.5
         version: 1.33.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -83,6 +268,15 @@ importers:
       '@tanstack/react-table':
         specifier: ^9.2.4
         version: 9.2.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@vxrerp/billing':
+        specifier: workspace:*
+        version: link:../../packages/modules/billing
+      '@vxrerp/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
+      '@vxrerp/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       better-auth:
         specifier: 1.7.5
         version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
@@ -123,12 +317,6 @@ importers:
         specifier: ^5.0.8
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
     devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
       '@tailwindcss/vite':
         specifier: ^4.0.0
         version: 4.3.3(vite@6.4.3(@types/node@24.13.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1))
@@ -150,6 +338,12 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.7.0(vite@6.4.3(@types/node@24.13.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.13)(yaml@2.9.1))
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)
@@ -172,196 +366,20 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
 
-  apps/api:
-    dependencies:
-      '@fastify/swagger':
-        specifier: ^9.8.1
-        version: 9.8.1
-      '@fastify/swagger-ui':
-        specifier: ^6.1.1
-        version: 6.1.1
-      '@fastify/type-provider-typebox':
-        specifier: ^5.1.0
-        version: 5.2.0(@sinclair/typebox@0.34.52)
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@sinclair/typebox':
-        specifier: ^0.34.13
-        version: 0.34.52
-      better-auth:
-        specifier: ^1.7.5
-        version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
-      fastify:
-        specifier: ^5.2.0
-        version: 5.12.4
-      fastify-plugin:
-        specifier: ^5.0.1
-        version: 5.1.0
-      lodash:
-        specifier: ^4.17.21
-        version: 4.18.1
-    devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
-      '@types/lodash':
-        specifier: ^4.17.13
-        version: 4.17.25
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.20.2
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
-      eslint:
-        specifier: ^9.39.4
-        version: 9.39.5(jiti@2.7.0)
-      ioredis:
-        specifier: ^5.11.1
-        version: 5.11.1
-      postgres:
-        specifier: ^3.4.9
-        version: 3.4.9
-      tsup:
-        specifier: ^8.3.5
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
-      tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vite-tsconfig-paths:
-        specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
-      vitest:
-        specifier: ^2.1.8
-        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
-
-  apps/docs:
-    dependencies:
-      '@astrojs/starlight':
-        specifier: ^0.42.2
-        version: 0.42.2(astro@7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))(typescript@5.9.3)
-      '@pinstripe/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
-      astro:
-        specifier: ^7.3.3
-        version: 7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(ioredis@5.11.1)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
-      sharp:
-        specifier: ^0.35.4
-        version: 0.35.4(@types/node@24.13.5)
-
-  apps/portal-ui:
-    dependencies:
-      '@heroui/react':
-        specifier: ^3.2.6
-        version: 3.2.6(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-aria/utils@3.34.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-aria@3.52.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
-      '@heroui/styles':
-        specifier: ^3.2.6
-        version: 3.2.6(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
-      '@hookform/resolvers':
-        specifier: ^5.9.1
-        version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.88.0(react@19.3.0))(zod@4.6.5)
-      '@lukemorales/query-key-factory':
-        specifier: ^1.3.4
-        version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@pinstripe/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
-      '@tanstack/react-query':
-        specifier: ^5.62.7
-        version: 5.102.8(react@19.3.0)
-      '@tanstack/react-table':
-        specifier: ^9.2.4
-        version: 9.2.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      lodash-es:
-        specifier: ^4.18.1
-        version: 4.18.1
-      next:
-        specifier: ^15.1.3
-        version: 15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      qrcode:
-        specifier: ^1.5.4
-        version: 1.5.4
-      react:
-        specifier: ^19.0.0
-        version: 19.3.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.3.0(react@19.3.0)
-      react-hook-form:
-        specifier: ^7.88.0
-        version: 7.88.0(react@19.3.0)
-      sonner:
-        specifier: ^2.0.8
-        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      tailwind-merge:
-        specifier: ^3.7.0
-        version: 3.7.0
-      zod:
-        specifier: ^4.6.5
-        version: 4.6.5
-    devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
-      '@tailwindcss/postcss':
-        specifier: ^4.0.0
-        version: 4.3.3
-      '@types/lodash-es':
-        specifier: ^4.17.12
-        version: 4.17.12
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.20.2
-      '@types/qrcode':
-        specifier: ^1.5.6
-        version: 1.5.6
-      '@types/react':
-        specifier: ^19.0.2
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.0.2
-        version: 19.3.0(@types/react@19.3.0)
-      eslint:
-        specifier: ^9.39.4
-        version: 9.39.5(jiti@2.7.0)
-      tailwindcss:
-        specifier: ^4.0.0
-        version: 4.3.3
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vite-tsconfig-paths:
-        specifier: ^5.1.4
-        version: 5.1.4(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
-      vitest:
-        specifier: ^2.1.9
-        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
-
   apps/worker:
     dependencies:
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@sinclair/typebox':
         specifier: ^0.34.13
         version: 0.34.52
+      '@vxrerp/billing':
+        specifier: workspace:*
+        version: link:../../packages/modules/billing
+      '@vxrerp/crm':
+        specifier: workspace:*
+        version: link:../../packages/modules/crm
+      '@vxrerp/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       bullmq:
         specifier: ^5.34.6
         version: 5.81.5
@@ -375,18 +393,18 @@ importers:
         specifier: ^4.17.21
         version: 4.18.1
     devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
       '@types/lodash':
         specifier: ^4.17.13
         version: 4.17.25
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.2
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       concurrently:
         specifier: ^9.1.2
         version: 9.2.4
@@ -402,88 +420,6 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
-      vitest:
-        specifier: ^2.1.8
-        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
-
-  packages/core:
-    dependencies:
-      '@expo-google-fonts/noto-sans':
-        specifier: ^0.4.2
-        version: 0.4.2
-      '@sinclair/typebox':
-        specifier: ^0.34.13
-        version: 0.34.52
-      '@types/nodemailer':
-        specifier: ^8.0.2
-        version: 8.0.2
-      better-auth:
-        specifier: ^1.7.5
-        version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
-      bullmq:
-        specifier: ^5.34.6
-        version: 5.81.5
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
-      fastify:
-        specifier: ^5.2.0
-        version: 5.12.4
-      fastify-plugin:
-        specifier: ^5.0.1
-        version: 5.1.0
-      ioredis:
-        specifier: ^5.4.2
-        version: 5.11.1
-      lodash:
-        specifier: ^4.17.21
-        version: 4.18.1
-      nodemailer:
-        specifier: ^10.0.10
-        version: 10.0.10
-      pdfkit:
-        specifier: ^0.20.2
-        version: 0.20.2
-      postgres:
-        specifier: ^3.4.5
-        version: 3.4.9
-      typeid-js:
-        specifier: ^1.2.0
-        version: 1.2.0
-    devDependencies:
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-      '@types/lodash':
-        specifier: ^4.17.13
-        version: 4.17.25
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.20.2
-      '@types/pdfkit':
-        specifier: ^0.17.6
-        version: 0.17.6
-      drizzle-kit:
-        specifier: ^0.31.10
-        version: 0.31.10
-      eslint:
-        specifier: ^9.39.4
-        version: 9.39.5(jiti@2.7.0)
-      tsup:
-        specifier: ^8.3.5
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
-      tsx:
-        specifier: ^4.19.2
-        version: 4.23.13
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vite-tsconfig-paths:
-        specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
@@ -530,6 +466,201 @@ importers:
         specifier: ^8.61.0
         version: 8.70.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
 
+  packages/modules/billing:
+    dependencies:
+      '@expo-google-fonts/noto-sans':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@sinclair/typebox':
+        specifier: ^0.34.13
+        version: 0.34.52
+      '@types/nodemailer':
+        specifier: ^8.0.2
+        version: 8.0.2
+      '@vxrerp/platform':
+        specifier: workspace:*
+        version: link:../../platform
+      better-auth:
+        specifier: ^1.7.5
+        version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
+      bullmq:
+        specifier: ^5.34.6
+        version: 5.81.5
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
+      fastify:
+        specifier: ^5.2.0
+        version: 5.12.4
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.1.0
+      ioredis:
+        specifier: ^5.4.2
+        version: 5.11.1
+      lodash:
+        specifier: ^4.17.21
+        version: 4.18.1
+      nodemailer:
+        specifier: ^10.0.10
+        version: 10.0.10
+      pdfkit:
+        specifier: ^0.20.2
+        version: 0.20.2
+      postgres:
+        specifier: ^3.4.5
+        version: 3.4.9
+      typeid-js:
+        specifier: ^1.2.0
+        version: 1.2.0
+    devDependencies:
+      '@types/lodash':
+        specifier: ^4.17.13
+        version: 4.17.25
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.2
+      '@types/pdfkit':
+        specifier: ^0.17.6
+        version: 0.17.6
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../tsconfig
+      drizzle-kit:
+        specifier: ^0.31.10
+        version: 0.31.10
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.5(jiti@2.7.0)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
+
+  packages/modules/crm:
+    dependencies:
+      '@vxrerp/platform':
+        specifier: workspace:*
+        version: link:../../platform
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
+      fastify:
+        specifier: ^5.2.0
+        version: 5.12.4
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.2
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../../eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../../tsconfig
+      drizzle-kit:
+        specifier: ^0.31.10
+        version: 0.31.10
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.5(jiti@2.7.0)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/platform:
+    dependencies:
+      '@sinclair/typebox':
+        specifier: ^0.34.13
+        version: 0.34.52
+      '@types/nodemailer':
+        specifier: ^8.0.2
+        version: 8.0.2
+      better-auth:
+        specifier: ^1.7.5
+        version: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
+      bullmq:
+        specifier: ^5.34.6
+        version: 5.81.5
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
+      fastify:
+        specifier: ^5.2.0
+        version: 5.12.4
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.1.0
+      ioredis:
+        specifier: ^5.4.2
+        version: 5.11.1
+      lodash:
+        specifier: ^4.17.21
+        version: 4.18.1
+      nodemailer:
+        specifier: ^10.0.10
+        version: 10.0.10
+      postgres:
+        specifier: ^3.4.5
+        version: 3.4.9
+      typeid-js:
+        specifier: ^1.2.0
+        version: 1.2.0
+    devDependencies:
+      '@types/lodash':
+        specifier: ^4.17.13
+        version: 4.17.25
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.2
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      drizzle-kit:
+        specifier: ^0.31.10
+        version: 0.31.10
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.5(jiti@2.7.0)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.1)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite-tsconfig-paths:
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)
+
   packages/prettier-config:
     dependencies:
       prettier:
@@ -541,15 +672,6 @@ importers:
       '@lukemorales/query-key-factory':
         specifier: ^1.3.4
         version: 1.3.4(@tanstack/query-core@5.102.8)(@tanstack/react-query@5.102.8(react@19.3.0))
-      '@pinstripe/core':
-        specifier: workspace:*
-        version: link:../core
-      '@pinstripe/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
-      '@pinstripe/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
       '@tanstack/react-query':
         specifier: ^5.62.7
         version: 5.102.8(react@19.3.0)
@@ -559,6 +681,18 @@ importers:
       '@types/react':
         specifier: ^19.0.2
         version: 19.3.0
+      '@vxrerp/billing':
+        specifier: workspace:*
+        version: link:../modules/billing
+      '@vxrerp/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@vxrerp/platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@vxrerp/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)
@@ -7029,22 +7163,22 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@better-auth-ui/core@1.7.26(ac5acd5e4baa81b1d0b58dc7af41d154)':
+  '@better-auth-ui/core@1.7.26(7e4aa0985c674d40e0842c1b8d5565d0)':
     dependencies:
-      '@better-auth/agent-auth': 0.6.2(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))
+      '@better-auth/agent-auth': 0.6.2(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))
       '@mikkelscheike/email-provider-links': 6.0.0
       '@tanstack/query-core': 5.102.8
       better-auth: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
       libphonenumber-js: 1.13.13
       uqr: 0.1.3
     optionalDependencies:
-      '@better-auth/api-key': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))
-      '@better-auth/passkey': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))(nanostores@1.5.3)
+      '@better-auth/api-key': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.5.0)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))
+      '@better-auth/passkey': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))(nanostores@1.5.3)
 
-  '@better-auth-ui/heroui@1.7.26(55774ad4e2f641514ef9d538e73f15b4)':
+  '@better-auth-ui/heroui@1.7.26(15ef7f1dcc54d9078367cfd354bb60d9)':
     dependencies:
-      '@better-auth-ui/core': 1.7.26(ac5acd5e4baa81b1d0b58dc7af41d154)
-      '@better-auth-ui/react': 1.7.26(51db54ed8e5f4d249160b66ed5a0fc86)
+      '@better-auth-ui/core': 1.7.26(7e4aa0985c674d40e0842c1b8d5565d0)
+      '@better-auth-ui/react': 1.7.26(3f73c79f783358a94a1d05da9efd5e5e)
       '@gravity-ui/icons': 2.22.0(react@19.3.0)
       '@heroui/react': 3.2.6(@internationalized/date@3.12.4)(@react-aria/ssr@3.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-aria/utils@3.34.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-aria-components@1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-aria@3.52.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
       '@heroui/styles': 3.2.6(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
@@ -7059,11 +7193,11 @@ snapshots:
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
 
-  '@better-auth-ui/react@1.7.26(51db54ed8e5f4d249160b66ed5a0fc86)':
+  '@better-auth-ui/react@1.7.26(3f73c79f783358a94a1d05da9efd5e5e)':
     dependencies:
-      '@better-auth-ui/core': 1.7.26(ac5acd5e4baa81b1d0b58dc7af41d154)
-      '@better-auth/api-key': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))
-      '@better-auth/passkey': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))(nanostores@1.5.3)
+      '@better-auth-ui/core': 1.7.26(7e4aa0985c674d40e0842c1b8d5565d0)
+      '@better-auth/api-key': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.5.0)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))
+      '@better-auth/passkey': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))(nanostores@1.5.3)
       '@tanstack/query-core': 5.102.8
       '@tanstack/react-query': 5.102.8(react@19.3.0)
       better-auth: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
@@ -7074,19 +7208,19 @@ snapshots:
       tailwindcss: 4.3.3
       zod: 4.6.5
 
-  '@better-auth/agent-auth@0.6.2(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))':
+  '@better-auth/agent-auth@0.6.2(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))':
     dependencies:
-      '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
       '@simplewebauthn/server': 13.3.3
       better-auth: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
       better-call: 1.3.2(zod@4.6.5)
       jose: 6.2.12
       zod: 4.6.5
 
-  '@better-auth/api-key@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))':
+  '@better-auth/api-key@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.5.0)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))':
     dependencies:
-      '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
-      '@better-auth/utils': 0.4.2
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/utils': 0.5.0
       better-auth: 1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0))
       better-call: 1.4.0(zod@4.6.5)
       zod: 4.6.5
@@ -7103,9 +7237,28 @@ snapshots:
       nanostores: 1.5.3
       zod: 4.6.5
 
+  '@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)':
+    dependencies:
+      '@better-auth/utils': 0.5.0
+      '@better-fetch/fetch': 1.3.2
+      '@opentelemetry/semantic-conventions': 1.43.0
+      '@standard-schema/spec': 1.1.0
+      better-call: 1.4.0(zod@4.6.5)
+      jose: 6.2.12
+      kysely: 0.29.6
+      nanostores: 1.5.3
+      zod: 4.6.5
+
   '@better-auth/drizzle-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))':
     dependencies:
       '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/utils': 0.4.2
+    optionalDependencies:
+      drizzle-orm: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
+
+  '@better-auth/drizzle-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))':
+    dependencies:
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
       '@better-auth/utils': 0.4.2
     optionalDependencies:
       drizzle-orm: 0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9)
@@ -7117,9 +7270,21 @@ snapshots:
     optionalDependencies:
       kysely: 0.29.6
 
+  '@better-auth/kysely-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(kysely@0.29.6)':
+    dependencies:
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/utils': 0.4.2
+    optionalDependencies:
+      kysely: 0.29.6
+
   '@better-auth/memory-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)':
     dependencies:
       '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/utils': 0.4.2
+
+  '@better-auth/memory-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)':
+    dependencies:
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
       '@better-auth/utils': 0.4.2
 
   '@better-auth/mongo-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)':
@@ -7127,10 +7292,15 @@ snapshots:
       '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
       '@better-auth/utils': 0.4.2
 
-  '@better-auth/passkey@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))(nanostores@1.5.3)':
+  '@better-auth/mongo-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)':
     dependencies:
-      '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
       '@better-auth/utils': 0.4.2
+
+  '@better-auth/passkey@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)))(better-call@1.4.0(zod@4.6.5))(nanostores@1.5.3)':
+    dependencies:
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/utils': 0.5.0
       '@better-fetch/fetch': 1.3.2
       '@simplewebauthn/browser': 13.3.0
       '@simplewebauthn/server': 13.3.3
@@ -7144,9 +7314,20 @@ snapshots:
       '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
       '@better-auth/utils': 0.4.2
 
+  '@better-auth/prisma-adapter@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)':
+    dependencies:
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/utils': 0.4.2
+
   '@better-auth/telemetry@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)':
     dependencies:
       '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
+      '@better-auth/utils': 0.4.2
+      '@better-fetch/fetch': 1.3.2
+
+  '@better-auth/telemetry@1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)':
+    dependencies:
+      '@better-auth/core': 1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
       '@better-auth/utils': 0.4.2
       '@better-fetch/fetch': 1.3.2
 
@@ -9236,12 +9417,12 @@ snapshots:
   better-auth@1.7.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))(next@15.5.25(@babel/core@7.29.7)(@types/node@24.13.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@2.1.9(@types/node@24.13.5)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.33.0)):
     dependencies:
       '@better-auth/core': 1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3)
-      '@better-auth/drizzle-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))
-      '@better-auth/kysely-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(kysely@0.29.6)
-      '@better-auth/memory-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)
-      '@better-auth/mongo-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)
-      '@better-auth/prisma-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)
-      '@better-auth/telemetry': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)
+      '@better-auth/drizzle-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(gel@2.2.1)(kysely@0.29.6)(postgres@3.4.9))
+      '@better-auth/kysely-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(kysely@0.29.6)
+      '@better-auth/memory-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)
+      '@better-auth/mongo-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)
+      '@better-auth/prisma-adapter': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)
+      '@better-auth/telemetry': 1.7.5(@better-auth/core@1.7.5(@better-auth/utils@0.5.0)(@better-fetch/fetch@1.3.2)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)
       '@better-auth/utils': 0.4.2
       '@better-fetch/fetch': 1.3.2
       '@noble/ciphers': 2.4.0

@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createUserSchema,
   findUsersSchema,
@@ -6,8 +7,7 @@ import {
   updateUserSchema,
   userParamsSchema,
   userSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/platform/contracts';
 
 export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

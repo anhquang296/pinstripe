@@ -1,6 +1,6 @@
 # KB-07 — Sổ cái kế toán và đối soát
 
-**Thời lượng** ~6 phút · **Màn hình** admin-ui · **Khán giả** kế toán, tài chính
+**Thời lượng** ~6 phút · **Màn hình** erp-ui · **Khán giả** kế toán, tài chính
 
 ## Kể gì
 
@@ -10,18 +10,18 @@
 
 ## Bấm gì
 
-| #   | Ở đâu                  | Làm gì                                                                           |
-| --- | ---------------------- | -------------------------------------------------------------------------------- |
-| 1   | `/ledger/accounts`     | Chỉ vào **Tổng nợ = Tổng có = 899.800.000 ₫**                                    |
-| 2   | `/ledger/accounts`     | Chỉ vào các dòng `accounts_receivable` — mỗi nhà xe một tài khoản phải thu riêng |
-| 3   | `/ledger/accounts`     | Dòng của **Hoàng Long**: số dư **22.275.000 ₫**                                  |
-| 4   | —                      | Nói câu đối chiếu ở dưới                                                         |
-| 5   | `/ledger/transactions` | Mở tab Transactions, bấm bút toán trên cùng                                      |
-| 6   | drawer                 | Hai vế nợ/có bằng nhau, kèm `external_id` trỏ về hoá đơn hoặc lần thu sinh ra nó |
-| 7   | drawer                 | Bấm **Đảo bút toán** (nếu muốn diễn phần sửa sai)                                |
-| 8   | `/ledger/transactions` | Bút toán đảo xuất hiện, bút toán gốc **vẫn còn**, hai cái liên kết hai chiều     |
-| 9   | `/reports`             | Kéo xuống mục **Đối soát 30 ngày**                                               |
-| 10  | `/reports`             | Chỉ vào: cổng thanh toán, sổ cái, **chênh lệch 0 ₫**, **0 mục lệch**             |
+| #   | Ở đâu                          | Làm gì                                                                           |
+| --- | ------------------------------ | -------------------------------------------------------------------------------- |
+| 1   | `/billing/ledger/accounts`     | Chỉ vào **Tổng nợ = Tổng có = 899.800.000 ₫**                                    |
+| 2   | `/billing/ledger/accounts`     | Chỉ vào các dòng `accounts_receivable` — mỗi nhà xe một tài khoản phải thu riêng |
+| 3   | `/billing/ledger/accounts`     | Dòng của **Hoàng Long**: số dư **22.275.000 ₫**                                  |
+| 4   | —                              | Nói câu đối chiếu ở dưới                                                         |
+| 5   | `/billing/ledger/transactions` | Mở tab Transactions, bấm bút toán trên cùng                                      |
+| 6   | drawer                         | Hai vế nợ/có bằng nhau, kèm `external_id` trỏ về hoá đơn hoặc lần thu sinh ra nó |
+| 7   | drawer                         | Bấm **Đảo bút toán** (nếu muốn diễn phần sửa sai)                                |
+| 8   | `/billing/ledger/transactions` | Bút toán đảo xuất hiện, bút toán gốc **vẫn còn**, hai cái liên kết hai chiều     |
+| 9   | `/billing/reports`             | Kéo xuống mục **Đối soát 30 ngày**                                               |
+| 10  | `/billing/reports`             | Chỉ vào: cổng thanh toán, sổ cái, **chênh lệch 0 ₫**, **0 mục lệch**             |
 
 ## Nói gì
 

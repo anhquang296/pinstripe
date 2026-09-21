@@ -1,5 +1,5 @@
-import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
+import { useVxrErpQueries } from '@react/vxr-erp.provider';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { FindCheckoutSessionsQuery } from '@type/contracts.types';
 
@@ -7,7 +7,7 @@ export function useCheckoutSessionsQuery(
   query?: FindCheckoutSessionsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.checkout.sessions(query),
@@ -20,7 +20,7 @@ export function useCheckoutSessionQuery(
   checkoutSessionId: string,
   { enabled = true }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.checkout.session(checkoutSessionId),

@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateTaxIdPayload,
@@ -14,9 +14,9 @@ import type {
 export function useCreateTaxRateMutation({ successMessage }: MutationProps<TaxRateResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateTaxRatePayload) => {
@@ -33,9 +33,9 @@ export function useCreateTaxRateMutation({ successMessage }: MutationProps<TaxRa
 export function useUpdateTaxRateMutation({ successMessage }: MutationProps<TaxRateResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateTaxRatePayload }) => {
@@ -53,9 +53,9 @@ export function useUpdateTaxRateMutation({ successMessage }: MutationProps<TaxRa
 export function useCreateTaxIdMutation({ successMessage }: MutationProps<TaxIdResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateTaxIdPayload) => {
@@ -74,9 +74,9 @@ export function useDeleteTaxIdMutation({
 }: MutationProps<DeletedTaxIdResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (taxIdId: string) => {

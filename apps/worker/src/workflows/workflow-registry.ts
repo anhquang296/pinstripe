@@ -1,6 +1,6 @@
-import type { WorkflowName } from '@pinstripe/core/queues';
-import { WorkflowNameEnum } from '@pinstripe/core/queues';
 import { UnknownWorkflowError } from '@type/errors';
+import type { WorkflowName } from '@vxrerp/platform/queues';
+import { WorkflowNameEnum } from '@vxrerp/platform/queues';
 import { BillingWorkflow } from '@workflows/billing.workflow';
 import { CheckoutWorkflow } from '@workflows/checkout.workflow';
 import { DomainEventWorkflow } from '@workflows/domain-event.workflow';

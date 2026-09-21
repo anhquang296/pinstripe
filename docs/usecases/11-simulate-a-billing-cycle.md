@@ -20,16 +20,16 @@ test clock trong codebase này: nó chỉ điều khiển được một service
 
 Không chỗ nào trong code nghiệp vụ gọi `new Date()` để lấy giờ hiện tại. Giờ luôn đi qua
 `fastify.clock`, decorate một lần ở
-[config.plugin.ts:34](../../packages/core/src/plugins/config.plugin.ts).
+[config.plugin.ts:34](../../packages/platform/src/plugins/config.plugin.ts).
 
 `SubscriptionService` đi thêm một bước: `resolveNow` —
-[subscription.service.ts:398-410](../../packages/core/src/services/subscription.service.ts) — không
+[subscription.service.ts:398-410](../../packages/modules/billing/src/services/subscription.service.ts) — không
 có `testClockId` thì `clock.now()`, có thì đọc `frozenTime` của đồng hồ.
 
 ## Hai chỗ hổng phải biết trước
 
 **1. Form tạo test clock luôn đóng băng ở "bây giờ".**
-[test-clock-form.ts:17-22](../../apps/admin-ui/src/forms/test-clock-form.ts) chỉ có field `name`;
+[test-clock-form.ts:17-22](../../apps/erp-ui/src/forms/test-clock-form.ts) chỉ có field `name`;
 `frozenTime` bị hard-code `new Date().toISOString()`. Muốn đồng hồ bắt đầu ở một mốc quá khứ hoặc
 tương lai thì phải gọi API.
 
@@ -38,7 +38,7 @@ tương lai thì phải gọi API.
 ([UC-01](./01-onboard-customer-and-catalog.md)). Nên **bước bắt buộc phải làm bằng curl**, và không
 có cách nào khác.
 
-Hệ quả: trang `/test-clocks` một mình không đủ để diễn kịch bản. Luôn cần curl ở giữa.
+Hệ quả: trang `/billing/test-clocks` một mình không đủ để diễn kịch bản. Luôn cần curl ở giữa.
 
 ## Sơ đồ
 
@@ -74,21 +74,21 @@ sequenceDiagram
 
 ## Kịch bản chính
 
-| #   | Ở đâu                                                                                            | Chuyện gì xảy ra                                                                      | Quan sát được gì                                                                                               |
-| --- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 1   | UI [TestClockItem.tsx:38-43](../../apps/admin-ui/src/components/TestClockItem.tsx)               | mỗi dòng có một `<input type="datetime-local">` riêng                                 | mốc lưu trong `Record<id, string>` — [TestClocksPage.tsx:21](../../apps/admin-ui/src/pages/TestClocksPage.tsx) |
-| 2   | UI [TestClocksPage.tsx:44-58](../../apps/admin-ui/src/pages/TestClocksPage.tsx)                  | `handleOnAdvance` — chưa chọn mốc thì `return` im lặng                                | bấm "Tua" khi input trống: không gì xảy ra                                                                     |
-| 3   | Service [test-clock.service.ts:76-78](../../packages/core/src/services/test-clock.service.ts)    | đang `advancing` → 409                                                                | khoá chống chạy chồng                                                                                          |
-| 4   | Service [test-clock.service.ts:82-87](../../packages/core/src/services/test-clock.service.ts)    | mốc mới phải **sau** mốc hiện tại, không thì 400                                      | đồng hồ chỉ đi tới, không lùi                                                                                  |
-| 5   | Service [test-clock.service.ts:89-96](../../packages/core/src/services/test-clock.service.ts)    | `status = advancing`, ghi `frozenTime`, rồi `advanceSubscriptions`                    | —                                                                                                              |
-| 6   | Service [advanceSubscriptions:276-291](../../packages/core/src/services/subscription.service.ts) | lấy subscription **của đồng hồ này**, chưa huỷ, `currentPeriodEnd <= now`, tối đa 500 | —                                                                                                              |
-| 7   | Service [rollPeriod:313-348](../../packages/core/src/services/subscription.service.ts)           | lặp tới khi `currentPeriodEnd > now`, tối đa `MAX_PERIOD_ROLLS = 120`                 | nhảy xa mấy cũng không treo                                                                                    |
-| 8   | Service [test-clock.service.ts:105-129](../../packages/core/src/services/test-clock.service.ts)  | transaction cuối: `status = ready` + `test_clock.advanced`                            | —                                                                                                              |
-| 9   | Hook [mutations.ts:36-38](../../apps/admin-ui/src/reactquery/test-clocks/mutations.ts)           | invalidate testClocks + subscriptions + entitlements                                  | trang này và `/subscriptions` đều mới theo                                                                     |
+| #   | Ở đâu                                                                                                       | Chuyện gì xảy ra                                                                      | Quan sát được gì                                                                                             |
+| --- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1   | UI [TestClockItem.tsx:38-43](../../apps/erp-ui/src/components/TestClockItem.tsx)                            | mỗi dòng có một `<input type="datetime-local">` riêng                                 | mốc lưu trong `Record<id, string>` — [TestClocksPage.tsx:21](../../apps/erp-ui/src/pages/TestClocksPage.tsx) |
+| 2   | UI [TestClocksPage.tsx:44-58](../../apps/erp-ui/src/pages/TestClocksPage.tsx)                               | `handleOnAdvance` — chưa chọn mốc thì `return` im lặng                                | bấm "Tua" khi input trống: không gì xảy ra                                                                   |
+| 3   | Service [test-clock.service.ts:76-78](../../packages/modules/billing/src/services/test-clock.service.ts)    | đang `advancing` → 409                                                                | khoá chống chạy chồng                                                                                        |
+| 4   | Service [test-clock.service.ts:82-87](../../packages/modules/billing/src/services/test-clock.service.ts)    | mốc mới phải **sau** mốc hiện tại, không thì 400                                      | đồng hồ chỉ đi tới, không lùi                                                                                |
+| 5   | Service [test-clock.service.ts:89-96](../../packages/modules/billing/src/services/test-clock.service.ts)    | `status = advancing`, ghi `frozenTime`, rồi `advanceSubscriptions`                    | —                                                                                                            |
+| 6   | Service [advanceSubscriptions:276-291](../../packages/modules/billing/src/services/subscription.service.ts) | lấy subscription **của đồng hồ này**, chưa huỷ, `currentPeriodEnd <= now`, tối đa 500 | —                                                                                                            |
+| 7   | Service [rollPeriod:313-348](../../packages/modules/billing/src/services/subscription.service.ts)           | lặp tới khi `currentPeriodEnd > now`, tối đa `MAX_PERIOD_ROLLS = 120`                 | nhảy xa mấy cũng không treo                                                                                  |
+| 8   | Service [test-clock.service.ts:105-129](../../packages/modules/billing/src/services/test-clock.service.ts)  | transaction cuối: `status = ready` + `test_clock.advanced`                            | —                                                                                                            |
+| 9   | Hook [mutations.ts:36-38](../../apps/erp-ui/src/reactquery/test-clocks/mutations.ts)                        | invalidate testClocks + subscriptions + entitlements                                  | trang này và `/billing/subscriptions` đều mới theo                                                           |
 
 ### Ba nhánh của mỗi lần roll
 
-[rollPeriod:313-348](../../packages/core/src/services/subscription.service.ts):
+[rollPeriod:313-348](../../packages/modules/billing/src/services/subscription.service.ts):
 
 | Trạng thái trước           | Kết quả                           | Event                      |
 | -------------------------- | --------------------------------- | -------------------------- |
@@ -124,26 +124,26 @@ Nói gọn: **test clock điều khiển chu kỳ subscription, không điều k
 
 ## Mốc thời gian
 
-| Xong ngay khi 200 trả về                              | Xảy ra sau, do worker                                                                 |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `test_clocks.frozen_time` = mốc mới, `status = ready` | outbox relay `subscription.renewed`/`trial_ended`/`canceled` và `test_clock.advanced` |
-| `subscriptions` đã cuốn kỳ, status đã đổi             | `entitlements` đồng bộ lại (worker `domain-event`)                                    |
-| bảng `/subscriptions` đúng ngay sau invalidate        | webhook delivery nếu có endpoint đăng ký — [UC-09](./09-receive-webhooks.md)          |
+| Xong ngay khi 200 trả về                               | Xảy ra sau, do worker                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `test_clocks.frozen_time` = mốc mới, `status = ready`  | outbox relay `subscription.renewed`/`trial_ended`/`canceled` và `test_clock.advanced` |
+| `subscriptions` đã cuốn kỳ, status đã đổi              | `entitlements` đồng bộ lại (worker `domain-event`)                                    |
+| bảng `/billing/subscriptions` đúng ngay sau invalidate | webhook delivery nếu có endpoint đăng ký — [UC-09](./09-receive-webhooks.md)          |
 
 ## Trạng thái kẹt duy nhất trong hệ thống
 
 Bước 5 — ghi `frozenTime` rồi gọi `advanceSubscriptions` — **không** nằm trong transaction cùng bước 8. Tiến trình chết giữa hai bước thì `frozenTime` đã nhảy nhưng `status` kẹt ở `advancing`, và **mọi
 lần "Tua" sau đó đều 409**.
 
-Nhánh `catch` ([test-clock.service.ts:97-103](../../packages/core/src/services/test-clock.service.ts))
+Nhánh `catch` ([test-clock.service.ts:97-103](../../packages/modules/billing/src/services/test-clock.service.ts))
 chỉ hoàn nguyên `status`, **không** hoàn nguyên `frozenTime` — nên nếu `advanceSubscriptions` lỗi thì
 đồng hồ vẫn ở mốc mới dù subscription chưa được cuốn kỳ.
 
 Gỡ kẹt bằng tay:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
-"update test_clocks set status = 'ready' where status = 'advancing'"
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
+"update billing.test_clocks set status = 'ready' where status = 'advancing'"
 ```
 
 ## Dữ liệu để lại
@@ -177,7 +177,7 @@ AUTH="Authorization: Bearer $SECRET_API_KEY"
 JSON='content-type: application/json'
 ```
 
-**1. Tạo đồng hồ** — trên UI (`/test-clocks`, điền tên, **Tạo test clock**), hoặc bằng curl nếu muốn
+**1. Tạo đồng hồ** — trên UI (`/billing/test-clocks`, điền tên, **Tạo test clock**), hoặc bằng curl nếu muốn
 mốc bắt đầu khác "bây giờ":
 
 ```bash
@@ -259,10 +259,10 @@ Status thành `canceled`, `endedAt` là **cuối kỳ** chứ không phải lúc
 
 Sau khi đã gắn đồng hồ bằng curl ở bước 2, phần còn lại làm được hết trên UI:
 
-1. `/test-clocks` → chọn mốc ở input `datetime-local` → **Tua**.
-2. `/subscriptions` → status và cột "Kỳ hiện tại" đã đổi.
+1. `/billing/test-clocks` → chọn mốc ở input `datetime-local` → **Tua**.
+2. `/billing/subscriptions` → status và cột "Kỳ hiện tại" đã đổi.
 3. Chờ vài giây, F5 → bảng Entitlements cập nhật theo.
-4. `/webhooks` → nếu đã đăng ký `subscription.renewed` ([UC-09](./09-receive-webhooks.md)) thì thấy
+4. `/admin/webhooks` → nếu đã đăng ký `subscription.renewed` ([UC-09](./09-receive-webhooks.md)) thì thấy
    delivery mới.
 
 ### Kiểm chứng bằng SQL
@@ -270,36 +270,36 @@ Sau khi đã gắn đồng hồ bằng curl ở bước 2, phần còn lại là
 Đồng hồ và các subscription gắn nó:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select c.id, c.name, c.frozen_time, c.status, count(s.id) as subscriptions
- from test_clocks c left join subscriptions s on s.test_clock_id = c.id
+ from billing.test_clocks c left join billing.subscriptions s on s.test_clock_id = c.id
  group by c.id, c.name, c.frozen_time, c.status order by c.created_at desc"
 ```
 
 Chuỗi event sinh ra từ các lần tua — đọc từ dưới lên là đúng thứ tự thời gian:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
-"select event_type, status, occurred_at from outbox_events
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
+"select event_type, status, occurred_at from platform.outbox_events
  where aggregate_type in ('subscription','test_clock') order by occurred_at desc limit 15"
 ```
 
 So giờ đồng hồ với giờ thật — thấy rõ hai trục thời gian tồn tại song song:
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c \
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c \
 "select s.id, s.current_period_end, now() as real_now,
         s.current_period_end > now() as period_in_future
- from subscriptions s where s.test_clock_id is not null"
+ from billing.subscriptions s where s.test_clock_id is not null"
 ```
 
 `period_in_future = t` giải thích tại sao billing run không chạm vào subscription này.
 
 ### Test tự động
 
-`packages/core/src/utils/billing-period.test.ts` (6 test) phủ `advancePeriod` và
+`packages/modules/billing/src/utils/billing-period.test.ts` (6 test) phủ `advancePeriod` và
 `countPeriodsElapsed`, kể cả ca 31/01 + 1 tháng.
-`packages/core/tests/subscriptions.integration.test.ts` phủ cuốn kỳ qua test clock.
+`packages/modules/billing/tests/subscriptions.integration.test.ts` phủ cuốn kỳ qua test clock.
 
 ## Đọc sâu hơn
 

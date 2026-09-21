@@ -1,4 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createWebhookEndpointSchema,
   findWebhookEndpointsSchema,
@@ -6,8 +7,7 @@ import {
   updateWebhookEndpointSchema,
   webhookEndpointParamsSchema,
   webhookEndpointSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/platform/contracts';
 
 export const webhookEndpointsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

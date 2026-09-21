@@ -13,25 +13,25 @@ pnpm db:migrate
 pnpm dev
 ```
 
-| Service             | Cổng  | Ghi chú                                                             |
-| ------------------- | ----- | ------------------------------------------------------------------- |
-| api                 | 3000  | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*`          |
-| worker outbox       | 3001  | relay outbox → domain event queue                                   |
-| worker domain-event | 3002  | consume domain event                                                |
-| worker ledger       | 3003  | quét sổ lệch mỗi 60s                                                |
-| worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn                     |
-| worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                           |
-| worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                        |
-| worker notification | 3007  | gửi email; nhắc nợ chuyển khoản mỗi `INVOICE_REMINDER_INTERVAL_MS`  |
-| admin-ui            | 5173  | Vite, proxy `/api` và `/v1` sang api; xác thực bằng cookie session  |
-| portal-ui           | 3100  | Next.js + BFF; cần `PINSTRIPE_API_URL` + `PINSTRIPE_PORTAL_API_KEY` |
-| postgres            | 55432 | user/pass/db: `pinstripe`                                           |
-| redis               | 56379 |                                                                     |
-| mailpit             | 58025 | UI xem email dev                                                    |
+| Service             | Cổng  | Ghi chú                                                            |
+| ------------------- | ----- | ------------------------------------------------------------------ |
+| api                 | 3000  | `/healthz`, `/v1/*`, `/api/v1/{admin,system,management}/*`         |
+| worker outbox       | 3001  | relay outbox → domain event queue                                  |
+| worker domain-event | 3002  | consume domain event                                               |
+| worker ledger       | 3003  | quét sổ lệch mỗi 60s                                               |
+| worker billing      | 3004  | shard + jitter, tạo hóa đơn nháp cho kỳ đến hạn                    |
+| worker webhook      | 3005  | giao webhook, retry backoff, tối đa 5 lần                          |
+| worker dunning      | 3006  | thu lại theo lịch `DUNNING_RETRY_DELAY_DAYS`                       |
+| worker notification | 3007  | gửi email; nhắc nợ chuyển khoản mỗi `INVOICE_REMINDER_INTERVAL_MS` |
+| erp-ui              | 5173  | Vite, proxy `/api` và `/v1` sang api; xác thực bằng cookie session |
+| billing-portal-ui   | 3100  | Next.js + BFF; cần `VXRERP_API_URL` + `VXRERP_PORTAL_API_KEY`      |
+| postgres            | 55432 | user/pass/db: `vxrerp`                                             |
+| redis               | 56379 |                                                                    |
+| mailpit             | 58025 | UI xem email dev                                                   |
 
 ## Đăng nhập dashboard
 
-`apps/admin-ui` đi bằng cookie session của better-auth, không bằng API key: Vite chỉ proxy `/api` và
+`apps/erp-ui` đi bằng cookie session của better-auth, không bằng API key: Vite chỉ proxy `/api` và
 `/v1` sang API, không chèn header nào, nên một bản build ra khỏi `vite dev` xác thực đúng như khi dev.
 
 Biến môi trường của đường đăng nhập, đọc trong `better-auth.plugin.ts`:
@@ -52,7 +52,7 @@ Sign-up không tồn tại ở server. Admin đầu tiên được tạo bằng 
 curl -X POST http://localhost:3000/api/v1/management/users/bootstrap \
   -H "Authorization: Bearer $MANAGEMENT_API_KEY" \
   -H 'Content-Type: application/json' \
-  -d '{"email":"admin@pinstripe.test","name":"Admin","password":"<tối thiểu 12 ký tự>"}'
+  -d '{"email":"admin@vxrerp.test","name":"Admin","password":"<tối thiểu 12 ký tự>"}'
 ```
 
 Người dùng tiếp theo tạo trong dashboard ở `/admin/users`. Không có đường xoá user: hạ quyền hay vô
@@ -65,7 +65,7 @@ pnpm test
 ```
 
 ```bash
-pnpm --filter @pinstripe/core test:integration
+pnpm --filter @vxrerp/billing test:integration
 ```
 
 ```bash
@@ -168,6 +168,6 @@ curl -s -H "Authorization: Bearer $SECRET_API_KEY" localhost:3000/v1/ping
 
 ## Lưu ý
 
-- `packages/core` được build (`exports` trỏ `dist`). Sửa core xong phải rebuild — `pnpm dev` và
+- `packages/platform` và `packages/modules/*` được build (`exports` trỏ `dist`). Sửa chúng xong phải rebuild — `pnpm dev` và
   `turbo` tự lo thứ tự, nhưng chạy một package lẻ thì không.
 - Migration là journal: không xoá file đã generate, luôn tạo migration mới.

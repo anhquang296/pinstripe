@@ -1,11 +1,10 @@
 import {
-  ApiKeyTypeEnum,
   CollectionMethodEnum,
   CurrencyEnum,
-  PermissionEnum,
   PORTAL_CLIENT_IP_HEADER,
   PortalRequestKindEnum,
-} from '@pinstripe/core/contracts';
+} from '@vxrerp/billing/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
 import type { FastifyInstance } from 'fastify';
 import _ from 'lodash';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -94,7 +93,7 @@ describe('portal sign-in rate limit', () => {
 
     const headers = buildAuthHeaders(portalKey.token);
 
-    const { portalRateLimit } = fastify.workflowSchedules;
+    const { portalRateLimit } = fastify.billingSchedules;
 
     const statusCodes: number[] = [];
 
@@ -120,7 +119,7 @@ describe('portal sign-in rate limit', () => {
 
     const headers = buildAuthHeaders(portalKey.token);
 
-    const { portalRateLimit } = fastify.workflowSchedules;
+    const { portalRateLimit } = fastify.billingSchedules;
 
     const clientHeaders = { ...headers, [PORTAL_CLIENT_IP_HEADER]: '10.0.1.1' };
 

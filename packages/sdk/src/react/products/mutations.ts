@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateProductPayload,
@@ -11,9 +11,9 @@ import type {
 export function useCreateProductMutation({ successMessage }: MutationProps<ProductResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateProductPayload) => {
@@ -30,9 +30,9 @@ export function useCreateProductMutation({ successMessage }: MutationProps<Produ
 export function useUpdateProductMutation({ successMessage }: MutationProps<ProductResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateProductPayload }) => {

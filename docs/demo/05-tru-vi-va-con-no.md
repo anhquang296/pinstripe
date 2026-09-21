@@ -1,23 +1,23 @@
 # KB-05 — Trừ ví nhà xe, và khi ví không đủ tiền
 
-**Thời lượng** ~4 phút · **Màn hình** admin-ui · **Nhà xe** Thành Bưởi
+**Thời lượng** ~4 phút · **Màn hình** erp-ui · **Nhà xe** Thành Bưởi
 
 ## Kể gì
 
 > Kênh thu thứ hai là trừ thẳng ví nhà xe. Nhưng thực tế ví thường không đủ. Câu hỏi thiết kế là:
 > ví có 1,5 triệu mà hoá đơn 21 triệu thì làm gì? Không trừ gì cả, hay trừ được bao nhiêu hay bấy
-> nhiêu? Pinstripe chọn vế thứ hai, và đây là lý do.
+> nhiêu? VXR ERP chọn vế thứ hai, và đây là lý do.
 
 ## Bấm gì
 
-| #   | Ở đâu             | Làm gì                                                           |
-| --- | ----------------- | ---------------------------------------------------------------- |
-| 1   | `/invoices/draft` | Bấm dòng **Thành Bưởi**                                          |
-| 2   | drawer            | Chỉ vào **Cách thu tiền: Trừ ví nhà xe**                         |
-| 3   | drawer            | Bấm **Phát hành** → tổng **21.230.000 ₫**, trạng thái `open`     |
-| 4   | —                 | Chờ tối đa 60 giây                                               |
-| 5   | `/invoices/open`  | F5 — hoá đơn vẫn `open`, nhưng cột **Đã trả** là **1.500.000 ₫** |
-| 6   | drawer            | Mở lại hoá đơn: còn lại **19.730.000 ₫**                         |
+| #   | Ở đâu                     | Làm gì                                                           |
+| --- | ------------------------- | ---------------------------------------------------------------- |
+| 1   | `/billing/invoices/draft` | Bấm dòng **Thành Bưởi**                                          |
+| 2   | drawer                    | Chỉ vào **Cách thu tiền: Trừ ví nhà xe**                         |
+| 3   | drawer                    | Bấm **Phát hành** → tổng **21.230.000 ₫**, trạng thái `open`     |
+| 4   | —                         | Chờ tối đa 60 giây                                               |
+| 5   | `/billing/invoices/open`  | F5 — hoá đơn vẫn `open`, nhưng cột **Đã trả** là **1.500.000 ₫** |
+| 6   | drawer                    | Mở lại hoá đơn: còn lại **19.730.000 ₫**                         |
 
 ## Nói gì ở bước 5
 

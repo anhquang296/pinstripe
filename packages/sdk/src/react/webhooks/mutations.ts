@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateWebhookEndpointPayload,
@@ -13,9 +13,9 @@ export function useCreateWebhookEndpointMutation({
 }: MutationProps<WebhookEndpointResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateWebhookEndpointPayload) => {
@@ -34,9 +34,9 @@ export function useUpdateWebhookEndpointMutation({
 }: MutationProps<WebhookEndpointResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateWebhookEndpointPayload }) => {

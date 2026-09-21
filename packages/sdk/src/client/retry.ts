@@ -1,5 +1,5 @@
-import type { HttpMethod } from '@client/pinstripe.types';
-import { HttpMethodEnum } from '@client/pinstripe.types';
+import type { HttpMethod } from '@client/vxr-erp.types';
+import { HttpMethodEnum } from '@client/vxr-erp.types';
 
 export const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_BASE_MS = 500;

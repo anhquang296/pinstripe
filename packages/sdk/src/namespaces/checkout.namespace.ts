@@ -1,10 +1,10 @@
-import type { PinstripeTransport } from '@client/pinstripe-transport';
+import type { VxrErpTransport } from '@client/vxr-erp-transport';
 import { CheckoutSessionsResource } from '@resources/checkout/sessions.resource';
 
 export class CheckoutNamespace {
   readonly sessions: CheckoutSessionsResource;
 
-  constructor(transport: PinstripeTransport) {
+  constructor(transport: VxrErpTransport) {
     this.sessions = new CheckoutSessionsResource(transport);
   }
 }

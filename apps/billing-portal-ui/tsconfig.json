@@ -1,0 +1,14 @@
+{
+  "extends": "@vxrerp/tsconfig/next.json",
+  "compilerOptions": {
+    "paths": {
+      "@app/*": ["./src/app/*"],
+      "@common/*": ["./src/common/*"],
+      "@features/*": ["./src/features/*"],
+      "@libs/*": ["./src/libs/*"],
+      "@providers/*": ["./src/providers/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

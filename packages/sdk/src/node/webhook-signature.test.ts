@@ -1,7 +1,7 @@
-import { PinstripeSignatureVerificationError } from '@errors/pinstripe.error';
+import { VxrErpSignatureVerificationError } from '@errors/vxr-erp.error';
 import { isWebhookSignatureValid } from '@node/webhook-signature';
 import { webhooks } from '@node/webhooks.resource';
-import { buildWebhookSignature } from '@pinstripe/core/utils';
+import { buildWebhookSignature } from '@vxrerp/platform/utils';
 import { expect, it } from 'vitest';
 
 const SECRET = 'whsec_test_secret';
@@ -64,10 +64,10 @@ it('constructs the event when the signature is valid', () => {
   expect(event.id).toBe('evt_1');
 });
 
-it('throws PinstripeSignatureVerificationError when the signature is invalid', () => {
+it('throws VxrErpSignatureVerificationError when the signature is invalid', () => {
   const { rawBody } = setup();
 
   expect(() => {
     return webhooks.constructEvent(rawBody, 't=1,v1=deadbeef', SECRET);
-  }).toThrow(PinstripeSignatureVerificationError);
+  }).toThrow(VxrErpSignatureVerificationError);
 });

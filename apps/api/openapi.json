@@ -37877,6 +37877,10 @@
                         {
                           "type": "string",
                           "enum": ["portal.write"]
+                        },
+                        {
+                          "type": "string",
+                          "enum": ["crm.read"]
                         }
                       ]
                     }
@@ -37990,6 +37994,10 @@
                           {
                             "type": "string",
                             "enum": ["portal.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["crm.read"]
                           }
                         ]
                       }
@@ -38185,6 +38193,10 @@
                                 {
                                   "type": "string",
                                   "enum": ["portal.write"]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": ["crm.read"]
                                 }
                               ]
                             }
@@ -38354,6 +38366,10 @@
                           {
                             "type": "string",
                             "enum": ["portal.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["crm.read"]
                           }
                         ]
                       }
@@ -38535,6 +38551,10 @@
                           {
                             "type": "string",
                             "enum": ["portal.write"]
+                          },
+                          {
+                            "type": "string",
+                            "enum": ["crm.read"]
                           }
                         ]
                       }

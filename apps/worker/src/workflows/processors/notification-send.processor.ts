@@ -1,4 +1,4 @@
-import type { NotificationSendJob } from '@pinstripe/core/queues';
+import type { NotificationSendJob } from '@vxrerp/billing/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

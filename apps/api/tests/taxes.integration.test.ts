@@ -3,7 +3,7 @@ import {
   TaxIdTypeEnum,
   TaxIdVerificationStatusEnum,
   TaxTypeEnum,
-} from '@pinstripe/core/contracts';
+} from '@vxrerp/billing/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 

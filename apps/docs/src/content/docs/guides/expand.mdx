@@ -8,14 +8,14 @@ sidebar:
 Mặc định, quan hệ được trả dưới dạng id (`customerId: "cus_123"`). Truyền `expand` để nhận cả object trong cùng response:
 
 ```ts
-const invoice = await pinstripe.invoices.get(invoiceId, { expand: ['customer', 'subscription'] });
+const invoice = await vxrErp.invoices.get(invoiceId, { expand: ['customer', 'subscription'] });
 ```
 
 Qua HTTP, `expand` là tham số query lặp lại:
 
 ```bash
 curl "https://billing.example.com/v1/invoices/in_123?expand=customer&expand=subscription" \
-  -H "Authorization: Bearer $PINSTRIPE_SECRET_API_KEY"
+  -H "Authorization: Bearer $VXRERP_SECRET_API_KEY"
 ```
 
 | Object                                                                                                | Field expand được          |

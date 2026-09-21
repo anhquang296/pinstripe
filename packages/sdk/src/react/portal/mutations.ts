@@ -1,7 +1,7 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreatePortalLinkPayload,
@@ -16,9 +16,9 @@ import type {
 export function useCreatePortalLinkMutation({
   successMessage,
 }: MutationProps<PortalLinkResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreatePortalLinkPayload) => {
@@ -32,9 +32,9 @@ export function useCreatePortalLinkMutation({
 export function useCreatePortalRequestMutation({
   successMessage,
 }: MutationProps<PortalRequestResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreatePortalRequestPayload) => {
@@ -50,16 +50,16 @@ export function useCreatePortalSessionMutation({
 }: MutationProps<PortalSessionResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: RedeemPortalLinkPayload) => {
       return client.portal.sessions.create(payload);
     },
     onSuccess: (portalSession) => {
-      queryClient.removeQueries({ queryKey: [PinstripeQuerySubjectEnum.PORTAL] });
+      queryClient.removeQueries({ queryKey: [VxrErpQuerySubjectEnum.PORTAL] });
       notifySuccess(portalSession);
     },
     onError: notifyError,
@@ -71,16 +71,16 @@ export function useUpdatePortalSessionMutation({
 }: MutationProps<PortalSessionResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: SwitchPortalCustomerPayload) => {
       return client.portal.sessions.update(payload);
     },
     onSuccess: (portalSession) => {
-      queryClient.invalidateQueries({ queryKey: [PinstripeQuerySubjectEnum.PORTAL] });
+      queryClient.invalidateQueries({ queryKey: [VxrErpQuerySubjectEnum.PORTAL] });
       notifySuccess(portalSession);
     },
     onError: notifyError,
@@ -92,16 +92,16 @@ export function useDeletePortalSessionMutation({
 }: MutationProps<PortalSessionResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: () => {
       return client.portal.sessions.delete();
     },
     onSuccess: (portalSession) => {
-      queryClient.removeQueries({ queryKey: [PinstripeQuerySubjectEnum.PORTAL] });
+      queryClient.removeQueries({ queryKey: [VxrErpQuerySubjectEnum.PORTAL] });
       notifySuccess(portalSession);
     },
     onError: notifyError,

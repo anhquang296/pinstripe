@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateMeterEventBatchPayload,
@@ -15,9 +15,9 @@ import type {
 export function useCreateMeterMutation({ successMessage }: MutationProps<MeterResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateMeterPayload) => {
@@ -34,9 +34,9 @@ export function useCreateMeterMutation({ successMessage }: MutationProps<MeterRe
 export function useUpdateMeterMutation({ successMessage }: MutationProps<MeterResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateMeterPayload }) => {
@@ -56,9 +56,9 @@ export function useCreateMeterEventMutation({
 }: MutationProps<MeterEventResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateMeterEventPayload) => {
@@ -77,9 +77,9 @@ export function useCreateMeterEventBatchMutation({
 }: MutationProps<CreateMeterEventBatchResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateMeterEventBatchPayload) => {

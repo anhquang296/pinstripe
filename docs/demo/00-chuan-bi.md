@@ -25,11 +25,11 @@ Dòng đầu là **số dư giả của đối tác**: doanh thu vé của Phư�
 nó thì mọi lần cấn trừ đều trừ được 0 đ và [KB-04](./04-can-tru-tien-ve.md) không diễn được. Đọc lúc
 boot, nên sửa xong phải khởi động lại `pnpm dev`.
 
-Trong `apps/portal-ui/.env.local` (Next.js không đọc `.env` gốc):
+Trong `apps/billing-portal-ui/.env.local` (Next.js không đọc `.env` gốc):
 
 ```
-PINSTRIPE_API_URL=http://localhost:3000
-PINSTRIPE_PORTAL_API_KEY=<đúng giá trị PORTAL_API_KEY ở .env gốc>
+VXRERP_API_URL=http://localhost:3000
+VXRERP_PORTAL_API_KEY=<đúng giá trị PORTAL_API_KEY ở .env gốc>
 ```
 
 ## 3. Chạy hệ thống
@@ -47,7 +47,7 @@ curl -s http://localhost:3000/healthz
 ## 4. Tạo tài khoản đăng nhập dashboard
 
 ```bash
-pnpm --filter @pinstripe/api bootstrap-admin -- --email admin@pinstripe.test --name Admin --password 'demo-pinstripe-2026'
+pnpm --filter @vxrerp/api bootstrap-admin -- --email admin@vxrerp.test --name Admin --password 'demo-vxrerp-2026'
 ```
 
 Lệnh này idempotent, chạy lại bao nhiêu lần cũng được.
@@ -83,16 +83,16 @@ Chạy xong in ra 8 dòng, dòng cuối là `seed-demo hoàn tất`. Nó dựng:
 
 ## 7. Checklist cuối — tick đủ 8 ô rồi mới bắt đầu
 
-Đăng nhập http://localhost:5173 bằng `admin@pinstripe.test`, rồi soát:
+Đăng nhập http://localhost:5173 bằng `admin@vxrerp.test`, rồi soát:
 
 - [ ] `/` — MRR khác 0, "Thuê bao đang chạy" = 4, các thẻ doanh thu 30 ngày có số
-- [ ] `/customers` — đủ 5 nhà xe, đúng tên và mã số thuế
-- [ ] `/catalog/prices` — 4 bảng giá, `booking_ticket_fee` hiện hai bậc
-- [ ] `/subscriptions/list` — 4 `active` + 1 `trialing`, **không có cái nào `past_due`**
-- [ ] `/subscriptions/usage` — hai meter, có số liệu kỳ này
-- [ ] `/invoices/paid` — hoá đơn trải từ tháng 5 tới tháng 9, số tăng dần theo thời gian
-- [ ] `/invoices/draft` — đúng 3 bản nháp: Phương Trang, Thành Bưởi, Kumho
-- [ ] `/ledger/transactions` — có bút toán, `/reports` mục Đối soát **không có dòng lệch nào**
+- [ ] `/billing/customers` — đủ 5 nhà xe, đúng tên và mã số thuế
+- [ ] `/billing/catalog/prices` — 4 bảng giá, `booking_ticket_fee` hiện hai bậc
+- [ ] `/billing/subscriptions/list` — 4 `active` + 1 `trialing`, **không có cái nào `past_due`**
+- [ ] `/billing/subscriptions/usage` — hai meter, có số liệu kỳ này
+- [ ] `/billing/invoices/paid` — hoá đơn trải từ tháng 5 tới tháng 9, số tăng dần theo thời gian
+- [ ] `/billing/invoices/draft` — đúng 3 bản nháp: Phương Trang, Thành Bưởi, Kumho
+- [ ] `/billing/ledger/transactions` — có bút toán, `/billing/reports` mục Đối soát **không có dòng lệch nào**
 
 Mở sẵn bốn tab trước khi lên sân khấu:
 

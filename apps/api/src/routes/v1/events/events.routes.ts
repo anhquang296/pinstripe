@@ -1,11 +1,11 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   eventParamsSchema,
   eventSchema,
   findEventsSchema,
   ListResponseSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/platform/contracts';
 
 export const eventsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

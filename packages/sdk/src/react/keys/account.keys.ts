@@ -1,9 +1,9 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 
-export function createAccountQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.ACCOUNT, {
+export function createAccountQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.ACCOUNT, {
     account: {
       queryKey: null,
       queryFn: () => {

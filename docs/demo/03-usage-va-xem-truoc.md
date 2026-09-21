@@ -1,6 +1,6 @@
 # KB-03 — Đo lượng dùng và xem trước số tiền
 
-**Thời lượng** ~5 phút · **Màn hình** admin-ui
+**Thời lượng** ~5 phút · **Màn hình** erp-ui
 
 ## Kể gì
 
@@ -10,16 +10,16 @@
 
 ## Bấm gì
 
-| #   | Ở đâu                  | Làm gì                                                                                       |
-| --- | ---------------------- | -------------------------------------------------------------------------------------------- |
-| 1   | `/subscriptions/usage` | Mở tab Usage-based billing — hai meter: `ticket.sold` và `zns.sent`                          |
-| 2   | `/subscriptions/usage` | Bấm dòng **Vé bán qua nền tảng** để mở drawer                                                |
-| 3   | drawer                 | Ở mục "Lượng dùng 30 ngày gần nhất", chọn khách hàng **Phương Trang**                        |
-| 4   | drawer                 | Đọc to con số: **12.400 vé** trong **14 event**                                              |
-| 5   | drawer                 | Kéo xuống mục **Bắn một event**, chọn Phương Trang, giá trị `250`, bấm gửi                   |
-| 6   | drawer                 | Chọn lại khách hàng ở mục tổng hợp → con số thành **12.650**                                 |
-| 7   | `/subscriptions/list`  | Mở drawer thuê bao **Phương Trang**, chọn tab **Hoá đơn sắp tới**                            |
-| 8   | drawer                 | Chỉ vào các dòng: phí nền tảng, phí theo đầu xe, phí theo vé (đã áp bậc thang), phí ZNS, VAT |
+| #   | Ở đâu                          | Làm gì                                                                                       |
+| --- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| 1   | `/billing/subscriptions/usage` | Mở tab Usage-based billing — hai meter: `ticket.sold` và `zns.sent`                          |
+| 2   | `/billing/subscriptions/usage` | Bấm dòng **Vé bán qua nền tảng** để mở drawer                                                |
+| 3   | drawer                         | Ở mục "Lượng dùng 30 ngày gần nhất", chọn khách hàng **Phương Trang**                        |
+| 4   | drawer                         | Đọc to con số: **12.400 vé** trong **14 event**                                              |
+| 5   | drawer                         | Kéo xuống mục **Bắn một event**, chọn Phương Trang, giá trị `250`, bấm gửi                   |
+| 6   | drawer                         | Chọn lại khách hàng ở mục tổng hợp → con số thành **12.650**                                 |
+| 7   | `/billing/subscriptions/list`  | Mở drawer thuê bao **Phương Trang**, chọn tab **Hoá đơn sắp tới**                            |
+| 8   | drawer                         | Chỉ vào các dòng: phí nền tảng, phí theo đầu xe, phí theo vé (đã áp bậc thang), phí ZNS, VAT |
 
 ## Thấy gì
 

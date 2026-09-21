@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PinstripeClient } from '@client/pinstripe.client';
+import { VxrErpClient } from '@client/vxr-erp.client';
 import { expect, it } from 'vitest';
 
 const REACT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
@@ -58,7 +58,7 @@ function readHookSources(): string {
 }
 
 it('exposes every resource method through at least one hook', () => {
-  const client = new PinstripeClient();
+  const client = new VxrErpClient();
   const methods = collectResourceMethods(client, '');
   const reactSources = readHookSources();
 
@@ -74,7 +74,7 @@ it('exposes every resource method through at least one hook', () => {
 });
 
 it('keeps the uncovered list to portal methods the admin dashboard does not own', () => {
-  const client = new PinstripeClient();
+  const client = new VxrErpClient();
   const methods = collectResourceMethods(client, '');
 
   expect(methods).toEqual(expect.arrayContaining(UNCOVERED_METHODS));

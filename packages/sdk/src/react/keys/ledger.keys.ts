@@ -1,10 +1,10 @@
-import type { PinstripeClient } from '@client/pinstripe.client';
+import type { VxrErpClient } from '@client/vxr-erp.client';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { PinstripeQuerySubjectEnum } from '@react/pinstripe-query-subject';
+import { VxrErpQuerySubjectEnum } from '@react/vxr-erp-query-subject';
 import type { FindLedgerAccountsQuery, FindLedgerTransactionsQuery } from '@type/contracts.types';
 
-export function createLedgerQueries(client: PinstripeClient) {
-  return createQueryKeys(PinstripeQuerySubjectEnum.LEDGER, {
+export function createLedgerQueries(client: VxrErpClient) {
+  return createQueryKeys(VxrErpQuerySubjectEnum.LEDGER, {
     accounts: (query?: FindLedgerAccountsQuery) => {
       return {
         queryKey: [query],

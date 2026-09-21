@@ -1,0 +1,115 @@
+{
+  "name": "@vxrerp/platform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    "./clients": {
+      "types": "./dist/clients/index.d.ts",
+      "import": "./dist/clients/index.js",
+      "default": "./dist/clients/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js",
+      "default": "./dist/config/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "import": "./dist/constants/index.js",
+      "default": "./dist/constants/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js",
+      "default": "./dist/contracts/index.js"
+    },
+    "./database": {
+      "types": "./dist/database/index.d.ts",
+      "import": "./dist/database/index.js",
+      "default": "./dist/database/index.js"
+    },
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "import": "./dist/errors/index.js",
+      "default": "./dist/errors/index.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js",
+      "default": "./dist/plugins/index.js"
+    },
+    "./queues": {
+      "types": "./dist/queues/index.d.ts",
+      "import": "./dist/queues/index.js",
+      "default": "./dist/queues/index.js"
+    },
+    "./repositories": {
+      "types": "./dist/repositories/index.d.ts",
+      "import": "./dist/repositories/index.js",
+      "default": "./dist/repositories/index.js"
+    },
+    "./services": {
+      "types": "./dist/services/index.d.ts",
+      "import": "./dist/services/index.js",
+      "default": "./dist/services/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js",
+      "default": "./dist/testing/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js",
+      "default": "./dist/utils/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "migrations"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.13",
+    "@types/nodemailer": "^8.0.2",
+    "better-auth": "^1.7.5",
+    "bullmq": "^5.34.6",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.2.0",
+    "fastify-plugin": "^5.0.1",
+    "ioredis": "^5.4.2",
+    "lodash": "^4.17.21",
+    "nodemailer": "^10.0.10",
+    "postgres": "^3.4.5",
+    "typeid-js": "^1.2.0"
+  },
+  "devDependencies": {
+    "@vxrerp/eslint-config": "workspace:*",
+    "@vxrerp/tsconfig": "workspace:*",
+    "@types/lodash": "^4.17.13",
+    "@types/node": "^22.10.2",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.4",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^2.1.8"
+  }
+}

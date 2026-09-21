@@ -1,7 +1,7 @@
-# Use case của Pinstripe
+# Use case của VXR ERP
 
 Mỗi file ở đây kể **một kịch bản, theo thứ tự thời gian, xuyên hết các tầng**: từ cú click trên
-admin-ui → hook React Query → HTTP → service → transaction → worker nào bị kích hoạt → webhook đi ra.
+erp-ui → hook React Query → HTTP → service → transaction → worker nào bị kích hoạt → webhook đi ra.
 Kèm phần tự diễn lại bằng UI hoặc curl, và câu SQL để tự thấy dữ liệu.
 
 Nếu bạn mới vào project, **đọc ở đây trước** rồi mới sang `flows/`.
@@ -12,7 +12,7 @@ Nếu bạn mới vào project, **đọc ở đây trước** rồi mới sang `
 > key `ADMIN_API_KEY` / `SYSTEM_API_KEY` / `MANAGEMENT_API_KEY`. Mọi lệnh `curl` dưới đây còn dùng
 > prefix `/api/v1/admin`, `/api/v1/management` và các key đó **sẽ trả 404 hoặc 401**. Phần mô tả cơ
 > chế vẫn đúng; chỉ đường dẫn và khoá là sai. Admin đầu tiên nay tạo bằng
-> `pnpm --filter @pinstripe/api bootstrap-admin`, không phải route management.
+> `pnpm --filter @vxrerp/api bootstrap-admin`, không phải route management.
 >
 > Chỗ nói cổng nhà xe "chưa có đăng nhập" cũng đã sai kể từ
 > [ADR 0026](../adr/0026-customer-portal-auth-and-bff.md) — cổng đăng nhập bằng link một lần gửi
@@ -36,11 +36,11 @@ bại, và cách tự chạy.
 
 ## Một điều phải biết trước
 
-**admin-ui là back-office nội bộ. Không có UI cho khách tự đăng ký.**
+**erp-ui là back-office nội bộ. Không có UI cho khách tự đăng ký.**
 
 Nên "khách đăng ký một plan" trong project này thực chất là _người vận hành tạo subscription cho
 khách_, hoặc _một hệ thống bên ngoài gọi `POST /v1/subscriptions`_. Portal khách hàng
-(`apps/portal-ui`) **chỉ đọc**: xem gói và hoá đơn, không thao tác gì, và hiện **chưa có đăng nhập**.
+(`apps/billing-portal-ui`) **chỉ đọc**: xem gói và hoá đơn, không thao tác gì, và hiện **chưa có đăng nhập**.
 
 Vài thao tác cũng chưa có trên UI, buộc phải dùng curl — mỗi use case nói rõ chỗ nào:
 
@@ -75,19 +75,19 @@ Bốn cái đầu (01 → 04) là chuỗi bắt buộc: use case sau cần dữ 
 
 ## Bảng tra: use case ↔ màn hình ↔ flow
 
-| Use case                                                         | Màn hình                           | Flow nền                                                                                               |
-| ---------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [01 — Customer và catalog](./01-onboard-customer-and-catalog.md) | `/customers` `/products` `/prices` | [03](../flows/03-catalog-and-customer.md)                                                              |
-| [02 — Đăng ký plan](./02-subscribe-to-plan.md)                   | `/subscriptions`                   | [04](../flows/04-subscription-entitlement.md), [02](../flows/02-event-pipeline.md)                     |
-| [03 — Ghi nhận usage](./03-record-usage.md)                      | `/meters`                          | [05](../flows/05-metering-and-rating.md)                                                               |
-| [04 — Xem trước số tiền](./04-preview-charges.md)                | `/rating`                          | [05](../flows/05-metering-and-rating.md)                                                               |
-| [05 — Phát hành và thu tiền](./05-issue-and-collect-invoice.md)  | `/invoices`                        | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md), [10](../flows/10-ledger.md) |
-| [06 — Thẻ bị từ chối](./06-handle-declined-card.md)              | `/invoices` `/payments`            | [09](../flows/09-dunning.md), [07](../flows/07-payments-and-refunds.md)                                |
-| [07 — Refund vs credit note](./07-refund-vs-credit-note.md)      | `/payments` `/invoices`            | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md)                              |
-| [08 — Huỷ subscription](./08-cancel-subscription.md)             | `/subscriptions`                   | [04](../flows/04-subscription-entitlement.md)                                                          |
-| [09 — Nhận webhook](./09-receive-webhooks.md)                    | `/webhooks`                        | [02](../flows/02-event-pipeline.md)                                                                    |
-| [10 — Chốt kỳ](./10-close-the-period.md)                         | `/reports` `/ledger`               | [10](../flows/10-ledger.md), [11](../flows/11-reporting-reconciliation.md)                             |
-| [11 — Test clock](./11-simulate-a-billing-cycle.md)              | `/test-clocks`                     | [12](../flows/12-test-clock.md)                                                                        |
+| Use case                                                         | Màn hình                                                                   | Flow nền                                                                                               |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [01 — Customer và catalog](./01-onboard-customer-and-catalog.md) | `/billing/customers` `/billing/catalog/products` `/billing/catalog/prices` | [03](../flows/03-catalog-and-customer.md)                                                              |
+| [02 — Đăng ký plan](./02-subscribe-to-plan.md)                   | `/billing/subscriptions`                                                   | [04](../flows/04-subscription-entitlement.md), [02](../flows/02-event-pipeline.md)                     |
+| [03 — Ghi nhận usage](./03-record-usage.md)                      | `/meters`                                                                  | [05](../flows/05-metering-and-rating.md)                                                               |
+| [04 — Xem trước số tiền](./04-preview-charges.md)                | `/rating`                                                                  | [05](../flows/05-metering-and-rating.md)                                                               |
+| [05 — Phát hành và thu tiền](./05-issue-and-collect-invoice.md)  | `/billing/invoices`                                                        | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md), [10](../flows/10-ledger.md) |
+| [06 — Thẻ bị từ chối](./06-handle-declined-card.md)              | `/billing/invoices` `/billing/payments`                                    | [09](../flows/09-dunning.md), [07](../flows/07-payments-and-refunds.md)                                |
+| [07 — Refund vs credit note](./07-refund-vs-credit-note.md)      | `/billing/payments` `/billing/invoices`                                    | [06](../flows/06-invoicing.md), [07](../flows/07-payments-and-refunds.md)                              |
+| [08 — Huỷ subscription](./08-cancel-subscription.md)             | `/billing/subscriptions`                                                   | [04](../flows/04-subscription-entitlement.md)                                                          |
+| [09 — Nhận webhook](./09-receive-webhooks.md)                    | `/admin/webhooks`                                                          | [02](../flows/02-event-pipeline.md)                                                                    |
+| [10 — Chốt kỳ](./10-close-the-period.md)                         | `/billing/reports` `/billing/ledger`                                       | [10](../flows/10-ledger.md), [11](../flows/11-reporting-reconciliation.md)                             |
+| [11 — Test clock](./11-simulate-a-billing-cycle.md)              | `/billing/test-clocks`                                                     | [12](../flows/12-test-clock.md)                                                                        |
 
 ## Một cú click chạm tới những gì
 
@@ -121,12 +121,12 @@ pnpm db:migrate
 pnpm dev
 ```
 
-| Thứ       | Ở đâu                                                                   |
-| --------- | ----------------------------------------------------------------------- |
-| admin-ui  | http://localhost:5173                                                   |
-| portal-ui | http://localhost:3100                                                   |
-| API       | http://localhost:3000                                                   |
-| 6 worker  | port 3001–3006: outbox, domain-event, ledger, billing, webhook, dunning |
+| Thứ               | Ở đâu                                                                   |
+| ----------------- | ----------------------------------------------------------------------- |
+| erp-ui            | http://localhost:5173                                                   |
+| billing-portal-ui | http://localhost:3100                                                   |
+| API               | http://localhost:3000                                                   |
+| 6 worker          | port 3001–3006: outbox, domain-event, ledger, billing, webhook, dunning |
 
 Mọi mục "tự chạy thử" dùng chung hai đoạn mở đầu này:
 
@@ -138,7 +138,7 @@ JSON='content-type: application/json'
 ```
 
 ```bash
-docker compose -f docker/compose.yml exec -T postgres psql -U pinstripe -d pinstripe -c "<câu SQL>"
+docker compose -f docker/compose.yml exec -T postgres psql -U vxrerp -d vxrerp -c "<câu SQL>"
 ```
 
 Route `/api/v1/admin/*` ([UC-10](./10-close-the-period.md)) dùng `ADMIN_API_KEY`, không phải

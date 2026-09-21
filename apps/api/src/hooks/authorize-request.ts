@@ -1,6 +1,6 @@
-import type { Permission } from '@pinstripe/core/contracts';
-import { ForbiddenError } from '@pinstripe/core/errors';
 import { resolveRoutePermission } from '@utils/route-permission';
+import type { Permission } from '@vxrerp/platform/contracts';
+import { ForbiddenError } from '@vxrerp/platform/errors';
 import type { FastifyRequest } from 'fastify';
 import _ from 'lodash';
 

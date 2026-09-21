@@ -1,13 +1,13 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createPriceSchema,
   findPricesSchema,
-  ListResponseSchema,
   priceParamsSchema,
   priceSchema,
   updatePriceSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const pricesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

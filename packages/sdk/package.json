@@ -1,5 +1,5 @@
 {
-  "name": "@pinstripe/sdk",
+  "name": "@vxrerp/sdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -51,12 +51,13 @@
   },
   "devDependencies": {
     "@lukemorales/query-key-factory": "^1.3.4",
-    "@pinstripe/core": "workspace:*",
-    "@pinstripe/eslint-config": "workspace:*",
-    "@pinstripe/tsconfig": "workspace:*",
     "@tanstack/react-query": "^5.62.7",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
+    "@vxrerp/billing": "workspace:*",
+    "@vxrerp/eslint-config": "workspace:*",
+    "@vxrerp/platform": "workspace:*",
+    "@vxrerp/tsconfig": "workspace:*",
     "eslint": "^9.39.4",
     "react": "^19.0.0",
     "tsup": "^8.3.5",

@@ -2,8 +2,8 @@ import {
   PaymentIntentStatusEnum,
   PaymentMethodTypeEnum,
   PspEventTypeEnum,
-} from '@pinstripe/core/contracts';
-import { buildWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from '@pinstripe/core/utils';
+} from '@vxrerp/billing/contracts';
+import { buildWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from '@vxrerp/platform/utils';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -29,7 +29,7 @@ afterAll(async () => {
 });
 
 function readCallbackSecret(): string {
-  const { PSP_WEBHOOK_SECRET } = fastify.config;
+  const { PSP_WEBHOOK_SECRET } = fastify.billingConfig;
 
   if (PSP_WEBHOOK_SECRET) {
     return PSP_WEBHOOK_SECRET;
@@ -143,7 +143,7 @@ describe('POST /v1/webhooks/psp/:provider/callbacks signature', () => {
 
   it('rejects a callback signed outside the tolerance window', async () => {
     const staleAt = new Date(
-      Date.now() - (fastify.config.PSP_CALLBACK_TOLERANCE_SECONDS + 60) * 1000,
+      Date.now() - (fastify.billingConfig.PSP_CALLBACK_TOLERANCE_SECONDS + 60) * 1000,
     );
 
     const response = await postCallback(

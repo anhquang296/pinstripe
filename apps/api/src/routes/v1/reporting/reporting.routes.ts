@@ -1,11 +1,11 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   aggregateReconciliationReportSchema,
   aggregateRevenueSummarySchema,
   reconciliationReportSchema,
   revenueSummarySchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
 
 export const reportingRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.get(

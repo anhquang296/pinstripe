@@ -1,0 +1,31 @@
+import type { NumberSequence } from '@contracts/invoices.types';
+import { numberSequences } from '@database/schemas';
+import type { DatabaseClient, DatabaseTransaction } from '@vxrerp/platform/database';
+import { eq, sql } from 'drizzle-orm';
+
+export class NumberSequenceRepository {
+  private _db: DatabaseClient;
+
+  constructor(db: DatabaseClient) {
+    this._db = db;
+  }
+
+  async claimNumberSequence(
+    name: NumberSequence,
+    executor?: DatabaseTransaction,
+  ): Promise<number | null> {
+    const db = executor ?? this._db.master;
+
+    const [claimed] = await db
+      .update(numberSequences)
+      .set({ nextValue: sql`${numberSequences.nextValue} + 1` })
+      .where(eq(numberSequences.name, name))
+      .returning({ nextValue: numberSequences.nextValue });
+
+    if (claimed) {
+      return claimed.nextValue - 1;
+    }
+
+    return null;
+  }
+}

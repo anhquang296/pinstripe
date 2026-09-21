@@ -1,6 +1,6 @@
-import { usePinstripeContext } from '@react/pinstripe.provider';
 import type { MutationProps } from '@react/react-query.types';
-import { usePinstripeMutationCallbacks } from '@react/usePinstripeMutationCallbacks';
+import { useVxrErpMutationCallbacks } from '@react/useVxrErpMutationCallbacks';
+import { useVxrErpContext } from '@react/vxr-erp.provider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CancelSubscriptionPayload,
@@ -19,9 +19,9 @@ export function useCreateSubscriptionMutation({
 }: MutationProps<SubscriptionResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateSubscriptionPayload) => {
@@ -41,9 +41,9 @@ export function useUpdateSubscriptionMutation({
 }: MutationProps<SubscriptionResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateSubscriptionPayload }) => {
@@ -66,9 +66,9 @@ export function useCancelSubscriptionMutation({
 }: MutationProps<SubscriptionResponse> = {}) {
   const queryClient = useQueryClient();
 
-  const { client, queries } = usePinstripeContext();
+  const { client, queries } = useVxrErpContext();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: CancelSubscriptionPayload }) => {
@@ -87,7 +87,7 @@ export function useCancelSubscriptionMutation({
 function useSubscriptionItemInvalidation() {
   const queryClient = useQueryClient();
 
-  const { queries } = usePinstripeContext();
+  const { queries } = useVxrErpContext();
 
   return () => {
     queryClient.invalidateQueries({ queryKey: queries.subscription.subscriptionItems._def });
@@ -102,11 +102,11 @@ function useSubscriptionItemInvalidation() {
 export function useCreateSubscriptionItemMutation({
   successMessage,
 }: MutationProps<SubscriptionItemResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useSubscriptionItemInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: (payload: CreateSubscriptionItemPayload) => {
@@ -123,11 +123,11 @@ export function useCreateSubscriptionItemMutation({
 export function useUpdateSubscriptionItemMutation({
   successMessage,
 }: MutationProps<SubscriptionItemResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useSubscriptionItemInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateSubscriptionItemPayload }) => {
@@ -144,11 +144,11 @@ export function useUpdateSubscriptionItemMutation({
 export function useDeleteSubscriptionItemMutation({
   successMessage,
 }: MutationProps<DeletedSubscriptionItemResponse> = {}) {
-  const { client } = usePinstripeContext();
+  const { client } = useVxrErpContext();
 
   const invalidate = useSubscriptionItemInvalidation();
 
-  const { notifySuccess, notifyError } = usePinstripeMutationCallbacks(successMessage);
+  const { notifySuccess, notifyError } = useVxrErpMutationCallbacks(successMessage);
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload?: DeleteSubscriptionItemPayload }) => {

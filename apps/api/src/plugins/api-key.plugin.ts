@@ -1,6 +1,6 @@
-import type { Permission, RequestAuth, UserAuth } from '@pinstripe/core/contracts';
-import { ApiKeyTypeEnum, PermissionEnum } from '@pinstripe/core/contracts';
-import type { BootstrapApiKey } from '@pinstripe/core/services';
+import type { Permission, RequestAuth, UserAuth } from '@vxrerp/platform/contracts';
+import { ApiKeyTypeEnum, PermissionEnum } from '@vxrerp/platform/contracts';
+import type { BootstrapApiKey } from '@vxrerp/platform/services';
 import fp from 'fastify-plugin';
 
 declare module 'fastify' {

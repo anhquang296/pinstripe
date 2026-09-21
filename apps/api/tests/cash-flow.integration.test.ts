@@ -1,4 +1,4 @@
-import { DisputeReasonEnum, PaymentMethodTypeEnum } from '@pinstripe/core/contracts';
+import { DisputeReasonEnum, PaymentMethodTypeEnum } from '@vxrerp/billing/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -146,14 +146,14 @@ describe('POST /v1/payouts', () => {
   it('creates a payout once the balance is available and lists it back', async () => {
     await settleStandaloneCharge();
     await fastify.database.master.execute(
-      `update balance_transactions set available_on = now() - interval '1 day' where payout_id is null`,
+      `update billing.balance_transactions set available_on = now() - interval '1 day' where payout_id is null`,
     );
 
     const created = await fastify.inject({
       method: 'POST',
       url: '/v1/payouts',
       headers: buildHeaders(),
-      payload: { currency: 'vnd', statementDescriptor: 'PINSTRIPE' },
+      payload: { currency: 'vnd', statementDescriptor: 'VXRERP' },
     });
 
     const payout = created.json();

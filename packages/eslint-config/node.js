@@ -7,7 +7,7 @@ import { base } from './base.js';
 const DATABASE_IMPORT_MESSAGE =
   'drizzle/query-convention: only repositories and plugins may import Drizzle tables — query through a repository.';
 
-export function node({ ignores = [], tsconfigRootDir, hasLodash = true } = {}) {
+export function node({ ignores = [], tsconfigRootDir, hasLodash = true, importBans = [] } = {}) {
   return [
     ...base({ ignores, tsconfigRootDir }),
     {
@@ -18,7 +18,10 @@ export function node({ ignores = [], tsconfigRootDir, hasLodash = true } = {}) {
     {
       files: ['**/*.ts'],
       rules: {
-        'no-restricted-imports': ['error', RELATIVE_PARENT_IMPORTS],
+        'no-restricted-imports': [
+          'error',
+          { patterns: [...RELATIVE_PARENT_IMPORTS.patterns, ...importBans] },
+        ],
       },
     },
     {
@@ -31,6 +34,7 @@ export function node({ ignores = [], tsconfigRootDir, hasLodash = true } = {}) {
           {
             patterns: [
               ...RELATIVE_PARENT_IMPORTS.patterns,
+              ...importBans,
               {
                 group: ['@database/schemas*'],
                 allowTypeImports: true,

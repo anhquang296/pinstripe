@@ -1,5 +1,5 @@
-import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
+import { useVxrErpQueries } from '@react/vxr-erp.provider';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type {
   FindCreditNotesQuery,
@@ -11,7 +11,7 @@ export function useUpcomingInvoiceQuery(
   subscriptionId: string,
   { enabled = true }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.invoice.upcoming({ subscriptionId }),
@@ -23,7 +23,7 @@ export function useInvoicesQuery(
   query?: FindInvoicesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.invoice.invoices(query),
@@ -33,7 +33,7 @@ export function useInvoicesQuery(
 }
 
 export function useInvoiceQuery(invoiceId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.invoice.invoice(invoiceId), enabled });
 }
@@ -42,7 +42,7 @@ export function useInvoiceItemsQuery(
   query?: FindInvoiceItemsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.invoice.invoiceItems(query),
@@ -52,7 +52,7 @@ export function useInvoiceItemsQuery(
 }
 
 export function useInvoiceItemQuery(invoiceItemId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.invoice.invoiceItem(invoiceItemId), enabled });
 }
@@ -61,7 +61,7 @@ export function useCreditNotesQuery(
   query?: FindCreditNotesQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.invoice.creditNotes(query),
@@ -71,7 +71,7 @@ export function useCreditNotesQuery(
 }
 
 export function useCreditNoteQuery(creditNoteId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.invoice.creditNote(creditNoteId),

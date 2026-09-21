@@ -1,14 +1,14 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   cancelSubscriptionSchema,
   createSubscriptionSchema,
   findSubscriptionsSchema,
-  ListResponseSchema,
   subscriptionParamsSchema,
   subscriptionSchema,
   updateSubscriptionSchema,
-} from '@pinstripe/core/contracts';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const subscriptionsRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

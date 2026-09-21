@@ -1,4 +1,4 @@
-import type { TaxIdVerifyJob } from '@pinstripe/core/queues';
+import type { TaxIdVerifyJob } from '@vxrerp/billing/queues';
 import type { Job } from 'bullmq';
 import type { FastifyInstance } from 'fastify';
 

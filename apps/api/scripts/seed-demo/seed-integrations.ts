@@ -1,7 +1,7 @@
-import { DomainEventTypeEnum } from '@pinstripe/core/contracts';
+import { DomainEventTypeEnum } from '@vxrerp/platform/contracts';
 import type { FastifyInstance } from 'fastify';
 
-const DEMO_WEBHOOK_URL = 'https://webhook.site/pinstripe-demo';
+const DEMO_WEBHOOK_URL = 'https://webhook.site/vxrerp-demo';
 
 export async function seedIntegrations(fastify: FastifyInstance): Promise<void> {
   await fastify.webhookService.createWebhookEndpoint({

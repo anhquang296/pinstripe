@@ -1,5 +1,5 @@
-import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
+import { useVxrErpQueries } from '@react/vxr-erp.provider';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { FindProductsQuery } from '@type/contracts.types';
 
@@ -7,7 +7,7 @@ export function useProductsQuery(
   query?: FindProductsQuery,
   { enabled = true, hasPlaceholder = false }: QueryProps = {},
 ) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({
     ...queries.product.products(query),
@@ -17,7 +17,7 @@ export function useProductsQuery(
 }
 
 export function useProductQuery(productId: string, { enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.product.product(productId), enabled });
 }

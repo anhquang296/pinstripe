@@ -1,0 +1,280 @@
+import DataTable from '@common/components/DataTable';
+import DrawerSection from '@common/components/DrawerSection';
+import EntityDrawer from '@common/components/EntityDrawer';
+import FilterBar from '@common/components/FilterBar';
+import FilterSelect from '@common/components/FilterSelect';
+import PageCard from '@common/components/PageCard';
+import RowActionButton from '@common/components/RowActionButton';
+import StatGrid from '@common/components/StatGrid';
+import StatItem from '@common/components/StatItem';
+import StatusChip from '@common/components/StatusChip';
+import { PAGE_LIMIT } from '@common/constants/pagination';
+import { SEARCH_DEBOUNCE_MS } from '@common/constants/time';
+import type { UserFormData } from '@common/forms/user-form';
+import {
+  userFormDataToPayload,
+  userFormDefaultValues,
+  userFormResolver,
+} from '@common/forms/user-form';
+import { useCursorPagination } from '@common/hooks/useCursorPagination';
+import { useSearchPreservingNavigate } from '@common/hooks/useSearchPreservingNavigate';
+import { formatDate } from '@common/utils/format';
+import { toQuery } from '@common/utils/search-params';
+import UserForm from '@features/admin/components/UserForm';
+import { adminPaths } from '@features/admin/routes/paths';
+import { ArrowRotateLeft, Ban } from '@gravity-ui/icons';
+import { Button } from '@heroui/react';
+import { useCan } from '@libs/permissions';
+import type { UserResponse, UserRole } from '@vxrerp/platform/contracts';
+import { PermissionEnum, UserRoleEnum, UserStatusEnum } from '@vxrerp/platform/contracts';
+import { useCreateUserMutation, useUpdateUserMutation, useUsersQuery } from '@vxrerp/sdk/react';
+import { filter, get, includes, isEmpty, isNull, last, size, toLower, toString } from 'lodash-es';
+import { debounce, useQueryStates } from 'nuqs';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { generatePath, useParams } from 'react-router-dom';
+
+import UserDrawer from './UserDrawer';
+import UserRoleChips from './UserRoleChips';
+import { userSearchParams } from './users.search-params';
+
+const ROLE_FILTER_OPTIONS = [
+  { value: UserRoleEnum.ADMIN, label: 'admin' },
+  { value: UserRoleEnum.MODERATOR, label: 'moderator' },
+  { value: UserRoleEnum.MEMBER, label: 'member' },
+];
+
+export default function UsersPage() {
+  const { userId } = useParams();
+
+  const navigate = useSearchPreservingNavigate();
+
+  const [{ q, ...serverSearch }, setSearch] = useQueryStates(userSearchParams);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const { hasPrevious, advancePage, revertPage } = useCursorPagination({
+    after: serverSearch.after,
+    onPageChange: (after) => {
+      setSearch({ after });
+    },
+  });
+
+  const canManage = useCan(PermissionEnum.USER_MANAGE);
+
+  const { data: users, isPending } = useUsersQuery(
+    { limit: PAGE_LIMIT, ...toQuery(serverSearch) },
+    { hasPlaceholder: true },
+  );
+
+  const { mutateAsync: createUser, isPending: isSaving } = useCreateUserMutation({
+    successMessage: 'Đã tạo người dùng.',
+  });
+
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUserMutation({
+    successMessage: 'Đã cập nhật người dùng.',
+  });
+
+  const form = useForm<UserFormData>({
+    resolver: userFormResolver,
+    defaultValues: userFormDefaultValues,
+  });
+
+  const allRows = get(users, 'data', []);
+  const hasMore = get(users, 'hasMore', false);
+  const keyword = toLower(toString(q));
+
+  const rows = isEmpty(keyword)
+    ? allRows
+    : filter(allRows, (user) => {
+        return includes(toLower(user.email), keyword) || includes(toLower(user.name), keyword);
+      });
+
+  const handleOnSave = form.handleSubmit(async (formData) => {
+    await createUser(userFormDataToPayload(formData));
+    form.reset(userFormDefaultValues);
+    setIsCreateOpen(false);
+  });
+
+  const handleOnRoleSelect = (value: string | null) => {
+    const role = isNull(value) ? null : userSearchParams.role.parse(value);
+
+    setSearch({ role, after: null });
+  };
+
+  const handleOnKeywordChange = (keyword: string) => {
+    setSearch(
+      { q: isEmpty(keyword) ? null : keyword },
+      { limitUrlUpdates: isEmpty(keyword) ? undefined : debounce(SEARCH_DEBOUNCE_MS) },
+    );
+  };
+
+  const handleOnNext = () => {
+    const lastUser = last(rows);
+
+    if (lastUser) {
+      advancePage(lastUser.id);
+    }
+  };
+
+  const handleOnRoleChange = (user: UserResponse, role: UserRole) => {
+    updateUser({ id: user.id, payload: { role } });
+  };
+
+  const handleOnStatusToggle = (user: UserResponse) => {
+    const isActive = user.status === UserStatusEnum.ACTIVE;
+
+    updateUser({
+      id: user.id,
+      payload: { status: isActive ? UserStatusEnum.DISABLED : UserStatusEnum.ACTIVE },
+    });
+  };
+
+  const handleOnRowAction = (user: UserResponse) => {
+    navigate(generatePath(adminPaths.USER, { userId: user.id }));
+  };
+
+  return (
+    <PageCard
+      title="Users"
+      description="Người vận hành dashboard. Không xoá user: hạ quyền hay vô hiệu hoá đi qua cập nhật, để luật admin active cuối cùng còn giữ được."
+      actions={
+        canManage ? (
+          <Button
+            onPress={() => {
+              setIsCreateOpen(true);
+            }}
+          >
+            Tạo người dùng
+          </Button>
+        ) : null
+      }
+    >
+      <StatGrid>
+        <StatItem label="Người dùng trang này" value={size(rows)} />
+        <StatItem label="Admin" value={size(filter(rows, { role: UserRoleEnum.ADMIN }))} />
+        <StatItem label="Moderator" value={size(filter(rows, { role: UserRoleEnum.MODERATOR }))} />
+        <StatItem
+          label="Đang vô hiệu hoá"
+          value={size(filter(rows, { status: UserStatusEnum.DISABLED }))}
+        />
+      </StatGrid>
+
+      <DataTable
+        toolbar={
+          <FilterBar
+            itemCount={size(rows)}
+            searchValue={q}
+            searchPlaceholder="Tìm theo email hoặc tên"
+            onSearchChange={handleOnKeywordChange}
+          >
+            <FilterSelect
+              label="Vai trò"
+              placeholder="Tất cả vai trò"
+              options={ROLE_FILTER_OPTIONS}
+              selectedValue={serverSearch.role}
+              onSelect={handleOnRoleSelect}
+            />
+          </FilterBar>
+        }
+        label="Danh sách người dùng"
+        rows={rows}
+        isLoading={isPending}
+        hasMore={hasMore}
+        hasPrevious={hasPrevious}
+        emptyMessage="Chưa có người dùng nào."
+        onRowAction={handleOnRowAction}
+        onNext={handleOnNext}
+        onPrevious={revertPage}
+        columns={[
+          {
+            key: 'name',
+            label: 'Người dùng',
+            isRowHeader: true,
+            renderCell: (user) => {
+              return (
+                <div className="flex flex-col">
+                  <span className="font-medium">{user.name}</span>
+                  <span className="text-app-label font-mono text-[11px]">{user.email}</span>
+                </div>
+              );
+            },
+          },
+          {
+            key: 'role',
+            label: 'Vai trò',
+            renderCell: (user) => {
+              return (
+                <UserRoleChips
+                  role={user.role}
+                  isDisabled={!canManage || isUpdating}
+                  onRoleChange={(role) => {
+                    handleOnRoleChange(user, role);
+                  }}
+                />
+              );
+            },
+          },
+          {
+            key: 'status',
+            label: 'Trạng thái',
+            renderCell: (user) => {
+              return <StatusChip status={user.status} />;
+            },
+          },
+          {
+            key: 'createdAt',
+            label: 'Tạo lúc',
+            renderCell: (user) => {
+              return formatDate(user.createdAt);
+            },
+          },
+          {
+            key: 'actions',
+            label: 'Thao tác',
+            align: 'end',
+            renderCell: (user) => {
+              if (!canManage) {
+                return '—';
+              }
+
+              const isActive = user.status === UserStatusEnum.ACTIVE;
+
+              return (
+                <RowActionButton
+                  label={isActive ? 'Vô hiệu hoá' : 'Bật lại'}
+                  icon={isActive ? <Ban /> : <ArrowRotateLeft />}
+                  isDanger={isActive}
+                  isDisabled={isUpdating}
+                  onPress={() => {
+                    handleOnStatusToggle(user);
+                  }}
+                />
+              );
+            },
+          },
+        ]}
+      />
+
+      <EntityDrawer
+        isOpen={isCreateOpen}
+        title="Tạo người dùng"
+        description="Mật khẩu ban đầu tối thiểu 12 ký tự; người dùng đổi lại sau khi đăng nhập."
+        onOpenChange={setIsCreateOpen}
+      >
+        <DrawerSection title="Thông tin người dùng">
+          <UserForm form={form} isSaving={isSaving} onSave={handleOnSave} />
+        </DrawerSection>
+      </EntityDrawer>
+
+      {userId ? (
+        <UserDrawer
+          userId={userId}
+          onClose={() => {
+            navigate(adminPaths.USERS);
+          }}
+        />
+      ) : null}
+    </PageCard>
+  );
+}

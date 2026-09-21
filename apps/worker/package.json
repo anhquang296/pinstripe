@@ -1,11 +1,11 @@
 {
-  "name": "@pinstripe/worker",
+  "name": "@vxrerp/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "dev": "concurrently -n outbox,events,ledger,billing,webhook,dunning,notification -c blue,magenta,cyan,yellow,green,red,gray\"WORKFLOW_NAME=outbox tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=domain-event WORKER_PORT=3002 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=ledger WORKER_PORT=3003 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=billing WORKER_PORT=3004 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=webhook WORKER_PORT=3005 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=dunning WORKER_PORT=3006 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=notification WORKER_PORT=3007 tsx watch --include '../../packages/core/dist/**/*.js' --env-file=../../.env src/worker.ts\"",
+    "dev": "concurrently -n outbox,events,ledger,billing,webhook,dunning,notification -c blue,magenta,cyan,yellow,green,red,gray\"WORKFLOW_NAME=outbox tsx watch --include '../../packages/platform/dist/**/*.js' --include '../../packages/modules/*/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=domain-event WORKER_PORT=3002 tsx watch --include '../../packages/platform/dist/**/*.js' --include '../../packages/modules/*/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=ledger WORKER_PORT=3003 tsx watch --include '../../packages/platform/dist/**/*.js' --include '../../packages/modules/*/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=billing WORKER_PORT=3004 tsx watch --include '../../packages/platform/dist/**/*.js' --include '../../packages/modules/*/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=webhook WORKER_PORT=3005 tsx watch --include '../../packages/platform/dist/**/*.js' --include '../../packages/modules/*/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=dunning WORKER_PORT=3006 tsx watch --include '../../packages/platform/dist/**/*.js' --include '../../packages/modules/*/dist/**/*.js' --env-file=../../.env src/worker.ts\" \"WORKFLOW_NAME=notification WORKER_PORT=3007 tsx watch --include '../../packages/platform/dist/**/*.js' --include '../../packages/modules/*/dist/**/*.js' --env-file=../../.env src/worker.ts\"",
     "start": "node dist/worker.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
@@ -13,22 +13,24 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@pinstripe/core": "workspace:*",
     "@sinclair/typebox": "^0.34.13",
+    "@vxrerp/billing": "workspace:*",
+    "@vxrerp/crm": "workspace:*",
+    "@vxrerp/platform": "workspace:*",
     "bullmq": "^5.34.6",
     "fastify": "^5.2.0",
     "ioredis": "^5.4.2",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@pinstripe/tsconfig": "workspace:*",
+    "@vxrerp/tsconfig": "workspace:*",
     "@types/node": "^22.10.2",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "concurrently": "^9.1.2",
-    "@pinstripe/eslint-config": "workspace:*",
+    "@vxrerp/eslint-config": "workspace:*",
     "eslint": "^9.39.4",
     "@types/lodash": "^4.17.13"
   }

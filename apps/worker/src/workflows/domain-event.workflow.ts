@@ -1,5 +1,5 @@
-import type { DomainEventDispatchJob } from '@pinstripe/core/queues';
-import { DOMAIN_EVENT_QUEUE } from '@pinstripe/core/queues';
+import type { DomainEventDispatchJob } from '@vxrerp/platform/queues';
+import { DOMAIN_EVENT_QUEUE } from '@vxrerp/platform/queues';
 import { DomainEventDispatchProcessor } from '@workflows/processors/domain-event-dispatch.processor';
 import type { Workflow } from '@workflows/workflow';
 import type { Job } from 'bullmq';

@@ -1,14 +1,14 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { Type } from '@sinclair/typebox';
+import { ApiResponse } from '@utils/api-response';
 import {
   createCreditNoteSchema,
   creditNoteParamsSchema,
   creditNoteSchema,
   findCreditNotesSchema,
-  ListResponseSchema,
   voidCreditNoteSchema,
-} from '@pinstripe/core/contracts';
-import { Type } from '@sinclair/typebox';
-import { ApiResponse } from '@utils/api-response';
+} from '@vxrerp/billing/contracts';
+import { ListResponseSchema } from '@vxrerp/platform/contracts';
 
 export const creditNotesRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.post(

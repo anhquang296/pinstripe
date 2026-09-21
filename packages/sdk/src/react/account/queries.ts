@@ -1,9 +1,9 @@
-import { usePinstripeQueries } from '@react/pinstripe.provider';
 import type { QueryProps } from '@react/react-query.types';
+import { useVxrErpQueries } from '@react/vxr-erp.provider';
 import { useQuery } from '@tanstack/react-query';
 
 export function useAccountQuery({ enabled = true }: QueryProps = {}) {
-  const queries = usePinstripeQueries();
+  const queries = useVxrErpQueries();
 
   return useQuery({ ...queries.account.account, enabled });
 }
